@@ -1,0 +1,114 @@
+
+
+#ifndef __VNETS_SES_H_
+#define __VNETS_SES_H_
+
+#include "utl/mbuf_utl.h"
+#include "../../inc/vnet_conf.h"
+
+#ifdef __cplusplus
+    extern "C" {
+#endif /* __cplusplus */
+
+typedef enum
+{
+    VNETS_SES_PROPERTY_DOMAIN_ID = 0,
+    VNETS_SES_PROPERTY_IFINDEX,
+    VNETS_SES_PROPERTY_TP_ID,             /* TP_ID */
+    VNETS_SES_PROPERTY_PEER_DOMAIN_ID,    /* 网络序 */
+    VNETS_SES_PROPERTY_PEER_SES_ID,       /* 网络序 */
+    VNETS_SES_PROPERTY_SES_COOKIE,        /* 记录为用户分配的Cookie，用于判断是否合法的用户 */
+    VNETS_SES_PROPERTY_CLIENT_ADDR,       /* 客户端的私网IP地址,网络序 */
+    VNETS_SES_PROPERTY_CLIENT_MASK,       /* 客户端的私网IP掩码,网络序 */
+
+    /* phy context */
+    VNETS_SES_PROPERTY_PHY_TYPE,
+    VNETS_SES_PROPERTY_PHY_INFO_1,
+    VNETS_SES_PROPERTY_PHY_INFO_2,
+    VNETS_SES_PROPERTY_PHY_INFO_3,
+
+    VNETS_SES_PROPERTY_MAX  /* 这个属性放在最后，其他的属性都应该放在它的前面 */
+}VNETS_SES_PROPERTY_E;
+
+typedef struct
+{
+    HANDLE ahProperty[VNETS_SES_PROPERTY_MAX];
+    CHAR szUserName[VNET_CONF_MAX_USER_NAME_LEN + 1];
+    CHAR szAlias[VNET_CONF_MAX_ALIAS_LEN + 1];
+    CHAR szNetName[VNET_CONF_MAX_NET_NAME_LEN + 1];
+    MAC_ADDR_S stPeerMacAddr;
+}VNETS_SES_PARAM_S;
+
+typedef VOID (*PF_VNETS_SES_DEL_NOTIFY)(IN UINT uiSesId, IN VNETS_SES_PARAM_S *pstParam);
+typedef BS_WALK_RET_E (*PF_VNETS_SES_WALK_FUNC)(IN UINT uiSesId, IN VNETS_SES_PARAM_S *pstParam, IN HANDLE hUserHandle);
+
+BS_STATUS VNETS_Ses_Init();
+UINT VNETS_Ses_Create
+(
+    IN CHAR *pcUserName,
+    IN MAC_ADDR_S *pstClientMac,
+    IN UINT uiPeerSesId,
+    IN MBUF_S *pstMbuf,
+    OUT BOOL_T *pbCreated   /* 是否新创建的,还是原来已经存在 */
+);
+BS_STATUS VNETS_Ses_GetUserName(IN UINT uiSesId, OUT CHAR szUserName[VNET_CONF_MAX_USER_NAME_LEN + 1]);
+BOOL_T VNETS_Ses_IsExist(IN UINT uiSesId);
+VOID VNETS_Ses_Del(IN UINT uiSesId);
+VOID VNETS_Ses_Refresh(IN UINT uiSesId);
+BS_STATUS VNETS_Ses_SetProperty
+(
+    IN UINT uiSesId,
+    IN VNETS_SES_PROPERTY_E ePropertyIndex,
+    IN HANDLE hValue
+);
+BS_STATUS VNETS_Ses_GetProperty
+(
+    IN UINT uiSesId,
+    IN VNETS_SES_PROPERTY_E ePropertyIndex,
+    OUT HANDLE *phValue
+);
+BS_STATUS VNETS_Ses_GetAllProperty
+(
+    IN UINT uiSesId,
+    OUT HANDLE ahValue[VNETS_SES_PROPERTY_MAX]
+);
+
+BS_STATUS VNETS_Ses_GetParam
+(
+    IN UINT uiSesId,
+    OUT VNETS_SES_PARAM_S *pstParam
+);
+
+BS_STATUS VNETS_Ses_GetPeerMac
+(
+    IN UINT uiSesId,
+    OUT MAC_ADDR_S *pstMac
+);
+
+BS_STATUS VNETS_Ses_SetAlias
+(
+    IN UINT uiSesId,
+    IN CHAR *pcAlias
+);
+
+BS_STATUS VNETS_Ses_SetNetName
+(
+    IN UINT uiSesId,
+    IN CHAR *pcName
+);
+
+BS_STATUS VNETS_Ses_GetNetName
+(
+    IN UINT uiSesId,
+    OUT CHAR szNetName[VNET_CONF_MAX_NET_NAME_LEN + 1]
+);
+
+VOID VNETS_Ses_Walk(IN PF_VNETS_SES_WALK_FUNC pfWalkFunc, IN HANDLE hUserHandle);
+
+#ifdef __cplusplus
+    }
+#endif /* __cplusplus */
+
+#endif /*__VNETS_SES_H_*/
+
+

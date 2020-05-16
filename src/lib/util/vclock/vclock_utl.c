@@ -1,0 +1,478 @@
+/******************************************************************************
+* Copyright (C), Xingang.Li
+* Author:      LiXingang  Version: 1.0  Date: 2008-10-9
+* Description: 
+* History:     
+******************************************************************************/
+/* retcode所需要的宏 */
+#define RETCODE_FILE_NUM RETCODE_FILE_NUM_VCLOCK
+    
+#include "bs.h"
+
+#include "utl/mutex_utl.h"
+#include "utl/vclock_utl.h"
+
+static void _VCLOCK_Lock(VCLOCK_INSTANCE_S *pstVClockInstance)
+{
+    if (pstVClockInstance->create_lock) {
+        MUTEX_P(&pstVClockInstance->lock);
+    }
+}
+
+static void _VCLOCK_UnLock(VCLOCK_INSTANCE_S *pstVClockInstance)
+{
+    if (pstVClockInstance->create_lock) {
+        MUTEX_V(&pstVClockInstance->lock);
+    }
+}
+
+/* function */
+static VOID _VCLOCK_Timer_Add
+(
+    IN VCLOCK_INSTANCE_S *pstVClockInstance,
+    IN VCLOCK_NODE_S *pstNode,
+    IN UINT uiTick  /* 多少个Tick后触发 */
+)
+{
+    UINT ulLevel = 0;
+    UINT ulTickTmp = uiTick;
+    DLL_HEAD_S *head;
+
+    DLL_DelIfInList(&pstNode->stDllNode);  /* 从原来链表中摘除 */
+
+    pstNode->uiTriggerTick = pstVClockInstance->uiCurrentTick + uiTick;
+
+    while ((ulTickTmp / _VCLOCK_TIMER_SCALE_PER_LEVEL) != 0)
+    {
+        ulLevel++;
+        ulTickTmp = ulTickTmp / _VCLOCK_TIMER_SCALE_PER_LEVEL;
+    }
+
+    BS_DBGASSERT(ulLevel < _VCLOCK_TIMER_TOTLE_LEVEL);
+
+    ulTickTmp += pstVClockInstance->ulCurrentLevelTick[ulLevel];
+    if (ulTickTmp >= _VCLOCK_TIMER_SCALE_PER_LEVEL)
+    {
+        ulTickTmp -= _VCLOCK_TIMER_SCALE_PER_LEVEL;
+    }
+
+    head = &pstVClockInstance->stTimerLevel[ulLevel][ulTickTmp];
+    DLL_ADD_TO_HEAD(head, &pstNode->stDllNode);
+}
+
+static inline int _VCLOCK_AddTimer
+(
+    IN VCLOCK_INSTANCE_S *pstVClockInstance,
+    IN VCLOCK_NODE_S *pstNode,
+    IN UINT first_tick,
+    IN UINT tick,
+    IN UINT flag,
+    IN PF_TIME_OUT_FUNC pfFunc
+)
+{
+    BS_DBGASSERT(NULL != pfFunc);
+    BS_DBGASSERT(0 != tick);
+    BS_DBGASSERT(NULL != pstNode);
+
+    DLL_NODE_INIT(&pstNode->stDllNode);
+
+    pstNode->flag = flag;
+    pstNode->ulTick = tick;
+    pstNode->pfFunc = pfFunc;
+
+    pstVClockInstance->ulNodeCount ++;
+
+    /* 加1是为了避免当前tick马上就过去了 */
+    _VCLOCK_Timer_Add(pstVClockInstance, pstNode, first_tick + 1); 
+
+    return 0;
+}
+
+static inline BS_STATUS _VCLOCK_DelTimer ( VCLOCK_INSTANCE_S *pstVClockInstance,
+        HANDLE hTimer)
+{
+    VCLOCK_NODE_S *pstNode = (VCLOCK_NODE_S *)hTimer;
+
+    if (0 == hTimer) {
+        RETURN(BS_NO_SUCH);
+    }
+
+    if (DLL_IN_LIST(&pstNode->stDllNode)) {
+        DLL_DEL(DLL_GET_HEAD(pstNode), pstNode);
+        pstVClockInstance->ulNodeCount --;
+    }
+
+    return BS_OK;
+}
+
+static inline BS_STATUS _VCLOCK_Pause(IN VCLOCK_INSTANCE_S *pstVClockInstance,
+        IN HANDLE hTimer)
+{
+    VCLOCK_NODE_S *pstNode;
+
+    pstNode = (VCLOCK_NODE_S*)hTimer;
+
+    DLL_DelIfInList(&pstNode->stDllNode);
+
+    pstNode->flag |= TIMER_FLAG_PAUSE;
+
+    return BS_OK;    
+}
+
+static inline BS_STATUS _VCLOCK_Resume
+(
+    IN VCLOCK_INSTANCE_S *pstVClockInstance,
+    IN HANDLE hTimer,
+    IN UINT first_tick 
+)
+{
+    VCLOCK_NODE_S *pstNode;
+
+    pstNode = (VCLOCK_NODE_S*)hTimer;
+
+    if (! (pstNode->flag & TIMER_FLAG_PAUSE)) {
+        return BS_PROCESSED;
+    }
+
+    pstNode->flag &= ~(UINT)TIMER_FLAG_PAUSE;
+
+    _VCLOCK_Timer_Add(pstVClockInstance, pstNode, first_tick);
+
+    return BS_OK;
+}
+
+static inline UINT _VCLOCK_GetTickLeft
+(
+    IN VCLOCK_INSTANCE_S *pstVClockInstance,
+    IN HANDLE hTimer
+)
+{
+    UINT ulResTick;
+     VCLOCK_NODE_S *pstNode;
+
+    pstNode = (VCLOCK_NODE_S*)hTimer;
+
+    ulResTick = pstNode->uiTriggerTick - pstVClockInstance->uiCurrentTick;
+
+    return ulResTick;
+}
+
+static inline BS_STATUS _VCLOCK_GetInfo
+(
+    IN VCLOCK_INSTANCE_S *pstVClockInstance,
+    IN HANDLE hTimer,
+    OUT TIMER_INFO_S *pstTimerInfo
+)
+{
+    VCLOCK_NODE_S *pstNode;
+
+    BS_DBGASSERT(NULL != pstTimerInfo);
+
+    pstNode = (VCLOCK_NODE_S*)hTimer;
+
+    pstTimerInfo->ulTime = pstNode->ulTick;
+    pstTimerInfo->flag = pstNode->flag;
+    pstTimerInfo->pfFunc = pstNode->pfFunc;
+
+    return BS_OK;
+}
+
+static inline BS_STATUS _VCLOCK_RestartWithTick
+(
+    IN VCLOCK_INSTANCE_S *pstVClockInstance,
+    IN HANDLE hTimer,
+    IN UINT first_tick,
+    IN UINT tick
+)
+{
+    VCLOCK_NODE_S *pstNode;
+
+    pstNode = (VCLOCK_NODE_S*)hTimer;
+
+    pstNode->ulTick = tick;
+    _VCLOCK_Timer_Add(pstVClockInstance, pstNode, first_tick);
+
+    return BS_OK;
+}
+
+int VCLOCK_InitInstance(OUT VCLOCK_INSTANCE_S *pstVClockInstance,
+        IN BOOL_T bCreateLock)
+{
+    int i, j;
+
+    memset(pstVClockInstance, 0, sizeof(VCLOCK_INSTANCE_S));
+    if (bCreateLock) {
+        MUTEX_Init(&pstVClockInstance->lock);
+    }
+
+    pstVClockInstance->create_lock = bCreateLock;
+
+    for (i=0; i<_VCLOCK_TIMER_TOTLE_LEVEL; i++)
+    {
+        for (j=0; j<_VCLOCK_TIMER_SCALE_PER_LEVEL; j++)
+        {
+            DLL_INIT(&pstVClockInstance->stTimerLevel[i][j]);
+        }
+    }
+
+    return 0;
+}
+
+void VCLOCK_FiniInstance(IN VCLOCK_INSTANCE_S *pstVClockInstance)
+{
+    if (pstVClockInstance->create_lock) {
+        MUTEX_Final(&pstVClockInstance->lock);
+    }
+}
+
+/* 推荐使用VCLOCK_InitInstance */
+VCLOCK_INSTANCE_HANDLE VCLOCK_CreateInstance(BOOL_T bCreateLock)
+{
+    VCLOCK_INSTANCE_S  *vclock;
+
+    vclock = MEM_ZMalloc(sizeof(VCLOCK_INSTANCE_S));
+    if (NULL == vclock) {
+        return NULL;
+    }
+
+    VCLOCK_InitInstance(vclock, bCreateLock);
+
+    return vclock;
+}
+
+void VCLOCK_DeleteInstance(VCLOCK_INSTANCE_HANDLE hVClock)
+{
+    VCLOCK_FiniInstance(hVClock);
+    MEM_Free(hVClock);
+}
+
+int VCLOCK_AddTimer
+(
+    IN VCLOCK_INSTANCE_S *pstVClockInstance,
+    IN VCLOCK_NODE_S *vclock_node,
+    IN UINT first_tick, /* 第一次超时时间 */
+    IN UINT tick,      /* 后续超时时间 */
+    IN UINT flag,
+    IN PF_TIME_OUT_FUNC pfFunc,
+    IN USER_HANDLE_S *pstUserHandle
+)
+{
+    int ret;
+
+    BS_DBGASSERT(0 != pstVClockInstance);
+
+    DLL_NODE_INIT(&vclock_node->stDllNode);
+
+    if (pstUserHandle) {
+        vclock_node->stUserHandle = *pstUserHandle;
+    }
+
+    _VCLOCK_Lock(pstVClockInstance);
+    ret = _VCLOCK_AddTimer(pstVClockInstance, vclock_node, first_tick,
+            tick, flag, pfFunc);
+    _VCLOCK_UnLock(pstVClockInstance);
+
+    return ret;
+}
+
+BS_STATUS VCLOCK_DelTimer(VCLOCK_INSTANCE_S *pstVClockInstance,
+        VCLOCK_NODE_S *vclock_node)
+{
+    BS_STATUS eRet;
+
+    BS_DBGASSERT(0 != pstVClockInstance);
+    BS_DBGASSERT(0 != vclock_node);
+
+    _VCLOCK_Lock(pstVClockInstance);
+    eRet = _VCLOCK_DelTimer(pstVClockInstance, vclock_node);
+    _VCLOCK_UnLock(pstVClockInstance);
+
+    return eRet;
+}
+
+VCLOCK_HANDLE VCLOCK_CreateTimer
+(
+    IN VCLOCK_INSTANCE_HANDLE hVClockInstanceId,
+    IN UINT first_tick, /* 第一次超时时间 */
+    IN UINT tick,      /* 后续超时时间 */
+    IN UINT flag,
+    IN PF_TIME_OUT_FUNC pfFunc,
+    IN USER_HANDLE_S *pstUserHandle
+)
+{
+    VCLOCK_NODE_S *pstNode;
+
+    pstNode = MEM_ZMalloc(sizeof(VCLOCK_NODE_S));
+    if (pstNode) {
+        VCLOCK_AddTimer(hVClockInstanceId, pstNode, first_tick, tick,
+                flag, pfFunc, pstUserHandle);
+    }
+
+    return pstNode;
+}
+
+void VCLOCK_DestroyTimer(IN VCLOCK_INSTANCE_S *pstVClockInstance,
+       IN VCLOCK_HANDLE hTimer)
+{
+    VCLOCK_DelTimer(pstVClockInstance, hTimer);
+    MEM_Free(hTimer);
+}
+
+BS_STATUS VCLOCK_Pause(IN VCLOCK_INSTANCE_S *pstVClockInstance,
+        IN VCLOCK_HANDLE hTimer)
+{
+    BS_STATUS eRet;
+
+    BS_DBGASSERT(0 != pstVClockInstance);
+    BS_DBGASSERT(0 != hTimer);
+
+    _VCLOCK_Lock(pstVClockInstance);
+    eRet = _VCLOCK_Pause(pstVClockInstance, hTimer);
+    _VCLOCK_UnLock(pstVClockInstance);
+
+    return eRet;
+}
+
+BS_STATUS VCLOCK_Resume(IN VCLOCK_INSTANCE_S *pstVClockInstance,
+        IN VCLOCK_HANDLE hTimer, IN UINT first_tick)
+{
+    BS_STATUS eRet;
+
+    BS_DBGASSERT(0 != pstVClockInstance);
+    BS_DBGASSERT(0 != hTimer);
+
+    _VCLOCK_Lock(pstVClockInstance);
+    eRet = _VCLOCK_Resume(pstVClockInstance, hTimer, first_tick);
+    _VCLOCK_UnLock(pstVClockInstance);
+
+    return eRet;
+}
+
+BS_STATUS VCLOCK_GetInfo(IN VCLOCK_INSTANCE_S *pstVClockInstance,
+        IN VCLOCK_HANDLE hTimer, OUT TIMER_INFO_S *pstTimerInfo)
+{
+    BS_STATUS eRet;
+
+    BS_DBGASSERT(0 != pstVClockInstance);
+    BS_DBGASSERT(0 != hTimer);
+
+    _VCLOCK_Lock(pstVClockInstance);
+    eRet = _VCLOCK_GetInfo(pstVClockInstance, hTimer, pstTimerInfo);
+    _VCLOCK_UnLock(pstVClockInstance);
+
+    return eRet;
+}
+
+BS_STATUS VCLOCK_RestartWithTick
+(
+    IN VCLOCK_INSTANCE_S *pstVClockInstance,
+    IN VCLOCK_HANDLE hTimer,
+    IN UINT first_tick,
+    IN UINT tick
+)
+{
+    BS_STATUS eRet;
+
+    BS_DBGASSERT(0 != pstVClockInstance);
+    BS_DBGASSERT(0 != hTimer);
+
+    _VCLOCK_Lock(pstVClockInstance);
+    eRet = _VCLOCK_RestartWithTick(pstVClockInstance, hTimer, first_tick, tick);
+    _VCLOCK_UnLock(pstVClockInstance);
+
+    return eRet;
+}
+
+BS_STATUS VCLOCK_Refresh(IN VCLOCK_INSTANCE_HANDLE hVClockInstance,
+        IN VCLOCK_HANDLE hTimer)
+{
+    VCLOCK_NODE_S *pstNode;
+
+    BS_DBGASSERT(NULL != hTimer);
+
+    pstNode = (VCLOCK_NODE_S*)hTimer;
+
+    return VCLOCK_RestartWithTick(hVClockInstance, hTimer,
+            pstNode->ulTick, pstNode->ulTick);
+}
+
+
+/* 得到还有多少Tick就超时了 */
+UINT VCLOCK_GetTickLeft(IN VCLOCK_INSTANCE_HANDLE hVClockInstance,
+        IN VCLOCK_HANDLE hTimer)
+{
+    VCLOCK_INSTANCE_S *pstVClockInstance = (VCLOCK_INSTANCE_S *)hVClockInstance;
+    UINT ulTick;
+
+    BS_DBGASSERT(0 != hVClockInstance);
+    BS_DBGASSERT(0 != hTimer);
+
+    _VCLOCK_Lock(pstVClockInstance);
+    ulTick = _VCLOCK_GetTickLeft(pstVClockInstance, hTimer);
+    _VCLOCK_UnLock(pstVClockInstance);
+
+    return ulTick;
+}
+
+/* 触发一次tick */
+BS_STATUS VCLOCK_Step(IN VCLOCK_INSTANCE_HANDLE hVClockInstance)
+{
+    VCLOCK_NODE_S *pstNode, *pstNodeTmp;
+    INT i;
+    VCLOCK_INSTANCE_S *pstVClockInstance = (VCLOCK_INSTANCE_S *)hVClockInstance;
+    DLL_HEAD_S *dll_head;
+    int index;
+
+    _VCLOCK_Lock(pstVClockInstance);
+
+    pstVClockInstance->uiCurrentTick ++;
+
+    for (i=0; i<_VCLOCK_TIMER_TOTLE_LEVEL; i++) {
+        pstVClockInstance->ulCurrentLevelTick[i]++;
+
+        if (pstVClockInstance->ulCurrentLevelTick[i] >= _VCLOCK_TIMER_SCALE_PER_LEVEL) {
+            pstVClockInstance->ulCurrentLevelTick[i] = 0;
+        } else {
+            break;
+        }
+    }
+
+    if (i >= _VCLOCK_TIMER_TOTLE_LEVEL) {
+        i = _VCLOCK_TIMER_TOTLE_LEVEL - 1;
+    }
+
+    /* 将处于高级别的Timer拿到低级别 */
+    for (; i>0; i--) {
+        index = pstVClockInstance->ulCurrentLevelTick[i];
+        dll_head = &pstVClockInstance->stTimerLevel[i][index];
+        DLL_SAFE_SCAN(dll_head, pstNode, pstNodeTmp) {
+            _VCLOCK_Timer_Add(pstVClockInstance, pstNode,
+                    pstNode->uiTriggerTick - pstVClockInstance->uiCurrentTick);
+        }
+    }
+
+    /* 遍历最低级别,对超时节点进行触发 */
+    while (1) {
+        index = pstVClockInstance->ulCurrentLevelTick[0];
+        dll_head = &pstVClockInstance->stTimerLevel[0][index];
+        pstNode = DLL_Get(dll_head);
+        if (NULL == pstNode) {
+            break;
+        }
+
+        if (pstNode->flag & TIMER_FLAG_CYCLE) {
+            _VCLOCK_Timer_Add(pstVClockInstance, pstNode, pstNode->ulTick);
+        } else {
+            pstVClockInstance->ulNodeCount --;
+        }
+
+        _VCLOCK_UnLock(pstVClockInstance);
+        pstNode->pfFunc(pstNode, &pstNode->stUserHandle);
+        _VCLOCK_Lock(pstVClockInstance);
+    }
+    
+    _VCLOCK_UnLock(pstVClockInstance);
+
+	return BS_OK;
+}
+

@@ -1,0 +1,12 @@
+INCLUDE(${CMAKE_SOURCE_DIR}/my_cmake_def.txt)
+set(SRC "")
+aux_source_directory(./ SRC)
+aux_source_directory(./http_log SRC)
+aux_source_directory(./tcp_log SRC)
+aux_source_directory(./alert_count SRC)
+aux_source_directory(./conf SRC)
+aux_source_directory(./cmd SRC)
+aux_source_directory(./comp SRC)
+set(NAME logagent)
+INCLUDE(../my_libapp.txt)
+

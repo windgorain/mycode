@@ -1,0 +1,609 @@
+/******************************************************************************
+* Copyright (C), Xingang.Li
+* Author:      LiXingang  Version: 1.0  Date: 2014-11-16
+* Description: node id pool
+* History:     
+******************************************************************************/
+#include "bs.h"
+        
+#include "utl/net.h"
+#include "utl/num_utl.h"
+#include "utl/nap_utl.h"
+
+#include "nap_inner.h"
+
+/* 必须紧邻在用户数据之前 */
+typedef struct
+{
+    UINT ulID;
+}_NAP_NODE_COMMON_S;
+
+static BS_STATUS nap_CommonInit
+(
+    INOUT _NAP_HEAD_COMMON_S *pstCommonHead,
+    IN UINT uiMaxNum,
+    IN UINT uiNodeSize
+)
+{
+    UCHAR ucIndexBits;
+    UCHAR ucSpaceBits;
+    UINT uiSpaceMask;
+
+    pstCommonHead->uiMaxNum = uiMaxNum;
+    if (uiMaxNum == 0) {
+        pstCommonHead->uiMaxNum = 0x7fffffff;
+    }
+
+    pstCommonHead->uiNodeSize = uiNodeSize;
+
+    ucIndexBits = NUM_NeedBits(pstCommonHead->uiMaxNum);
+
+    ucSpaceBits = 32 - ucIndexBits;
+
+    uiSpaceMask = PREFIX_2_MASK(ucSpaceBits);
+    
+    pstCommonHead->ulIndexMask = ~uiSpaceMask;
+
+    pstCommonHead->hLBitmap = LBitMap_Create();
+    if (NULL == pstCommonHead->hLBitmap) {
+        return BS_NO_MEMORY;
+    }
+
+    return BS_OK;
+}
+
+static VOID nap_CommonFini(INOUT _NAP_HEAD_COMMON_S *pstCommonHead)
+{
+    if (NULL != pstCommonHead->hLBitmap)
+    {
+        LBitMap_Destory(pstCommonHead->hLBitmap);
+        pstCommonHead->hLBitmap = NULL;
+    }
+    
+    if (NULL != pstCommonHead->stSeqOpt.seq_array)
+    {
+        MEM_Free(pstCommonHead->stSeqOpt.seq_array);
+        pstCommonHead->stSeqOpt.seq_array = NULL;
+    }
+}
+
+static inline UINT nap_AllocIndex(IN _NAP_HEAD_COMMON_S *pstCommonHead)
+{
+    UINT uiIndex;
+
+    if (BS_OK != LBitMap_AllocByRange(pstCommonHead->hLBitmap,
+                0, 0x7fffffff, &uiIndex)) {
+        return NAP_INVALID_INDEX;
+    }
+
+    return uiIndex;
+}
+
+static inline UINT nap_AllocSpecIndex(IN _NAP_HEAD_COMMON_S *pstCommonHead, IN UINT uiSpecIndex)
+{
+    if (LBitMap_IsBitSetted(pstCommonHead->hLBitmap, uiSpecIndex)) {
+        return NAP_INVALID_INDEX;
+    }
+
+    if (BS_OK != LBitMap_SetBit(pstCommonHead->hLBitmap, uiSpecIndex)) {
+        return NAP_INVALID_INDEX;
+    }
+
+    return uiSpecIndex;
+}
+
+static inline VOID nap_FreeIndex(IN _NAP_HEAD_COMMON_S *pstCommonHead, IN UINT uiIndex)
+{
+    LBitMap_ClrBit(pstCommonHead->hLBitmap, uiIndex);
+}
+
+static UINT64 nap_CacleIDByIndex(IN _NAP_HEAD_COMMON_S *pstCommonHead, IN UINT uiIndex)
+{
+    UINT uiPos;
+    UINT64 ulTmp;
+    UINT64 ulID = uiIndex;
+
+    if (TRUE == pstCommonHead->stSeqOpt.bEnable) {
+        uiPos = uiIndex;
+        uiPos = uiPos % pstCommonHead->stSeqOpt.uiSeqArrayCount;
+        ulTmp = pstCommonHead->stSeqOpt.seq_array[uiPos] ++;
+        ulTmp = ulTmp << pstCommonHead->stSeqOpt.ucSeqStartIndex;
+        ulTmp &= pstCommonHead->stSeqOpt.ulSeqMask;
+        ulID &= (~pstCommonHead->stSeqOpt.ulSeqMask);
+        ulID |= ulTmp;
+    } 
+
+    return ulID | 0x80000000;
+}
+
+static inline UINT nap_CacleIndexByID(IN _NAP_HEAD_COMMON_S *pstCommonHead, IN UINT64 ulID)
+{
+    return (UINT)(ulID & pstCommonHead->ulIndexMask);
+}
+
+static inline BOOL_T nap_IsIndexSetted(_NAP_HEAD_COMMON_S *pstCommonHead, UINT index)
+{
+    return LBitMap_IsBitSetted(pstCommonHead->hLBitmap, index);
+}
+
+static BS_STATUS nap_SetSeqMask(IN HANDLE hNAPHandle, IN UINT64 ulSeqMask)
+{
+    UINT i;
+    UCHAR ucSeqStartIndex = 0;
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
+
+    for (i=0; i<64; i++) {
+        if (ulSeqMask & 1ULL << i) {
+            ucSeqStartIndex = i;
+            break;
+        }
+    }
+
+    if ((ucSeqStartIndex == 0) || (ucSeqStartIndex == 63)) {
+        BS_DBGASSERT(0);
+        return BS_BAD_PARA;
+    }
+
+    pstCommonHead->stSeqOpt.ulSeqMask = ulSeqMask;
+    pstCommonHead->stSeqOpt.ucSeqStartIndex = ucSeqStartIndex;
+
+    return BS_OK;
+}
+
+NAP_HANDLE NAP_Create
+(
+    IN NAP_TYPE_E enType,
+    IN UINT uiMaxNum, /*0表示动态参数,数组类型不支持0*/
+    IN UINT uiNodeSize,
+    IN UINT uiFlag
+)
+{
+    _NAP_HEAD_COMMON_S *pstHeadCommon = NULL;
+    UINT uiNapNodeSize;
+
+    if (uiMaxNum > 0x7fffffff) {
+        BS_DBGASSERT(0);
+        return NULL;
+    }
+
+    uiNapNodeSize = uiNodeSize + sizeof(_NAP_NODE_COMMON_S);
+
+    switch (enType) {
+        case NAP_TYPE_ARRAY:
+            pstHeadCommon = _NAP_ArrayCreate(uiMaxNum, uiNapNodeSize);
+            break;
+
+        case NAP_TYPE_PTR_ARRAY:
+            pstHeadCommon = _NAP_PtrArrayCreate(uiMaxNum, uiNapNodeSize);
+            break;
+
+        case NAP_TYPE_HASH:
+            pstHeadCommon = _NAP_HashCreate(uiMaxNum, uiNapNodeSize);
+            break;
+
+        case NAP_TYPE_AVL:
+            pstHeadCommon = _NAP_AvlCreate(uiMaxNum, uiNapNodeSize);
+            break;
+
+        default:
+            break;
+    }
+
+    if (NULL != pstHeadCommon) {
+        pstHeadCommon->uiFlag = uiFlag;
+
+        if (BS_OK != nap_CommonInit(pstHeadCommon, uiMaxNum, uiNodeSize)) {
+            NAP_Destory(pstHeadCommon);
+            pstHeadCommon = NULL;
+        }
+    }
+
+    return pstHeadCommon;
+}
+
+VOID NAP_Destory(IN NAP_HANDLE hNAPHandle)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
+
+    if (NULL == hNAPHandle) {
+        return;
+    }
+
+    nap_CommonFini(pstCommonHead);
+
+    pstCommonHead->pstFuncTbl->pfDestory(hNAPHandle);
+}
+
+UINT NAP_GetFlag(IN NAP_HANDLE hNapHandle)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNapHandle;
+
+    return pstCommonHead->uiFlag;
+}
+
+UINT NAP_GetNodeSize(IN NAP_HANDLE hNapHandle)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNapHandle;
+
+    return pstCommonHead->uiNodeSize;
+}
+
+/* 申请一个Node */
+VOID * NAP_Alloc(IN NAP_HANDLE hNapHandle)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNapHandle;
+    _NAP_NODE_COMMON_S *pstCommonNode;
+    UINT uiIndex;
+
+    if (NULL == hNapHandle) {
+        return NULL;
+    }
+
+    uiIndex = nap_AllocIndex(pstCommonHead);
+    if (NAP_INVALID_INDEX == uiIndex) {
+        return NULL;
+    }
+
+    pstCommonNode = pstCommonHead->pstFuncTbl->pfAlloc(hNapHandle, uiIndex);
+    if (NULL == pstCommonNode) {
+        nap_FreeIndex(pstCommonHead, uiIndex);
+        return NULL;
+    }
+
+    pstCommonNode->ulID = nap_CacleIDByIndex(pstCommonHead, uiIndex);
+
+    pstCommonHead->uiCount ++;
+
+    return pstCommonNode + 1;
+}
+
+VOID * NAP_ZAlloc(IN NAP_HANDLE hNapHandle)
+{
+    VOID *pMem;
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNapHandle;
+
+    pMem = NAP_Alloc(hNapHandle);
+    if (NULL != pMem)
+    {
+        Mem_Zero(pMem, pstCommonHead->uiNodeSize);
+    }
+
+    return pMem;
+}
+
+/* 申请一个特定Index的Node, 如果已经被占用了，则返回NULL.
+   如果Index为INVALID,则表示忽略此参数,按非spec方式申请 */
+VOID * NAP_AllocByIndex(NAP_HANDLE hNapHandle, UINT uiSpecIndex)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNapHandle;
+    _NAP_NODE_COMMON_S *pstCommonNode;
+    UINT uiIndex;
+
+    if (uiSpecIndex == NAP_INVALID_ID) {
+        return NAP_Alloc(hNapHandle);
+    }
+
+    if (NULL == hNapHandle) {
+        return NULL;
+    }
+
+    uiIndex = nap_AllocSpecIndex(pstCommonHead, uiSpecIndex);
+    if (NAP_INVALID_INDEX == uiIndex) {
+        return NULL;
+    }
+    
+    pstCommonNode = pstCommonHead->pstFuncTbl->pfAlloc(hNapHandle, uiIndex);
+    if (NULL == pstCommonNode) {
+        nap_FreeIndex(pstCommonHead, uiIndex);
+        return NULL;
+    }
+
+    pstCommonNode->ulID = nap_CacleIDByIndex(hNapHandle, uiIndex);
+
+    return pstCommonNode + 1;
+}
+
+VOID * NAP_ZAllocByIndex(IN NAP_HANDLE hNapHandle, IN UINT uiSpecIndex)
+{
+    VOID *pMem;
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNapHandle;
+
+    pMem = NAP_AllocByIndex(hNapHandle, uiSpecIndex);
+    if (NULL != pMem) {
+        Mem_Zero(pMem, pstCommonHead->uiNodeSize);
+    }
+
+    return pMem;
+}
+
+/* 申请一个特定ID的Node, 如果已经被占用了，则返回NULL.
+   如果ID为INVALID,则表示忽略此参数,按非spec方式申请 */
+VOID * NAP_AllocByID(IN NAP_HANDLE hNapHandle, IN UINT ulSpecID)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNapHandle;
+    _NAP_NODE_COMMON_S *pstCommonNode;
+    UINT uiIndex;
+    UINT uiSpecIndex;
+
+    if (ulSpecID == NAP_INVALID_ID) {
+        return NAP_Alloc(hNapHandle);
+    }
+
+    if (NULL == hNapHandle) {
+        return NULL;
+    }
+
+    uiSpecIndex = nap_CacleIndexByID(pstCommonHead, ulSpecID);
+
+    uiIndex = nap_AllocSpecIndex(pstCommonHead, uiSpecIndex);
+    if (NAP_INVALID_INDEX == uiIndex) {
+        return NULL;
+    }
+    
+    pstCommonNode = pstCommonHead->pstFuncTbl->pfAlloc(hNapHandle, uiIndex);
+    if (NULL == pstCommonNode) {
+        nap_FreeIndex(pstCommonHead, uiIndex);
+        return NULL;
+    }
+
+    pstCommonNode->ulID = ulSpecID;
+
+    return pstCommonNode + 1;
+}
+
+VOID * NAP_ZAllocByID(IN NAP_HANDLE hNapHandle, IN UINT ulSpecID)
+{
+    VOID *pMem;
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNapHandle;
+
+    pMem = NAP_AllocByID(hNapHandle, ulSpecID);
+    if (NULL != pMem) {
+        Mem_Zero(pMem, pstCommonHead->uiNodeSize);
+    }
+
+    return pMem;
+}
+
+
+VOID NAP_Free(IN NAP_HANDLE hNapHandle, IN VOID *pstNode)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNapHandle;
+    _NAP_NODE_COMMON_S *pstCommonNode;
+    UINT uiIndex;
+
+    if ((NULL == hNapHandle) || (NULL == pstNode)) {
+        return;
+    }
+
+    pstCommonNode = (VOID*)((UCHAR*)pstNode - sizeof(_NAP_NODE_COMMON_S));
+
+    uiIndex = nap_CacleIndexByID(pstCommonHead, pstCommonNode->ulID);
+
+    nap_FreeIndex(pstCommonHead, uiIndex);
+    
+    pstCommonHead->pstFuncTbl->pfFree(hNapHandle, pstCommonNode, uiIndex);
+
+    pstCommonHead->uiCount --;
+}
+
+VOID NAP_FreeByID(IN NAP_HANDLE hNapHandle, IN UINT ulID)
+{
+    NAP_Free(hNapHandle, NAP_GetNodeByID(hNapHandle, ulID));
+}
+
+VOID NAP_FreeByIndex(IN NAP_HANDLE hNapHandle, IN UINT index)
+{
+    NAP_Free(hNapHandle, NAP_GetNodeByIndex(hNapHandle, index));
+}
+
+VOID NAP_FreeAll(IN NAP_HANDLE hNapHandle)
+{
+    UINT uiIndex = NAP_INVALID_INDEX;
+
+    while ((uiIndex = NAP_GetNextIndex(hNapHandle, uiIndex))
+            != NAP_INVALID_INDEX)
+    {
+        NAP_Free(hNapHandle, NAP_GetNodeByIndex(hNapHandle, uiIndex));
+    }
+
+    return;
+}
+
+VOID * NAP_GetNodeByID(IN NAP_HANDLE hNAPHandle, IN UINT ulID)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
+    _NAP_NODE_COMMON_S *pstCommonNode;
+    UINT uiIndex;
+
+    if ((hNAPHandle == NULL) || (ulID == NAP_INVALID_ID)) {
+        return NULL;
+    }
+
+    uiIndex = nap_CacleIndexByID(pstCommonHead, ulID);
+
+    if (! nap_IsIndexSetted(pstCommonHead, uiIndex)) {
+        return NULL;
+    }
+
+    pstCommonNode = pstCommonHead->pstFuncTbl->pfGetNodeByIndex(hNAPHandle, uiIndex);
+    if (NULL == pstCommonNode) {
+        return NULL;
+    }
+
+    if (pstCommonNode->ulID != ulID) {
+        return NULL;
+    }
+
+    return pstCommonNode + 1;
+}
+
+VOID * NAP_GetNodeByIndex(IN NAP_HANDLE hNAPHandle, IN UINT uiIndex)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
+    _NAP_NODE_COMMON_S *pstCommonNode;
+
+    if (! nap_IsIndexSetted(pstCommonHead, uiIndex)) {
+        return NULL;
+    }
+
+    pstCommonNode = pstCommonHead->pstFuncTbl->pfGetNodeByIndex(hNAPHandle, uiIndex);
+    if (NULL == pstCommonNode) {
+        return NULL;
+    }
+
+    return pstCommonNode + 1;
+}
+
+UINT NAP_GetIDByNode(IN NAP_HANDLE hNAPHandle, IN VOID *pstNode)
+{
+    _NAP_NODE_COMMON_S *pstCommonNode;
+
+    if (NULL == pstNode) {
+        return NAP_INVALID_ID;
+    }
+
+    pstCommonNode = (VOID*)((UCHAR*)pstNode - sizeof(_NAP_NODE_COMMON_S));
+
+    return pstCommonNode->ulID;
+}
+
+UINT NAP_GetIDByIndex(IN NAP_HANDLE hNAPHandle, UINT index)
+{
+    return NAP_GetIDByNode(hNAPHandle, NAP_GetNodeByIndex(hNAPHandle, index));
+}
+
+UINT NAP_GetIndexByID(IN NAP_HANDLE hNAPHandle, UINT id)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
+    return nap_CacleIndexByID(pstCommonHead, id);
+}
+
+UINT NAP_GetIndexByNode(IN NAP_HANDLE hNAPHandle, void *node)
+{
+    UINT id;
+
+    id = NAP_GetIDByNode(hNAPHandle, node);
+    if (id == NAP_INVALID_ID) {
+        return NAP_INVALID_INDEX;
+    }
+
+    return NAP_GetIndexByID(hNAPHandle, id);
+}
+
+/* 改变NodeID, 注意下标不能变, 其他部位都可以改变 */
+BS_STATUS NAP_ChangeNodeID(IN NAP_HANDLE hNAPHandle, IN VOID *pstNode, IN UINT uiNewNodeID)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
+    _NAP_NODE_COMMON_S *pstCommonNode;
+
+    UINT64 uiOldNodeID = NAP_GetIDByNode(hNAPHandle, pstNode);
+
+    if (uiOldNodeID == NAP_INVALID_ID) {
+        return BS_NO_SUCH;
+    }
+
+    if (nap_CacleIndexByID(pstCommonHead, uiOldNodeID)
+            != nap_CacleIndexByID(pstCommonHead, uiNewNodeID)) {
+        BS_DBGASSERT(0);
+        return BS_NOT_SUPPORT;
+    }
+
+    pstCommonNode = (VOID*)((UCHAR*)pstNode - sizeof(_NAP_NODE_COMMON_S));
+
+    pstCommonNode->ulID = uiNewNodeID;
+
+    return BS_OK;
+}
+
+/* 序列号,会在每次申请节点时进行变化 */
+BS_STATUS NAP_EnableSeq
+(
+    IN HANDLE hNAPHandle,
+    IN UINT ulSeqMask,    /* 0表示自动计算Seq */
+    IN UINT uiSeqArrayEleNum    /* seq数组中的元素个数 */
+)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
+
+    /* 根据ulIndexMask自动计算, 只用高位 */
+    if (ulSeqMask == 0) {
+        ulSeqMask = ~pstCommonHead->ulIndexMask;
+        ulSeqMask &= 0xffff0000;
+    }
+
+    if (ulSeqMask == 0) {
+        return BS_ERR;
+    }
+
+    if (uiSeqArrayEleNum == 0) {
+        return BS_BAD_PARA;
+    }
+
+    if (BS_OK != nap_SetSeqMask(hNAPHandle, ulSeqMask)) {
+        return BS_ERR;
+    }
+
+    if (pstCommonHead->stSeqOpt.seq_array == NULL) {
+        pstCommonHead->stSeqOpt.seq_array =
+            MEM_Malloc(sizeof(USHORT) * uiSeqArrayEleNum);
+        if (NULL == pstCommonHead->stSeqOpt.seq_array) {
+            return BS_NO_MEMORY;
+        }
+        pstCommonHead->stSeqOpt.uiSeqArrayCount = uiSeqArrayEleNum;
+    }
+
+    pstCommonHead->stSeqOpt.bEnable = TRUE;
+
+    return BS_OK;
+}
+
+/* 相比于NAP_GetNextID, 其性能会更高 */
+UINT NAP_GetNextIndex(IN NAP_HANDLE hNAPHandle, IN UINT uiCurrentIndex)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
+    UINT uiIndex = NAP_INVALID_INDEX;
+
+    if (uiCurrentIndex == NAP_INVALID_INDEX) {
+        LBitMap_GetFirstBusyBit(pstCommonHead->hLBitmap, &uiIndex);
+    } else {
+        LBitMap_GetNextBusyBit(pstCommonHead->hLBitmap, uiCurrentIndex, &uiIndex);
+    }
+
+    return uiIndex;
+}
+
+UINT NAP_GetNextID(IN NAP_HANDLE hNAPHandle, IN UINT ulCurrentID)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
+    _NAP_NODE_COMMON_S *pstCommonNode;
+    UINT uiIndex;
+    UINT uiCurrentIndex;
+
+    if (ulCurrentID == NAP_INVALID_ID) {
+        uiCurrentIndex = NAP_INVALID_INDEX;
+    } else {
+        uiCurrentIndex = nap_CacleIndexByID(pstCommonHead, ulCurrentID);
+    }
+
+    uiIndex = NAP_GetNextIndex(hNAPHandle, uiCurrentIndex);
+
+    if (NAP_INVALID_INDEX == uiIndex) {
+        return NAP_INVALID_ID;
+    }
+
+    pstCommonNode = pstCommonHead->pstFuncTbl->pfGetNodeByIndex(hNAPHandle, uiIndex);
+    if (NULL == pstCommonNode) {
+        BS_DBGASSERT(0);
+        return NAP_INVALID_ID;
+    }
+    
+    return pstCommonNode->ulID;
+}
+
+UINT NAP_GetCount(IN NAP_HANDLE hNAPHandle)
+{
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
+
+    return pstCommonHead->uiCount;
+}
+

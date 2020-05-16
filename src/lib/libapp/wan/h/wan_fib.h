@@ -1,0 +1,32 @@
+/******************************************************************************
+* Copyright (C) LiXingang
+* Author:      LiXingang  Version: 1.0  Date: 2013-3-26
+* Description: 
+* History:     
+******************************************************************************/
+
+#ifndef __WAN_FIB_H_
+#define __WAN_FIB_H_
+
+#include "utl/fib_utl.h"
+
+#ifdef __cplusplus
+    extern "C" {
+#endif /* __cplusplus */
+
+BS_STATUS WanFib_Init();
+BS_STATUS WanFib_AddRangeFib(IN UINT uiVrfID, IN FIB_NODE_S *pstFibNode);
+VOID WanFib_DelRangeFib(IN UINT uiVrfID, IN FIB_KEY_S *pstFibKey);
+BS_STATUS WanFib_Add(IN UINT uiVFID, IN FIB_NODE_S *pstFibNode);
+VOID WanFib_Del(IN UINT uiVrfID, IN FIB_NODE_S *pstFibNode);
+BS_STATUS WanFib_PrefixMatch(IN UINT uiVFID, IN UINT uiDstIp /* 网络序 */, OUT FIB_NODE_S *pstFibNode);
+VOID WAN_FIB_Save(IN HANDLE hFile);
+BS_STATUS WanFib_KfInit();
+
+#ifdef __cplusplus
+    }
+#endif /* __cplusplus */
+
+#endif /*__WAN_FIB_H_*/
+
+

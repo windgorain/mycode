@@ -1,0 +1,252 @@
+/******************************************************************************
+* Copyright (C),  LiXingang
+* Author:      LiXingang  Version: 1.0  Date: 2011-3-24
+* Description: 显示系统用到的Socket
+* History:     
+******************************************************************************/
+/* retcode所需要的宏 */
+#define RETCODE_FILE_NUM RETCODE_FILE_NUM_SOCKET_SHOW
+
+#include "bs.h"
+
+#include "utl/socket_utl.h"
+#include "utl/bitmap1_utl.h"
+#include "utl/txt_utl.h"
+#include "utl/exec_utl.h"
+
+#define _SSHOW_DFT_MAX_SOCKET_ID 8192
+
+typedef struct
+{
+    BITMAP_S stBitMap;
+}_SSHOW_CTRL_S;
+
+#define _SSHOW_TYPE_TCP 0x1
+#define _SSHOW_TYPE_UDP 0x2
+#define _SSHOW_TYPE_RAW 0x4
+#define _SSHOW_TYPE_OTHER 0x8
+#define _SSHOW_TYPE_ALL 0xffffffff
+
+
+STATIC _SSHOW_CTRL_S g_stSocketShowCtrl;
+
+BS_STATUS SSHOW_Init()
+{
+    Mem_Zero(&g_stSocketShowCtrl, sizeof(_SSHOW_CTRL_S));
+
+    BITMAP_Create(&g_stSocketShowCtrl.stBitMap, _SSHOW_DFT_MAX_SOCKET_ID);
+
+    return BS_OK;
+}
+
+BS_STATUS _sshow_Add(IN INT iSocketId)
+{
+    if (iSocketId >= _SSHOW_DFT_MAX_SOCKET_ID)
+    {
+        RETURN(BS_OUT_OF_RANGE);
+    }
+
+    BITMAP_SET(&g_stSocketShowCtrl.stBitMap, iSocketId);
+
+    return BS_OK;
+}
+
+VOID _sshow_Del(IN INT iSocketId)
+{
+    if (iSocketId >= _SSHOW_DFT_MAX_SOCKET_ID)
+    {
+        return;
+    }
+
+    BITMAP1_CLR(&g_stSocketShowCtrl.stBitMap, iSocketId);
+
+    return;
+}
+
+STATIC UINT sshow_GetTypeBitBySocketType(IN INT iType)
+{
+    UINT uiBit;
+
+    switch (iType)
+    {
+        case SOCK_STREAM:
+        {
+            uiBit = _SSHOW_TYPE_TCP;
+            break;
+        }
+        case SOCK_DGRAM:
+        {
+            uiBit = _SSHOW_TYPE_UDP;
+            break;
+        }
+        case SOCK_RAW:
+        {
+            uiBit = _SSHOW_TYPE_RAW;
+            break;
+        }
+        default:
+        {
+            uiBit = _SSHOW_TYPE_OTHER;
+            break;
+        }
+    }
+    
+    return uiBit;
+}
+
+STATIC CHAR * sshow_GetTypeNameByType(IN INT iType)
+{
+    CHAR *pcTypeName = "";
+
+    switch (iType)
+    {
+        case SOCK_STREAM:
+        {
+            pcTypeName = "TCP";
+            break;
+        }
+        case SOCK_DGRAM:
+        {
+            pcTypeName = "UDP";
+            break;
+        }
+        case SOCK_RAW:
+        {
+            pcTypeName = "RAW";
+            break;
+        }
+        default:
+        {
+            pcTypeName = "UKN";
+            break;
+        }
+    }
+    return pcTypeName;
+}
+
+static VOID _sshow_Show (IN UINT uiTypeBit)
+{
+    UINT i;
+    struct sockaddr_storage stSockAddrLocal;
+    struct sockaddr_storage stSockAddrPeer;
+    socklen_t iAddrLen;
+    struct sockaddr_in *pstSinLocal;
+    struct sockaddr_in *pstSinPeer;
+    CHAR *pcFamily = "";
+    USHORT usLocalPort;
+    USHORT usPeerPort;
+    UINT uiPeerIp;
+    int iType;
+//    struct tcp_info tcpinfo;
+
+    EXEC_OutString(" ID    Type  Family  IsBlock  HPort  RIP              RPort\r\n"
+        "------------------------------------------------------------------------------\r\n");
+
+    for (i=1; i< _SSHOW_DFT_MAX_SOCKET_ID; i++)
+    {
+        if (BITMAP1_ISSET(&g_stSocketShowCtrl.stBitMap, i))
+        {
+            iAddrLen = sizeof(int);
+            getsockopt(i, SOL_SOCKET, SO_TYPE, (CHAR*)&iType, &iAddrLen);
+            if ((uiTypeBit & sshow_GetTypeBitBySocketType(iType)) == 0)
+            {
+                continue;
+            }
+
+            usLocalPort = 0;
+            usPeerPort = 0;
+            uiPeerIp = 0;
+
+            Mem_Zero(&stSockAddrLocal, sizeof(stSockAddrLocal));
+            Mem_Zero(&stSockAddrPeer, sizeof(stSockAddrPeer));
+
+            iAddrLen = sizeof(stSockAddrLocal);
+            getsockname(i, (struct sockaddr *)&stSockAddrLocal, &iAddrLen);
+            iAddrLen = sizeof(stSockAddrPeer);
+            getpeername(i, (struct sockaddr *)&stSockAddrPeer, &iAddrLen);
+            pstSinLocal = (struct sockaddr_in*)&stSockAddrLocal;
+
+            switch (pstSinLocal->sin_family)
+            {
+                case AF_INET:
+                {
+                    pstSinPeer = (struct sockaddr_in*)&stSockAddrPeer;
+                    pcFamily = "IPv4";
+                    usLocalPort = pstSinLocal->sin_port;
+                    usPeerPort = pstSinPeer->sin_port;
+                    uiPeerIp = pstSinPeer->sin_addr.s_addr;
+                    break;
+                }
+                case AF_INET6:
+                {
+                    pcFamily = "IPv6";
+                    break;
+                }
+                case AF_UNIX:
+                {
+                    pcFamily = "UINX";
+                    break;
+                }
+                default:
+                {
+                    pcFamily = "N/A";
+                    break;
+                }
+            }
+
+            usLocalPort = ntohs(usLocalPort);
+            usPeerPort = ntohs(usPeerPort);
+            uiPeerIp = ntohl(uiPeerIp);
+
+            EXEC_OutInfo(" %-4d  %-4s  %-6s  %-7s  %-5d  %-15s  %-5d\r\n",
+                i,
+                sshow_GetTypeNameByType(iType),
+                pcFamily,
+                "True",
+                usLocalPort,
+                Socket_IpToName(uiPeerIp),
+                usPeerPort);
+        }
+    }
+    EXEC_OutString("\r\n");
+}
+
+BS_STATUS SSHOW_ShowAll (IN UINT ulArgc, IN CHAR **argv)
+{
+    _sshow_Show(_SSHOW_TYPE_ALL);
+    return BS_OK;
+}
+
+BS_STATUS SSHOW_ShowTcp (IN UINT ulArgc, IN CHAR **argv)
+{
+    _sshow_Show(_SSHOW_TYPE_TCP);
+    return BS_OK;
+}
+
+BS_STATUS SSHOW_ShowUdp (IN UINT ulArgc, IN CHAR **argv)
+{
+    _sshow_Show(_SSHOW_TYPE_UDP);
+    return BS_OK;
+}
+
+/* socket shutdown _ULONG_<1-65535> */
+BS_STATUS SSHOW_Shutdown(IN UINT ulArgc, IN CHAR **argv)
+{
+    UINT uiSocketId;
+
+    if (ulArgc < 3)
+    {
+        RETURN(BS_ERR);
+    }
+
+    if (TXT_Atoui(argv[2], &uiSocketId) != BS_OK)
+    {
+        RETURN(BS_ERR);
+    }
+
+    shutdown(uiSocketId, 2);
+
+    return BS_OK;
+}
+
+
