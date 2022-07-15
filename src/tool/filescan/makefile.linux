@@ -1,0 +1,2 @@
+all : 
+	gcc -I../../../h *.c -g -lpthread -o filescan ../../../lib/linux/libutl.a /lib/bs.dll

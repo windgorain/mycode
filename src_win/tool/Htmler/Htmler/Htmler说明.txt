@@ -1,0 +1,48 @@
+1.命令形式
+	js调用window.external.HtmlerCmd函数通知Htmler执行动作，函数形式如下
+		STRING window.external.HtmlerCmd(STRING ActionList);
+		参数说明:
+			STRING ActionList:
+			  形式为Action=x,Param1=y,Param2=z;Action=m,Param1=n,Param2=o;
+			  ActionList由多个动作行构成，每个动作行之间用分号';'隔开。每个动作行由多个Key=Value字段构成,每个Key=Value字段之间用逗号隔开.
+			  每个动作行必须包含一个Action字段,其他的参数字段是可选的.
+			  Key中不允许包含",%;"这些字符. 而Value中如果含所有",%;"这些字符，则需要对这其进行URL格式编码
+		返回值:
+			返回值为一个Json格式的字符串或者空字符串"". 如果无此动作,则返回字符串为{"Error":"NoSuchAction"}.
+
+2.动作和参数表	
+	Action								Param(可选参数用中括号括起)
+	CheckSupport																					#检查是否支持Htmler,成功的话,此动作返回{"Support": 1}
+	CallJsFunction				Function=x,Param=y							#调用JS函数
+	SetTitle							Title=x													#设置窗口标题为x
+	SetIcon								Icon=x													#设置图标,x为图标文件路径
+	AddMenuItem						Menu=x,Item=y,DoAction=z			  #添加菜单,x为菜单路径,其格式为"主菜单.子菜单",点表示包含关系. z为点击菜单执行的动作
+	MsgBox								Text=x,Caption=y     						#弹出一个提示框，其内容为x，其标题为y
+	Exit																									#退出程序
+	SetExitAction					DoAction=x											#进程退出之前执行命令x
+	GotoUrl								URL=x														#跳转到URL
+	GetSize																								#获取调整对话框大小，返回值为W=x,H=y
+	SetSize								[W=x],[H=y]											#调整对话框大小，宽x高y. 缺省不变
+	SetOffset							[X=x],[Y=y]											#设置窗口相对于原来的位置的偏移
+	SetPosition						[X=x],[Y=y]											#设置窗口位置
+	SetMaximized																					#设置窗口最大化
+	SetMinimize 																					#设置窗口最小化
+	SetStyle							[Max=true],[Min=true],[Reszie=true]  #设置窗口style.如果没有对应的可选参数,表示维持原值不变
+	GetSelfPath																						#获取程序路径
+	CreateModHtmler				URL=x,DoAction=y								#创建一个模态Htmler对话框，加载x页面,并且执行动作列表y
+	CreateModlessHtmler		URL=x,DoAction=y								#创建一个非模态Htmler对话框，加载x页面,并且执行动作列表y
+	CreateThread					DoAction=x											#创建一个线程,并执行动作x
+	HtmlerOK			 																				#关闭并销毁此Htmler对话框
+	HtmlerCancel	 																				#关闭并销毁此Htmler对话框
+	CreateTray						Tip=x														#创建Tray
+	Hide																									#隐藏此对话框
+	Show																									#显示此对话框
+	ReadFile							File=x													#读取文件内容
+	WriteFile							File=x													#写入文件内容
+	IniSetKey							File=x,Sec=y,Key=z,Value=m,[Enc=True]		#写INI配置文件,Enc表示加密
+	IniGetKey							File=x,Sec=y,Key=z							#获取INI中的某个key
+	System								Cmd=x														#进行系统调用，命令行为x
+	WinExec								Cmd=x,[Hide=y] 									#进行WinExec调用，命令行为x, 是否隐藏为y(true表示隐藏,false表示不隐藏。缺省为不隐藏)
+	LoadDll								File=x													#加载DLL文件x
+	DllCall								File=x,Func=y,Cmd=z  						#加载x并执行dll的y函数，输入z字符串(会被转换成utf8格式)
+	TestConnect           Dest=x,Port=y 									#测试x地址y端口是否可以连通

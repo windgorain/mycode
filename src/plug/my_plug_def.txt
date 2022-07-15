@@ -1,0 +1,12 @@
+
+set (SRC "")
+aux_source_directory(. SRC)
+set(LIB_NAME lib${NAME})
+add_library(${LIB_NAME} SHARED ${SRC} )
+set_target_properties(${LIB_NAME} PROPERTIES output_name "${LIB_NAME}")
+#set_target_properties(${LIB_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out/plug/${LIB_NAME}")
+set_target_properties(${LIB_NAME} PROPERTIES PREFIX "")
+set_target_properties(${LIB_NAME} PROPERTIES SUFFIX ".so")
+
+target_link_libraries(${LIB_NAME} static-${NAME} bs util ssl crypto pcap)
+

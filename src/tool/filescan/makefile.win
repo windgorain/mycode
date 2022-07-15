@@ -1,0 +1,15 @@
+all: filescan.exe
+
+BS_UTL_LIB="../../../build_win/_lib/debug/libutl.lib"
+BS_BS_LIB="../../../build_win/_lib/debug/libbs.lib"
+
+#compile
+filescan.obj: filescan.c
+	cl -c /MDd -D_X86 /utf-8 -DWIN32 -D_DEBUG -D_CONSOLE -I../../../h filescan.c
+
+#link
+filescan.exe: filescan.obj
+	link /INCREMENTAL /NOLOGO /subsystem:console /out:filescan.exe filescan.obj kernel32.lib winmm.lib Ws2_32.lib $(BS_UTL_LIB) $(BS_BS_LIB)
+
+clean:
+	del *.lib *.obj *.exe *.ilk *.exp

@@ -1,0 +1,65 @@
+﻿<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<script>
+function openModalDialog()
+{
+//	window.showModalDialog("bbb.htm", "modal", "dialogWidth:800px;dialogHeight:500px;status:no;help:no;resizable:yes;scroll:no;"); 
+}
+
+function modal()
+{
+	window.external.HtmlerCmd("Action=CreateModHtmler,URL=index.htm,DoAction=Action=SetTitle%2cTitle=modal");
+}
+
+function modalless()
+{
+	window.external.HtmlerCmd("Action=CreateModlessHtmler,URL=index.htm,DoAction=Action=SetTitle%2cTitle=modalless");
+}
+
+function OK()
+{
+	window.external.HtmlerCmd("Action=HtmlerOK");
+}
+
+function Cancel()
+{
+	window.external.HtmlerCmd("Action=HtmlerCancel");
+}
+
+function IniSet()
+{
+	var sRet = window.external.HtmlerCmd("Action=IniSetKey,File=.\\config.ini,Sec=111,Key=test,Value=xxx");
+	window.alert(sRet);
+}
+
+function IniGet()
+{
+	var sRet = window.external.HtmlerCmd("Action=IniGetKey,File=.\\config.ini,Sec=111,Key=test");
+	window.alert(sRet);
+}
+
+function GetSelfPath()
+{
+	var sRet = window.external.HtmlerCmd("Action=GetSelfPath");
+	window.alert(sRet);
+}
+
+</script>
+
+</HEAD>
+<BODY ID=CtestDlg background="img/bg.png" scroll=no style="font-family:MS Shell Dlg;font-size:9">
+
+<button onclick="modal();" >模态</button>
+<button onclick="modalless();" >非模态</button>
+
+<button onclick="OK();"> OK </button>
+<button onclick="Cancel();"> Cancel </button>
+
+<button onclick="IniSet();"> 写配置文件 </button>
+<button onclick="IniGet();"> 获取配置文件 </button>
+<button onclick="GetSelfPath();"> 获取文件路径 </button>
+
+</BODY>
+</HTML>

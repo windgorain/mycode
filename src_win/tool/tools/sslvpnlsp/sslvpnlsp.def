@@ -1,0 +1,3 @@
+LIBRARY sslvpnlsp
+EXPORTS
+WSPStartup @ 1
