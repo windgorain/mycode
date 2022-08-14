@@ -76,7 +76,7 @@ static BS_WALK_RET_E _rangefib_ShowEach(IN VOID *pNode, IN VOID * pUserHandle)
     UINT uiStartIP, uiEndIP;
     CHAR szIfName[IF_MAX_NAME_LEN + 1] = "";
 
-    CompIf_Ioctl(pstFibHashNode->stFibNode.uiOutIfIndex, IFNET_CMD_GET_IFNAME, szIfName);
+    IFNET_Ioctl(pstFibHashNode->stFibNode.uiOutIfIndex, IFNET_CMD_GET_IFNAME, szIfName);
 
     uiStartIP = htonl(pstFibHashNode->stFibNode.stFibKey.uiDstOrStartIp);
     uiEndIP = htonl(pstFibHashNode->stFibNode.stFibKey.uiMaskOrEndIp);

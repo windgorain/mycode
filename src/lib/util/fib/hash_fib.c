@@ -139,7 +139,7 @@ int HashFib_Init(IN HASH_FIB_S *hashfib)
 {
     HASH_HANDLE hHash;
 
-    hHash = HASH_CreateInstance(HASHFIB_HASH_BUCKET_NUM, hashfib_HashIndex);
+    hHash = HASH_CreateInstance(NULL, HASHFIB_HASH_BUCKET_NUM, hashfib_HashIndex);
     if (NULL == hHash) {
         RETURN(BS_NO_MEMORY);
     }

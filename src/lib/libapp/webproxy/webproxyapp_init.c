@@ -12,7 +12,6 @@
 
 BS_STATUS WebProxyApp_Init()
 {
-    COMP_WSAPP_Init();
     WebProxyApp_Deliver_Init();
     WebProxyApp_Main_Init();
     return BS_OK;

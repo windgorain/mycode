@@ -10,27 +10,39 @@
 #include "utl/cmd_exp.h"
 #include "utl/cmd_lst.h"
 
-/* 得到命令行类型 */
-static BS_STATUS cmdlst_GetType(CHAR *type_str, UINT *out_type, UINT *out_prop)
+static int cmdlst_ParseType(char *type_str)
 {
-    USHORT type = 0;
+    char *str = TXT_Strim(type_str);
+
+    if (strcmp(str, "view") == 0) {
+        return DEF_CMD_EXP_TYPE_VIEW;
+    } else if (strcmp(str, "cmd") == 0) {
+        return DEF_CMD_EXP_TYPE_CMD;
+    } else if (strcmp(str, "save") == 0) {
+        return DEF_CMD_EXP_TYPE_SAVE;
+    } else if (strcmp(str, "enter") == 0) {
+        return DEF_CMD_EXP_TYPE_ENTER;
+    }
+
+    return -1;
+}
+
+/* 得到命令行类型 */
+static BS_STATUS cmdlst_GetType(CHAR *type_str, OUT CMDLST_ELE_S *ele)
+{
+    int type = 0;
     UINT prop = 0;
+    UINT level = 0;
     char *token[32];
+    char *str;
 
     UINT num = TXT_StrToToken(type_str, "|", token, 32);
     if (num <= 0) {
         RETURN(BS_ERR);
     }
 
-    char *str = TXT_Strim(token[0]);
-
-    if (strcmp(str, "view") == 0) {
-        type = DEF_CMD_EXP_TYPE_VIEW;
-    } else if (strcmp(str, "cmd") == 0) {
-        type = DEF_CMD_EXP_TYPE_CMD;
-    } else if (strcmp(str, "save") == 0) {
-        type = DEF_CMD_EXP_TYPE_SAVE;
-    } else {
+    type = cmdlst_ParseType(token[0]);
+    if (type < 0) {
         RETURN(BS_ERR);
     }
 
@@ -41,11 +53,18 @@ static BS_STATUS cmdlst_GetType(CHAR *type_str, UINT *out_type, UINT *out_prop)
             prop |= DEF_CMD_EXP_PROPERTY_TEMPLET;
         } else if (strcmp(token[i], "hide") == 0) {
             prop |= (DEF_CMD_EXP_PROPERTY_HIDE | DEF_CMD_EXP_PROPERTY_HIDE_CR);
+        } else if (strncmp(token[i], "level:", sizeof("level:")-1) == 0) {
+            str = token[i];
+            str += (sizeof("level:") - 1);
+            level = TXT_Str2Ui(str);
+        } else if (strcmp(token[i], "view_pcre") == 0) {
+            prop |= DEF_CMD_EXP_PROPERTY_VIEW_PATTERN;
         }
     }
 
-    *out_type = type;
-    *out_prop = prop;
+    ele->type = type;
+    ele->property = prop;
+    ele->level = level;
 
     return BS_OK;
 }
@@ -62,14 +81,14 @@ static BS_STATUS cmdlst_ParseCmdLine(char *line, OUT CMDLST_ELE_S *ele)
 
     /* 获取注册的命令行类型 */
     char *type = TXT_Strim(token[index++]);
-    if (BS_OK != cmdlst_GetType(type, &ele->type, &ele->property)) {
+    if (BS_OK != cmdlst_GetType(type, ele)) {
         RETURN(BS_ERR);
     }
 
     /* 获取view*/
     ele->view = TXT_Strim(token[index++]);
 
-    if (CMD_EXP_IS_SAVE(ele->type)) {
+    if (CMD_EXP_IS_SAVE(ele->type) || CMD_EXP_IS_ENTER(ele->type)) {
         ele->func_name = token[index++];
         ele->func_name = TXT_Strim(ele->func_name);
 
@@ -107,7 +126,7 @@ static BS_STATUS cmdlst_Line(CMDLST_S *ctrl, char *line)
 {
     CMDLST_ELE_S ele = {0};
     int ret;
-    char line_buf[512];
+    char line_buf[1024];
 
     strlcpy(line_buf, line, sizeof(line_buf));
 

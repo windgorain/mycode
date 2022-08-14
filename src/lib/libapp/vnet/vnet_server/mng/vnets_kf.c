@@ -11,7 +11,7 @@
 
 #include "../inc/vnets_dc.h"
 
-static BS_STATUS vnets_kf_UserAdd(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, IN HANDLE hRunHandle)
+static BS_STATUS vnets_kf_UserAdd(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, IN KFAPP_PARAM_S *param)
 {
     CHAR *pcUserName;
     CHAR *pcPassword;
@@ -29,7 +29,7 @@ static BS_STATUS vnets_kf_UserAdd(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, I
 
 BS_STATUS VNETS_KF_Init()
 {
-    COMP_KFAPP_RegFunc("vnets.user.add", vnets_kf_UserAdd, NULL);
+    KFAPP_RegFunc("vnets.user.add", vnets_kf_UserAdd, NULL);
 
     return BS_OK;
 }

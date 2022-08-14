@@ -80,11 +80,8 @@ UINT VNETS_WebUlm_GetUserIDByCookie(IN CHAR *pcCookie)
 
 BS_STATUS VNETS_WebUlm_GetUserInfo(IN UINT uiUserID, OUT ULM_USER_INFO_S *pstUserInfo)
 {
-    BS_STATUS eRet;
-    
-
     MUTEX_P(&g_stVnetsWebUlmLock);
-    eRet = ULM_GetUserInfo(g_hVnetsWebUlm, uiUserID, pstUserInfo);
+    ULM_GetUserInfo(g_hVnetsWebUlm, uiUserID, pstUserInfo);
     MUTEX_V(&g_stVnetsWebUlmLock);
 
     return BS_OK;

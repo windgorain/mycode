@@ -19,6 +19,8 @@ typedef struct
 {
     CHAR *pszLogFileName;
     FILE *fp;
+    UINT64 capacity; /* 容量 */
+    UINT64 len; /* 当前大小 */
 }_LogFile_CTRL_S;
 
 HANDLE LogFile_Open(IN CHAR *pszFileName)
@@ -45,7 +47,7 @@ HANDLE LogFile_Open(IN CHAR *pszFileName)
 
     TXT_StrCpy(pstLogCtrl->pszLogFileName , pszFileName);
 
-    pstLogCtrl->fp = FILE_Open(pszFileName, TRUE, "a");
+    pstLogCtrl->fp = FILE_Open(pszFileName, TRUE, "w+");
     if (NULL == pstLogCtrl->fp)
     {
         MEM_Free(pstLogCtrl->pszLogFileName);
@@ -56,7 +58,7 @@ HANDLE LogFile_Open(IN CHAR *pszFileName)
     return pstLogCtrl;
 }
 
-VOID LogFile_Close(IN HANDLE hLogHandle)
+void LogFile_Close(IN HANDLE hLogHandle)
 {
     _LogFile_CTRL_S *pstLogCtrl = (_LogFile_CTRL_S *)hLogHandle;
 
@@ -76,7 +78,14 @@ VOID LogFile_Close(IN HANDLE hLogHandle)
     }
 }
 
-VOID LogFile_OutString(IN HANDLE hLogHandle, IN CHAR *pszLogFmt, ...)
+/* 设置日志文件最大容量 */
+void LogFile_SetCapacity(HANDLE hLogHandle, UINT64 capacity)
+{
+    _LogFile_CTRL_S *pstLogCtrl = (_LogFile_CTRL_S *)hLogHandle;
+    pstLogCtrl->capacity = capacity;
+}
+
+void LogFile_OutString(IN HANDLE hLogHandle, IN CHAR *pszLogFmt, ...)
 {
     va_list args;
 
@@ -85,20 +94,31 @@ VOID LogFile_OutString(IN HANDLE hLogHandle, IN CHAR *pszLogFmt, ...)
     va_end(args);
 }
 
-VOID LogFile_OutStringByValist(IN HANDLE hLogHandle, IN CHAR *pszLogFmt, IN va_list args)
+void LogFile_OutStringByValist(IN HANDLE hLogHandle, IN CHAR *pszLogFmt, IN va_list args)
 {
     CHAR szInfo[1024];
     CHAR szTimeString[TM_STRING_TIME_LEN + 1];
     _LogFile_CTRL_S *pstLogCtrl = (_LogFile_CTRL_S *)hLogHandle;
+    UINT len;
 
     TM_Utc2SimpleString(TM_NowInSec(), szTimeString);
-    BS_Sprintf(szInfo, "[%s] ", szTimeString);
+    snprintf(szInfo, sizeof(szInfo), "[%s] ", szTimeString);
     FILE_WriteStr(pstLogCtrl->fp, szInfo);
+
+    len = strlen(szInfo);
+    pstLogCtrl->len += len;
 
     vsnprintf(szInfo, sizeof(szInfo), pszLogFmt, args);
-
     FILE_WriteStr(pstLogCtrl->fp, szInfo);
-
     fflush(pstLogCtrl->fp);
+
+    len = strlen(szInfo);
+    pstLogCtrl->len += len;
+
+    if ((pstLogCtrl->capacity != 0) && (pstLogCtrl->len >= pstLogCtrl->capacity)) {
+        ftruncate(fileno(pstLogCtrl->fp), 0);
+        rewind(pstLogCtrl->fp);
+        pstLogCtrl->len = 0;
+    }
 }
 

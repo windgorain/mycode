@@ -19,6 +19,10 @@ int PRecver_Worker_SetAffinity(int index, int cpu_index);
 int PRecver_Worker_ClrAffinity(int index);
 int PRecver_Worker_Start(int index);
 int PRecver_Worker_Stop(int index);
+int PRecver_Worker_Sample(int index, uint8_t rate, uint8_t type);
+int PRecver_Worker_NoSample(int index, uint8_t rate, uint8_t type);
+
+PRECVER_RUNNER_S* PRecver_Worker_GetRunner(int index);
 
 typedef void (*PF_PRECVER_WORK_WALK)(void *worker, void *ud);
 void PRecver_Worker_Walk(PF_PRECVER_WORK_WALK walk, void *ud);

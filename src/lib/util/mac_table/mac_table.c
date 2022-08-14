@@ -13,7 +13,7 @@
 #include "utl/hash_utl.h"
 #include "utl/mac_table.h"
 
-#define _MAC_TBL_HASH_BUCKET_NUM (16*1024)
+#define _MAC_TBL_HASH_BUCKET_NUM (128)
 
 typedef struct
 {
@@ -22,7 +22,7 @@ typedef struct
     USER_HANDLE_S stUserHandle;
 }_MAC_TBL_NOTIFY_S;
 
-typedef struct
+typedef struct MAC_TBL_STRUCT
 {
     HANDLE hHashId;
     UINT uiOldTick;
@@ -58,17 +58,15 @@ static VOID mactbl_Notify(IN _MAC_TBL_S *pstMacTbl, IN UINT uiEvent, IN _MAC_TBL
             &pstMacNode->stMacNode, pstMacNode->pUserData, &pstMacTbl->stNotify.stUserHandle);
     }
 }
-
-static UINT mactbl_GetHashIndexFromMac(IN _MAC_TBL_NODE_S *pstMacTblNode)
+static UINT mactbl_GetHashIndexFromMac(void *pstHashNode)
 {
+    _MAC_TBL_NODE_S *pstMacTblNode = pstHashNode;
     UINT ulIndex = 0;
     UINT ulTmp;
     UINT i;
 
-    for (i=0; i<6; i+=2)
-    {
+    for (i=0; i<6; i+=2) {
         ulTmp = pstMacTblNode->stMacNode.stMac.aucMac[i];
-
         ulIndex += (ulTmp << 8) + pstMacTblNode->stMacNode.stMac.aucMac[i + 1];
     }
 
@@ -150,101 +148,11 @@ static inline _MAC_TBL_NODE_S * mactbl_Find(IN HANDLE hMacTblId, IN MAC_NODE_S *
     return (_MAC_TBL_NODE_S *)HASH_Find(pstMacTbl->hHashId, (PF_HASH_CMP_FUNC)mactbl_CmpNode, (HASH_NODE_S*)&stTblNode);
 }
 
-HANDLE MACTBL_CreateInstance
-(
-    IN UINT uiUserDataSize/* 用户数据大小 */,
-    IN UINT uiOldTick/* 多少个Tick之后老化 */
-)
-{
-    _MAC_TBL_S *pstMacTbl;
-    VCLOCK_INSTANCE_HANDLE hVclockInstance;
-    HANDLE hHashId;
-
-    pstMacTbl = MEM_ZMalloc(sizeof(_MAC_TBL_S));
-    if (NULL == pstMacTbl)
-    {
-        return 0;
-    }
-
-    hHashId = HASH_CreateInstance(_MAC_TBL_HASH_BUCKET_NUM, (PF_HASH_INDEX_FUNC)mactbl_GetHashIndexFromMac);
-    if (0 == hHashId)
-    {
-        MEM_Free(pstMacTbl);
-        return 0;
-    }
-
-    hVclockInstance = VCLOCK_CreateInstance(FALSE);
-    if (NULL == hVclockInstance)
-    {
-        HASH_DestoryInstance(hHashId);
-        MEM_Free(pstMacTbl);
-    }
-
-    pstMacTbl->hHashId = hHashId;
-    pstMacTbl->hVclockInstance = hVclockInstance;
-    pstMacTbl->uiOldTick = uiOldTick;
-    pstMacTbl->uiUserDataSize = uiUserDataSize;
-
-    return pstMacTbl;
-}
-
-static BS_WALK_RET_E mactbl_DestoryAll
-(
-    IN HANDLE hHashId,
-    IN _MAC_TBL_NODE_S *pstNode,
-    IN _MAC_TBL_S *pstMacTbl
-)
+static BS_WALK_RET_E mactbl_DestoryAll (HANDLE hHashId,
+        IN _MAC_TBL_NODE_S *pstNode, IN _MAC_TBL_S *pstMacTbl)
 {
     mactbl_Del(pstMacTbl, pstNode);
-
     return BS_WALK_CONTINUE;
-}
-
-VOID MACTBL_DestoryInstance(IN HANDLE hMacTblId)
-{
-    _MAC_TBL_S *pstMacTbl;
-
-    if (hMacTblId == NULL)
-    {
-        return;
-    }
-
-    pstMacTbl = (_MAC_TBL_S *)hMacTblId;
-
-    if (pstMacTbl->hHashId)
-    {
-        HASH_Walk(pstMacTbl->hHashId, (PF_HASH_WALK_FUNC)mactbl_DestoryAll, pstMacTbl);
-        HASH_DestoryInstance(pstMacTbl->hHashId);
-    }
-
-    if (pstMacTbl->hVclockInstance)
-    {
-        VCLOCK_DeleteInstance(pstMacTbl->hVclockInstance);
-    }
-    
-    MEM_Free(pstMacTbl);
-}
-
-VOID MACTBL_SetNotify
-(
-    IN HANDLE hMacTbl,
-    IN UINT uiEvent,
-    IN PF_MACTBL_NOTIFY_FUNC pfNotifyFunc,
-    IN USER_HANDLE_S *pstUserHandle
-)
-{
-    _MAC_TBL_S *pstMacTbl;
-
-    pstMacTbl = (_MAC_TBL_S *)hMacTbl;
-
-    pstMacTbl->stNotify.uiEvent = uiEvent;
-    pstMacTbl->stNotify.pfNotifyFunc = pfNotifyFunc;
-    if (pstUserHandle)
-    {
-        pstMacTbl->stNotify.stUserHandle = *pstUserHandle;
-    }
-
-    return;
 }
 
 static VOID mactbl_CopyMacNode
@@ -264,27 +172,88 @@ static VOID mactbl_CopyMacNode
     }
 }
 
-BS_STATUS MACTBL_Add
-(
-    IN HANDLE hMacTblId,
-    IN MAC_NODE_S *pstMacNode,
-    IN VOID *pUserData,
-    IN MAC_NODE_MODE_E eMode
-)
+MACTBL_HANDLE MACTBL_CreateInstance(UINT uiUserDataSize/* 用户数据大小 */)
+{
+    _MAC_TBL_S *pstMacTbl;
+    VCLOCK_INSTANCE_HANDLE hVclockInstance;
+    HANDLE hHashId;
+
+    pstMacTbl = MEM_ZMalloc(sizeof(_MAC_TBL_S));
+    if (NULL == pstMacTbl) {
+        return 0;
+    }
+
+    hHashId = HASH_CreateInstance(NULL, _MAC_TBL_HASH_BUCKET_NUM, mactbl_GetHashIndexFromMac);
+    if (0 == hHashId) {
+        MEM_Free(pstMacTbl);
+        return 0;
+    }
+    HASH_SetResizeWatter(hHashId, 200, 20);
+
+    hVclockInstance = VCLOCK_CreateInstance(FALSE);
+    if (NULL == hVclockInstance) {
+        HASH_DestoryInstance(hHashId);
+        MEM_Free(pstMacTbl);
+    }
+
+    pstMacTbl->hHashId = hHashId;
+    pstMacTbl->hVclockInstance = hVclockInstance;
+    pstMacTbl->uiOldTick = 0;
+    pstMacTbl->uiUserDataSize = uiUserDataSize;
+
+    return pstMacTbl;
+}
+
+void MACTBL_DestoryInstance(MACTBL_HANDLE mactbl)
+{
+    if (mactbl == NULL) {
+        return;
+    }
+
+    if (mactbl->hHashId) {
+        HASH_Walk(mactbl->hHashId, (PF_HASH_WALK_FUNC)mactbl_DestoryAll, mactbl);
+        HASH_DestoryInstance(mactbl->hHashId);
+    }
+
+    if (mactbl->hVclockInstance)
+    {
+        VCLOCK_DeleteInstance(mactbl->hVclockInstance);
+    }
+    
+    MEM_Free(mactbl);
+}
+
+void MACTBL_SetOldTick(MACTBL_HANDLE mactbl, UINT old_tick)
+{
+    mactbl->uiOldTick = old_tick;
+}
+
+void MACTBL_SetNotify(MACTBL_HANDLE mactbl, UINT uiEvent,
+        PF_MACTBL_NOTIFY_FUNC pfNotifyFunc, USER_HANDLE_S *pstUserHandle)
+{
+    mactbl->stNotify.uiEvent = uiEvent;
+    mactbl->stNotify.pfNotifyFunc = pfNotifyFunc;
+
+    if (pstUserHandle) {
+        mactbl->stNotify.stUserHandle = *pstUserHandle;
+    }
+
+    return;
+}
+
+BS_STATUS MACTBL_Add(MACTBL_HANDLE mactbl, IN MAC_NODE_S *pstMacNode,
+        IN void *pUserData, MAC_NODE_MODE_E eMode)
 {
     _MAC_TBL_NODE_S *pstMacTblNode;
-    _MAC_TBL_S *pstMacTbl;
     VCLOCK_HANDLE hVclock = NULL;
     USER_HANDLE_S stUserHandle;
     BOOL_T bIsNew = FALSE;
     BOOL_T bLearn = FALSE;
     VOID *pUserDataTmp = NULL;
 
-    BS_DBGASSERT(0 != hMacTblId);
+    BS_DBGASSERT(0 != mactbl);
 
-    pstMacTbl = (_MAC_TBL_S *)hMacTblId;
-
-    pstMacTblNode = mactbl_Find(hMacTblId, pstMacNode);
+    pstMacTblNode = mactbl_Find(mactbl, pstMacNode);
     if (NULL == pstMacTblNode)
     {
         pstMacTblNode = MEM_ZMalloc(sizeof(_MAC_TBL_NODE_S));
@@ -292,9 +261,9 @@ BS_STATUS MACTBL_Add
         {
             RETURN(BS_NO_MEMORY);
         }
-        if ((pstMacTbl->uiUserDataSize != 0) && (pUserData != NULL))
+        if ((mactbl->uiUserDataSize != 0) && (pUserData != NULL))
         {
-            pUserDataTmp = MEM_Malloc(pstMacTbl->uiUserDataSize);
+            pUserDataTmp = MEM_Malloc(mactbl->uiUserDataSize);
             if (NULL == pUserDataTmp)
             {
                 MEM_Free(pstMacTblNode);
@@ -305,7 +274,7 @@ BS_STATUS MACTBL_Add
         pstMacTblNode->pUserData = pUserDataTmp;
 
         pstMacTblNode->stMacNode = *pstMacNode;
-        HASH_Add(pstMacTbl->hHashId, (HASH_NODE_S*)pstMacTblNode);
+        HASH_Add(mactbl->hHashId, (HASH_NODE_S*)pstMacTblNode);
         bIsNew = TRUE;
         bLearn = TRUE;
     }
@@ -329,7 +298,7 @@ BS_STATUS MACTBL_Add
     {
         mactbl_CopyMacNode(pstMacNode,
             pUserData,
-            pstMacTbl->uiUserDataSize,
+            mactbl->uiUserDataSize,
             &pstMacTblNode->stMacNode,
             pstMacTblNode->pUserData);
     }
@@ -338,67 +307,61 @@ BS_STATUS MACTBL_Add
     {
         if (pstMacTblNode->hVclock == NULL)
         {
-            stUserHandle.ahUserHandle[0] = pstMacTbl;
+            stUserHandle.ahUserHandle[0] = mactbl;
             stUserHandle.ahUserHandle[1] = pstMacTblNode;
-            hVclock = VCLOCK_CreateTimer(pstMacTbl->hVclockInstance, pstMacTbl->uiOldTick, pstMacTbl->uiOldTick, TIMER_FLAG_CYCLE, mactbl_Old, &stUserHandle);
+            hVclock = VCLOCK_CreateTimer(mactbl->hVclockInstance, mactbl->uiOldTick, mactbl->uiOldTick, TIMER_FLAG_CYCLE, mactbl_Old, &stUserHandle);
             if (NULL == hVclock)
             {
-                mactbl_Free(pstMacTbl, pstMacTblNode);
+                mactbl_Free(mactbl, pstMacTblNode);
                 RETURN(BS_ERR);
             }
             pstMacTblNode->hVclock = hVclock;
         }
         else
         {
-            VCLOCK_Refresh(pstMacTbl->hVclockInstance, pstMacTblNode->hVclock);
+            VCLOCK_Refresh(mactbl->hVclockInstance, pstMacTblNode->hVclock);
         }
     }
     else
     {
         if (pstMacTblNode->hVclock != NULL)
         {
-            VCLOCK_DestroyTimer(pstMacTbl->hVclockInstance, pstMacTblNode->hVclock);
+            VCLOCK_DestroyTimer(mactbl->hVclockInstance, pstMacTblNode->hVclock);
             pstMacTblNode->hVclock = NULL;
         }
     }
 
     if (bIsNew)
     {
-        mactbl_Notify(pstMacTbl, MAC_TBL_EVENT_ADD, pstMacTblNode);
+        mactbl_Notify(mactbl, MAC_TBL_EVENT_ADD, pstMacTblNode);
     }
 
     return BS_OK;
 }
 
-BS_STATUS MACTBL_Del(IN HANDLE hMacTblId, IN MAC_NODE_S *pstMacNode)
+BS_STATUS MACTBL_Del(MACTBL_HANDLE mactbl, IN MAC_NODE_S *pstMacNode)
 {
     _MAC_TBL_NODE_S *pstMacTblNode;
-    _MAC_TBL_S *pstMacTbl;
     _MAC_TBL_NODE_S stTblNode;
 
-    BS_DBGASSERT(0 != hMacTblId);
-
-    pstMacTbl = (_MAC_TBL_S *)hMacTblId;
+    BS_DBGASSERT(0 != mactbl);
 
     stTblNode.stMacNode = *pstMacNode;
 
-    pstMacTblNode = HASH_Find(pstMacTbl->hHashId, (PF_HASH_CMP_FUNC)mactbl_CmpNode, (HASH_NODE_S*)&stTblNode);
+    pstMacTblNode = HASH_Find(mactbl->hHashId, (PF_HASH_CMP_FUNC)mactbl_CmpNode, (HASH_NODE_S*)&stTblNode);
     if (NULL != pstMacTblNode)
     {
-        mactbl_Del(pstMacTbl, pstMacTblNode);
+        mactbl_Del(mactbl, pstMacTblNode);
     }
 
     return BS_OK;
 }
 
-BS_STATUS MACTBL_Find(IN HANDLE hMacTblId, INOUT MAC_NODE_S *pstMacNode, OUT VOID *pUserData)
+BS_STATUS MACTBL_Find(MACTBL_HANDLE mactbl, INOUT MAC_NODE_S *pstMacNode, OUT VOID *pUserData)
 {
     _MAC_TBL_NODE_S *pstHashNode;
-    _MAC_TBL_S *pstMacTbl;
 
-    pstMacTbl = (_MAC_TBL_S *)hMacTblId;
-
-    pstHashNode = mactbl_Find(hMacTblId, pstMacNode);
+    pstHashNode = mactbl_Find(mactbl, pstMacNode);
 
     if (NULL == pstHashNode)
     {
@@ -407,36 +370,29 @@ BS_STATUS MACTBL_Find(IN HANDLE hMacTblId, INOUT MAC_NODE_S *pstMacNode, OUT VOI
 
     mactbl_CopyMacNode(&pstHashNode->stMacNode,
         pstHashNode->pUserData,
-        pstMacTbl->uiUserDataSize,
+        mactbl->uiUserDataSize,
         pstMacNode,
         pUserData);
 
     return BS_OK;
 }
 
-VOID MACTBL_Walk(IN HANDLE hMacTblId, IN PF_MACTBL_WALK_FUNC pfFunc, IN VOID *pUserHandle)
+VOID MACTBL_Walk(MACTBL_HANDLE mactbl, IN PF_MACTBL_WALK_FUNC pfFunc, IN VOID *pUserHandle)
 {
     _MAC_TBL_WALK_USER_HANDLE_S stUserHandle;
-    _MAC_TBL_S *pstMacTbl;
 
-    BS_DBGASSERT(0 != hMacTblId);
+    BS_DBGASSERT(0 != mactbl);
 
-    pstMacTbl = (_MAC_TBL_S *)hMacTblId;
-
-    stUserHandle.hMacTblId = hMacTblId;
+    stUserHandle.hMacTblId = mactbl;
     stUserHandle.pfFunc = pfFunc;
     stUserHandle.pUserHandle = pUserHandle;
 
-    HASH_Walk(pstMacTbl->hHashId, (PF_HASH_WALK_FUNC)mactbl_WalkEach, &stUserHandle);
+    HASH_Walk(mactbl->hHashId, (PF_HASH_WALK_FUNC)mactbl_WalkEach, &stUserHandle);
 }
 
 /* 触发一次时钟 */
-VOID MACTBL_TickStep(IN HANDLE hMacTblId)
+VOID MACTBL_TickStep(MACTBL_HANDLE mactbl)
 {
-    _MAC_TBL_S *pstMacTbl;
-
-    pstMacTbl = (_MAC_TBL_S *)hMacTblId;
-
-    VCLOCK_Step(pstMacTbl->hVclockInstance);
+    VCLOCK_Step(mactbl->hVclockInstance);
 }
 

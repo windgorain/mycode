@@ -33,7 +33,7 @@ static BS_STATUS vnets_nodectrl_Send(IN UINT uiDstSes, IN VOID *pData, IN UINT u
     
     VNETS_Context_SetSendSesID(pstMbuf, uiDstSes);
 
-    return CompIf_LinkOutput(VNETS_SES_GetIfIndex(uiDstSes), pstMbuf, 0);
+    return IFNET_LinkOutput(VNETS_SES_GetIfIndex(uiDstSes), pstMbuf, 0);
 }
 
 

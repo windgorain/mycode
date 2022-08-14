@@ -7,7 +7,6 @@
 #include "bs.h"
 
 #include "utl/exec_utl.h"
-#include "utl/ic_utl.h"
 #include "utl/txt_utl.h"
 #include "utl/buffer_utl.h"
 #include "utl/thread_utl.h"
@@ -25,7 +24,7 @@ typedef struct
 
     /* 内部数据 */
     IC_HANDLE     hIcHandle;
-    BUFFER_HANDLE hBuffer;
+    BUFFER_S buffer;
 }EXEC_S;
 
 static EXEC_S *g_exec_local = NULL;
@@ -39,20 +38,22 @@ static BS_STATUS exec_sendData(EXEC_S *exec, CHAR *pszInfo)
 	return BS_OK;
 }
 
-static VOID exec_BufferWrite(IN void *pcData, IN UINT uiLen,
-        IN USER_HANDLE_S *pstUserHandle)
+static VOID exec_BufferWrite(void *pcData, UINT uiLen, USER_HANDLE_S *ud)
 {
-    exec_sendData(pstUserHandle->ahUserHandle[0], pcData);
+    char *str = pcData;
+
+    str[uiLen] = '\0';
+    exec_sendData(ud->ahUserHandle[0], str);
 }
 
 static void exec_Output(EXEC_S *exec, char *info, int len)
 {
-    BUFFER_Write(exec->hBuffer, info, len);
+    BUFFER_Write(&exec->buffer, info, len);
 }
 
 static void exec_Flush(EXEC_S *exec)
 {
-    BUFFER_Flush(exec->hBuffer);
+    BUFFER_Flush(&exec->buffer);
 }
 
 static void exec_OutString(char *info, void *user_data)
@@ -71,16 +72,18 @@ HANDLE EXEC_Create(PF_EXEC_OUT_STRING_FUNC pfOutStringFunc,
         PF_EXEC_GET_CHAR_FUNC pfGetCharFunc)
 {
     EXEC_S *exec = NULL;
-    USER_HANDLE_S stUserHandle;
+    USER_HANDLE_S ud;
 
     exec = MEM_ZMalloc(sizeof(EXEC_S));
     if (! exec) {
         return NULL;
     }
 
-    stUserHandle.ahUserHandle[0] = exec;
-    exec->hBuffer = BUFFER_Create(511, exec_BufferWrite, &stUserHandle);
-    if (NULL == exec->hBuffer) {
+    ud.ahUserHandle[0] = exec;
+    BUFFER_Init(&exec->buffer);
+    BUFFER_SetOutputFunc(&exec->buffer, exec_BufferWrite, &ud);
+
+    if (0 != BUFFER_AllocBuf(&exec->buffer, 511)) {
         MEM_Free(exec);
         return NULL;
     }
@@ -103,8 +106,8 @@ BS_STATUS EXEC_Delete(HANDLE hExec)
         g_exec_local = NULL;
     }
 
-    if (hExec == THREAD_GetExec()) {
-        THREAD_SetExec(NULL);
+    if (hExec == EXEC_GetExec()) {
+        EXEC_Attach(NULL);
     }
 
     if (exec->hIcHandle) {
@@ -112,7 +115,7 @@ BS_STATUS EXEC_Delete(HANDLE hExec)
         exec->hIcHandle = NULL;
     }
 
-    BUFFER_Destory(exec->hBuffer);
+    BUFFER_Fini(&exec->buffer);
     MEM_Free(exec);
 
     return BS_OK;
@@ -193,7 +196,7 @@ BS_STATUS EXEC_TM(IN UINT uiArgc, IN CHAR **pcArgv)
     }
 
     ud.ahUserHandle[0] = exec;
-    exec->hIcHandle = IC_Reg(exec_Tm, &ud);
+    exec->hIcHandle = IC_Reg(exec_Tm, &ud, 0xffffffff);
     if (! exec->hIcHandle) {
         RETURN(BS_NO_MEMORY);
     }

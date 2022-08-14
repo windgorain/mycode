@@ -50,8 +50,8 @@ IPPOOL_HANDLE IPPOOL_Create()
     }
 
     IPList_Init(&pstIpPool->stIpList);
-    pstIpPool->hUsedOrDenyBitmap = LBitMap_Create();
-    pstIpPool->hDenyBitmap = LBitMap_Create();
+    pstIpPool->hUsedOrDenyBitmap = LBitMap_Create(NULL);
+    pstIpPool->hDenyBitmap = LBitMap_Create(NULL);
 
     if ((NULL == pstIpPool->hUsedOrDenyBitmap) || (NULL == pstIpPool->hDenyBitmap))
     {

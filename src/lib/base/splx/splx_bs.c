@@ -17,7 +17,7 @@ typedef struct
     CRITICAL_SECTION stSplx;
 #endif
 
-    INT iSplxOwnerTID;     /* 拥有SPLX的线程 */
+    THREAD_ID iSplxOwnerTID;     /* 拥有SPLX的线程 */
     CHAR *pcSplxOwnerFile; /* 拥有SPLX的文件名 */
     UINT uiSplxOwnerLine;  /* 拥有SPLX的行号 */
 }_SPLX_CTRL_S;
@@ -25,7 +25,7 @@ typedef struct
 /*vars*/
 static _SPLX_CTRL_S g_stSplx;
 
-BS_STATUS SPLX_Init()
+static void splx_init()
 {
     Mem_Zero(&g_stSplx, sizeof(_SPLX_CTRL_S));
 
@@ -40,18 +40,20 @@ BS_STATUS SPLX_Init()
 #endif
 
 #ifdef IN_DEBUG
-    g_stSplx.iSplxOwnerTID = -1;
+    g_stSplx.iSplxOwnerTID = 0;
 #endif
+}
 
-    return BS_OK;
+CONSTRUCTOR(init) {
+    splx_init();
 }
 
 VOID _SPLX_P(IN CHAR *pcFilename, IN UINT uiLine)
 {
 #ifdef IN_DEBUG
-    INT iTid = 0;
+    THREAD_ID iTid = 0;
 
-    iTid = (INT)THREAD_GetSelfID();
+    iTid = THREAD_GetSelfID();
     if ((iTid == g_stSplx.iSplxOwnerTID) && (iTid != 0))
     {
         BS_DBGASSERT(0);
@@ -80,7 +82,7 @@ VOID SPLX_V()
 {
 
 #ifdef IN_DEBUG
-    g_stSplx.iSplxOwnerTID = -1;
+    g_stSplx.iSplxOwnerTID = 0;
 #endif
 
 #ifdef IN_UNIXLIKE

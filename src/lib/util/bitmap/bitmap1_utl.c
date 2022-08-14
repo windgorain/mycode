@@ -12,65 +12,49 @@
 #include "utl/bitmap_utl.h"
 #include "utl/bitmap1_utl.h"
 
-UINT BITMAP_Index2IndexFrom1(UINT uiIndex)
+static INT64 bitmap_index_to_index1(INT64 index)
 {
-    if (uiIndex == BITMAP_INVALID_INDEX) {
-        return 0;
-    }
-
-    return uiIndex + 1;
+    return index + 1;
 }
 
-UINT BITMAP_IndexFrom12Index(UINT uiIndexFrom1)
+INT64 bitmap_index1_to_index(INT64 index_from1)
 {
-    if (uiIndexFrom1 == 0) {
-        return BITMAP_INVALID_INDEX;
-    }
-
-    return uiIndexFrom1 - 1;
+    return index_from1 - 1;
 }
 
 /* 获取一个setted位的Index */
 UINT BITMAP1_GetASettedBitIndex(IN BITMAP_S *pstBitMap)
 {
-    UINT uiIndex = BITMAP_GetASettedBitIndex(pstBitMap);
-
-    return BITMAP_Index2IndexFrom1(uiIndex);
+    return bitmap_index_to_index1(BITMAP_GetBusy(pstBitMap));
 }
 
 /* 获取某个指定位置之后的setted位的Index */
-UINT BITMAP1_GetASettedBitIndexAfter(IN BITMAP_S *pstBitMap, IN UINT uiIndexFrom1)
+UINT BITMAP1_GetBusyFrom(BITMAP_S *pstBitMap, UINT from)
 {
-    UINT uiIndex = BITMAP_GetASettedBitIndexAfter(pstBitMap, BITMAP_IndexFrom12Index(uiIndexFrom1));
-
-    return BITMAP_Index2IndexFrom1(uiIndex);
+    return bitmap_index_to_index1(BITMAP_GetBusyFrom(pstBitMap, bitmap_index1_to_index(from)));
 }
 
 /* 获取一个unsetted位的Index */
-UINT BITMAP1_GetAUnsettedBitIndex(IN BITMAP_S *pstBitMap)
+UINT BITMAP1_GetFree(IN BITMAP_S *pstBitMap)
 {
-    UINT uiIndex = BITMAP_GetAUnsettedBitIndex(pstBitMap);
-
-    return BITMAP_Index2IndexFrom1(uiIndex);
+    return bitmap_index_to_index1(BITMAP_GetFree(pstBitMap));
 }
 
-
 /* 环绕形式的获取一个unsetted位的Index */
-UINT BITMAP1_GetAUnsettedBitIndexCycle(IN BITMAP_S *pstBitMap)
+UINT BITMAP1_GetFreeCycle(IN BITMAP_S *pstBitMap)
 {
-    UINT uiIndex = BITMAP_GetAUnsettedBitIndexCycle(pstBitMap);
-    return BITMAP_Index2IndexFrom1(uiIndex);
+    return bitmap_index_to_index1(BITMAP_GetFreeCycle(pstBitMap));
 }
 
 /* 从两个bitmap中获取都被设置的位的IndexFrom1 */
-UINT BITMAP1_2GetSettedIndex(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2)
+UINT BITMAP1_2GetBusy(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2)
 {
-    return BITMAP_Index2IndexFrom1(BITMAP_2GetSettedIndex(pstBitMap1, pstBitMap2));
+    return bitmap_index_to_index1(BITMAP_2GetSettedIndex(pstBitMap1, pstBitMap2));
 }
 
 /* 从两个bitmap中获取都未被设置的位的IndexFrom1 */
-UINT BITMAP1_2GetUnsettedIndex(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2)
+UINT BITMAP1_2GetFree(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2)
 {
-    return BITMAP_Index2IndexFrom1(BITMAP_2GetUnsettedIndex(pstBitMap1, pstBitMap2));
+    return bitmap_index_to_index1(BITMAP_2GetUnsettedIndex(pstBitMap1, pstBitMap2));
 }
 

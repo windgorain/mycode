@@ -8,11 +8,28 @@
 #include "utl/lstr_utl.h"
 #include "utl/ip_string.h"
 #include "utl/tcp_utl.h"
+#include "utl/time_utl.h"
 #include "utl/txt_utl.h"
 #include "utl/cuckoo_hash.h"
 #include "utl/box_utl.h"
 #include "utl/http_lib.h"
 #include "utl/http_log.h"
+#include "utl/syslog_utl.h"
+#ifdef USE_SLS
+#include "utl/itoa.h"
+#include <apr_uuid.h>
+#include "utl/log_producer_api.h"
+#endif
+#ifdef USE_REDIS
+#include "utl/redis_utl.h"
+#endif
+
+#define WHITE_HOST_NODES_BUCKETS (1024*256)
+#define WHITE_HOST_NODES_DEPTH (8)
+#define WHITE_IP_NODES_BUCKETS (1024*4)
+#define WHITE_IP_NODES_DEPTH (8)
+#define ONLY_IP_NODES_BUCKETS (1024*4)
+#define ONLY_IP_NODES_DEPTH (8)
 
 typedef struct {
     UINT sip;
@@ -65,6 +82,27 @@ static int _httplog_bloomfilter_test(HTTP_LOG_S *config, UINT sip,
     key.dport = dport;
 
     if (0 == BloomFilter_TrySet(&config->bloomfilter, &key, sizeof(key))) {
+        return 1;
+    }
+
+    return 0;
+}
+
+static int _ua_bloomfilter_test(HTTP_LOG_S *config, UINT sip, int ua_len, const uint8_t *ua)
+{
+    if (!ua_len) return 0;
+
+    int len = ua_len + 4;
+    uint8_t ip_ua[len + 1];
+    uint8_t *ip = (void*)&sip;
+    int i;
+
+    for (i = 0; i < sizeof(UINT); i++) {
+        ip_ua[i] = ip[i];
+    }
+    memcpy(ip_ua + sizeof(UINT), ua, strlen((void*)ua));
+    
+    if (0 == BloomFilter_TrySet(&config->ua_filter, ip_ua, len)) {
         return 1;
     }
 
@@ -178,6 +216,13 @@ static int _httplog_process_kv(LSTR_S *pstKey, LSTR_S *pstValue,
     } else if ((LSTR_StrCmp(pstKey, "log_response_body") == 0)
             && (pstValue->uiLen > 0)) {
         config->log_response_body = LSTR_A2ui(pstValue);
+    } else if ((LSTR_StrCmp(pstKey, "redis_ua") == 0)
+            && (pstValue->uiLen > 0)) {
+        config->useragent_db_enable = 1;
+        config->ua_filter_size = 1000000;
+        BloomFilter_Init(&config->ua_filter, config->ua_filter_size);
+        BloomFilter_SetStepsToClearAll(&config->ua_filter, 60);
+        BloomFilter_SetAutoStep(&config->ua_filter, 1);
     } else if ((LSTR_StrCmp(pstKey, "head_format") == 0)
             && (pstValue->uiLen > 0)) {
         config->head_format = HTTP_LOG_HEAD_FMT_RAW;
@@ -205,17 +250,6 @@ static int _httplog_process_kv(LSTR_S *pstKey, LSTR_S *pstValue,
                     WHITE_HOST_NODES_BUCKETS, WHITE_HOST_NODES_DEPTH);
             httplog_LoadStrFile(&config->white_host_list, file);
         }
-    } else if ((LSTR_StrCmp(pstKey, "ip_white_list") ==0)
-            && (pstValue->uiLen > 0)) {
-        LSTR_Strlcpy(pstValue, sizeof(buf), buf);
-        file = FILE_ToAbsPath(config->config_base_dir, buf,
-                filename, sizeof(filename));
-        if (file != NULL) {
-            config->white_ip_enable = 1;
-            StrBox_Init(&config->white_host_list, NULL,
-                    WHITE_IP_NODES_BUCKETS, WHITE_IP_NODES_DEPTH);
-            httplog_LoadIPFile(&config->white_ip_list, file);
-        }
     } else if ((LSTR_StrCmp(pstKey, "only_dip_list") ==0)
             && (pstValue->uiLen > 0)) {
         LSTR_Strlcpy(pstValue, sizeof(buf), buf);
@@ -227,6 +261,20 @@ static int _httplog_process_kv(LSTR_S *pstKey, LSTR_S *pstValue,
                     ONLY_IP_NODES_BUCKETS, ONLY_IP_NODES_DEPTH);
             httplog_LoadIPFile(&config->only_dip_list, file);
         }
+    }else if ((LSTR_StrCmp(pstKey, "ip_white_list") ==0)
+            && (pstValue->uiLen > 0)) {
+        LSTR_Strlcpy(pstValue, sizeof(buf), buf);
+        file = FILE_ToAbsPath(config->config_base_dir, buf,
+                filename, sizeof(filename));
+        if (file != NULL) {
+            config->white_ip_enable = 1;
+            IntBox_Init(&config->white_ip_list, NULL,
+                    WHITE_IP_NODES_BUCKETS, WHITE_IP_NODES_DEPTH);
+            httplog_LoadIPFile(&config->white_ip_list, file);
+        }
+    } else if ((LSTR_StrCmp(pstKey, "http_log_enable") == 0)
+            && (pstValue->uiLen > 0) && (pstValue->pcData[0] == '1')) {
+            config->log_enable = 1;
     }
 
     return BS_OK;
@@ -292,28 +340,25 @@ BS_STATUS HTTPLOG_ParseConfig(HTTP_LOG_S *config, char *conf_string)
 
     LSTR_ScanMultiKV(&stConfig, ',', ':', _httplog_process_kv, config);
 
-    config->log_enable = 1;
-
     return 0;
 }
 
-static int _httplog_HeadRawScan(char *field, int field_len,
-        char *value, int value_len, void *ud)
+static int _httplog_HeadRawScan(char *field, int field_len, char *value, int value_len, void *ud)
 {
-    HTTP_LOG_S *config = ud;
+    BUFFER_S *buffer = ud;
 
     if (field == NULL) { /* first line */
         field = "First-Line";
         field_len = strlen(field);
     }
 
-    LOG_OutputString(&config->log_utl, ",\"");
-    LOG_Output(&config->log_utl, field, field_len);
-    LOG_OutputString(&config->log_utl, "\":\"");
+    BUFFER_WriteString(buffer, ",\"");
+    BUFFER_Write(buffer, field, field_len);
+    BUFFER_WriteString(buffer, "\":\"");
     if (value) {
-        LOG_Output(&config->log_utl, value, value_len);
+        BUFFER_Write(buffer, value, value_len);
     }
-    LOG_OutputString(&config->log_utl, "\"");
+    BUFFER_WriteString(buffer, "\"");
 
     return 0;
 }
@@ -327,10 +372,10 @@ static int httplog_Filter(HTTP_LOG_S *config, HTTP_LOG_HEAD_INFO_S *head_info)
         }
     }
 
-    if ((config->white_host_enable) && head_info->host) {
+    if ((config->white_host_enable) && head_info->host.start) {
         char host[256];
-        int len = MIN(head_info->host_len, sizeof(host) - 1);
-        memcpy(host, head_info->host, len);
+        int len = MIN(head_info->host.len, sizeof(host) - 1);
+        memcpy(host, head_info->host.start, len);
         host[len] = 0;
         if (Box_Find(&config->white_host_list, host) >= 0) {
             head_info->match_white_list = 1;
@@ -354,15 +399,85 @@ static int httplog_Filter(HTTP_LOG_S *config, HTTP_LOG_HEAD_INFO_S *head_info)
     return 0;
 }
 
-int HTTPLOG_HeadInput(HTTP_LOG_S *config, HTTP_LOG_HEAD_INFO_S *head_info)
+static int _httplog_head_input(HTTP_LOG_S *config,
+        HTTP_LOG_HEAD_INFO_S *head_info, BUFFER_S *buffer)
 {
     UCHAR *src, *dst;
-    UINT head_len = head_info->end - head_info->data;
+    UINT head_len = head_info->head_end - head_info->head_start;
     char *line;
     UINT line_len;
     char ip6_str_src[INET6_ADDRSTRLEN];
     char ip6_str_dst[INET6_ADDRSTRLEN];
+    char buf[32];
 
+    BUFFER_Print(buffer, "{\"type\":\"httplog\",\"log_ver\":1,\"time\":\"%s\"",
+            TM_Utc2Acstime(time(0), buf));
+
+    if (head_info->ether_type == NET_PKT_TYPE_IP) {
+        src = (void*)&head_info->sip;
+        dst = (void*)&head_info->dip;
+        BUFFER_Print(buffer,
+                ",\"address\":\"%d.%d.%d.%d:%d-%d.%d.%d.%d:%d\"",
+                src[0], src[1], src[2], src[3], ntohs(head_info->sport),
+                dst[0], dst[1], dst[2], dst[3], ntohs(head_info->dport));
+    } else if (head_info->ether_type == NET_PKT_TYPE_IP6) {
+        inet_ntop6_full(&head_info->ip6_src, ip6_str_src, sizeof(ip6_str_src));
+        inet_ntop6_full(&head_info->ip6_dst, ip6_str_dst, sizeof(ip6_str_dst));
+        BUFFER_Print(buffer, ",\"address\":\"%s:%d-%s:%d\"",
+                ip6_str_src, ntohs(head_info->sport), ip6_str_dst,
+                ntohs(head_info->dport));
+    }
+
+    if (config->head_format == HTTP_LOG_HEAD_FMT_HEX) {
+        BUFFER_WriteString(buffer, ",\"head_hex\":\"");
+        BUFFER_WriteByHex(buffer, head_info->head_start, head_len);
+        BUFFER_WriteString(buffer, "\"");
+    } else if (config->head_format == HTTP_LOG_HEAD_FMT_JSON) {
+        HTTP_HeadRawScan(head_info->head_start, head_len, _httplog_HeadRawScan, buffer);
+    }
+
+    BUFFER_WriteString(buffer, "}\n");
+
+    if (config->head_format == HTTP_LOG_HEAD_FMT_RAW) {
+        TXT_SCAN_N_LINE_BEGIN(head_info->head_start, head_len, line, line_len) {
+            if (line_len && _httplog_IsPermitLogLine(config, line, line_len)) {
+                BUFFER_Write(buffer, line, line_len + 2);
+            }
+        }TXT_SCAN_LINE_END();
+        BUFFER_Write(buffer, "\r\n", 2);
+    }
+
+    return 0;
+}
+
+static void _httplog_output_log(void *data, UINT len, USER_HANDLE_S *ud)
+{
+    char *str = data;
+    HTTP_LOG_S *config = ud->ahUserHandle[0];
+    str[len] = '\0';
+    LOG_Output(&config->log_utl, data, len);
+}
+
+static int _httplog_process_head(HTTP_LOG_S *config, HTTP_LOG_HEAD_INFO_S *head_info)
+{
+    char buf[2048];
+    BUFFER_S buffer;
+    USER_HANDLE_S ud;
+
+    ud.ahUserHandle[0] = config;
+
+    BUFFER_Init(&buffer);
+    BUFFER_AttachBuf(&buffer, buf, sizeof(buf)-1);
+    BUFFER_SetOutputFunc(&buffer, _httplog_output_log, &ud);
+    int ret = _httplog_head_input(config, head_info, &buffer);
+    BUFFER_Flush(&buffer);
+    BUFFER_Fini(&buffer);
+
+    return ret;
+}
+
+int HTTPLOG_HeadInput(HTTP_LOG_S *config, HTTP_LOG_HEAD_INFO_S *head_info)
+{
     if (config->log_enable == 0) {
         return BS_NOT_INIT;
     }
@@ -372,46 +487,63 @@ int HTTPLOG_HeadInput(HTTP_LOG_S *config, HTTP_LOG_HEAD_INFO_S *head_info)
         return ret;
     }
 
-    LOG_OutputHead(&config->log_utl, "httplog", 1);
+    return _httplog_process_head(config, head_info);
+}
 
-    if (head_info->ether_type == NET_PKT_TYPE_IP) {
-        src = (void*)&head_info->sip;
-        dst = (void*)&head_info->dip;
-        LOG_OutputArgs(&config->log_utl,
+static int _httplog_body_input(HTTP_LOG_S *config,
+        HTTP_LOG_HEAD_INFO_S *body_info, int log_len, BUFFER_S *buffer)
+{
+    char ip6_str_src[INET6_ADDRSTRLEN];
+    char ip6_str_dst[INET6_ADDRSTRLEN];
+    UCHAR *src, *dst;
+    char buf[32];
+
+    BUFFER_Print(buffer, "{\"type\":\"httpbody\",\"log_ver\":1,\"time\":\"%s\"",
+            TM_Utc2Acstime(time(0), buf));
+
+    if (body_info->ether_type == NET_PKT_TYPE_IP) {
+        src = (void*)&body_info->sip;
+        dst = (void*)&body_info->dip;
+        BUFFER_Print(buffer,
                 ",\"address\":\"%d.%d.%d.%d:%d-%d.%d.%d.%d:%d\"",
-                src[0], src[1], src[2], src[3], ntohs(head_info->sport),
-                dst[0], dst[1], dst[2], dst[3], ntohs(head_info->dport));
-    } else if (head_info->ether_type == NET_PKT_TYPE_IP6) {
-        inet_ntop6_full(&head_info->ip6_src, ip6_str_src, sizeof(ip6_str_src));
-        inet_ntop6_full(&head_info->ip6_dst, ip6_str_dst, sizeof(ip6_str_dst));
-        LOG_OutputArgs(&config->log_utl, ",\"address\":\"%s:%d-%s:%d\"",
-                ip6_str_src, ntohs(head_info->sport), ip6_str_dst,
-                ntohs(head_info->dport));
+                src[0], src[1], src[2], src[3], ntohs(body_info->sport),
+                dst[0], dst[1], dst[2], dst[3], ntohs(body_info->dport));
+    }else if (body_info->ether_type == NET_PKT_TYPE_IP6) {
+        inet_ntop6_full(&body_info->ip6_src, ip6_str_src, sizeof(ip6_str_src));
+        inet_ntop6_full(&body_info->ip6_dst, ip6_str_dst, sizeof(ip6_str_dst));
+        BUFFER_Print(buffer, ",\"address\":\"%s:%d-%s:%d\"",
+                ip6_str_src, ntohs(body_info->sport), ip6_str_dst,
+                ntohs(body_info->dport));
     }
 
-    if (config->head_format == HTTP_LOG_HEAD_FMT_HEX) {
-        LOG_OutputString(&config->log_utl, ",\"head_hex\":\"");
-        LOG_OutputByHex(&config->log_utl, head_info->data, head_len);
-        LOG_OutputString(&config->log_utl, "\"");
-    } else if (config->head_format == HTTP_LOG_HEAD_FMT_JSON) {
-        HTTP_HeadRawScan(head_info->data, head_len,
-                _httplog_HeadRawScan, config);
-    }
+    BUFFER_Print(buffer,  ",\"dir\":\"%d\",\"body\":\"", body_info->is_request ? 0:1);
+    UINT len = body_info->body_end - body_info->body_start;
+    len = MIN(log_len, len);
+    BUFFER_WriteByHex(buffer, (CHAR*)body_info->body_start, len);
+    BUFFER_WriteString(buffer, "\"");
+    body_info->log_printed_len += len;
 
-    LOG_OutputTail(&config->log_utl);
-
-    if (config->head_format == HTTP_LOG_HEAD_FMT_RAW) {
-        TXT_SCAN_N_LINE_BEGIN(head_info->data, head_len, line, line_len) {
-            if (_httplog_IsPermitLogLine(config, line, line_len)) {
-                LOG_Output(&config->log_utl, line, line_len + 2);
-            }
-        }TXT_SCAN_LINE_END();
-        LOG_Output(&config->log_utl, "\r\n", 2);
-    }
-
-    LOG_Flush(&config->log_utl);
+    BUFFER_WriteString(buffer, "}\n");
 
     return 0;
+}
+
+static int _httplog_process_body(HTTP_LOG_S *config, HTTP_LOG_HEAD_INFO_S *body_info, int len)
+{
+    char buf[2048];
+    BUFFER_S buffer;
+    USER_HANDLE_S ud;
+
+    ud.ahUserHandle[0] = config;
+
+    BUFFER_Init(&buffer);
+    BUFFER_AttachBuf(&buffer, buf, sizeof(buf)-1);
+    BUFFER_SetOutputFunc(&buffer, _httplog_output_log, &ud);
+    int ret = _httplog_body_input(config, body_info, len, &buffer);
+    BUFFER_Flush(&buffer);
+    BUFFER_Fini(&buffer);
+
+    return ret;
 }
 
 int HTTPLOG_BodyInput(HTTP_LOG_S *config, HTTP_LOG_HEAD_INFO_S *body_info)
@@ -437,37 +569,226 @@ int HTTPLOG_BodyInput(HTTP_LOG_S *config, HTTP_LOG_HEAD_INFO_S *body_info)
         return BS_EMPTY;
     }
 
-    char ip6_str_src[INET6_ADDRSTRLEN];
-    char ip6_str_dst[INET6_ADDRSTRLEN];
-    UCHAR *src, *dst;
+    return _httplog_process_body(config, body_info, log_len);
+}
 
-    LOG_OutputHead(&config->log_utl, "httpbody", 1);
+int _HTTPLOG_GetUa_Msg(HTTP_LOG_S *config, HTTP_LOG_HEAD_INFO_S *http_info)
+{
+    time_t seconds = time(NULL);
+    char info[1024];
+    memset(info,0,sizeof(info));
 
-    if (body_info->ether_type == NET_PKT_TYPE_IP) {
-        src = (void*)&body_info->sip;
-        dst = (void*)&body_info->dip;
-        LOG_OutputArgs(&config->log_utl,
-                ",\"address\":\"%d.%d.%d.%d:%d-%d.%d.%d.%d:%d\"",
-                src[0], src[1], src[2], src[3], ntohs(body_info->sport),
-                dst[0], dst[1], dst[2], dst[3], ntohs(body_info->dport));
-    }else if (body_info->ether_type == NET_PKT_TYPE_IP6) {
-        inet_ntop6_full(&body_info->ip6_src, ip6_str_src, sizeof(ip6_str_src));
-        inet_ntop6_full(&body_info->ip6_dst, ip6_str_dst, sizeof(ip6_str_dst));
-        LOG_OutputArgs(&config->log_utl, ",\"address\":\"%s:%d-%s:%d\"",
-                ip6_str_src, ntohs(body_info->sport), ip6_str_dst,
-                ntohs(body_info->dport));
-    }
+    UCHAR *sip = (void*)&http_info->sip;
+    
+    CHAR *key = "ua";
 
-    LOG_OutputArgs(&config->log_utl,  ",\"dir\":\"%d\",\"body\":\"", 
-            body_info->is_request == 0);
-    uint32_t len = body_info->end - body_info->data;
-    len = MIN(log_len, len);
-    LOG_OutputByHex(&config->log_utl, (CHAR*)body_info->data, len);
-    body_info->log_printed_len += len;
+    int offset = scnprintf(info, sizeof(info),
+            "{\"type\":\"%s\",\"log_ver\":%d,\"time\":\"%ld\","
+            "\"client_ip\":\"%d.%d.%d.%d\", \"ua\":\"",
+            key, 1, seconds, sip[0], sip[1], sip[2], sip[3]);
+    
+    memcpy(info + offset, (unsigned char *)http_info->user_agent.start, http_info->user_agent.len);    
+    offset += http_info->user_agent.len;
+    offset += scnprintf(info + offset, sizeof(info) - offset, "\"}");
 
-    LOG_OutputTail(&config->log_utl);
-    LOG_Flush(&config->log_utl);
+#ifdef USE_REDIS
+    void *redisHandle = redisGetRedisHandle();
+    redisWriteDataToListTail(redisHandle,key,info);
+#endif
 
     return 0;
 }
 
+#if USE_SLS
+int _HTTPLOG_Input(HTTP_LOG_S *config, HTTP_LOG_HEAD_INFO_S *http_info)
+{
+    char ip6_str_src[INET6_ADDRSTRLEN];
+    char ip6_str_dst[INET6_ADDRSTRLEN];
+    char sport[16], dport[16];
+
+    if (http_info->ether_type == NET_PKT_TYPE_IP) {
+        IPString_IP2String(http_info->sip, ip6_str_src);
+        IPString_IP2String(http_info->dip, ip6_str_dst);
+    } else if (http_info->ether_type == NET_PKT_TYPE_IP6) {
+        inet_ntop6_full(&http_info->ip6_src, ip6_str_src, sizeof(ip6_str_src));
+        inet_ntop6_full(&http_info->ip6_dst, ip6_str_dst, sizeof(ip6_str_dst));
+    }
+
+    log_client_t *client = (log_client_t*) config->log_utl.sls_client;
+    if (!client) return BS_ERR;
+
+    LogSls_Start(client);
+
+    if (http_info->is_request || !http_info->uuid) {
+#ifdef USE_SLS
+        apr_uuid_t g;
+        memset(http_info->uuid, 0, sizeof(http_info->uuid));
+        apr_uuid_get(&g);
+        apr_uuid_format((char*)http_info->uuid, &g);
+#endif
+    }
+
+    LOG_PRODUCER_CLIENT_SEND_LOG_NKV(client, "type", "httplog", "logver", "2", "uuid", http_info->uuid);
+    LOG_PRODUCER_CLIENT_SEND_LOG_NKV(client, "sip", ip6_str_src, "dip", ip6_str_dst,
+            "sport", stoa(sport, http_info->sport), "dport", stoa(dport, http_info->dport));
+    if (http_info->is_request == 0) {
+        if (http_info->response_code.len) {
+            LogSls_AddKvLen(client, "rspcode", sizeof("rspcode") - 1,
+                    (void*)http_info->response_code.start, http_info->response_code.len);
+        }
+        if (http_info->location.len) {
+            LogSls_AddKvLen(client, "location", sizeof("location") -1,
+                    (void*)http_info->location.start, http_info->location.len);
+        }
+        if (http_info->content_type.len) {
+            LogSls_AddKvLen(client, "contenttype", sizeof("contenttype") -1,
+                    (void*)http_info->content_type.start, http_info->content_type.len);
+        }
+
+        U_COOKIE_PTR *ptr = http_info->cookie;
+        while(ptr) {
+            if (http_info->is_request) {
+                LogSls_AddKvLen(client, "setcookie", sizeof("setcookie") -1,
+                        (void*)ptr->cookie, ptr->cookie_end - ptr->cookie);
+            } else {
+                LogSls_AddKvLen(client, "cookie", sizeof("cookie") -1,
+                        ptr->cookie, ptr->cookie_end - ptr->cookie);
+            }
+            ptr = ptr->next;
+        }
+        LogSls_AddKv(client, "dir", "2");
+    } else {
+        if (http_info->method.len) {
+            LogSls_AddKvLen(client, "method", sizeof("method") -1,
+                    http_info->method.start, http_info->method.len);
+        }
+        if (http_info->uri.len) {
+            LogSls_AddKvLen(client, "uri", sizeof("uri") -1,
+            http_info->uri.start, http_info->uri.len);
+        }
+        if (http_info->host.len) {
+            LogSls_AddKvLen(client, "host", sizeof("host") -1,
+                    http_info->host.start, http_info->host.len);
+        }
+
+        U_COOKIE_PTR *ptr = http_info->cookie;
+        while(ptr) {
+            LogSls_AddKvLen(client, "cookie", sizeof("cookie") -1,
+                    ptr->cookie, ptr->cookie_end - ptr->cookie);
+            ptr = ptr->next;
+        }
+        if (http_info->content_type.len) {
+            LogSls_AddKvLen(client, "contenttype", sizeof("contenttype") -1,
+                    http_info->content_type.start, http_info->content_type.len);
+        }
+        if (http_info->proxy_connect.len) {
+            LogSls_AddKvLen(client, "proxyconnection", sizeof("proxyconnetion"),
+                    http_info->proxy_connect.start, http_info->proxy_connect.len);
+        }
+        if (http_info->proxy_authorization.len) {
+            LogSls_AddKvLen(client, "proxyauthorization", sizeof("proxyauthoriation"),
+                    http_info->proxy_authorization.start, http_info->proxy_authorization.len);
+        }
+
+        if (http_info->x_forward_for.len) {
+            LogSls_AddKvLen(client, "xforwardfor", sizeof("xforwardfor"),
+                    http_info->x_forward_for.start, http_info->x_forward_for.len);
+        }
+        if (http_info->referer.len) {
+            LogSls_AddKvLen(client, "referer", sizeof("referer"),
+                    http_info->referer.start, http_info->referer.len);
+        }
+        if (http_info->user_agent.len) {
+            LogSls_AddKvLen(client, "useragent", sizeof("useragent"),
+                    http_info->user_agent.start, http_info->user_agent.len);
+        }
+        LogSls_AddKv(client, "dir", "1");
+    }
+    UINT len = http_info->head_end - http_info->head_start;
+    if (len && HTTP_LOG_HEAD_FMT_RAW) {
+        LogSls_AddKvLen(client, "head", sizeof("head"), http_info->head_start, len);
+    }
+
+    int log_len = 0;
+    if (http_info->is_request) {
+        if (config->log_request_body != 0) {
+            log_len = config->log_request_body - http_info->log_printed_len;
+        }
+    } else {
+        if (config->log_response_body == 0) {
+        }
+        log_len = config->log_response_body - http_info->log_printed_len;
+    }
+
+    len = http_info->body_end - http_info->body_start;
+    log_len = log_len >= len ? len  : log_len;
+    if (log_len) {
+        //LOG_OutputByHex(&config->log_utl, (CHAR*)http_info->body_start, len);
+        LogSls_AddKvLen(client, "body", sizeof("body"), http_info->body_start, log_len);
+        http_info->log_printed_len += log_len;
+    }
+
+    LogSls_End(client);
+
+    return 0;
+}
+#endif
+
+int HTTPLOG_Input(HTTP_LOG_S *config, HTTP_LOG_HEAD_INFO_S *http_info)
+{
+    if (config->log_enable == 0) {
+        return BS_NOT_INIT;
+    }
+
+    if(config->useragent_db_enable && http_info->is_request &&
+                _ua_bloomfilter_test(config, http_info->sip,
+                http_info->user_agent.len, http_info->user_agent.start)){
+        _HTTPLOG_GetUa_Msg(config, http_info);
+    }
+
+    if (config->white_host_enable && (http_info->match_white_list == 1)){
+        return BS_NO_PERMIT;
+    }
+
+    if (config->only_dip_enable) {
+        if (Box_Find(&config->only_dip_list, UINT_HANDLE(http_info->dip)) < 0) {
+            http_info->match_white_list = 1;
+            return BS_NO_PERMIT;
+        }
+    }
+
+    if ((config->white_host_enable) && http_info->host.start && http_info->is_request) {
+        char host[256];
+        int len = MIN(http_info->host.len, sizeof(host) - 1);
+        memcpy(host, http_info->host.start, len);
+        host[len] = 0;
+        if (Box_Find(&config->white_host_list, host) >= 0) {
+            http_info->match_white_list = 1;
+            return BS_NO_PERMIT;
+        }
+    }
+
+    if ((config->bloomfilter_size != 0)
+            && (0 == _httplog_bloomfilter_test(config, http_info->sip,
+                    http_info->dip, http_info->sport, http_info->dport))) {
+        return BS_ALREADY_EXIST;
+    }
+
+    int ret =  0;
+
+    if (config->log_utl.file) {
+        if (http_info->with_head) {
+            ret |= HTTPLOG_HeadInput(config, http_info);
+        }
+        if (http_info->with_body) {
+            ret |= HTTPLOG_BodyInput(config, http_info);
+        }
+    }
+#ifdef USE_SLS
+    if (config->log_utl.sls) {
+        ret |= _HTTPLOG_Input(config, http_info);
+    }
+#endif
+
+    return ret;
+}

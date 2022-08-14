@@ -1,0 +1,11 @@
+set (SLIB_NAME static-${NAME})
+set (DLIB_NAME dynamic-${NAME})
+
+add_library(${SLIB_NAME} ${SRC})
+set_property(TARGET ${SLIB_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+add_library(${DLIB_NAME} SHARED ${SRC} )
+TARGET_LINK_LIBRARIES(${DLIB_NAME} util unixlike_util bs m pthread)
+set_target_properties(${DLIB_NAME} PROPERTIES OUTPUT_NAME "${NAME}")
+set_target_properties(${LIB_NAME} PROPERTIES PREFIX "")
+set_target_properties(${LIB_NAME} PROPERTIES SUFFIX ".so")

@@ -11,6 +11,7 @@
 #include "utl/bit_opt.h"
 #include "utl/vf_utl.h"
 #include "utl/eth_utl.h"
+#include "utl/udp_utl.h"
 #include "utl/dhcp_utl.h"
 #include "utl/dhcps_utl.h"
 
@@ -119,7 +120,7 @@ static BS_STATUS wan_dhcp_Enable(IN _WAN_DHCP_S *pstDhcp)
     stAddrInfo.uiIP = htonl(stConf.uiGateway);
     stAddrInfo.uiMask = htonl(stConf.uiMask);
 
-    WAN_IPAddr_AddIp(&stAddrInfo);
+    WanIPAddr_AddIp(&stAddrInfo);
 
     return BS_OK;
 }
@@ -161,7 +162,7 @@ static VOID wan_dhcp_VFEventDestory(IN UINT uiVrfID)
 
     if (pstDhcp != NULL)
     {
-        RcuBs_Free(&pstDhcp->stRcu, _wan_dhcp_RcuFree);
+        RcuEngine_Call(&pstDhcp->stRcu, _wan_dhcp_RcuFree);
     }
 }
 
@@ -201,7 +202,7 @@ static BS_STATUS wan_dhcp_DealDhcpPacket
     BS_STATUS eRet;
     UINT uiPhase;
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     pstDhcp = WanVrf_GetData(uiVrfID, WAN_VRF_PROPERTY_INDEX_DHCP);
     if ((pstDhcp != NULL) && (pstDhcp->hDhcpsHandle != NULL))
     {
@@ -212,7 +213,7 @@ static BS_STATUS wan_dhcp_DealDhcpPacket
         MBUF_Free(pstMbuf);
         eRet = BS_ERR;
     }
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     return eRet;
 }
@@ -250,13 +251,13 @@ UINT WAN_DHCP_GetServerIP(IN UINT uiVrfID)
     UINT uiIP = 0;
     UINT uiPhase;
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     pstDhcp = WanVrf_GetData(uiVrfID, WAN_VRF_PROPERTY_INDEX_DHCP);
     if ((pstDhcp != NULL) && (pstDhcp->hDhcpsHandle != NULL))
     {
         uiIP = DHCPS_GetServerIP(pstDhcp->hDhcpsHandle);
     }
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     return uiIP;
 }
@@ -268,13 +269,13 @@ UINT WAN_DHCP_GetMask(IN UINT uiVrfID)
     UINT uiMask = 0;
     UINT uiPhase;
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     pstDhcp = WanVrf_GetData(uiVrfID, WAN_VRF_PROPERTY_INDEX_DHCP);
     if ((pstDhcp != NULL) && (pstDhcp->hDhcpsHandle != NULL))
     {
         uiMask = DHCPS_GetMask(pstDhcp->hDhcpsHandle);
     }
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     return uiMask;
 }

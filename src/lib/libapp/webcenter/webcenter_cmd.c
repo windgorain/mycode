@@ -42,17 +42,12 @@ BS_STATUS WebCenter_Cmd_Save(IN HANDLE hFile)
     CHAR *pcTmp;
 
     pcTmp = WebCenter_GetBindedInnerWsService();
-    if (pcTmp[0] != '\0')
-    {
-        if (CMD_EXP_IsOptPermitOutput(hFile, pcTmp))
-        {
-            CMD_EXP_OutputCmd(hFile, "bind inner-ws-service %s", pcTmp);
-        }
+    if (pcTmp[0] != '\0') {
+        CMD_EXP_OutputCmd(hFile, "bind inner-ws-service %s", pcTmp);
     }
 
     pcTmp = WebCenter_GetBindedWsService();
-    if (pcTmp[0] != '\0')
-    {
+    if (pcTmp[0] != '\0') {
         CmdExp_OutputCmd(hFile, "bind ws-service %s", pcTmp);
     }
 

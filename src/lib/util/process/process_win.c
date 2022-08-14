@@ -112,7 +112,7 @@ LONG _OS_PROCESS_CreateByFile
         pcParam = "";
     }
 
-    snprintf(szParam, sizeof(szParam), "%s %s", pcFilePath, pcParam);
+    scnprintf(szParam, sizeof(szParam), "%s %s", pcFilePath, pcParam);
 
     if (uiFlag & PROCESS_FLAG_SUSPEND)
     {
@@ -227,6 +227,11 @@ int _OS_PROCESS_RenameSelf(IN char *new_name)
 UINT _OS_PROCESS_GetPid()
 {
     return GetCurrentProcessId();
+}
+
+UINT64 _OS_PROCESS_GetTid()
+{
+    return GetCurrentThreadId();
 }
 
 #endif

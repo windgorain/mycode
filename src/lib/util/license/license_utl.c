@@ -28,12 +28,10 @@
 int LICENSE_Init(IN CFF_HANDLE hCff)
 {
     char *duplicate;
-    char info[128];
 
     duplicate = CFF_GetTagDuplicate(hCff);
     if (NULL != duplicate) {
-        snprintf(info, sizeof(info), "%s conflict", duplicate);
-        RETURNI(BS_CONFLICT, info);
+        return ERR_VSet(BS_CONFLICT, "%s conflict", duplicate);
     }
 
     return 0;

@@ -14,6 +14,7 @@
 #include "utl/mutex_utl.h"
 #include "utl/object_utl.h"
 #include "utl/ob_chain.h"
+#include "comp/comp_wan.h"
 
 #include "../h/wan_vrf.h"
 #include "../h/wan_ifnet.h"
@@ -31,7 +32,7 @@ static OB_CHAIN_S g_stWanVrfObserver = OB_CHAIN_HEAD_INIT_VALUE(&g_stWanVrfObser
 
 static VOID _wan_vrf_EventNotify(IN WAN_VRF_EVENT_E enEvent, IN UINT uiVrfID)
 {
-    OB_CHAIN_NOTIFY2(&g_stWanVrfObserver, enEvent, uiVrfID);
+    OB_CHAIN_NOTIFY(&g_stWanVrfObserver, PF_WAN_VRF_EVENT_FUNC, enEvent, uiVrfID);
 }
 
 static VOID wan_vrf_TimeOut(IN HANDLE hTimerHandle, IN USER_HANDLE_S *pstUserHandle)
@@ -50,7 +51,10 @@ BS_STATUS WanVrf_Init()
 
     MUTEX_Init(&g_stWanVrfMutex);
 
-    g_hWanVrf = NO_CreateAggregate(WAN_MAX_VRF, 0, 0);
+    OBJECT_PARAM_S obj_param = {0};
+    obj_param.uiMaxNum = WAN_MAX_VRF;
+
+    g_hWanVrf = NO_CreateAggregate(&obj_param);
     if (NULL == g_hWanVrf)
     {
         RETURN(BS_ERR);
@@ -132,7 +136,7 @@ BS_STATUS WanVrf_RegEventListener
     BS_STATUS eRet;
 
     MUTEX_P(&g_stWanVrfMutex);
-    eRet = OB_CHAIN_AddWithPri(&g_stWanVrfObserver, uiPriority, (UINT_FUNC_X)pfEventFunc, pstUserHandle);
+    eRet = OB_CHAIN_AddWithPri(&g_stWanVrfObserver, uiPriority, pfEventFunc, pstUserHandle);
     MUTEX_V(&g_stWanVrfMutex);
 
     return eRet;

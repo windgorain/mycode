@@ -7,12 +7,14 @@
 #include "bs.h"
 
 #include "utl/txt_utl.h"
+#include "utl/mem_cap.h"
 #include "utl/lstr_utl.h"
 #include "utl/kv_utl.h"
 
 typedef struct
 {
     UINT uiFlag;
+    void *memcap;
     PF_KV_DECODE_FUNC pfDecode;
     DLL_HEAD_S stKeyValueList;
 }_KV_CTRL_S;
@@ -24,52 +26,31 @@ typedef struct
     KV_S stKv;
 }_KV_NODE_S;
 
-static VOID kv_FreeNodeNow(IN _KV_NODE_S *pstNode)
+static VOID kv_FreeNode(IN _KV_CTRL_S *pstCtrl, IN _KV_NODE_S *pstNode)
 {
     if (pstNode->stKv.pcKey != NULL)
     {
-        MEM_Free(pstNode->stKv.pcKey);
+        MemCap_Free(pstCtrl->memcap, pstNode->stKv.pcKey);
     }
 
     if (pstNode->stKv.pcValue != NULL)
     {
-        MEM_Free(pstNode->stKv.pcValue);
+        MemCap_Free(pstCtrl->memcap, pstNode->stKv.pcValue);
     }
 
-    MEM_Free(pstNode);
+    MemCap_Free(pstCtrl->memcap, pstNode);
 }
 
-static VOID kv_FreeRcu(IN VOID *pstRcuNode)
-{
-    _KV_NODE_S *pstNode = container_of(pstRcuNode, _KV_NODE_S, stRcu);
-
-    kv_FreeNodeNow(pstNode);
-}
-
-static VOID kv_FreeNode(IN _KV_CTRL_S *pstCtrl, IN _KV_NODE_S *pstNode)
-{
-    if (pstCtrl->uiFlag & KV_FLAG_ENABLE_RCU)
-    {
-        RcuBs_Free(&pstNode->stRcu, kv_FreeRcu);
-    }
-    else
-    {
-        kv_FreeNodeNow(pstNode);
-    }
-}
-
-static CHAR * kv_DftDecode(IN LSTR_S *pstValue)
+static CHAR * kv_DftDecode(IN LSTR_S *pstValue, void *memcap)
 {
     CHAR *pcValueTmp;
 
-    pcValueTmp = MEM_Malloc(pstValue->uiLen + 1);
-    if (NULL == pcValueTmp)
-    {
+    pcValueTmp = MemCap_Malloc(memcap, pstValue->uiLen + 1);
+    if (NULL == pcValueTmp) {
         return NULL;
     }
 
-    if (pstValue->uiLen > 0)
-    {
+    if (pstValue->uiLen > 0) {
         memcpy(pcValueTmp, pstValue->pcData, pstValue->uiLen);
     }
 
@@ -85,47 +66,44 @@ static BS_STATUS kv_AddKeyValue(IN _KV_CTRL_S *pstCtrl, IN LSTR_S *pstKey, IN LS
     CHAR *pcKeyTmp;
     CHAR *pcValueTmp;
 
-    pstNode = MEM_ZMalloc(sizeof(_KV_NODE_S));
-    if (NULL == pstNode)
-    {
+    pstNode = MemCap_ZMalloc(pstCtrl->memcap, sizeof(_KV_NODE_S));
+    if (NULL == pstNode) {
         return BS_NO_MEMORY;
     }
 
-    pcKeyTmp = MEM_Malloc(pstKey->uiLen + 1);
-    if (NULL == pcKeyTmp)
-    {
-        MEM_Free(pstNode);
+    pcKeyTmp = MemCap_Malloc(pstCtrl->memcap, pstKey->uiLen + 1);
+    if (NULL == pcKeyTmp) {
+        MemCap_Free(pstCtrl->memcap, pstNode);
         return BS_NO_MEMORY;
     }
     memcpy(pcKeyTmp, pstKey->pcData, pstKey->uiLen);
     pcKeyTmp[pstKey->uiLen] = '\0';
     pstNode->stKv.pcKey = pcKeyTmp;
 
-    pcValueTmp = pstCtrl->pfDecode(pstValue);
+    pcValueTmp = pstCtrl->pfDecode(pstValue, pstCtrl->memcap);
     if (NULL == pcValueTmp)
     {
-        MEM_Free(pcKeyTmp);
-        MEM_Free(pstNode);
+        MemCap_Free(pstCtrl->memcap, pcKeyTmp);
+        MemCap_Free(pstCtrl->memcap, pstNode);
         return BS_NO_MEMORY;
     }
 
     pcValueTmp[pstValue->uiLen] = '\0';
     pstNode->stKv.pcValue = pcValueTmp;
 
-    DLL_SCAN(&pstCtrl->stKeyValueList, pstNodeTmp)
-    {
-        if (strcmp(pstNodeTmp->stKv.pcKey, pstNode->stKv.pcKey) > 0)
+    if (pstCtrl->uiFlag & KV_FLAG_SORT_KEY) {
+        DLL_SCAN(&pstCtrl->stKeyValueList, pstNodeTmp)
         {
-            break;
+            if (strcmp(pstNodeTmp->stKv.pcKey, pstNode->stKv.pcKey) > 0)
+            {
+                break;
+            }
         }
     }
 
-    if (NULL == pstNodeTmp)
-    {
+    if (NULL == pstNodeTmp) {
         DLL_ADD(&pstCtrl->stKeyValueList, pstNode);
-    }
-    else
-    {
+    } else {
         DLL_INSERT_BEFORE(&pstCtrl->stKeyValueList, pstNode, pstNodeTmp);
     }
 
@@ -174,7 +152,7 @@ static BS_STATUS kv_SetKeyValue(IN _KV_CTRL_S *pstCtrl, IN LSTR_S *pstKey, IN LS
 {
     _KV_NODE_S *pstNode;
 
-    if (! (pstCtrl->uiFlag & KV_FLAG_PERMIT_DUP_KEY))
+    if (! (pstCtrl->uiFlag & KV_FLAG_PERMIT_MUL_KEY))
     {
         pstNode = kv_GetNode(pstCtrl, pstKey);
         if (NULL != pstNode)
@@ -186,17 +164,23 @@ static BS_STATUS kv_SetKeyValue(IN _KV_CTRL_S *pstCtrl, IN LSTR_S *pstKey, IN LS
     return kv_AddKeyValue(pstCtrl, pstKey, pstValue);
 }
 
-KV_HANDLE KV_Create(IN UINT uiFlag/* KV_FLAG_XXX */)
+KV_HANDLE KV_Create(KV_PARAM_S *p)
 {
+    static KV_PARAM_S default_param = {0};
     _KV_CTRL_S *pstCtrl;
 
-    pstCtrl = MEM_ZMalloc(sizeof(_KV_CTRL_S));
+    if (p == NULL) {
+        p = &default_param;
+    }
+
+    pstCtrl = MemCap_ZMalloc(p->memcap, sizeof(_KV_CTRL_S));
     if (NULL == pstCtrl)
     {
         return NULL;
     }
 
-    pstCtrl->uiFlag = uiFlag;
+    pstCtrl->memcap = p->memcap;
+    pstCtrl->uiFlag = p->uiFlag;
 
     DLL_INIT(&pstCtrl->stKeyValueList);
 
@@ -207,23 +191,34 @@ KV_HANDLE KV_Create(IN UINT uiFlag/* KV_FLAG_XXX */)
 
 VOID KV_Destory(IN KV_HANDLE hKvHandle)
 {
-    _KV_CTRL_S *pstCtrl;
-    _KV_NODE_S *pstNode;
-    
-    pstCtrl = hKvHandle;
+    _KV_CTRL_S *pstCtrl = hKvHandle;
 
-    if (NULL == pstCtrl)
-    {
+    if (NULL == pstCtrl) {
         return;
     }
 
-    while((pstNode = DLL_FIRST(&pstCtrl->stKeyValueList)))
-    {
+    KV_Reset(hKvHandle);
+
+    MemCap_Free(pstCtrl->memcap, pstCtrl);
+
+    return;
+}
+
+void KV_Reset(KV_HANDLE hKvHandle)
+{
+    _KV_CTRL_S *pstCtrl;
+    _KV_NODE_S *pstNode;
+
+    pstCtrl = hKvHandle;
+
+    if (NULL == pstCtrl) {
+        return;
+    }
+
+    while ((pstNode = DLL_FIRST(&pstCtrl->stKeyValueList))) {
         DLL_DEL(&pstCtrl->stKeyValueList, pstNode);
         kv_FreeNode(pstCtrl, pstNode);
     }
-
-    MEM_Free(pstCtrl);
 
     return;
 }
@@ -330,12 +325,12 @@ BS_STATUS KV_Build
         if (bFirst == TRUE)
         {
             bFirst = FALSE;
-            iStordLen = snprintf(pcBufTmp, uiBufSizeTmp, "%s%c%s",
+            iStordLen = scnprintf(pcBufTmp, uiBufSizeTmp, "%s%c%s",
                 pstNode->stKv.pcKey, cEquelChar, pstNode->stKv.pcValue);
         }
         else
         {
-            iStordLen = snprintf(pcBufTmp, uiBufSizeTmp, "%c%s%c%s",
+            iStordLen = scnprintf(pcBufTmp, uiBufSizeTmp, "%c%s%c%s",
                 cSeparator, pstNode->stKv.pcKey, cEquelChar, pstNode->stKv.pcValue);
         }
 

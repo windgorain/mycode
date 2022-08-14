@@ -28,14 +28,13 @@ VOID NumList_Finit(IN NUM_LIST_S *pstList)
     }
 }
 
-static int _numlist_ParseElement(IN NUM_LIST_S *pstList, IN LSTR_S *pstEle)
+/* 解析: min-max格式 */
+int NumList_ParseElement(LSTR_S *lstr, OUT UINT *min, OUT UINT *max)
 {
     LSTR_S stBegin;
     LSTR_S stEnd;
-    UINT uiNumBegin;
-    UINT uiNumEnd;
 
-    LSTR_Split(pstEle, '-', &stBegin, &stEnd);
+    LSTR_Split(lstr, '-', &stBegin, &stEnd);
 
     LSTR_Strim(&stBegin, " \t\r\n", &stBegin);
     LSTR_Strim(&stEnd, " \t\r\n", &stEnd);
@@ -44,19 +43,30 @@ static int _numlist_ParseElement(IN NUM_LIST_S *pstList, IN LSTR_S *pstEle)
         return 0;
     }
 
-    if (BS_OK != LSTR_Atoui(&stBegin, &uiNumBegin))
-    {
+    if (BS_OK != LSTR_Atoui(&stBegin, min)) {
         RETURN(BS_ERR);
     }
 
-    if (stEnd.uiLen == 0)
-    {
-        return NumList_AddRange(pstList, uiNumBegin, uiNumBegin);
+    if (stEnd.uiLen == 0) {
+        *max = *min;
+        return 0;
     }
 
-    if (BS_OK != LSTR_Atoui(&stEnd, &uiNumEnd))
-    {
+    if (BS_OK != LSTR_Atoui(&stEnd, max)) {
         RETURN(BS_ERR);
+    }
+
+    return 0;
+}
+
+static int _numlist_ParseElement(IN NUM_LIST_S *pstList, IN LSTR_S *pstEle)
+{
+    UINT uiNumBegin;
+    UINT uiNumEnd;
+
+    int ret = NumList_ParseElement(pstEle, &uiNumBegin, &uiNumEnd);
+    if (ret < 0) {
+        return ret;
     }
 
     return NumList_AddRange(pstList, uiNumBegin, uiNumEnd);

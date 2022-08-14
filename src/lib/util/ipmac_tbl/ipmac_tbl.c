@@ -43,7 +43,7 @@ IPMAC_HANDLE IPMAC_TBL_CreateInstance()
         return NULL;
     }
 
-    pstIpMacTbl->hHashTbl = HASH_CreateInstance(_IPMAC_TBL_HASH_BUCKET_NUM, _IPMAC_TBL_GetHashIndex);
+    pstIpMacTbl->hHashTbl = HASH_CreateInstance(NULL, _IPMAC_TBL_HASH_BUCKET_NUM, _IPMAC_TBL_GetHashIndex);
     if (NULL == pstIpMacTbl->hHashTbl)
     {
         MEM_Free(pstIpMacTbl);

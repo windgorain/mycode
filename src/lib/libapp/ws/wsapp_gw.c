@@ -41,8 +41,7 @@
 
 static NO_HANDLE g_hWsAppGwNo = NULL;
 static CHAR *g_apcWsappGwProperty[]
-    = {WSAPP_GW_DESC_STR, WSAPP_GW_TYPE_STR, WSAPP_GW_IP_STR, WSAPP_GW_PORT_STR, WSAPP_GW_ENABLE_STR};
-static UINT g_uiWsappGwPropertyCount = sizeof(g_apcWsappGwProperty)/sizeof(CHAR*);
+    = {WSAPP_GW_DESC_STR, WSAPP_GW_TYPE_STR, WSAPP_GW_IP_STR, WSAPP_GW_PORT_STR, WSAPP_GW_ENABLE_STR, NULL};
 
 static WSAPP_GW_S * wsapp_gw_Find(IN CHAR *pcGwName)
 {
@@ -272,7 +271,7 @@ static BS_STATUS _wsapp_gw_kf_AddProcess(IN MIME_HANDLE hMime, IN KFAPP_PARAM_S 
         pstGW->bIsSSL = TRUE;
     }
 
-    for (i=0; i<g_uiWsappGwPropertyCount; i++)
+    for (i=0; g_apcWsappGwProperty[i]!=NULL; i++)
     {
         pcTmp = MIME_GetKeyValue(hMime, g_apcWsappGwProperty[i]);
         if (pcTmp != NULL)
@@ -357,7 +356,7 @@ static BS_STATUS _wsapp_gw_kf_ModifyProcess(IN MIME_HANDLE hMime, IN KFAPP_PARAM
         pstGW->bIsSSL = TRUE;
     }
 
-    for (i=0; i<g_uiWsappGwPropertyCount; i++)
+    for (i=0; g_apcWsappGwProperty[i]!=NULL; i++)
     {
         pcTmp = MIME_GetKeyValue(hMime, g_apcWsappGwProperty[i]);
         if (pcTmp != NULL)
@@ -409,7 +408,7 @@ static BS_STATUS _wsapp_gw_kf_Modify(IN MIME_HANDLE hMime, IN HANDLE hUserHandle
 static BS_STATUS _wsapp_gw_kf_Get(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, IN KFAPP_PARAM_S *pstParam)
 {
     WSAPP_CfgLock_RLock();
-    JSON_NO_Get(g_hWsAppGwNo, hMime, pstParam->pstJson, g_apcWsappGwProperty, g_uiWsappGwPropertyCount);
+    JSON_NO_Get(g_hWsAppGwNo, hMime, pstParam->pstJson, g_apcWsappGwProperty);
     WSAPP_CfgLock_RUnLock();
 
 	return BS_OK;
@@ -476,8 +475,8 @@ static BS_STATUS _wsapp_gw_kf_List(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, 
     BS_STATUS eRet;
 
     WSAPP_CfgLock_RLock();
-    eRet = JSON_NO_ListWithCallBack(g_hWsAppGwNo, hMime,
-        pstParam->pstJson, g_apcWsappGwProperty, g_uiWsappGwPropertyCount,
+    eRet = JSON_NO_ListWithCallBack(g_hWsAppGwNo, 
+        pstParam->pstJson, g_apcWsappGwProperty,
         _wsapp_gw_kf_ListIsPermit, NULL);
     WSAPP_CfgLock_RUnLock();
 
@@ -486,17 +485,22 @@ static BS_STATUS _wsapp_gw_kf_List(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, 
 
 static VOID _wsapp_gw_kf_Init()
 {
-    COMP_KFAPP_RegFunc("ws.gateway.IsExist", _wsapp_gw_kf_IsExist, NULL);
-    COMP_KFAPP_RegFunc("ws.gateway.Add", _wsapp_gw_kf_Add, NULL);
-    COMP_KFAPP_RegFunc("ws.gateway.Modify", _wsapp_gw_kf_Modify, NULL);
-    COMP_KFAPP_RegFunc("ws.gateway.Get", _wsapp_gw_kf_Get, NULL);
-    COMP_KFAPP_RegFunc("ws.gateway.Delete", _wsapp_gw_kf_Del, NULL);
-    COMP_KFAPP_RegFunc("ws.gateway.List", _wsapp_gw_kf_List, NULL);
+    KFAPP_RegFunc("ws.gateway.IsExist", _wsapp_gw_kf_IsExist, NULL);
+    KFAPP_RegFunc("ws.gateway.Add", _wsapp_gw_kf_Add, NULL);
+    KFAPP_RegFunc("ws.gateway.Modify", _wsapp_gw_kf_Modify, NULL);
+    KFAPP_RegFunc("ws.gateway.Get", _wsapp_gw_kf_Get, NULL);
+    KFAPP_RegFunc("ws.gateway.Delete", _wsapp_gw_kf_Del, NULL);
+    KFAPP_RegFunc("ws.gateway.List", _wsapp_gw_kf_List, NULL);
 }
 
 BS_STATUS WSAPP_GW_Init()
 {
-    g_hWsAppGwNo = NO_CreateAggregate(WSAPP_GW_MAX_NUM, sizeof(WSAPP_GW_S), 0);
+    OBJECT_PARAM_S obj_param = {0};
+
+    obj_param.uiMaxNum = WSAPP_GW_MAX_NUM;
+    obj_param.uiObjSize = sizeof(WSAPP_GW_S);
+
+    g_hWsAppGwNo = NO_CreateAggregate(&obj_param);
     if (NULL == g_hWsAppGwNo)
     {
         return BS_ERR;
@@ -739,7 +743,7 @@ BS_STATUS WSAPP_GW_NoRefIpAcl(IN CHAR *pcGwName)
 
     if ((pcAclListName != NULL) && (pcAclListName[0] != '\0'))
     {
-        COMP_ACL_Ioctl(COMP_ACL_IOCTL_DEL_LIST_REF, pcAclListName);
+        ACL_Ioctl(0, ACL_TYPE_IP, COMP_ACL_IOCTL_DEL_LIST_REF, pcAclListName);
         NO_SetKeyValue(g_hWsAppGwNo, pstGW, WSAPP_GW_IPACL_STR, NULL);
         pstGW->uiIpAclListID = 0;
     }
@@ -768,7 +772,7 @@ BS_STATUS WSAPP_GW_RefIpAcl(IN CHAR *pcGwName, IN CHAR *pcIpAclListName)
         }
     }
 
-    if (BS_OK != COMP_ACL_Ioctl(COMP_ACL_IOCTL_ADD_LIST_REF, pcIpAclListName))
+    if (BS_OK != ACL_Ioctl(0, ACL_TYPE_IP, COMP_ACL_IOCTL_ADD_LIST_REF, pcIpAclListName))
     {
         EXEC_OutString("The acl is not exist.\r\n");
         return BS_ERR;
@@ -778,14 +782,14 @@ BS_STATUS WSAPP_GW_RefIpAcl(IN CHAR *pcGwName, IN CHAR *pcIpAclListName)
 
     if (BS_OK != NO_SetKeyValue(g_hWsAppGwNo, pstGW, WSAPP_GW_IPACL_STR, pcIpAclListName))
     {
-        COMP_ACL_Ioctl(COMP_ACL_IOCTL_DEL_LIST_REF, pcIpAclListName);
+        ACL_Ioctl(0, ACL_TYPE_IP, COMP_ACL_IOCTL_DEL_LIST_REF, pcIpAclListName);
         EXEC_OutString("No memory.\r\n");
         return BS_ERR;
     }
 
     stAclNameID.pcAclListName = pcIpAclListName;
 
-    COMP_ACL_Ioctl(COMP_ACL_IOCTL_GET_LIST_ID, &stAclNameID);
+    ACL_Ioctl(0, ACL_TYPE_IP, COMP_ACL_IOCTL_GET_LIST_ID, &stAclNameID);
 
     pstGW->uiIpAclListID = stAclNameID.ulAclListID;
 
@@ -1179,7 +1183,7 @@ BOOL_T WSAPP_GW_IsFilterPermit(IN UINT uiGwID, IN INT iSocketID)
 
     stMatchInfo.uiKeyMask = IPACL_KEY_SIP | IPACL_KEY_DIP | IPACL_KEY_SPORT | IPACL_KEY_DPORT;
 
-    eAction = COMP_IPACL_Match(pstGW->uiIpAclListID, &stMatchInfo);
+    eAction = ACL_Match(0, ACL_TYPE_IP, pstGW->uiIpAclListID, &stMatchInfo);
     if (eAction == BS_ACTION_PERMIT)
     {
         return TRUE;

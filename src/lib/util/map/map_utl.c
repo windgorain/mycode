@@ -1,22 +1,22 @@
 /******************************************************************************
 * Copyright (C), 2000-2006,  Xingang.Li
 * Author:      LiXingang  Version: 1.0  Date: 2017-6-3
-* Description: 集合
+* Description: hash map
 * History: rename from aggregate to map
 ******************************************************************************/
 #include "bs.h"
 #include "utl/jhash_utl.h"
 #include "utl/hash_utl.h"
 #include "utl/mem_utl.h"
+#include "utl/mem_cap.h"
 #include "utl/map_utl.h"
 
 #define _MAP_HASH_BUCKET_NUM 1024
 
 typedef struct
 {
-    UINT uiFlag;
     HASH_HANDLE hHash;
-}_MAP_CTRL_S;
+}_MAP_HASH_S;
 
 typedef struct
 {
@@ -24,32 +24,75 @@ typedef struct
     MAP_ELE_S stEle;
 }_MAP_NODE_S;
 
-static UINT _map_Index(IN VOID *pstHashNode)
+static void map_hash_destroy(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud);
+static void map_hash_reset(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud);
+static BS_STATUS map_hash_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag);
+static MAP_ELE_S * map_hash_get_ele(MAP_HANDLE map, void *key, UINT key_len);
+static void * map_hash_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen);
+static void * map_hash_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen);
+static void map_hash_del_all(MAP_HANDLE map, PF_MAP_FREE_FUNC func, void * pUserData);
+static UINT map_hash_count(MAP_HANDLE map);
+static void map_hash_walk(IN MAP_HANDLE map, IN PF_MAP_WALK_FUNC pfWalkFunc, IN VOID *pUserData);
+static MAP_ELE_S * map_hash_getnext(MAP_HANDLE map, MAP_ELE_S *pstCurrent);
+
+static MAP_FUNC_S g_map_hash_funcs = {
+    .destroy_func = map_hash_destroy,
+    .reset_func = map_hash_reset,
+    .add_func = map_hash_add,
+    .get_ele_func = map_hash_get_ele,
+    .get_func = map_hash_get,
+    .del_func = map_hash_del,
+    .del_all_func = map_hash_del_all,
+    .count_func = map_hash_count,
+    .walk_func = map_hash_walk,
+    .getnext_func = map_hash_getnext
+};
+
+static inline UINT _map_key_hash_factor(IN void *key, UINT key_len)
+{
+    if (key_len == 0) {
+        return HANDLE_UINT(key);
+    }
+
+    return JHASH_GeneralBuffer(key, key_len, 0);
+}
+
+static UINT _map_hash_factor(IN VOID *pstHashNode)
 {
     _MAP_NODE_S *pstNode = pstHashNode;
 
-    return JHASH_GeneralBuffer(pstNode->stEle.pKey, pstNode->stEle.uiKeyLen, 0);
+    return _map_key_hash_factor(pstNode->stEle.pKey, pstNode->stEle.uiKeyLen);
 }
 
-static INT  _map_Cmp(IN VOID * pstHashNode1, IN VOID * pstHashNode2)
+static int _map_hash_cmp(IN VOID * pstHashNode1, IN VOID * pstHashNode2)
 {
     _MAP_NODE_S *pstNode1 = pstHashNode1;
     _MAP_NODE_S *pstNode2 = pstHashNode2;
 
+    if (pstNode1->stEle.uiKeyLen != pstNode2->stEle.uiKeyLen) {
+        return -1;
+    }
+
+    if (pstNode1->stEle.uiKeyLen == 0) {
+        /* keylen==0, 则表示key本身是数字,不是指针 */
+        return (INT)HANDLE_UINT(pstNode1->stEle.pKey) - (INT)HANDLE_UINT(pstNode2->stEle.pKey);
+    }
+
     return MEM_Cmp(pstNode1->stEle.pKey, pstNode1->stEle.uiKeyLen, pstNode2->stEle.pKey, pstNode2->stEle.uiKeyLen);
 }
 
-static _MAP_NODE_S * _map_Find(IN _MAP_CTRL_S *pstCtrl, IN VOID *pKey, IN UINT uiKeyLen)
+static _MAP_NODE_S * _map_hash_find(IN MAP_CTRL_S *map, IN VOID *pKey, IN UINT uiKeyLen)
 {
+    _MAP_HASH_S *hash_map = map->impl_map;
     _MAP_NODE_S stNode;
     
     stNode.stEle.pKey = pKey;
     stNode.stEle.uiKeyLen = uiKeyLen;
 
-    return HASH_Find(pstCtrl->hHash, _map_Cmp, &stNode);
+    return HASH_Find(hash_map->hHash, _map_hash_cmp, &stNode);
 }
 
-static BS_WALK_RET_E _map_Walk(IN HASH_HANDLE hHashId, IN VOID *pNode, IN VOID * pUserHandle)
+static BS_WALK_RET_E _map_hash_walk(IN HASH_HANDLE hHashId, IN VOID *pNode, IN VOID * pUserHandle)
 {
     USER_HANDLE_S *pstUserHandle = pUserHandle;
     PF_MAP_WALK_FUNC pfWalkFunc = pstUserHandle->ahUserHandle[0];
@@ -59,175 +102,48 @@ static BS_WALK_RET_E _map_Walk(IN HASH_HANDLE hHashId, IN VOID *pNode, IN VOID *
     return pfWalkFunc(&pstNode->stEle, pUserHandleTmp);
 }
 
-static void _map_FreeAll(IN HASH_HANDLE hHashId, IN VOID *pNode, IN VOID * pUserHandle)
+static void _map_hash_free_all(IN HASH_HANDLE hHashId, IN VOID *pNode, IN VOID * pUserHandle)
 {
     USER_HANDLE_S *pstUserHandle = pUserHandle;
     PF_MAP_FREE_FUNC func = pstUserHandle->ahUserHandle[0];
     VOID *pUserHandleTmp = pstUserHandle->ahUserHandle[1];
+    MAP_CTRL_S *map = pstUserHandle->ahUserHandle[2];
     _MAP_NODE_S *pstNode = pNode;
 
-    func(pstNode->stEle.pData, pUserHandleTmp);
-    MEM_Free(pstNode->stEle.pKey);
-    MEM_Free(pstNode);
+    if (func) {
+        func(pstNode->stEle.pData, pUserHandleTmp);
+    }
+    if (pstNode->stEle.dup_key) {
+        MemCap_Free(map->memcap, pstNode->stEle.pKey);
+    }
+   MemCap_Free(map->memcap, pstNode);
 }
 
-MAP_HANDLE MAP_Create()
-{
-    _MAP_CTRL_S *pstCtrl;
-
-    pstCtrl = MEM_ZMalloc(sizeof(_MAP_CTRL_S));
-    if (NULL == pstCtrl)
-    {
-        return NULL;
-    }
-
-    pstCtrl->hHash = HASH_CreateInstance(_MAP_HASH_BUCKET_NUM, _map_Index);
-    if (NULL == pstCtrl->hHash)
-    {
-        MEM_Free(pstCtrl);
-        return NULL;
-    }
-
-    return pstCtrl;
-}
-
-void MAP_Destroy(MAP_HANDLE hMap, PF_MAP_FREE_FUNC free_func, void *user_data)
-{
-    _MAP_CTRL_S *pstCtrl = hMap;
-
-    if (NULL == pstCtrl) {
-        return;
-    }
-
-    MAP_DelAll(hMap, free_func, user_data);
-
-    HASH_DestoryInstance(pstCtrl->hHash);
-    MEM_Free(pstCtrl);
-}
-
-BS_STATUS MAP_Add(MAP_HANDLE hMap, VOID *pKey, UINT uiKeyLen, VOID *pData)
-{
-    _MAP_NODE_S *pstNode;
-    _MAP_CTRL_S *pstCtrl = hMap;
-
-    if (NULL != _map_Find(hMap, pKey, uiKeyLen)) {
-        return BS_ALREADY_EXIST;
-    }
-
-    pstNode = MEM_ZMalloc(sizeof(_MAP_NODE_S));
-    if (NULL == pstNode) {
-        return BS_NO_MEMORY;
-    }
-
-    pstNode->stEle.pKey = MEM_Dup(pKey, uiKeyLen);
-    if (NULL == pstNode->stEle.pKey) {
-        MEM_Free(pstNode);
-        return BS_NO_MEMORY;
-    }
-
-    pstNode->stEle.uiKeyLen = uiKeyLen;
-    pstNode->stEle.pData = pData;
-
-    HASH_Add(pstCtrl->hHash, pstNode);
-
-    return BS_OK;
-}
-
-VOID * MAP_Get(IN MAP_HANDLE hMap, IN VOID *pKey, IN UINT uiKeyLen)
-{
-    _MAP_CTRL_S *pstCtrl = hMap;
-    _MAP_NODE_S *pstFind;
-
-    pstFind = _map_Find(pstCtrl, pKey, uiKeyLen);
-    if (NULL == pstFind)
-    {
-        return NULL;
-    }
-
-    return pstFind->stEle.pData;
-}
-
-/* 从集合中删除并返回pData */
-VOID * MAP_Del(IN MAP_HANDLE hMap, IN VOID *pKey, IN UINT uiKeyLen)
-{
-    _MAP_CTRL_S *pstCtrl = hMap;
-    _MAP_NODE_S *pstNode;
-    VOID *pData;
-
-    pstNode = _map_Find(hMap, pKey, uiKeyLen);
-    if (NULL == pstNode)
-    {
-        return NULL;
-    }
-
-    HASH_Del(pstCtrl->hHash, pstNode);
-
-    pData = pstNode->stEle.pData;
-
-    MEM_Free(pstNode->stEle.pKey);
-    MEM_Free(pstNode);
-
-    return pData;
-}
-
-void MAP_DelAll(MAP_HANDLE hMap, PF_MAP_FREE_FUNC func, void * pUserData)
-{
-    _MAP_CTRL_S *pstCtrl = hMap;
-    USER_HANDLE_S stUserHandle;
-
-    stUserHandle.ahUserHandle[0] = func;
-    stUserHandle.ahUserHandle[1] = pUserData;
-
-    HASH_DelAll(pstCtrl->hHash, _map_FreeAll, &stUserHandle);
-}
-
-VOID MAP_Walk(IN MAP_HANDLE hMap, IN PF_MAP_WALK_FUNC pfWalkFunc, IN VOID *pUserData)
-{
-    _MAP_CTRL_S *pstCtrl = hMap;
-    USER_HANDLE_S stUserHandle;
-
-    stUserHandle.ahUserHandle[0] = pfWalkFunc;
-    stUserHandle.ahUserHandle[1] = pUserData;
-
-    HASH_Walk(pstCtrl->hHash, _map_Walk, &stUserHandle);
-}
-
-static INT _map_GetNextCmp(IN MAP_ELE_S *pstNode1, IN MAP_ELE_S *pstNode2)
+static int _map_hash_getnext_cmp(IN MAP_ELE_S *pstNode, IN MAP_ELE_S *current)
 {
     INT iCmpRet;
 
-    if ((pstNode1 == NULL) && (pstNode2 == NULL))
-    {
-        return 0;
+    if (current->uiKeyLen == 0) {
+        /* keylen==0, 则表示key本身是数字,不是指针 */
+        return (INT)HANDLE_UINT(pstNode->pKey) - (INT)HANDLE_UINT(current->pKey);
     }
 
-    if (pstNode1 == NULL)
-    {
-        return -1;
-    }
-
-    if (pstNode2 == NULL)
-    {
-        return 1;
-    }
-
-    iCmpRet = MEM_Cmp(pstNode1->pKey, pstNode1->uiKeyLen, pstNode2->pKey, pstNode2->uiKeyLen);
+    iCmpRet = MEM_Cmp(pstNode->pKey, pstNode->uiKeyLen, current->pKey, current->uiKeyLen);
 
     return iCmpRet;
 }
 
-static BS_WALK_RET_E _map_GetNextEach(IN MAP_ELE_S *pstEle, IN HANDLE hUserHandle)
+static BS_WALK_RET_E _map_hash_getnext_each(IN MAP_ELE_S *pstEle, IN HANDLE hUserHandle)
 {
     USER_HANDLE_S *pstUserHandle = hUserHandle;
     MAP_ELE_S *pstEleCurrent = pstUserHandle->ahUserHandle[0];
     MAP_ELE_S *pstEleNext = pstUserHandle->ahUserHandle[1];
 
-    if (_map_GetNextCmp(pstEle, pstEleCurrent) <= 0)
-    {
+    if ((pstEleCurrent != NULL) && (_map_hash_getnext_cmp(pstEle, pstEleCurrent) <= 0)) {
         return BS_WALK_CONTINUE;
     }
 
-    if ((pstEleNext != NULL) && (_map_GetNextCmp(pstEle, pstEleNext) >= 0))
+    if ((pstEleNext != NULL) && (_map_hash_getnext_cmp(pstEle, pstEleNext) >= 0))
     {
         return BS_WALK_CONTINUE;
     }
@@ -237,19 +153,204 @@ static BS_WALK_RET_E _map_GetNextEach(IN MAP_ELE_S *pstEle, IN HANDLE hUserHandl
     return BS_WALK_CONTINUE;
 }
 
-MAP_ELE_S * MAP_GetNext
-(
-    IN MAP_HANDLE hMap,
-    IN MAP_ELE_S *pstCurrent /* 如果为NULL表示获取第一个. 只关心其中的pKye和uiKeyLen字段 */
-)
+
+static void map_hash_reset(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud)
+{
+    map_hash_del_all(map, free_func, ud);
+}
+
+static void map_hash_destroy(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud)
+{
+    _MAP_HASH_S *hash_map = map->impl_map;
+
+    map_hash_del_all(map, free_func, ud);
+    HASH_DestoryInstance(hash_map->hHash);
+    MemCap_Free(map->memcap, hash_map);
+    MemCap_Free(map->memcap, map);
+}
+
+static BS_STATUS map_hash_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag)
+{
+    _MAP_HASH_S *hash_map = map->impl_map;
+    _MAP_NODE_S *pstNode;
+    _MAP_NODE_S stNodeToFind;
+    _MAP_NODE_S *pstFind;
+    UINT hash_factor;
+
+    if ((map->uiCapacity != 0) && (map->uiCapacity <= HASH_Count(hash_map->hHash))) {
+        RETURN(BS_NO_RESOURCE);
+    }
+
+    hash_factor = _map_key_hash_factor(pKey, uiKeyLen);
+
+    stNodeToFind.stEle.pKey = pKey;
+    stNodeToFind.stEle.uiKeyLen = uiKeyLen;
+    pstFind = HASH_FindWithFactor(hash_map->hHash, hash_factor, _map_hash_cmp, &stNodeToFind);
+    if (pstFind) {
+        RETURN(BS_ALREADY_EXIST);
+    }
+
+    pstNode = MemCap_ZMalloc(map->memcap, sizeof(_MAP_NODE_S));
+    if (NULL == pstNode) {
+        RETURN(BS_NO_MEMORY);
+    }
+
+    if ((flag & MAP_FLAG_DUP_KEY) && (uiKeyLen != 0)) {
+        pstNode->stEle.pKey = MemCap_Dup(map->memcap, pKey, uiKeyLen);
+        if (NULL == pstNode->stEle.pKey) {
+            MemCap_Free(map->memcap, pstNode);
+            RETURN(BS_NO_MEMORY);
+        }
+        pstNode->stEle.dup_key = 1;
+    } else {
+        pstNode->stEle.pKey = pKey;
+    }
+
+    pstNode->stEle.uiKeyLen = uiKeyLen;
+    pstNode->stEle.pData = pData;
+
+    HASH_AddWithFactor(hash_map->hHash, pstNode, hash_factor);
+
+    return BS_OK;
+}
+
+static MAP_ELE_S * map_hash_get_ele(MAP_HANDLE map, void *key, UINT key_len)
+{
+    _MAP_NODE_S *pstFind;
+
+    pstFind = _map_hash_find(map, key, key_len);
+    if (NULL == pstFind) {
+        return NULL;
+    }
+
+    return &pstFind->stEle;
+}
+
+static void * map_hash_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
+{
+    _MAP_NODE_S *pstFind;
+
+    pstFind = _map_hash_find(map, pKey, uiKeyLen);
+    if (NULL == pstFind) {
+        return NULL;
+    }
+
+    return pstFind->stEle.pData;
+}
+
+/* 从集合中删除并返回pData */
+static void * map_hash_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
+{
+    _MAP_HASH_S *hash_map = map->impl_map;
+    _MAP_NODE_S *pstNode;
+    VOID *pData;
+
+    pstNode = _map_hash_find(map, pKey, uiKeyLen);
+    if (NULL == pstNode) {
+        return NULL;
+    }
+
+    HASH_Del(hash_map->hHash, pstNode);
+
+    pData = pstNode->stEle.pData;
+
+    if (pstNode->stEle.dup_key) {
+        MemCap_Free(map->memcap, pstNode->stEle.pKey);
+    }
+    MemCap_Free(map->memcap, pstNode);
+
+    return pData;
+}
+
+static void map_hash_del_all(MAP_HANDLE map, PF_MAP_FREE_FUNC func, void * pUserData)
+{
+    _MAP_HASH_S *hash_map = map->impl_map;
+    USER_HANDLE_S stUserHandle;
+
+    stUserHandle.ahUserHandle[0] = func;
+    stUserHandle.ahUserHandle[1] = pUserData;
+    stUserHandle.ahUserHandle[2] = map;
+
+    HASH_DelAll(hash_map->hHash, _map_hash_free_all, &stUserHandle);
+}
+
+static UINT map_hash_count(MAP_HANDLE map)
+{
+    _MAP_HASH_S *hash_map = map->impl_map;
+    return HASH_Count(hash_map->hHash);
+}
+
+static void map_hash_walk(IN MAP_HANDLE map, IN PF_MAP_WALK_FUNC pfWalkFunc, IN VOID *pUserData)
+{
+    _MAP_HASH_S *hash_map = map->impl_map;
+    USER_HANDLE_S stUserHandle;
+
+    stUserHandle.ahUserHandle[0] = pfWalkFunc;
+    stUserHandle.ahUserHandle[1] = pUserData;
+
+    HASH_Walk(hash_map->hHash, _map_hash_walk, &stUserHandle);
+}
+
+/* 按照字典序获取下一个. 因为要遍历hash表中所有节点以获取下一个, 故效率很低 */
+static MAP_ELE_S * map_hash_getnext(MAP_HANDLE map, MAP_ELE_S *pstCurrent)
 {
     USER_HANDLE_S stUserHandle;
 
     stUserHandle.ahUserHandle[0] = pstCurrent;
     stUserHandle.ahUserHandle[1] = NULL;
   
-    MAP_Walk(hMap, _map_GetNextEach, &stUserHandle);
+    map_hash_walk(map, _map_hash_getnext_each, &stUserHandle);
 
     return stUserHandle.ahUserHandle[1];
 }
+
+static MAP_PARAM_S g_hash_map_dft_param = {0};
+
+MAP_HANDLE MAP_HashCreate(MAP_PARAM_S *p)
+{
+    MAP_CTRL_S *ctrl;
+    _MAP_HASH_S *hash_map;
+
+    if (p == NULL) {
+        p = &g_hash_map_dft_param;
+    }
+
+    ctrl = MemCap_ZMalloc(p->memcap, sizeof(MAP_CTRL_S));
+    if (! ctrl) {
+        return NULL;
+    }
+    ctrl->memcap = p->memcap;
+    ctrl->funcs = &g_map_hash_funcs;
+
+    hash_map = MemCap_ZMalloc(p->memcap, sizeof(_MAP_HASH_S));
+    if (NULL == hash_map) {
+        MemCap_Free(p->memcap, ctrl);
+        return NULL;
+    }
+    ctrl->impl_map = hash_map;
+
+    UINT bucket_num = p->bucket_num;
+    if (bucket_num == 0) {
+        bucket_num = _MAP_HASH_BUCKET_NUM;
+    }
+
+    hash_map->hHash = HASH_CreateInstance(p->memcap, bucket_num, _map_hash_factor);
+    if (NULL == hash_map->hHash) {
+        MemCap_Free(p->memcap, hash_map);
+        MemCap_Free(p->memcap, ctrl);
+        return NULL;
+    }
+
+    return ctrl;
+}
+
+void MAP_HashSetResizeWatter(MAP_HANDLE map, UINT high_watter_percent, UINT low_watter_percent)
+{
+    _MAP_HASH_S *hash_map = map->impl_map;
+
+    BS_DBGASSERT(map->funcs == &g_map_hash_funcs);
+
+    HASH_SetResizeWatter(hash_map->hHash, high_watter_percent, low_watter_percent);
+}
+
 

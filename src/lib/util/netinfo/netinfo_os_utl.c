@@ -254,7 +254,7 @@ NETINFO_S * _NETINFO_GetNetInfo()
     stIfconf.ifc_buf = (VOID*)astIfReqs;
 
     ret = ioctl(iSocketID, SIOCGIFCONF, &stIfconf);
-    close(iSocketID);
+    Socket_Close(iSocketID);
 
     if (ret < 0) {
         return NULL;

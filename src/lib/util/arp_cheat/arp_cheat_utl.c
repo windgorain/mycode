@@ -92,6 +92,6 @@ BS_STATUS ARPCheat_SendCheatPkt(IN ARP_CHEAT_HANDLE hArpCheat)
         return BS_NO_MEMORY;
     }
 
-    return COMP_PCAP_SendPkt(pstCtrl->uiPcapIndex, pstMbuf);
+    return PCAP_SendPkt(pstCtrl->uiPcapIndex, pstMbuf);
 }
 

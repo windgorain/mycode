@@ -174,10 +174,12 @@ static UINT _os_route_GetDefaultGw()
     nlMsg->nlmsg_pid = getpid(); // PID of process sending the request.
 
     if(send(sock, nlMsg, nlMsg->nlmsg_len, 0) < 0) {
+        close(sock);
         return 0;
     }
 
     if((len = readNlSock(sock, msgBuf, msgSeq, getpid())) < 0) {
+        close(sock);
         return 0;
     }
 
@@ -204,14 +206,9 @@ static int _os_routecmd_Add(unsigned int dst/*net order*/, unsigned int prefix_l
     unsigned char *dst_char = (void*)&dst;
     unsigned char *nexthop_char = (void*)&nexthop;
 
-    snprintf(cmd, sizeof(cmd), "route add -net %d.%d.%d.%d/%d gw  %d.%d.%d.%d",
+    snprintf(cmd, sizeof(cmd), "ip route add %d.%d.%d.%d/%d via  %d.%d.%d.%d",
             dst_char[0], dst_char[1], dst_char[2], dst_char[3], prefix_len,
             nexthop_char[0], nexthop_char[1], nexthop_char[2], nexthop_char[3]);
-    system(cmd);
-    snprintf(cmd, sizeof(cmd), "route change -net %d.%d.%d.%d/%d gw  %d.%d.%d.%d",
-            dst_char[0], dst_char[1], dst_char[2], dst_char[3], prefix_len,
-            nexthop_char[0], nexthop_char[1], nexthop_char[2], nexthop_char[3]);
-
     system(cmd);
 
     return BS_OK;
@@ -223,7 +220,7 @@ static int _os_routecmd_Del(unsigned int dst/*net order*/, unsigned int prefix_l
     char cmd[256];
     unsigned char *dst_char = (void*)&dst;
 
-    snprintf(cmd, sizeof(cmd), "route del -net %d.%d.%d.%d/%d",
+    snprintf(cmd, sizeof(cmd), "ip route del %d.%d.%d.%d/%d",
             dst_char[0], dst_char[1], dst_char[2], dst_char[3], prefix_len);
     system(cmd);
 

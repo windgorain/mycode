@@ -50,7 +50,7 @@ static BS_STATUS _telsvr_ProcessData(IN TEL_CTRL_S *pstCtrl, IN UCHAR ucData)
         return BS_OK;
     }
 
-    if (CMD_EXP_Run(pstCtrl->hCmdRunner, ucData) == BS_STOP) {
+    if (CmdExp_Run(pstCtrl->hCmdRunner, ucData) == BS_STOP) {
         return BS_STOP;
     }
 

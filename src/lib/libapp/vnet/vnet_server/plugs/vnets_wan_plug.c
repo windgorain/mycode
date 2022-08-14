@@ -37,7 +37,7 @@ static BS_STATUS vnets_wan_plug_PhyOutput(IN IF_INDEX uiIfIndex, IN MBUF_S *pstM
 
     uiWanVrfID = MBUF_GET_OUTVPNID(pstMbuf);
 
-    uiDomainID = (UINT)(ULONG)CompWanVrf_GetData(uiWanVrfID, g_uiVnetsWanPlugVfUserIndex);
+    uiDomainID = (UINT)(ULONG)WanVrf_GetData(uiWanVrfID, g_uiVnetsWanPlugVfUserIndex);
 
     if (uiDomainID == 0)
     {
@@ -64,23 +64,21 @@ BS_STATUS VNETS_WAN_PLUG_Init()
 {
     IF_PHY_PARAM_S stParam;
     IF_TYPE_PARAM_S stTypeParam = {0};
-
-    CompWan_Init();
     
     Mem_Zero (&stParam, sizeof (stParam));
     stParam.pfPhyOutput = vnets_wan_plug_PhyOutput;
-    CompIf_SetPhyType("vnets.wan", &stParam);
+    IFNET_SetPhyType("vnets.wan", &stParam);
 
     stTypeParam.pcProtoType = IF_PROTO_IP_TYPE_MAME;
     stTypeParam.pcLinkType = IF_ETH_LINK_TYPE_MAME;
     stTypeParam.pcPhyType = "vnets.wan";
     stTypeParam.uiFlag = IF_TYPE_FLAG_HIDE;
     
-    CompIf_AddIfType("vnets.wan", &stTypeParam);
+    IFNET_AddIfType("vnets.wan", &stTypeParam);
 
-    g_ifVnetsWanPlugIfindex = CompIf_CreateIf("vnets.wan");
+    g_ifVnetsWanPlugIfindex = IFNET_CreateIf("vnets.wan");
 
-    g_uiVnetsWanPlugVfUserIndex = CompWanVrf_AllocDataIndex();
+    g_uiVnetsWanPlugVfUserIndex = WanVrf_AllocDataIndex();
     
     return BS_OK;
 }
@@ -122,7 +120,7 @@ BS_STATUS VNETS_WAN_PLUG_PktInput(IN MBUF_S *pstMbuf)
 
     MBUF_SET_INVPNID(pstMbuf, uiVrfID);
 
-    return CompIf_LinkInput(g_ifVnetsWanPlugIfindex, pstMbuf);
+    return IFNET_LinkInput(g_ifVnetsWanPlugIfindex, pstMbuf);
 }
 
 VOID VNETS_WAN_PLUG_RegUdpService
@@ -136,14 +134,14 @@ VOID VNETS_WAN_PLUG_RegUdpService
 
     stUserHandle.ahUserHandle[0] = pfServiceFunc;
 
-    CompWanUdpService_RegService(usPort, uiFlag, vnets_wan_plug_UdpServiceInput, &stUserHandle);
+    WanUdpService_RegService(usPort, uiFlag, vnets_wan_plug_UdpServiceInput, &stUserHandle);
 }
 
 static BS_STATUS vnets_wan_plug_DomainEventCreate(IN VNETS_DOMAIN_RECORD_S *pstParam)
 {
     UINT uiWanVrfID;
 
-    uiWanVrfID = CompWanVrf_CreateVrf(pstParam->szDomainName);
+    uiWanVrfID = WanVrf_CreateVrf(pstParam->szDomainName);
     if (uiWanVrfID == 0)
     {
         return BS_ERR;
@@ -151,7 +149,7 @@ static BS_STATUS vnets_wan_plug_DomainEventCreate(IN VNETS_DOMAIN_RECORD_S *pstP
 
     pstParam->ahProperty[VNETS_DOMAIN_WAN_VF_ID] = UINT_HANDLE(uiWanVrfID);
 
-    CompWanVrf_SetData(uiWanVrfID, g_uiVnetsWanPlugVfUserIndex, UINT_HANDLE(pstParam->uiDomainID));
+    WanVrf_SetData(uiWanVrfID, g_uiVnetsWanPlugVfUserIndex, UINT_HANDLE(pstParam->uiDomainID));
     
     return BS_OK;
 }
@@ -170,7 +168,7 @@ static VOID vnets_wan_plug_DomainEventDelete(IN VNETS_DOMAIN_RECORD_S *pstParam)
         return;
     }
 
-    CompWanVrf_DestoryVrf(uiWanVrfID);
+    WanVrf_DestoryVrf(uiWanVrfID);
 }
 
 BS_STATUS VNETS_WAN_PLUG_DomainEvent

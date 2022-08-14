@@ -133,7 +133,7 @@ static VOID fib_ShowEach(IN FIB_NODE_S *pstFibNode)
     BS_Sprintf(szTmp, "%pI4/%d", &pstFibNode->stFibKey.uiDstOrStartIp, MASK_2_PREFIX(uiMask));
     FIB_GetFlagString(pstFibNode->uiFlag, szFlag);
 
-    CompIf_Ioctl(pstFibNode->uiOutIfIndex, IFNET_CMD_GET_IFNAME, szIfName);
+    IFNET_Ioctl(pstFibNode->uiOutIfIndex, IFNET_CMD_GET_IFNAME, szIfName);
 
     EXEC_OutInfo(" %-18s %-15pI4 %-6s %s\r\n",
         szTmp, &pstFibNode->uiNextHop, szFlag, szIfName);
@@ -395,7 +395,7 @@ FIB_HANDLE FIB_Create(IN UINT uiInstanceFlag /* FIB_INSTANCE_FLAG_XXX */)
         return NULL;
     }
 
-    hHash = HASH_CreateInstance(_FIB_HASH_BUCKET_NUM, _fib_HashIndex);
+    hHash = HASH_CreateInstance(NULL, _FIB_HASH_BUCKET_NUM, _fib_HashIndex);
     if (NULL == hHash)
     {
         MEM_Free(pstFibCtrl);

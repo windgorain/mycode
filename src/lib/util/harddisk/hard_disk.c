@@ -28,11 +28,12 @@ static int hd_GetIdeDiskSn(OUT char *id, IN int max)
     }
     if (ioctl (fd, HDIO_GET_IDENTITY, &hid) < 0)
     {
+        close(fd);
         return -1;
     }
     close (fd);
 
-    snprintf (id, max, "%s", hid.serial_no);
+    scnprintf (id, max, "%s", hid.serial_no);
 
     return 0;
 }
@@ -107,7 +108,9 @@ int hd_scsi_read_serial(int fd, char *devname, char *serial)
 	}
 
 	memset(serial, 0, MAX_RAID_SERIAL_LEN);
+#ifndef __COVERITY__ 
 	memcpy(serial, dest, len);
+#endif
     serial[len] = '\0';
 
 	return 0;
@@ -126,7 +129,7 @@ static int hd_scsi_get_disk_sn(OUT char *id, IN int max)
     memset(serial, 0, sizeof(serial));
     err = hd_scsi_read_serial(fd, "/dev/sda", serial);
     if(err==0) {
-        snprintf (id, max, "%s", serial);
+        scnprintf (id, max, "%s", serial);
     }
 
 	close(fd);

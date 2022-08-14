@@ -35,7 +35,7 @@ static VOID _wan_arpagent_InterfaceSaveInner(IN IF_INDEX ifIndex, IN HANDLE hFil
     WAN_ARP_AGENT_CTRL_S *pstCtrl;
     UINT uiBeginIP, uiEndIP;
 
-    if ((BS_OK != CompIf_GetUserData(ifIndex, g_uiWanArpAgentIfUserDataIndex, &pstCtrl))
+    if ((BS_OK != IFNET_GetUserData(ifIndex, g_uiWanArpAgentIfUserDataIndex, (void**)&pstCtrl))
         || (pstCtrl == NULL))
     {
         return;
@@ -60,9 +60,9 @@ static VOID _wan_arpagent_InterfaceSave(IN IF_INDEX ifIndex, IN HANDLE hFile)
 {
     UINT uiPhase;
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     _wan_arpagent_InterfaceSaveInner(ifIndex, hFile);
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     return;
 }
@@ -72,11 +72,11 @@ static WAN_ARP_AGENT_CTRL_S * _wan_arpagent_GetCtrlWithCreate(IN IF_INDEX ifInde
     WAN_ARP_AGENT_CTRL_S *pstCtrl;
     
     MUTEX_P(&g_stWanArpAgentMutex);
-    if ((BS_OK != CompIf_GetUserData(ifIndex, g_uiWanArpAgentIfUserDataIndex, &pstCtrl)) || (NULL == pstCtrl))
+    if ((BS_OK != IFNET_GetUserData(ifIndex, g_uiWanArpAgentIfUserDataIndex, (void**)&pstCtrl)) || (NULL == pstCtrl))
     {
         pstCtrl = MEM_ZMalloc(sizeof(WAN_ARP_AGENT_CTRL_S));
         IPList_Init(&pstCtrl->stIpList);
-        if (BS_OK != (CompIf_SetUserData(ifIndex, g_uiWanArpAgentIfUserDataIndex, pstCtrl)))
+        if (BS_OK != (IFNET_SetUserData(ifIndex, g_uiWanArpAgentIfUserDataIndex, pstCtrl)))
         {
             MEM_Free(pstCtrl);
             pstCtrl = NULL;
@@ -99,15 +99,15 @@ static VOID _wan_arp_IfDeleteEvent(IN IF_INDEX ifIndex)
 {
     WAN_ARP_AGENT_CTRL_S *pstCtrl;
 
-    if ((BS_OK != CompIf_GetUserData(ifIndex, g_uiWanArpAgentIfUserDataIndex, (HANDLE*)&pstCtrl))
+    if ((BS_OK != IFNET_GetUserData(ifIndex, g_uiWanArpAgentIfUserDataIndex, (HANDLE*)&pstCtrl))
         || (NULL == pstCtrl))
     {
         return;
     }
 
-    CompIf_SetUserData(ifIndex, g_uiWanArpAgentIfUserDataIndex, NULL);
+    IFNET_SetUserData(ifIndex, g_uiWanArpAgentIfUserDataIndex, NULL);
 
-    RcuBs_Free((VOID*)pstCtrl, _mem_RcuFreeCallBack);
+    RcuEngine_Call((VOID*)pstCtrl, _mem_RcuFreeCallBack);
 
     return;
 }
@@ -134,9 +134,9 @@ static BS_STATUS _wan_arpagent_IfEvent(IN IF_INDEX ifIndex, IN UINT uiEvent, IN 
 BS_STATUS WAN_ArpAgent_Init()
 {
     MUTEX_Init(&g_stWanArpAgentMutex);
-    g_uiWanArpAgentIfUserDataIndex = CompIf_AllocUserDataIndex();
-    CompIf_RegSave(_wan_arpagent_InterfaceSave);
-    CompIf_RegEvent(_wan_arpagent_IfEvent, NULL);
+    g_uiWanArpAgentIfUserDataIndex = IFNET_AllocUserDataIndex();
+    IFNET_RegSave(_wan_arpagent_InterfaceSave);
+    IFNET_RegEvent(_wan_arpagent_IfEvent, NULL);
 
     return BS_OK;
 }
@@ -145,7 +145,7 @@ static BOOL_T _wan_arpagent_IsAgentOn(IN IF_INDEX ifIndex, IN UINT uiIP/* 主机
 {
     WAN_ARP_AGENT_CTRL_S *pstCtrl;
 
-    if ((BS_OK != CompIf_GetUserData(ifIndex, g_uiWanArpAgentIfUserDataIndex, &pstCtrl))
+    if ((BS_OK != IFNET_GetUserData(ifIndex, g_uiWanArpAgentIfUserDataIndex, (void**)&pstCtrl))
         || (pstCtrl == NULL))
     {
         return FALSE;
@@ -169,9 +169,9 @@ BOOL_T WAN_ArpAgent_IsAgentOn(IN IF_INDEX ifIndex, IN UINT uiIP/* 主机序 */)
     BOOL_T bRet;
     UINT uiPhase;
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     bRet = _wan_arpagent_IsAgentOn(ifIndex, uiIP);
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     return bRet;
 }
@@ -203,7 +203,7 @@ PLUG_API BS_STATUS WAN_ArpAgent_IpPool
         return BS_ERR;
     }
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
 
     pstCtrl = _wan_arpagent_GetCtrlWithCreate(ifIndex);
     if (NULL == pstCtrl)
@@ -244,7 +244,7 @@ PLUG_API BS_STATUS WAN_ArpAgent_IpPool
         }
     }
 
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     return eRet;
 }
@@ -272,7 +272,7 @@ PLUG_API BS_STATUS WAN_ArpAgent_Enable
         return BS_ERR;
     }
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
 
     pstCtrl = _wan_arpagent_GetCtrlWithCreate(ifIndex);
     if (NULL == pstCtrl)
@@ -293,7 +293,7 @@ PLUG_API BS_STATUS WAN_ArpAgent_Enable
         }
     }
 
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     return eRet;
 }

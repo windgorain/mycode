@@ -5,8 +5,8 @@
 * History:     
 ******************************************************************************/
 #include "bs.h"
-
 #include "utl/txt_utl.h"
+#include "utl/exec_utl.h"
 
 #include "ldapapp_inner.h"
 
@@ -97,7 +97,9 @@ static VOID _ldapapp_Save(IN HANDLE hFile)
 
     while ((pcName = LDAPAPP_Schema_GetNext(pcName)) != NULL)
     {
-        CMD_EXP_OutputMode(hFile, "ldap-schema %s", pcName);
+        if (0 != CMD_EXP_OutputMode(hFile, "ldap-schema %s", pcName)) {
+            continue;
+        }
 
         pcTmp = LDAPAPP_Schema_GetDescription(pcName);
         if (!TXT_IS_EMPTY(pcTmp))

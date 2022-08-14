@@ -10,10 +10,11 @@
 
 BS_STATUS VNIC_Init()
 {
-	VNIC_COMP_Init();
+#ifdef IN_WINDOWS
     VnicIns_Init();
+#endif
 
-    return BS_OK;
+    return 0;
 }
 
 

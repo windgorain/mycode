@@ -195,23 +195,23 @@ BS_STATUS _MBUF_Compress (IN MBUF_S *pstMbuf)
         if (MBUF_CLUSTER_REF (pstMblk->pstCluster) > 1)
         {
             pstCluster = MBUF_CreateCluster();
-            BS_DBGASSERT(NULL != pstCluster);
+            if (! pstCluster) {
+                RETURN(BS_NO_MEMORY);
+            }
+            memmove(pstCluster->pucData, pstMblk->pucData, pstMblk->ulLen);
+            MBUF_FreeCluster (pstMblk->pstCluster);
+            pstMblk->pstCluster = pstCluster;
+            pstMblk->pucData = pstMblk->pstCluster->pucData;
         }
         else
         {
             pstCluster = pstMblk->pstCluster;
-        }
-
-        /* 压缩当前块 */
-        if (pstMblk->pucData != pstCluster->pucData)
-        {
-            MEM_Copy(pstCluster->pucData, pstMblk->pucData, pstMblk->ulLen);
-            if (pstCluster != pstMblk->pstCluster)
+            /* 压缩当前块 */
+            if (pstMblk->pucData != pstCluster->pucData)
             {
-                MBUF_FreeCluster (pstMblk->pstCluster);
+                memmove(pstCluster->pucData, pstMblk->pucData, pstMblk->ulLen);
+                pstMblk->pucData = pstMblk->pstCluster->pucData;
             }
-            pstMblk->pstCluster = pstCluster;
-            pstMblk->pucData = pstMblk->pstCluster->pucData;
         }
 
         /* 尽量将下一块数据拷贝到当前块. */
@@ -418,7 +418,7 @@ BS_STATUS MBUF_CutPart (IN MBUF_S *pstMbuf, IN UINT ulOffset, IN UINT ulCutLen)
                 }
                 else
                 {
-                    MEM_Copy (pstMblk->pucData + ulOffset, 
+                    memmove(pstMblk->pucData + ulOffset, 
                         pstMblk->pucData + ulOffset + ulLen, pstMblk->ulLen - ulOffset - ulLen);
                     pstMblk->ulLen -= ulLen;
                 }
@@ -572,7 +572,7 @@ BS_STATUS _MBUF_MakeContinue (IN MBUF_S * pstMbuf, IN UINT ulLen)
     {
         pucData = pstMblk->pucData;
         pstMblk->pucData -= (ulLen - MBUF_DATABLOCK_LEN (pstMblk) - MBUF_DATABLOCK_TAIL_FREE_LEN (pstMblk));
-        MEM_Copy (pstMblk->pucData, pucData, MBUF_DATABLOCK_LEN(pstMblk));
+        memmove(pstMblk->pucData, pucData, MBUF_DATABLOCK_LEN(pstMblk));
     }
 
     ulLenShouldContinue = ulLen - MBUF_DATABLOCK_LEN(pstMblk);

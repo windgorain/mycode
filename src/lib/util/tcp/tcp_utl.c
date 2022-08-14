@@ -2,10 +2,13 @@
 
 #include "utl/net.h"
 #include "utl/eth_utl.h"
+#include "utl/txt_utl.h"
 #include "utl/ip_utl.h"
+#include "utl/ip_string.h"
 #include "utl/data2hex_utl.h"
 #include "utl/tcp_utl.h"
 #include "utl/in_checksum.h"
+#include "utl/log_utl.h"
 
 /* 返回网络序的校验和 */
 USHORT TCP_CheckSum
@@ -74,6 +77,47 @@ TCP_HEAD_S * TCP_GetTcpHeader(IN UCHAR *pucData, IN UINT uiDataLen, IN NET_PKT_T
     }
 
     return pstTcpHeader;
+}
+
+UINT TCP_String2Flag(char *str)
+{
+    char *c = str;
+    UINT flag = 0;
+
+    while (*c) {
+        switch (*c) {
+            case 'F':
+                flag |= TCP_FLAG_FIN;
+                break;
+            case 'S':
+                flag |= TCP_FLAG_SYN;
+                break;
+            case 'R':
+                flag |= TCP_FLAG_RST;
+                break;
+            case 'P':
+                flag |= TCP_FLAG_PUSH;
+                break;
+            case 'A':
+                flag |= TCP_FLAG_ACK;
+                break;
+            case 'U':
+                flag |= TCP_FLAG_URG;
+                break;
+            case '2':
+            case 'E':
+                flag |= TCP_FLAG_ECE;
+                break;
+            case '1':
+            case 'C':
+                flag |= TCP_FLAG_CWR;
+                break;
+        }
+
+        c++;
+    }
+
+    return flag;
 }
 
 char * TCP_GetFlagsString(IN UCHAR ucFlags, char *info)
@@ -150,7 +194,7 @@ void TCP_GetOptInfo(TCP_HEAD_S *tcph, TCP_OPT_INFO_S *opt_info)
                 }
                 break;
             }
-            case TCP_OPT_SACK: {
+            case TCP_OPT_SACK_PERMIT: {
                 opt_info->sack = 1;
                 break;
             }
@@ -232,7 +276,6 @@ int TCP_GetOptString(TCP_HEAD_S *tcph, char *buf, int buf_len)
     return ptr - buf;
 }
 
-
 CHAR * TCP_Header2String(IN VOID *tcp, OUT CHAR *info, IN UINT infosize)
 {
     TCP_HEAD_S *tcph = tcp;
@@ -261,5 +304,97 @@ CHAR * TCP_Header2Hex(IN VOID *tcp, OUT CHAR *hex)
     DH_Data2HexString(tcp, len, hex);
 
     return hex;
+}
+
+int TCP_LoadIPFile(void *monitor)
+{
+    FILE *fp = NULL;
+    char buf[256];
+    ULONG len;
+    IP_PREFIX_S ip_prefix;
+    struct stat st;
+
+    SIP_MONITOR_S *sip_monitor = monitor;
+    if (!sip_monitor) return BS_ERR;
+
+    if (sip_monitor->need_reload) {
+        sip_monitor->need_reload = 0;
+    }
+
+    const char *filename = sip_monitor->filename;
+    if (filename && stat(filename, &st) == 0) {
+        sip_monitor->modify_ts = st.st_mtime;
+    }
+
+    LPM_S *lpm = NULL;
+    fp = fopen(filename, "rb");
+    if (NULL == fp) {
+        RETURN(BS_ERR);
+    }
+
+    lpm = malloc(sizeof(LPM_S));
+    if (!lpm) {
+        fclose(fp);
+        RETURN(BS_NO_MEMORY);
+    }
+
+    LPM_Init(lpm, (2 << 24), NULL);
+    LPM_SetLevel(lpm, 3, 16);
+
+    while(NULL != fgets(buf, sizeof(buf), fp)) {
+        TXT_Strim(buf);
+        len = TXT_StrimTail(buf, strlen(buf), "\r\n");
+        buf[len] = '\0';
+
+        BS_STATUS status = IPString_ParseIpPrefix(buf, &ip_prefix);
+        if (status == BS_OK) {
+            LPM_Add(lpm, ip_prefix.uiIP, ip_prefix.ucPrefix, 1);
+        }
+    }
+
+    if (sip_monitor->lpm_handle[0]) {
+        if (sip_monitor->lpm_handle[1]) {
+            LPM_Final(sip_monitor->lpm_handle[1]);
+            free(sip_monitor->lpm_handle[1]);
+        }
+        sip_monitor->lpm_handle[1] = lpm;
+        sip_monitor->need_reload = 1;
+    } else {
+        sip_monitor->lpm_handle[0] = lpm;
+    }
+
+    fclose(fp);
+
+    return BS_OK;
+}
+
+char * TCP_GetStatusString(int state)
+{
+    switch (state) {
+        case TCPS_CLOSED:
+            return "closed";
+        case TCPS_LISTEN:
+            return "listen";
+        case TCPS_SYN_SENT:
+            return "syn_send";
+        case TCPS_SYN_RECEIVED:
+            return "syn_recved";
+        case TCPS_ESTABLISHED:
+            return "established";
+        case TCPS_CLOSE_WAIT:
+            return "close_wait";
+        case TCPS_FIN_WAIT_1:
+            return "fin_wait_1";
+        case TCPS_CLOSING:
+            return "closing";
+        case TCPS_LAST_ACK:
+            return "last_ack";
+        case TCPS_FIN_WAIT_2:
+            return "fin_wait_2";
+        case TCPS_TIME_WAIT:
+            return "time_wait";
+    }
+
+    return "unknown";
 }
 

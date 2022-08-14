@@ -10,6 +10,7 @@
 #include "utl/acl_string.h"
 #include "utl/hostname_acl.h"
 #include "utl/file_utl.h"
+#include "utl/trie_utl.h"
 
 static void hostnameacl_ProcessLine(HOSTNAME_ACL_S *hostname_acl, char *line)
 {
@@ -33,7 +34,9 @@ static void hostnameacl_ProcessLine(HOSTNAME_ACL_S *hostname_acl, char *line)
         action = HOSTNAME_ACL_PERMIT;
     }
 
-    DnsNameTrie_Insert(&hostname_acl->trie, acl_str.pattern, UINT_HANDLE(action));
+    //DnsNameTrie_Insert(&hostname_acl->trie, acl_str.pattern, UINT_HANDLE(action));
+    Trie_Insert(hostname_acl->trie, (UCHAR *)acl_str.pattern, strlen(acl_str.pattern), 
+            TRIE_NODE_FLAG_WILDCARD, UINT_HANDLE(action));
 
     return;
 }
@@ -43,7 +46,7 @@ int HostnameACL_Init(HOSTNAME_ACL_S *hostname_acl, char *config_file)
     FILE *fp;
     char buf[256];
 
-    DnsNameTrie_Init(&hostname_acl->trie, 0);
+    hostname_acl->trie = Trie_Create(TRIE_TYPE_4BITS);
 
     fp = FILE_Open(config_file, FALSE, "rb");
     if (NULL == fp) {
@@ -61,18 +64,19 @@ int HostnameACL_Init(HOSTNAME_ACL_S *hostname_acl, char *config_file)
 
 void HostnameACL_Fini(IN HOSTNAME_ACL_S *hostname_acl)
 {
-    DnsNameTrie_Fini(&hostname_acl->trie, NULL);
+    // DnsNameTrie_Fini(&hostname_acl->trie, NULL);
+    Trie_Destroy(hostname_acl->trie, NULL);
 }
 
 int HostnameACL_Match(HOSTNAME_ACL_S *hostname_acl, char *hostname)
 {
-    void *ret;
+    TRIE_COMMON_S *ret;
 
-    ret = DnsNameTrie_Match(&hostname_acl->trie, hostname, strlen(hostname));
+    ret = Trie_Match(hostname_acl->trie, (UCHAR *)hostname, strlen(hostname), TRIE_MATCH_MAXLEN);
     if (NULL == ret) {
         return HOSTNAME_ACL_UNDEF;
     }
 
-    return HANDLE_UINT(ret);
+    return HANDLE_UINT(ret->ud);
 }
 

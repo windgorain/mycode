@@ -13,7 +13,6 @@
 #include "utl/conn_pool.h"
 #include "utl/txt_utl.h"
 #include "utl/ssltcp_utl.h"
-#include "utl/ic_utl.h"
 
 
 /* ---structs--- */

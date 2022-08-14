@@ -11,18 +11,14 @@
 #include "utl/json_utl.h"
 
 
-VOID JSON_SetSuccess(IN cJSON * pstJson)
+VOID JSON_SetSuccess(cJSON * pstJson)
 {
     cJSON_AddStringToObject(pstJson, "result", "Success");
 }
 
-VOID JSON_SetFailed(IN cJSON * pstJson, IN CHAR *pcReason)
+VOID JSON_SetFailed(cJSON * pstJson, CHAR *pcReason)
 {
-    cJSON_AddStringToObject(pstJson, "result", "Failed");
-    if (NULL != pcReason)
-    {
-       cJSON_AddStringToObject(pstJson, "reason", pcReason);
-    }
+    cJSON_AddStringToObject(pstJson, "error", pcReason);
 }
 
 BS_STATUS JSON_AppendInfo(IN cJSON * pstJson, IN CHAR *pcInfo)
@@ -93,22 +89,18 @@ BS_STATUS JSON_NO_IsExist
 BS_STATUS JSON_NO_List
 (
     IN NO_HANDLE hNo,
-    IN MIME_HANDLE hMime,
     IN cJSON * pstJson,
-    IN CHAR **apcPropertys,
-    IN UINT uiPropertyCount
+    IN CHAR **apcPropertys
 )
 {
-    return JSON_NO_ListWithCallBack(hNo, hMime, pstJson, apcPropertys, uiPropertyCount, NULL, NULL);
+    return JSON_NO_ListWithCallBack(hNo, pstJson, apcPropertys, NULL, NULL);
 }
 
 BS_STATUS JSON_NO_ListWithCallBack
 (
     IN NO_HANDLE hNo,
-    IN MIME_HANDLE hMime,
     IN cJSON * pstJson,
     IN CHAR **apcPropertys,
-    IN UINT uiPropertyCount,
     IN PF_JSON_LIST_IS_PERMIT pfIsPermit,
     IN HANDLE hUserHandle
 )
@@ -141,7 +133,7 @@ BS_STATUS JSON_NO_ListWithCallBack
 
         cJSON_AddStringToObject(pstResJson, "Name", NO_GetNameByID(hNo, ulID));
 
-        for (i=0; i<uiPropertyCount; i++)
+        for (i=0; apcPropertys[i] != NULL; i++)
         {
             pcProperty = NO_GetKeyValueByID(hNo, ulID, apcPropertys[i]);
             if (NULL == pcProperty)
@@ -171,8 +163,7 @@ BS_STATUS JSON_NO_Add
     IN NO_HANDLE hNo,
     IN MIME_HANDLE hMime,
     IN cJSON * pstJson,
-    IN CHAR **apcPropertys,
-    IN UINT uiPropertyCount
+    IN CHAR **apcPropertys
 )
 {
     CHAR *pcName;
@@ -200,7 +191,7 @@ BS_STATUS JSON_NO_Add
         return BS_NO_MEMORY;
     }
 
-    for (i=0; i<uiPropertyCount; i++)
+    for (i=0; apcPropertys[i]!=NULL; i++)
     {
         pcPropertyValue = MIME_GetKeyValue(hMime, apcPropertys[i]);
         if (pcPropertyValue != NULL)
@@ -219,8 +210,7 @@ BS_STATUS JSON_NO_Modify
     IN NO_HANDLE hNo,
     IN MIME_HANDLE hMime,
     IN cJSON * pstJson,
-    IN CHAR **apcPropertys,
-    IN UINT uiPropertyCount
+    IN CHAR **apcPropertys
 )
 {
     CHAR *pcName;
@@ -242,7 +232,7 @@ BS_STATUS JSON_NO_Modify
         return BS_NOT_FOUND;
     }
 
-    for (i=0; i<uiPropertyCount; i++)
+    for (i=0; apcPropertys[i]!=NULL; i++)
     {
         pcPropertyValue = MIME_GetKeyValue(hMime, apcPropertys[i]);
         if (pcPropertyValue != NULL)
@@ -261,8 +251,7 @@ VOID JSON_NO_Get
     IN NO_HANDLE hNo,
     IN MIME_HANDLE hMime,
     IN cJSON * pstJson,
-    IN CHAR **apcPropertys,
-    IN UINT uiPropertyCount
+    IN CHAR **apcPropertys
 )
 {
     CHAR *pcName;
@@ -286,7 +275,7 @@ VOID JSON_NO_Get
 
     cJSON_AddStringToObject(pstJson, "Name", pcName);
 
-    for (i=0; i<uiPropertyCount; i++)
+    for (i=0; apcPropertys[i]!=NULL; i++)
     {
         pcString = NO_GetKeyValue(pNode, apcPropertys[i]);
         if (NULL == pcString)
@@ -346,5 +335,46 @@ VOID JSON_NO_DeleteWithNotify
     JSON_SetSuccess(pstJson);
 
     return;
+}
+
+BS_STATUS JSON_List(cJSON * pstJson, CHAR **apcPropertys,
+        PF_JSON_LIST_GET_NEXT get_next, PF_JSON_LIST_GET_PROPERTY get_property)
+{
+    cJSON *pstArray;
+    cJSON *pstResJson;
+    UINT i;
+    char *pcProperty;
+    char *name = NULL;
+
+    pstArray = cJSON_CreateArray();
+    if (NULL == pstArray) {
+        JSON_SetFailed(pstJson, "Not enough memory");
+        return BS_ERR;
+    }
+
+    while ((name = get_next(name))) {
+        pstResJson = cJSON_CreateObject();
+        if (NULL == pstResJson) {
+            continue;
+        }
+
+        cJSON_AddStringToObject(pstResJson, "Name", name);
+
+        for (i=0; apcPropertys[i] != NULL; i++) {
+            pcProperty = get_property(name, apcPropertys[i]);
+            if (NULL == pcProperty) {
+                pcProperty = "";
+            }
+            cJSON_AddStringToObject(pstResJson, apcPropertys[i], pcProperty);
+        }
+
+        cJSON_AddItemToArray(pstArray, pstResJson);
+    }
+
+    cJSON_AddItemToObject(pstJson, "data", pstArray);
+
+    JSON_SetSuccess(pstJson);
+
+    return BS_OK;
 }
 

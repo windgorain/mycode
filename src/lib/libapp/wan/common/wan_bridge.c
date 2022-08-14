@@ -13,7 +13,7 @@ static MAC_ADDR_S g_stWanBridgeMac;
 
 BS_STATUS WAN_Bridge_Init()
 {
-    CompSupport_Ioctl(SPT_IOCTL_GET_BRIDGE_MAC, &g_stWanBridgeMac);
+    Support_Ioctl(SPT_IOCTL_GET_BRIDGE_MAC, &g_stWanBridgeMac);
 
     return BS_OK;
 }

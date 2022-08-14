@@ -19,7 +19,7 @@ static int timersingel_InitOnce(void *ud)
 static inline void timersingel_init()
 {
     static ATOM_ONCE_S once = ATOM_ONCE_INIT_VALUE;
-    AtomOnce_Do(&once, timersingel_InitOnce, NULL);
+    AtomOnce_WaitDo(&once, timersingel_InitOnce, NULL);
 }
 
 HANDLE TimerSingle_Create(UINT time/*ms*/, UINT flag, PF_TIME_OUT_FUNC func, USER_HANDLE_S *user_data)

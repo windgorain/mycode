@@ -211,7 +211,9 @@ BS_STATUS SVPN_IpPoolCmd_Save(SVPN_CONTEXT_HANDLE hSvpnContext, HANDLE hFile)
         
     while (BS_OK == SVPN_CtxData_GetNextObject(hSvpnContext, SVPN_CTXDATA_IPPOOL, szName, szName, SVPN_MAX_RES_NAME_LEN + 1))
     {
-        CMD_EXP_OutputMode(hFile, "ip-pool %s", szName);
+        if (0 != CMD_EXP_OutputMode(hFile, "ip-pool %s", szName)) {
+            continue;
+        }
 
         SVPN_CD_SaveProp(hSvpnContext, SVPN_CTXDATA_IPPOOL, szName, "Description", "description", hFile);
         SVPN_CD_SaveProp(hSvpnContext, SVPN_CTXDATA_IPPOOL, szName, "StartIP", "start-ip", hFile);

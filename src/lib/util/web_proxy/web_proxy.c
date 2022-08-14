@@ -2262,8 +2262,12 @@ WEB_PROXY_HANDLE WEB_Proxy_Create(IN UINT uiFlag)
         return NULL;
     }
 
-    pstCtrl->hAuthNAP = NAP_Create(NAP_TYPE_HASH,
-        _WEB_PROXY_AUTH_DIGEST_MAX_NAP_NUM, sizeof(_WEB_PROXY_AUTH_NODE_S), 0);
+    NAP_PARAM_S param = {0};
+    param.enType = NAP_TYPE_HASH;
+    param.uiMaxNum = _WEB_PROXY_AUTH_DIGEST_MAX_NAP_NUM;
+    param.uiNodeSize = sizeof(_WEB_PROXY_AUTH_NODE_S);
+
+    pstCtrl->hAuthNAP = NAP_Create(&param);
     if (NULL == pstCtrl->hAuthNAP)
     {
         MEM_Free(pstCtrl);
@@ -2458,7 +2462,9 @@ BS_STATUS WEB_Proxy_AuthAgentInput
         return BS_ERR;
     }
 
-    snprintf(szCookie, sizeof(szCookie), "_proxy_auth_cookie=%s; path=%s", pcAuthCookie, szPrefix);
+    if (snprintf(szCookie, sizeof(szCookie), "_proxy_auth_cookie=%s; path=%s", pcAuthCookie, szPrefix) < 0) {
+        return BS_ERR;
+    }
 
     HTTP_SetHeadField(hEncap, HTTP_FIELD_SET_COOKIE, szCookie);
 

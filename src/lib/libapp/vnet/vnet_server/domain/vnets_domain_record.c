@@ -114,7 +114,7 @@ BS_STATUS _VNETS_DomainRecord_Init()
 {
     HASH_HANDLE hHash;
     
-    hHash = HASH_CreateInstance(_VNETS_DOMAIN_RECORD_HASH_BUCKET_NUM, vnets_domainrecord_HashIndex);
+    hHash = HASH_CreateInstance(NULL, _VNETS_DOMAIN_RECORD_HASH_BUCKET_NUM, vnets_domainrecord_HashIndex);
     if (hHash == NULL)
     {
         return BS_NO_MEMORY;
@@ -134,7 +134,6 @@ BS_STATUS _VNETS_DomainRecord_Add
 )
 {
     BS_STATUS eRet;
-    HANDLE ahProperty[VNET_DOMAIN_PROPERTY_MAX]= {0};
 
     if (uiDomainID == 0)
     {

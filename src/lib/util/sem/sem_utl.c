@@ -50,6 +50,7 @@ static SEM_HANDLE sem_Create(IN CHAR *pcName, IN INT iInitNum, IN _SEM_TYPE_E eT
     ulRet = _OSSEM_Create(pcName, 0, &pstSem->osSem);
     if (BS_OK != ulRet)
     {
+        MEM_Free(pstSem);
         BS_WARNNING(("Can't create os sem!"));
         return NULL;
     }

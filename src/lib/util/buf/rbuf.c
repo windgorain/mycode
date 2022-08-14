@@ -161,7 +161,7 @@ BS_STATUS RBUF_ReadNoDel(IN HANDLE hHandle, OUT UCHAR **ppucData, OUT UINT *pulD
         }
 
         MEM_Copy(pucTmp, pstCtrl->pucData, pstCtrl->ulWriteIndex - 1);
-        MEM_Copy(pstCtrl->pucData, pstCtrl->pucData + pstCtrl->ulReadIndex, pstCtrl->ulMaxDataLen - pstCtrl->ulReadIndex);
+        memmove(pstCtrl->pucData, pstCtrl->pucData + pstCtrl->ulReadIndex, pstCtrl->ulMaxDataLen - pstCtrl->ulReadIndex);
         MEM_Copy(pstCtrl->pucData + pstCtrl->ulMaxDataLen - pstCtrl->ulReadIndex, pucTmp, pstCtrl->ulWriteIndex - 1);
         pstCtrl->ulReadIndex = 0;
         pstCtrl->ulWriteIndex = pstCtrl->ulDataLen;

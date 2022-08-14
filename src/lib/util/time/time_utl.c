@@ -60,6 +60,7 @@ BS_STATUS TM_String2Utc(IN CHAR *pszStringTime, OUT time_t *pulUtcTime)
     return BS_OK;
 }
 
+/* UTC时间转换成日期时分秒 */
 VOID TM_Utc2Tm(IN time_t ulUtcTime, OUT struct tm *pstTm)
 {
 #ifdef IN_WINDOWS
@@ -73,6 +74,7 @@ VOID TM_Utc2Tm(IN time_t ulUtcTime, OUT struct tm *pstTm)
 #endif
 }
 
+/* 日期时分秒转换成UTC */
 BS_STATUS TM_Tm2Utc(IN struct tm *pstTm, OUT time_t *pulUtcTime)
 {
     time_t lTime;
@@ -239,18 +241,28 @@ BS_STATUS TM_String2Tm(IN CHAR *pszStringTime, OUT struct tm *pstTm)
 }
 
 /* 转换成如下格式:Fri, 29 Feb 2008 12:20:34  */
-BS_STATUS TM_Tm2String(IN struct tm *pstTm, OUT CHAR *szStringTime)
+char * TM_Tm2String(IN struct tm *pstTm, OUT CHAR *szStringTime)
 {
     sprintf(szStringTime, "%s, %02d %s %04d %02d:%02d:%02d",
         g_aucTimeWeekDay[pstTm->tm_wday], pstTm->tm_mday, 
         g_aucTimeMonth[pstTm->tm_mon], pstTm->tm_year + 1900,
         pstTm->tm_hour, pstTm->tm_min, pstTm->tm_sec);
 
-    return BS_OK;
+    return szStringTime;
+}
+
+/* 转换成asctime格式字符串: Sat Mar 25 06:10:10 1989  */
+char * TM_Utc2Acstime(time_t seconds, OUT char *string)
+{
+    struct tm stTm;
+    TM_Utc2Tm(seconds, &stTm);
+    asctime_r(&stTm, string);
+    string[strlen(string)-1] = '\0'; /* 去掉最后的换行符 */
+    return string;
 }
 
 /* 转换成格式: 2014-11-28 16:43:38, 本地时区时间 */
-BS_STATUS TM_Utc2SimpleString(IN time_t ulUtcTime, OUT CHAR szTimeString[TM_STRING_TIME_LEN + 1])
+char * TM_Utc2SimpleString(time_t ulUtcTime, OUT CHAR *szTimeString)
 {
     struct tm stTm;
 
@@ -259,13 +271,13 @@ BS_STATUS TM_Utc2SimpleString(IN time_t ulUtcTime, OUT CHAR szTimeString[TM_STRI
 }
 
 /* 转换成格式: 2014-11-28 16:43:38 */
-BS_STATUS TM_Tm2SimpleString(IN struct tm *pstTm, OUT CHAR szStringTime[TM_STRING_TIME_LEN + 1])
+char * TM_Tm2SimpleString(struct tm *pstTm, OUT CHAR *szStringTime)
 {
     sprintf(szStringTime, "%04d-%02d-%02d %02d:%02d:%02d",
          pstTm->tm_year + 1900, pstTm->tm_mon + 1, pstTm->tm_mday, 
         pstTm->tm_hour, pstTm->tm_min, pstTm->tm_sec);
 
-    return BS_OK;
+    return szStringTime;
 }
 
 /*******************************************************************************
@@ -793,43 +805,59 @@ time_t TM_Gmt2Utc(IN CHAR *pcValue, IN ULONG ulLen)
     return (time_t) ulTime;
 }
 
-/* 返回UTC时间 */
-time_t TM_NowInSec()
+char * TM_GetTimeString(OUT char* out_datetime, int length, UINT input_time/*0表示取当前时间*/)
 {
-	time_t t;
+    struct tm *tm;
 
-	t = time(0);
+    if(input_time == 0){
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        tm = localtime(&tv.tv_sec);
+        sprintf(out_datetime, "%04d-%02d-%02d %02d:%02d:%02d.%06u",
+                tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour,
+                tm->tm_min, tm->tm_sec, (UINT) (tv.tv_usec));
+    } else {
+        time_t now=(time_t)input_time;
+        tm= localtime(&now);
+        strftime(out_datetime,length,"%Y-%m-%d %H:%M:%S",tm);
+    }
 
-	return t;
+    return out_datetime;
 }
 
 #ifdef IN_WINDOWS
-static inline UINT64 tm_os_GetUsFromInit()
+static inline UINT64 tm_os_GetNsFromInit()
 {
-    return (UINT64)GetTickCount() * 1000;
+    return (UINT64)GetTickCount();
 }
 #endif
 
 #ifdef IN_UNIXLIKE
-static inline UINT64 tm_os_GetUsFromInit()
+static inline UINT64 tm_os_GetNsFromInit()
 {
     struct timespec ts;
 
     clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-    return ((UINT64)ts.tv_sec * 1000000 + (UINT64)ts.tv_nsec / 1000);
+    return ((UINT64)ts.tv_sec * 1000000000 + (UINT64)ts.tv_nsec);
 }
 #endif
+
+/* 从系统启动到现在的ns数 */
+UINT64 TM_NsFromInit()
+{
+    return tm_os_GetNsFromInit();
+}
 
 /* 从系统启动到现在的us数 */
 UINT64 TM_UsFromInit()
 {
-    return tm_os_GetUsFromInit();
+    return tm_os_GetNsFromInit() / 1000;
 }
 
 /* 从系统启动到现在的ms数 */
 UINT64 TM_MsFromInit()
 {
-    return tm_os_GetUsFromInit() / 1000;
+    return tm_os_GetNsFromInit() / 1000000;
 }
 
 /* 从系统启动到现在的秒数 */

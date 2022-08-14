@@ -235,12 +235,11 @@ UINT VDOMAIN_GetNextDomain(IN VDOMAIN_HANDLE hVDomain, IN UINT uiCurrentDomainID
 {
     VDOMAIN_CTRL_S *pstCtrl = hVDomain;
 
-    if (uiCurrentDomainID == 0)
-    {
+    if (uiCurrentDomainID == 0) {
         return VDOMAIN_ROOT_DOMAIN_ID;
     }
 
-    return BITMAP1_GetASettedBitIndexAfter(&pstCtrl->stBitmap, uiCurrentDomainID);
+    return BITMAP1_GetBusyFrom(&pstCtrl->stBitmap, uiCurrentDomainID + 1);
 }
 
 VDOMAIN_TYPE_E VDOMAIN_GetDomainType(IN VDOMAIN_HANDLE hVDomain, IN UINT uiDomainID)

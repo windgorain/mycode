@@ -17,31 +17,31 @@
 
 #define WS_PLUG_CONTEXT_JUMP_URL_LEN 1023
 
-static VOID ws_plugcontext_BuildJumpUrl(IN WS_TRANS_S *pstTrans, OUT CHAR *pcJumpUrl, IN UINT uiSize)
+static int ws_plugcontext_BuildJumpUrl(IN WS_TRANS_S *pstTrans, OUT CHAR *pcJumpUrl, IN UINT uiSize)
 {
     CHAR *pcUrl;
     UINT uiLen;
     CHAR szTmp[WS_PLUG_CONTEXT_JUMP_URL_LEN + 1];
 
     pcUrl = HTTP_GetFullUri(pstTrans->hHttpHeadRequest);
-    if (NULL == pcUrl)
-    {
+    if (NULL == pcUrl) {
         pcUrl = "/";
     }
 
     uiLen = strlen(pcUrl);
     if ((uiLen * 2 > WS_PLUG_CONTEXT_JUMP_URL_LEN)
-        || (uiLen * 2 + STR_LEN("/index.cgi?url=") >= uiSize))
-    {
+        || (uiLen * 2 + STR_LEN("/index.cgi?url=") >= uiSize)) {
         pcUrl = "/";
         uiLen = 1;
     }
 
     DH_Data2HexString((UCHAR*)pcUrl, uiLen, szTmp);
 
-    snprintf(pcJumpUrl, uiSize + 1, "/index.cgi?url=%s", szTmp);
+    if (SNPRINTF(pcJumpUrl, uiSize, "/index.cgi?url=%s", szTmp) < 0) {
+        return -1;
+    }
 
-    return;
+    return 0;
 }
 
 WS_EV_RET_E ws_plugcontext_Redirect2Default(IN WS_TRANS_S *pstTrans)
@@ -53,11 +53,12 @@ WS_EV_RET_E ws_plugcontext_Redirect2Default(IN WS_TRANS_S *pstTrans)
 
     HTTP_SetHeadField(pstTrans->hHttpHeadReply, HTTP_FIELD_SET_COOKIE, szCookieValue);
 
-    ws_plugcontext_BuildJumpUrl(pstTrans, szTmp, sizeof(szTmp));
+    if (ws_plugcontext_BuildJumpUrl(pstTrans, szTmp, sizeof(szTmp)) < 0) {
+        return WS_EV_RET_ERR;
+    }
 
     /* 回应重定向,重定向到Context */
-    if (BS_OK != WS_Trans_Redirect(pstTrans, szTmp))
-    {
+    if (BS_OK != WS_Trans_Redirect(pstTrans, szTmp)) {
         return WS_EV_RET_ERR;
     }
 

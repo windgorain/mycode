@@ -28,6 +28,7 @@ typedef struct {
     UINT enabled:1;
     UINT need_to_close:1;
     UINT interactive:1;
+    int muc_id;
 }TELNET_SVR_S;
 
 static void _svr_Ob();
@@ -116,6 +117,10 @@ static void _telsvr_SaveSvr(HANDLE file, TELNET_SVR_S *svr)
         CMD_EXP_OutputCmd(file, "interactive");
     }
 
+    if (svr->muc_id > 0) {
+        CMD_EXP_OutputCmd(file, "muc %d", svr->muc_id);
+    }
+
     if (svr->autoport.port_type == AUTOPORT_TYPE_SET) {
         CMD_EXP_OutputCmd(file, "port %u", svr->autoport.port);
     } else if (svr->autoport.port_type == AUTOPORT_TYPE_INC) {
@@ -147,7 +152,9 @@ PLUG_API BS_STATUS _telsvr_SaveCmd(HANDLE hFile)
         if (0 == _telsvr_SvrNeedSave(svr)) {
             continue;
         }
-        CMD_EXP_OutputMode(hFile, "service %d", i);
+        if (0 != CMD_EXP_OutputMode(hFile, "service %d", i)) {
+            continue;
+        }
         _telsvr_SaveSvr(hFile, svr);
         CMD_EXP_OutputModeQuit(hFile);
     }
@@ -193,6 +200,7 @@ static BS_WALK_RET_E _svr_SocketEventIn(INT iSocketId, UINT uiEvent,
     HANDLE hExec = ud->ahUserHandle[1];
     UCHAR buf[128];
     UINT uiReadlen;
+    int ret;
 
     if (uiEvent & MYPOLL_EVENT_ERR) {
         _svr_CloseConn(iSocketId, hExec, tels);
@@ -205,9 +213,9 @@ static BS_WALK_RET_E _svr_SocketEventIn(INT iSocketId, UINT uiEvent,
             return BS_WALK_CONTINUE;
         }
 
-        EXEC_AttachToSelfThread(hExec);
-
-        if (BS_STOP == TELS_Run(tels, buf, uiReadlen)) {
+        EXEC_Attach(hExec);
+        ret = TELS_Run(tels, buf, uiReadlen);
+        if (BS_STOP == ret) {
             _svr_CloseConn(iSocketId, hExec, tels);
             return BS_WALK_CONTINUE;
         }
@@ -225,13 +233,18 @@ static int _svr_NewConn(TELNET_SVR_S *svr, int fd)
 
     Socket_SetNoBlock(fd, TRUE);
 
-    hCmdRunner = CMD_EXP_CreateRunner();
+    hCmdRunner = CMD_EXP_CreateRunner(CMD_EXP_RUNNER_TYPE_TELNET);
     if (NULL == hCmdRunner) {
         RETURN(BS_NO_MEMORY);
     }
 
     if (svr->interactive) {
         CmdExp_AltEnable(hCmdRunner, 1);
+    }
+
+    if (svr->muc_id > 0) {
+        CmdExp_SetRunnerMucID(hCmdRunner, svr->muc_id);
+        CmdExp_SetRunnerLevel(hCmdRunner, CMD_EXP_LEVEL_MUC);
     }
 
     hExec = EXEC_Create(_svr_Send, _svr_GetChar);
@@ -253,8 +266,8 @@ static int _svr_NewConn(TELNET_SVR_S *svr, int fd)
         TELS_Hsk(fd);
     }
 
-    EXEC_AttachToSelfThread(hExec);
-    CMD_EXP_RunnerStart(hCmdRunner);
+    EXEC_Attach(hExec);
+    CmdExp_RunnerOutputPrefix(hCmdRunner);
 
     ud.ahUserHandle[0] = tels;
     ud.ahUserHandle[1] = hExec;
@@ -286,7 +299,7 @@ static BS_WALK_RET_E _svr_ListenSocketEventIn(int iSocketId,
 static int _svr_InitPoller()
 {
     if (! g_PollerIns) {
-        g_PollerIns = PollerComp_Get("vty");
+        g_PollerIns = PollerComp_Get(NULL);
         if (NULL == g_PollerIns) {
             RETURN(BS_NOT_FOUND);
         }
@@ -342,19 +355,28 @@ PLUG_API BS_STATUS TELSVR_CmdService(UINT ulArgc, CHAR **argv, VOID *pEnv)
 PLUG_API BS_STATUS TELSVR_CmdInteractive(UINT argc, CHAR ** argv, void *env)
 {
     TELNET_SVR_S *svr = _svr_GetServie(env);
-
     svr->interactive = 1;
-
 	return BS_OK;
+}
+
+/* [no] muc %INT */
+PLUG_API BS_STATUS TELSVR_CmdMuc(int argc, char **argv, void *env)
+{
+    TELNET_SVR_S *svr = _svr_GetServie(env);
+
+    if (argv[0][0] == 'n') {
+        svr->muc_id = 0;
+    } else {
+        svr->muc_id = TXT_Str2Ui(argv[1]);
+    }
+    return 0;
 }
 
 /* ip %STRING */
 PLUG_API BS_STATUS TELSVR_CmdSetIp(UINT argc, CHAR ** argv, void *env)
 {
     TELNET_SVR_S *svr = _svr_GetServie(env);
-
     svr->bind_ip = Socket_NameToIpHost(argv[1]);
-
 	return BS_OK;
 }
 

@@ -25,25 +25,25 @@ BS_STATUS WAN_IF_Init()
     IF_TYPE_PARAM_S stTypeParam = {0};
 
     stLinkParam.pfLinkOutput = WAN_InLoop_LinkOutput;
-    CompIf_SetLinkType(IF_INLOOP_LINK_TYPE_MAME, &stLinkParam);
+    IFNET_SetLinkType(IF_INLOOP_LINK_TYPE_MAME, &stLinkParam);
 
     stLinkParam.pfLinkInput = WAN_ETH_LinkInput;
     stLinkParam.pfLinkOutput = WAN_ETH_LinkOutput;
-    CompIf_SetLinkType(IF_ETH_LINK_TYPE_MAME, &stLinkParam);
+    IFNET_SetLinkType(IF_ETH_LINK_TYPE_MAME, &stLinkParam);
 
     stProtoParam.pfProtoInput = WAN_Proto_Input;
-    CompIf_SetProtoType(IF_PROTO_IP_TYPE_MAME, &stProtoParam);
+    IFNET_SetProtoType(IF_PROTO_IP_TYPE_MAME, &stProtoParam);
 
     stTypeParam.pcProtoType = IF_PROTO_IP_TYPE_MAME;
     stTypeParam.pcLinkType = IF_INLOOP_LINK_TYPE_MAME;
     stTypeParam.uiFlag = IF_TYPE_FLAG_HIDE;
-    g_uiWanIfTypeInloop = CompIf_AddIfType(IF_INLOOP_IF_TYPE_MAME, &stTypeParam);
+    g_uiWanIfTypeInloop = IFNET_AddIfType(IF_INLOOP_IF_TYPE_MAME, &stTypeParam);
 
     return BS_OK;
 }
 
 IF_INDEX WAN_IF_GetIfIndexByEnv(IN VOID *pEnv)
 {
-    return CompIf_GetIfIndexByCmdEnv(pEnv);
+    return IFNET_GetIfIndexByCmdEnv(pEnv);
 }
 

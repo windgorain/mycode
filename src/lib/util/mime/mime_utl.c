@@ -211,14 +211,20 @@ STATIC MIME_DATA_NODE_S * mime_CreatDecodeNode
     
     /* 复制参数名，pcKey域  */
     pcKey = pfDecodeFunc(pstList, pcKeyName, ulKeyLen); 
+    if (! pcKey) {
+        MEMPOOL_Free(pstList->hMemPool, pstNode);
+        return NULL;
+    }
     pcNewValue = mime_CreateKeyValue(pstList, pcValue, ulValueLen, pfDecodeFunc);   
+    if (! pcNewValue) {
+        MEMPOOL_Free(pstList->hMemPool, pstNode);
+        MEMPOOL_Free(pstList->hMemPool, pcKey);
+        return NULL;
+    }
     
     pstNode->pcKey   = pcKey;
     pstNode->pcValue = pcNewValue;
-    if((NULL == pcKey) || (NULL == pcNewValue))
-    {
-        pstNode = NULL;
-    }
+
     return pstNode;
 }
 
@@ -612,5 +618,14 @@ VOID MIME_Cat(IN MIME_HANDLE hMimeHandleDst, IN MIME_HANDLE hMimeHandleSrc)
     pstParamList2 = (MIME_DATALIST_S *)hMimeHandleSrc;
 
     DLL_CAT(&(pstParamList1->stDataList), &(pstParamList2->stDataList));
+}
+
+void MIME_Print(MIME_HANDLE hMime)
+{
+    MIME_DATA_NODE_S *node = NULL;
+
+    while ((node = MIME_GetNextParam(hMime, node))) {
+        printf("%s:%s\n", node->pcKey, node->pcValue);
+    }
 }
 

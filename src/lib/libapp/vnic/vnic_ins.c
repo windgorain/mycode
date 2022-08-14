@@ -8,6 +8,8 @@
 
 #include "comp/comp_vnic.h"
 
+#ifdef IN_WINDOWS
+
 #define _VNIC_INS_MAX_RECEIVER_NUM 8 /* 最多支持32个receiver */
 
 typedef struct
@@ -93,7 +95,7 @@ BS_STATUS VnicIns_Init()
     return BS_OK;
 }
 
-BS_STATUS VnicIns_Start()
+PLUG_API BS_STATUS Vnic_Start()
 {
     UINT uiStatus = 1;
     UINT uiLen;
@@ -103,7 +105,7 @@ BS_STATUS VnicIns_Start()
     return BS_OK;
 }
 
-BS_STATUS VnicIns_Stop()
+PLUG_API BS_STATUS Vnic_Stop()
 {
     UINT uiStatus = 0;
     UINT uiLen;
@@ -111,7 +113,7 @@ BS_STATUS VnicIns_Stop()
     return VNIC_Ioctl(g_hVnicIns, TAP_WIN_IOCTL_SET_MEDIA_STATUS, (UCHAR*)&uiStatus, 4, (UCHAR*)&uiStatus, 4, &uiLen);
 }
 
-BS_STATUS VnicIns_RegRecver(IN PF_VNICAPP_PKT_RECEIVER pfRecver)
+PLUG_API BS_STATUS Vnic_RegRecver(IN PF_VNICAPP_PKT_RECEIVER pfRecver)
 {
     UINT i;
 
@@ -132,18 +134,18 @@ BS_STATUS VnicIns_RegRecver(IN PF_VNICAPP_PKT_RECEIVER pfRecver)
     return BS_NO_RESOURCE;
 }
 
-VNIC_HANDLE VnicIns_GetVnicHandle()
+PLUG_API VNIC_HANDLE Vnic_GetVnicHandle()
 {
     return g_hVnicIns;
 }
 
-BS_STATUS VnicIns_Output(IN MBUF_S *pstMbuf)
+PLUG_API BS_STATUS Vnic_Output(IN MBUF_S *pstMbuf)
 {
     return VNIC_Agent_Write(g_hVnicAgent, pstMbuf);
 }
 
-MAC_ADDR_S * VnicIns_GetVnicMac()
+PLUG_API MAC_ADDR_S * Vnic_GetVnicMac()
 {
     return &g_stVnicHostMac;
 }
-
+#endif

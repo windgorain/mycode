@@ -8,6 +8,7 @@
 
 #include "utl/txt_utl.h"
 #include "utl/file_utl.h"
+#include "utl/exec_utl.h"
 #include "utl/local_info.h"
 #include "comp/comp_wsapp.h"
 
@@ -16,12 +17,12 @@
 static CHAR g_szVnetsBindWsService[WSAPP_SERVICE_NAME_LEN + 1];
 
 /* bind ws-service %STRING */
-PLUG_API BS_STATUS VNETS_CmdWeb_BindWsService(IN UINT ulArgc, IN UCHAR **argv)
+PLUG_API BS_STATUS VNETS_CmdWeb_BindWsService(int argc, char **argv)
 {
     CHAR *pcWsService = argv[2];
     CHAR szFullPath[FILE_MAX_PATH_LEN + 1];
 
-    if (BS_OK != COMP_WSAPP_BindService(pcWsService))
+    if (BS_OK != WSAPP_BindService(pcWsService))
     {
         EXEC_OutString("bind ws service failed.\r\n");
         return BS_ERR;
@@ -32,8 +33,8 @@ PLUG_API BS_STATUS VNETS_CmdWeb_BindWsService(IN UINT ulArgc, IN UCHAR **argv)
     VNETS_Web_BindService(pcWsService);
 
     LOCAL_INFO_ExpandToConfPath("web/", szFullPath);
-    COMP_WSAPP_SetDocRoot(pcWsService, szFullPath);
-    COMP_WSAPP_SetIndex(pcWsService, "/index.htm");
+    WSAPP_SetDocRoot(pcWsService, szFullPath);
+    WSAPP_SetIndex(pcWsService, "/index.htm");
 
     return BS_OK;
 }

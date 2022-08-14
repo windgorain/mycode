@@ -27,16 +27,16 @@ void PCAPFILE_WriteHeader(FILE *fp, int linktype)
     fwrite(&header, 1, sizeof(header), fp);
 }
 
-int PCAPFILE_WritePkt(FILE *fp, void *pkt, struct timeval *ts,
-        UINT cap_len, UINT pkt_len)
+int PCAPFILE_WritePkt(FILE *fp, void *pkt, void *ts, UINT cap_len, UINT pkt_len)
 {
+    if (! fp) {
+        RETURN(BS_BAD_PARA);
+    }
+
     fwrite(ts, 1, sizeof(UINT64), fp);
     fwrite(&cap_len, 1, 4, fp);
     fwrite(&pkt_len, 1, 4, fp);
-
     fwrite(pkt, 1, pkt_len, fp);
-
-    fflush(fp);
 
     return 0;
 }

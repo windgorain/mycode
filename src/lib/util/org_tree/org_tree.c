@@ -126,6 +126,7 @@ static VOID orgtree_DeleteOrg(IN ORG_TREE_S *pstUserTree, IN ORG_TREE_ORG_S *pst
 ORG_TREE_HANDLE OrgTree_Create()
 {
     ORG_TREE_S *pstTree;
+    NAP_PARAM_S param = {0};
 
     pstTree = MEM_ZMalloc(sizeof(ORG_TREE_S));
     if (NULL == pstTree)
@@ -133,7 +134,9 @@ ORG_TREE_HANDLE OrgTree_Create()
         return NULL;
     }
 
-    pstTree->hOrgNap = NAP_Create(NAP_TYPE_HASH, 0, sizeof(ORG_TREE_ORG_S), 0);
+    param.enType = NAP_TYPE_HASH;
+    param.uiNodeSize = sizeof(ORG_TREE_ORG_S);
+    pstTree->hOrgNap = NAP_Create(&param);
     if (NULL == pstTree->hOrgNap)
     {
         OrgTree_Destroy(pstTree);

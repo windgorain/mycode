@@ -238,12 +238,9 @@ static VOID wsapp_gw_cmd_SaveEach(IN WSAPP_GW_S *pstGw, IN HANDLE hFile)
 
     pcTmp = WSAPP_GW_GetName(pstGw);
 
-    if (! CMD_EXP_IsOptPermitOutput(hFile, pcTmp))
-    {
+    if (0 != CMD_EXP_OutputMode(hFile, "gateway %s", pcTmp)) {
         return;
     }
-
-    CMD_EXP_OutputMode(hFile, "gateway %s", pcTmp);
 
     if (WSAPP_GW_IsWebCenterOptHide(pstGw))
     {

@@ -14,7 +14,7 @@ BS_STATUS OB_CHAIN_AddWithPri
 (
     IN OB_CHAIN_S *pstHead,
     IN UINT uiPri,
-    IN UINT_FUNC_X pfFunc,
+    IN void *pfFunc,
     IN USER_HANDLE_S *pstUserHandle
 )
 {
@@ -48,19 +48,17 @@ BS_STATUS OB_CHAIN_AddWithPri
     return BS_OK;
 }
 
-BS_STATUS OB_CHAIN_Add (IN OB_CHAIN_S *pstHead, IN UINT_FUNC_X pfFunc, IN USER_HANDLE_S *pstUserHandle)
+BS_STATUS OB_CHAIN_Add(IN OB_CHAIN_S *pstHead, IN void *pfFunc, IN USER_HANDLE_S *pstUserHandle)
 {
     return OB_CHAIN_AddWithPri(pstHead, 0xffffffff, pfFunc, pstUserHandle);
 }
 
-BS_STATUS OB_CHAIN_Del (IN OB_CHAIN_S *pstHead, IN UINT_FUNC_X pfFunc)
+BS_STATUS OB_CHAIN_Del (IN OB_CHAIN_S *pstHead, IN void *pfFunc)
 {
     OB_CHAIN_NODE_S *pstNode;
 
-    DLL_SCAN (pstHead, pstNode)
-    {
-        if (pstNode->pfFunc == pfFunc)
-        {
+    DLL_SCAN (pstHead, pstNode) {
+        if (pstNode->pfFunc == pfFunc) {
             DLL_DEL (pstHead, pstNode);
             MEM_Free(pstNode);
             return BS_OK;

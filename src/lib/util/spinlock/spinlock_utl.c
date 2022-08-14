@@ -33,7 +33,7 @@ BOOL_T SpinLock_TryLock(IN SPINLOCK_S *pstLock)
     int iTicket = pstLock->current_ticket;
     int iNextUser = iTicket + 1;
 
-    if (ATOM_COMP_SWAP(&pstLock->user_ticket, &iTicket, iNextUser)) {
+    if (ATOM_BOOL_COMP_SWAP(&pstLock->user_ticket, &iTicket, iNextUser)) {
         return TRUE;
     }
 

@@ -23,15 +23,15 @@ static DC_APP_HANDLE g_hVnetsDc;
 
 BS_STATUS VNETS_DC_Init()
 {
-    g_hVnetsDc = COMP_DC_Open(DC_TYPE_XML, "dc/xml/vnets_dc.xml");
+    g_hVnetsDc = DC_APP_Open(DC_TYPE_XML, "dc/xml/vnets_dc.xml");
     if (NULL == g_hVnetsDc)
     {
         BS_WARNNING(("Can't open file vnets_dc.xml."));
         return BS_ERR;
     }
 
-    COMP_DC_AddTbl(g_hVnetsDc, _VNETS_USER_TBL_NAME);
-    COMP_DC_AddTbl(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME);
+    DC_APP_AddTbl(g_hVnetsDc, _VNETS_USER_TBL_NAME);
+    DC_APP_AddTbl(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME);
 
 #if 0  /* Test */
     {
@@ -67,7 +67,7 @@ BOOL_T VNETS_DC_IsDomainExist(IN CHAR *pcDomainName)
     stKey.astKeyValue[0].pcValue = pcDomainName;
     stKey.uiNum = 1;
 
-    return COMP_DC_IsObjectExist(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey);
+    return DC_APP_IsObjectExist(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey);
 }
 
 BOOL_T VNETS_DC_IsBroadcastPermit(IN CHAR *pcDomainName)
@@ -79,7 +79,7 @@ BOOL_T VNETS_DC_IsBroadcastPermit(IN CHAR *pcDomainName)
     stKey.astKeyValue[0].pcValue = pcDomainName;
     stKey.uiNum = 1;
 
-    if (BS_OK != COMP_DC_GetFieldValueAsUint(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "broadcast", &uiValue))
+    if (BS_OK != DC_APP_GetFieldValueAsUint(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "broadcast", &uiValue))
     {
         return FALSE;
     }
@@ -106,7 +106,7 @@ BOOL_T VNETS_DC_CheckUserPassword
     stKey.astKeyValue[0].pcValue = pcUserName;
     stKey.uiNum = 1;
 
-    if (BS_OK != COMP_DC_CpyFieldValueAsString(g_hVnetsDc, _VNETS_USER_TBL_NAME, &stKey, "password", szTmp, sizeof(szTmp)))
+    if (BS_OK != DC_APP_CpyFieldValueAsString(g_hVnetsDc, _VNETS_USER_TBL_NAME, &stKey, "password", szTmp, sizeof(szTmp)))
     {
         return FALSE;
     }
@@ -127,7 +127,7 @@ BS_STATUS VNETS_DC_AddUser(IN CHAR *pcUserName, IN CHAR *pcPassWord)
     stKey.astKeyValue[0].pcKey = "user";
     stKey.astKeyValue[0].pcValue = pcUserName;
     stKey.uiNum = 1;
-    COMP_DC_AddObject(g_hVnetsDc, _VNETS_USER_TBL_NAME, &stKey);
+    DC_APP_AddObject(g_hVnetsDc, _VNETS_USER_TBL_NAME, &stKey);
     VNETS_DC_SetPassword(pcUserName, pcPassWord);
 
     snprintf(szTmp, sizeof(szTmp), "@%s", pcUserName);
@@ -135,11 +135,11 @@ BS_STATUS VNETS_DC_AddUser(IN CHAR *pcUserName, IN CHAR *pcPassWord)
     stKey.astKeyValue[0].pcKey = "domain";
     stKey.astKeyValue[0].pcValue = szTmp;
     stKey.uiNum = 1;
-    COMP_DC_AddObject(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey);
-    COMP_DC_SetFieldValueAsUint(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "broadcast", 0);
+    DC_APP_AddObject(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey);
+    DC_APP_SetFieldValueAsUint(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "broadcast", 0);
     VNETS_DC_SetDhcpConfig(szTmp, "1", "10.41.41.1", "10.41.41.254", "255.255.255.0", "10.41.41.254");
 
-    COMP_DC_Save(g_hVnetsDc);
+    DC_APP_Save(g_hVnetsDc);
 
     return BS_OK;
 }
@@ -154,9 +154,9 @@ BS_STATUS VNETS_DC_SetPassword(IN CHAR *pcUserName, IN CHAR *pcPassword)
     stKey.astKeyValue[0].pcKey = "user";
     stKey.astKeyValue[0].pcValue = pcUserName;
     stKey.uiNum = 1;
-    COMP_DC_SetFieldValueAsString(g_hVnetsDc, _VNETS_USER_TBL_NAME, &stKey, "password", szCipherText);
+    DC_APP_SetFieldValueAsString(g_hVnetsDc, _VNETS_USER_TBL_NAME, &stKey, "password", szCipherText);
 
-    COMP_DC_Save(g_hVnetsDc);
+    DC_APP_Save(g_hVnetsDc);
 
     return BS_OK;
 }
@@ -168,9 +168,9 @@ BS_STATUS VNETS_DC_SetEmail(IN CHAR *pcUserName, IN CHAR *pcEmail)
     stKey.astKeyValue[0].pcKey = "user";
     stKey.astKeyValue[0].pcValue = pcUserName;
     stKey.uiNum = 1;
-    COMP_DC_SetFieldValueAsString(g_hVnetsDc, _VNETS_USER_TBL_NAME, &stKey, "email", pcEmail);
+    DC_APP_SetFieldValueAsString(g_hVnetsDc, _VNETS_USER_TBL_NAME, &stKey, "email", pcEmail);
 
-    COMP_DC_Save(g_hVnetsDc);
+    DC_APP_Save(g_hVnetsDc);
 
     return BS_OK;
 }
@@ -183,7 +183,7 @@ BS_STATUS VNETS_DC_GetEmail(IN CHAR *pcUserName, OUT CHAR szEmail[VNET_DC_MAX_EM
     stKey.astKeyValue[0].pcValue = pcUserName;
     stKey.uiNum = 1;
 
-    if (BS_OK != COMP_DC_CpyFieldValueAsString(g_hVnetsDc, _VNETS_USER_TBL_NAME, &stKey, "email", szEmail, VNET_DC_MAX_EMAIL_LEN + 1))
+    if (BS_OK != DC_APP_CpyFieldValueAsString(g_hVnetsDc, _VNETS_USER_TBL_NAME, &stKey, "email", szEmail, VNET_DC_MAX_EMAIL_LEN + 1))
     {
         return BS_NOT_FOUND;
     }
@@ -199,7 +199,7 @@ BOOL_T VNETS_DC_IsUserExist(IN CHAR *pcUserName)
     stKey.astKeyValue[0].pcValue = pcUserName;
     stKey.uiNum = 1;
 
-    return COMP_DC_IsObjectExist(g_hVnetsDc, _VNETS_USER_TBL_NAME, &stKey);
+    return DC_APP_IsObjectExist(g_hVnetsDc, _VNETS_USER_TBL_NAME, &stKey);
 }
 
 BS_STATUS VNETS_DC_SetDhcpConfig
@@ -218,13 +218,13 @@ BS_STATUS VNETS_DC_SetDhcpConfig
     stKey.astKeyValue[0].pcValue = pcDomain;
     stKey.uiNum = 1;
 
-    COMP_DC_SetFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "dhcp_enable", pcEnable);
-    COMP_DC_SetFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "start_ip", pcStartIp);
-    COMP_DC_SetFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "end_ip", pcEndIp);
-    COMP_DC_SetFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "mask", pcMask);
-    COMP_DC_SetFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "gateway", pcGateway);
+    DC_APP_SetFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "dhcp_enable", pcEnable);
+    DC_APP_SetFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "start_ip", pcStartIp);
+    DC_APP_SetFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "end_ip", pcEndIp);
+    DC_APP_SetFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "mask", pcMask);
+    DC_APP_SetFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "gateway", pcGateway);
 
-    COMP_DC_Save(g_hVnetsDc);
+    DC_APP_Save(g_hVnetsDc);
 
 	return BS_OK;
 }
@@ -247,23 +247,23 @@ BS_STATUS VNETS_DC_GetDhcpConfig
     stKey.uiNum = 1;
 
     szTmp[0] = '\0';
-    COMP_DC_CpyFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "dhcp_enable", szTmp, sizeof(szTmp));
+    DC_APP_CpyFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "dhcp_enable", szTmp, sizeof(szTmp));
     TXT_StrCpy(pcEnable, szTmp);
 
     szTmp[0] = '\0';    
-    COMP_DC_CpyFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "start_ip", szTmp, sizeof(szTmp));
+    DC_APP_CpyFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "start_ip", szTmp, sizeof(szTmp));
     TXT_StrCpy(pcStartIp, szTmp);
 
     szTmp[0] = '\0';
-    COMP_DC_CpyFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "end_ip", szTmp, sizeof(szTmp));
+    DC_APP_CpyFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "end_ip", szTmp, sizeof(szTmp));
     TXT_StrCpy(pcEndIp, szTmp);
 
     szTmp[0] = '\0';
-    COMP_DC_CpyFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "mask", szTmp, sizeof(szTmp));
+    DC_APP_CpyFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "mask", szTmp, sizeof(szTmp));
     TXT_StrCpy(pcMask, szTmp);
 
     szTmp[0] = '\0';
-    COMP_DC_CpyFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "gateway", szTmp, sizeof(szTmp));
+    DC_APP_CpyFieldValueAsString(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME, &stKey, "gateway", szTmp, sizeof(szTmp));
     TXT_StrCpy(pcGateway, szTmp);
 
     return BS_OK;

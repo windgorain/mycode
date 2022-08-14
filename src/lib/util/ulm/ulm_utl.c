@@ -57,7 +57,12 @@ static _ULM_INSTANCE_S * _ULM_CreateInstance(IN UINT ulMaxUserNum)
         return NULL;
     }
 
-    pstUlmInstance->hNap = NAP_Create(NAP_TYPE_HASH, ulMaxUserNum, sizeof(_ULM_NODE_S), 0);
+    NAP_PARAM_S param = {0};
+    param.enType = NAP_TYPE_HASH;
+    param.uiMaxNum = ulMaxUserNum;
+    param.uiNodeSize = sizeof(_ULM_NODE_S);
+
+    pstUlmInstance->hNap = NAP_Create(&param);
     if (NULL == pstUlmInstance->hNap)
     {
         MEM_Free(pstUlmInstance);

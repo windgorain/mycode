@@ -178,7 +178,7 @@ static USHORT nat_tcp_GetPort(IN _NAT_TCP_CTRL_S *pstCtrl)
 {
     UINT uiIndexFrom1;
     USHORT usPort;
-    uiIndexFrom1 = BITMAP1_GetAUnsettedBitIndexCycle(&pstCtrl->stTcpPortBitMap);
+    uiIndexFrom1 = BITMAP1_GetFreeCycle(&pstCtrl->stTcpPortBitMap);
 
     if (uiIndexFrom1 == 0)
     {
@@ -605,14 +605,14 @@ BS_STATUS _NAT_TCP_Init
         return BS_ERR;
     }
 
-    pstTcpCtrl->hPrivateHashHandle = HASH_CreateInstance(_NAT_TCP_HASH_BUCKET_NUM, nat_tcp_PrivateHashIndex);
+    pstTcpCtrl->hPrivateHashHandle = HASH_CreateInstance(NULL, _NAT_TCP_HASH_BUCKET_NUM, nat_tcp_PrivateHashIndex);
     if (NULL == pstTcpCtrl->hPrivateHashHandle)
     {
         _NAT_TCP_Fini(pstTcpCtrl);
         return BS_ERR;
     }
 
-    pstTcpCtrl->hPubHashHandle = HASH_CreateInstance(_NAT_TCP_HASH_BUCKET_NUM, nat_tcp_PubHashIndex);
+    pstTcpCtrl->hPubHashHandle = HASH_CreateInstance(NULL, _NAT_TCP_HASH_BUCKET_NUM, nat_tcp_PubHashIndex);
     if (NULL == pstTcpCtrl->hPubHashHandle)
     {
         _NAT_TCP_Fini(pstTcpCtrl);

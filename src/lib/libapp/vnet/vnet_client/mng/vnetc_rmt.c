@@ -27,8 +27,12 @@ CHAR * VNETC_RMT_GetUserPasswd()
     return VNETC_GetUserPasswd();
 }
 
-BS_STATUS VNETC_RMT_SetUserConfig(IN CHAR *pszDomainName, IN CHAR *pszUserName, IN CHAR *pszPasswd)
+int VNETC_RMT_SetUserConfig(U64 p1, U64 p2, U64 p3)
 {
+    CHAR *pszDomainName = p1;
+    CHAR *pszUserName = p2;
+    CHAR *pszPasswd = p3;
+
     BS_STATUS eRet;
 
     if (BS_OK != (eRet = VNETC_SetDomainName(pszDomainName)))

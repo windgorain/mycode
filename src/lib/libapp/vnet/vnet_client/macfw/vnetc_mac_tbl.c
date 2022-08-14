@@ -20,7 +20,7 @@
 #define _VNETC_MAC_TBL_TIME_PER_TICK 60000  /* 60s */
 
 
-static HANDLE g_hVnetcMacTblId = 0;
+static MACTBL_HANDLE g_hVnetcMacTblId = 0;
 static MUTEX_S g_stVnetcMactTblMutex;
 
 static VOID vnetc_mactbl_TimeOut(IN HANDLE hTimerId, IN USER_HANDLE_S *pstUserHandle)

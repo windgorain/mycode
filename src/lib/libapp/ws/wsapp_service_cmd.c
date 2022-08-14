@@ -208,17 +208,14 @@ BS_STATUS WSAPP_ServiceCmd_Save(IN HANDLE hFile)
 
         pcTmp = WSAPP_Service_GetNameByID(uiCurId);
 
-        if (FALSE == CMD_EXP_IsOptPermitOutput(hFile, pcTmp))
-        {
-            continue;
-        }
-
         if (CMD_EXP_IsSaving(hFile) && (pstService->uiFlag & WSAPP_SERVICE_FLAG_SAVE_HIDE))
         {
             continue;
         }
 
-        CMD_EXP_OutputMode(hFile, "service %s", WSAPP_Service_GetNameByID(uiCurId));
+        if (0 != CmdExp_OutputMode(hFile, "service %s", pcTmp)) {
+            continue;
+        }
 
         if (WSAPP_Service_IsWebCenterOptHide(pstService))
         {

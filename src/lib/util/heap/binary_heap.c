@@ -9,7 +9,7 @@
 
 int BinaryHeap_Init(IN BINARY_HEAP_S *heap, IN PF_BINARY_HEAP_CMP pfCmp)
 {
-    heap->hDarray = DARRAY_Create(1024);
+    heap->hDarray = DARRAY_Create(1024, 128);
     if (heap->hDarray == NULL) {
         RETURN(BS_NO_MEMORY);
     }
@@ -27,7 +27,7 @@ void BinaryHeap_SetCmpFunc(IN BINARY_HEAP_S *heap, IN PF_BINARY_HEAP_CMP pfCmp)
 UINT binaryheap_GetIndex(IN BINARY_HEAP_S *heap, IN void *data, IN PF_BINARY_HEAP_CMP pfCmp)
 {
     DARRAY_HANDLE hDarray = heap->hDarray;
-    UINT count = DARRAY_GetCount(hDarray);
+    UINT count = heap->count;
     UINT index;
 
     for (index=0; index<count; index++) {
@@ -68,7 +68,7 @@ static void binaryheap_Up(IN BINARY_HEAP_S *heap, IN UINT index, IN PF_BINARY_HE
 static UINT binaryheap_GetMinChild(IN BINARY_HEAP_S *heap, IN UINT index, IN PF_BINARY_HEAP_CMP pfCmp)
 {
     DARRAY_HANDLE hDarray = heap->hDarray;
-    UINT count = DARRAY_GetCount(hDarray);
+    UINT count = heap->count;
     UINT l = 2*index + 1;
     UINT r = l + 1;
     void *left, *right;
@@ -96,7 +96,7 @@ static void binaryheap_Down(IN BINARY_HEAP_S *heap, IN UINT index, IN PF_BINARY_
     DARRAY_HANDLE hDarray = heap->hDarray;
     void *current, *next;
     UINT c, n;
-    UINT end = DARRAY_GetCount(hDarray);
+    UINT end = heap->count;
 
     c = index;
     current = DARRAY_Get(hDarray, c);
@@ -130,6 +130,7 @@ int BinaryHeap_Insert(IN BINARY_HEAP_S *heap, IN void *new_data)
         RETURN(BS_ERR);
     }
 
+    heap->count ++;
     binaryheap_Up(heap, index, pfCmp);
 
     return 0;
@@ -142,13 +143,16 @@ void * BinaryHeap_RemoveIndex(IN BINARY_HEAP_S *heap, IN UINT index)
     PF_BINARY_HEAP_CMP pfCmp = heap->pfCmp;
     void *deleted;
     void *last;
-    UINT count = DARRAY_GetCount(hDarray);
+    UINT count = heap->count;
 
     if (index >= count) {
         return NULL;
     }
 
-    last = DARRAY_Del(hDarray, DARRAY_GetCount(heap->hDarray) - 1);
+    last = DARRAY_Get(hDarray, count - 1);
+    DARRAY_Set(hDarray, count - 1, NULL);
+    heap->count --;
+
     if (index == count - 1) {
         return last;
     }

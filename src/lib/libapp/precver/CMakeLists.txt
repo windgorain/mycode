@@ -6,20 +6,29 @@ aux_source_directory(./cmd SRC)
 aux_source_directory(./core SRC)
 aux_source_directory(./impl SRC)
 aux_source_directory(./conf SRC)
-aux_source_directory(./comp SRC)
+aux_source_directory(./plug SRC)
+aux_source_directory(./ev SRC)
 
 set(NAME precver)
 INCLUDE(../my_libapp.txt)
 
-target_link_libraries(${LIB_NAME} comp-pissuer)
+target_link_libraries(${LIB_NAME} dynamic-event_hub)
 
-IF (USE_DPDK)
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -march=native")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -march=native")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
+#plugin
+add_subdirectory(./impl/http)
+add_subdirectory(./impl/udp)
+add_subdirectory(./impl/pcap)
+add_subdirectory(./impl/null)
+add_subdirectory(./impl/rand)
+add_subdirectory(./impl/tcphsk)
+add_subdirectory(./impl/ring)
+add_subdirectory(./impl/shm)
 
-    include_directories(${CMAKE_SOURCE_DIR}/dpdk-sdk/include)
-    target_link_libraries(${LIB_NAME} -Wl,--whole-archive ${CMAKE_SOURCE_DIR}/dpdk-sdk/lib/libdpdk.a -Wl,--no-whole-archive numa)
+IF (UNIX AND NOT APPLE)
+add_subdirectory(./impl/rawsocket)
+ENDIF()
+
+IF (USE_XDP)    
+add_subdirectory(./impl/xdp)
 ENDIF()
 

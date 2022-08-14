@@ -61,6 +61,7 @@ typedef struct
     UINT bitLinkStatus:1;
     UINT bitProtoStatus:1;
     UINT bitShutdown:1;
+    UINT bitL3; /* 是L2还是L3接口 */
     DLL_HEAD_S stLinkInputPktProcesser;  /* LinkInput报文业务点 */
     DLL_HEAD_S stLinkOutputPktProcesser;  /* LinkOutput报文业务点 */
     DLL_HEAD_S stProtoInputPktProcesser;  /* ProtoInput报文业务点 */
@@ -147,7 +148,7 @@ static BS_STATUS _if_Shutdown(IN IF_CONTAINER hContainer, IN IF_INDEX ifIndex, I
     return BS_OK;
 }
 
-IF_CONTAINER IF_CreateContainer()
+IF_CONTAINER IF_CreateContainer(void *memcap)
 {
     IF_CONTAINER_S *pstContainer;
 
@@ -157,18 +158,29 @@ IF_CONTAINER IF_CreateContainer()
         return NULL;
     }
 
-    pstContainer->hNetTypeNo = NO_CreateAggregate(0, sizeof(IF_PROTO_PARAM_S), 0);
-    pstContainer->hLinkTypeNo = NO_CreateAggregate(0, sizeof(IF_LINK_PARAM_S), 0);
-    pstContainer->hPhyTypeNo = NO_CreateAggregate(0, sizeof(IF_PHY_PARAM_S), 0);
-    pstContainer->hIfTypeNo = NO_CreateAggregate(0, sizeof(IF_TYPE_S), 0);
-    pstContainer->hIfNo = NO_CreateAggregate(0, sizeof(IF_NODE_S), OBJECT_FLAG_ENABLE_RCU);
+    OBJECT_PARAM_S no_param = {0};
+    no_param.memcap = memcap;
+
+    no_param.uiObjSize = sizeof(IF_PROTO_PARAM_S);
+    pstContainer->hNetTypeNo = NO_CreateAggregate(&no_param);
+
+    no_param.uiObjSize = sizeof(IF_LINK_PARAM_S);
+    pstContainer->hLinkTypeNo = NO_CreateAggregate(&no_param);
+
+    no_param.uiObjSize = sizeof(IF_PHY_PARAM_S);
+    pstContainer->hPhyTypeNo = NO_CreateAggregate(&no_param);
+
+    no_param.uiObjSize = sizeof(IF_TYPE_S);
+    pstContainer->hIfTypeNo = NO_CreateAggregate(&no_param);
+
+    no_param.uiObjSize = sizeof(IF_NODE_S);
+    pstContainer->hIfNo = NO_CreateAggregate(&no_param);
 
     if ((NULL == pstContainer->hNetTypeNo)
         || (NULL == pstContainer->hLinkTypeNo)
         || (NULL == pstContainer->hPhyTypeNo)
         || (NULL == pstContainer->hIfTypeNo)
-        || (NULL == pstContainer->hIfNo))
-    {
+        || (NULL == pstContainer->hIfNo)) {
         IF_DestroyContainer(pstContainer);
         return NULL;
     }
@@ -385,7 +397,7 @@ UINT IF_AddIfType
         return 0;
     }
 
-    pstNode->hIndexBitmap = LBitMap_Create();
+    pstNode->hIndexBitmap = LBitMap_Create(NULL);
     if (NULL == pstNode->hIndexBitmap)
     {
         NO_FreeObject(pstContainer->hIfTypeNo, pstNode);
@@ -547,7 +559,7 @@ VOID IF_DeleteIf(IN IF_CONTAINER hContainer, IN IF_INDEX ifIndex)
     _if_UnRegAllProcesser(&pstNode->stLinkOutputPktProcesser);
     _if_UnRegAllProcesser(&pstNode->stProtoInputPktProcesser);
     _if_UnRegAllProcesser(&pstNode->stPhyOutputPktProcesser);
-    
+
     LBitMap_ClrBit(pstNode->pstType->hIndexBitmap, pstNode->uiIndex);
     NO_FreeObjectByID(pstContainer->hIfNo, ifIndex);
 }
@@ -620,6 +632,11 @@ BS_STATUS IF_Ioctl(IN IF_CONTAINER hContainer, IN IF_INDEX ifIndex, IN IF_IOCTL_
         case IFNET_CMD_GET_SHUTDOWN:
         {
             *(BOOL_T*)hData = pstNode->bitShutdown;
+            break;
+        }
+        case IFNET_CMD_IS_L3: 
+        {
+            *(BOOL_T*)hData = pstNode->bitL3;
             break;
         }
 

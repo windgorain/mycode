@@ -87,7 +87,9 @@ BS_STATUS SVPN_ContextCmd_Save(IN HANDLE hFile)
     {
         hSvpnContext = SVPN_Context_GetByID(uiContextID);
 
-        CMD_EXP_OutputMode(hFile, "context %s", SVPN_Context_GetNameByID(uiContextID));
+        if (0 != CMD_EXP_OutputMode(hFile, "context %s", SVPN_Context_GetNameByID(uiContextID))) {
+            continue;
+        }
 
         if (CMD_EXP_IsShowing(hFile))
         {

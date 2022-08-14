@@ -11,6 +11,7 @@
 #include "utl/txt_utl.h"
 #include "utl/exec_utl.h"
 #include "comp/comp_if.h"
+#include "comp/comp_wan.h"
 
 #include "../h/wan_ifnet.h"
 #include "../h/wan_ip_addr.h"
@@ -53,12 +54,12 @@ PLUG_API BS_STATUS WAN_IPAddrCmd_IpAddress
     uiMask = PREFIX_2_MASK(uiPrefix);
     uiMask = htonl(uiMask);
 
-    WAN_IPAddr_SetMode(ifIndex, WAN_IP_ADDR_MODE_STATIC);
+    WanIPAddr_SetMode(ifIndex, WAN_IP_ADDR_MODE_STATIC);
 
     stAddrInfo.uiIfIndex = ifIndex;
     stAddrInfo.uiIP = uiIP;
     stAddrInfo.uiMask = uiMask;
-    eRet = WAN_IPAddr_AddIp(&stAddrInfo);
+    eRet = WanIPAddr_AddIp(&stAddrInfo);
     if (BS_CONFLICT == eRet)
     {
         EXEC_OutString("Ip address conflict.\r\n");
@@ -100,7 +101,7 @@ PLUG_API BS_STATUS WAN_IPAddrCmd_NoIpAddress
         return BS_ERR;
     }
 
-    WAN_IPAddr_SetMode(ifIndex, WAN_IP_ADDR_MODE_STATIC);
+    WanIPAddr_SetMode(ifIndex, WAN_IP_ADDR_MODE_STATIC);
 
     WAN_IPAddr_DelIp(ifIndex, uiIP);
 
@@ -133,7 +134,7 @@ static VOID _wan_ipaddrcmd_Save(IN IF_INDEX ifIndex, IN HANDLE hFile)
 
 BS_STATUS WAN_IpAddrCmd_Init()
 {
-    CompIf_RegSave(_wan_ipaddrcmd_Save);
+    IFNET_RegSave(_wan_ipaddrcmd_Save);
 
     return BS_OK;
 }

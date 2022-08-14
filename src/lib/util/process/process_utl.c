@@ -5,6 +5,7 @@
 * History:     
 ******************************************************************************/
 #include "bs.h"
+#include "sys/file.h"
 
 #include "process_inc.h"
 
@@ -60,8 +61,16 @@ int PROCESS_RenameSelf(IN char *new_name)
     return _OS_PROCESS_RenameSelf(new_name);
 }
 
+/* 获取进程id */
 UINT PROCESS_GetPid()
 {
     return _OS_PROCESS_GetPid();
 }
+
+/* 获取线程id */
+UINT64 PROCESS_GetTid()
+{
+    return _OS_PROCESS_GetTid();
+}
+
 

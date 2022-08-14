@@ -38,7 +38,7 @@ static VOID vnetc_addrmonitor_TimeOut(IN HANDLE hTimerHandle, IN USER_HANDLE_S *
     g_uiVnetcAddrMonitorIp = uiIp;
     g_uiVnetcAddrMonitorMask = uiMask;
 
-    OB_CHAIN_NOTIFY0(&g_stVnetcAddrMonitorObChain);
+    OB_CHAIN_NOTIFY(&g_stVnetcAddrMonitorObChain, PF_VNETC_AddrMonitor_Notify_Func);
 }
 
 
@@ -66,6 +66,6 @@ BS_STATUS VNETC_AddrMonitor_RegNotify
     IN USER_HANDLE_S *pstUserHandle
 )
 {
-    return OB_CHAIN_Add(&g_stVnetcAddrMonitorObChain, (UINT_FUNC_X)pfFunc, pstUserHandle);
+    return OB_CHAIN_Add(&g_stVnetcAddrMonitorObChain, pfFunc, pstUserHandle);
 }
 

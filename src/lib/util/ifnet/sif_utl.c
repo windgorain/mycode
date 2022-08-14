@@ -33,7 +33,7 @@ static inline VOID _sif_UnLock()
 
 BS_STATUS SIF_Init(IN UINT uiFlag)
 {
-    g_hSifContainer = IF_CreateContainer();
+    g_hSifContainer = IF_CreateContainer(NULL);
     if (NULL == g_hSifContainer)
     {
         return BS_ERR;

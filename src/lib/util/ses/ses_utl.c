@@ -818,7 +818,11 @@ SES_HANDLE SES_CreateInstance
     pstCtrl->pfSendPktFunc = pfSendPktFunc;
     pstCtrl->pfEventNotify = pfEventNotify;
 
-    hNap = NAP_Create(NAP_TYPE_HASH, uiMaxSesNum, sizeof(_SES_NODE_S), 0);
+    NAP_PARAM_S param = {0};
+    param.enType = NAP_TYPE_HASH;
+    param.uiMaxNum = uiMaxSesNum;
+    param.uiNodeSize = sizeof(_SES_NODE_S);
+    hNap = NAP_Create(&param);
     if (NULL == hNap)
     {
         SES_DestroyInstance(pstCtrl);

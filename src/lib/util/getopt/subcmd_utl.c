@@ -5,39 +5,143 @@
 ================================================================*/
 #include "bs.h"
 #include "utl/subcmd_utl.h"
+#include "utl/txt_utl.h"
 
-SUB_CMD_NODE_S * SUBCMD_Search(SUB_CMD_NODE_S *root, char *subcmd)
+#define SUBCMD_MATCH_NUM 128
+
+typedef struct {
+    SUB_CMD_NODE_S *matched[128];
+    int matched_count;
+    int shuld_help;
+}SUBCMD_MATCHED_S;
+
+static int subcmd_prefix_match(SUB_CMD_NODE_S *node, int argc, char **argv)
 {
-    SUB_CMD_NODE_S *tmp = root;
+    char tmp[512];
+    char *tok[32];
+    int tok_num;
+    int cmp_num;
+    int i;
 
-    if (! subcmd) {
-        return NULL;
+    if (argc == 0) {
+        return BS_PART_MATCH;
     }
 
-    while(tmp->subcmd != NULL) {
-        if (strcmp(subcmd, tmp->subcmd) == 0) {
-            return tmp;
+    strlcpy(tmp, node->subcmd, sizeof(tmp));
+
+    tok_num = TXT_StrToToken(tmp, " ", tok, 32);
+    if (tok_num <= 0) {
+        return BS_NOT_MATCH;
+    }
+
+    cmp_num = MIN(tok_num, argc);
+
+    for (i=0; i<cmp_num; i++) {
+        if (strncmp(tok[i], argv[i], strlen(argv[i])) != 0) {
+            return BS_NOT_MATCH;
+        }
+    }
+
+    if (argc >= tok_num) {
+        return BS_MATCH;
+    }
+
+    return BS_PART_MATCH;
+}
+
+static int subcmd_search(SUB_CMD_NODE_S *root, int argc, char **argv, OUT SUBCMD_MATCHED_S *matched)
+{
+    SUB_CMD_NODE_S *tmp = root;
+    int count = 0;
+    int ret;
+
+    if (! root) {
+        return 0;
+    }
+
+    matched->shuld_help = 0;
+
+    while(tmp->subcmd) {
+        ret = subcmd_prefix_match(tmp, argc, argv);
+        if (ret != BS_NOT_MATCH) {
+            matched->matched[count] = tmp;
+            count ++;
+            if (count >= SUBCMD_MATCH_NUM) {
+                break;
+            }
+            if (ret == BS_PART_MATCH) {
+                matched->shuld_help = 1;
+            }
         }
         tmp ++;
     }
 
-    return NULL;
+    if (count != 1) {
+        matched->shuld_help = 1;
+    }
+
+    return count;
 }
 
-char * SUBCMD_BuildHelpinfo(SUB_CMD_NODE_S *root, OUT char *buf, int buf_size)
+static int subcmd_search_subcmds(SUB_CMD_NODE_S *root, int argc, char **argv, OUT SUBCMD_MATCHED_S *matched)
+{
+    int count = -1;
+
+    while (argc >= 0) {
+        count = subcmd_search(root, argc, argv, matched);
+        if (count > 0) {
+            break;
+        }
+        argc --;
+    }
+
+    matched->matched_count = count;
+
+    return 0;
+}
+
+static char * subcmd_build_help_info(SUBCMD_MATCHED_S *matched, OUT char *buf, int buf_size)
 {
     SUB_CMD_NODE_S *node;
     int len = 0;
+    int i;
 
     buf[0] = '\0';
 
-    len += snprintf(buf, buf_size-len, "Commands:\r\n");
+    len += scnprintf(buf, buf_size-len, "Commands:\r\n");
 
-    for (node=root; node->subcmd!=NULL; node++) {
-        len += snprintf(buf+len, buf_size-len, " ");
-        len += snprintf(buf+len, buf_size-len, "%-16s ", node->subcmd);
-        len += snprintf(buf+len, buf_size-len, "%s\r\n", node->help == NULL ? "": node->help);
+    for (i=0; i<matched->matched_count; i++) {
+        node = matched->matched[i];
+        len += scnprintf(buf+len, buf_size-len, " ");
+        len += scnprintf(buf+len, buf_size-len, "%-32s    ", node->subcmd);
+        len += scnprintf(buf+len, buf_size-len, "- %s\r\n", node->help == NULL ? "": node->help);
     }
 
     return buf;
 }
+
+static void subcmd_help(SUBCMD_MATCHED_S *matched, int argc, char **argv)
+{
+    char buf[4096];
+    printf("%s", subcmd_build_help_info(matched, buf, sizeof(buf)));
+}
+
+int SUBCMD_Do(SUB_CMD_NODE_S *subcmd, int argc, char **argv)
+{
+    PF_SUBCMD_FUNC func;
+    int tok_num;
+    SUBCMD_MATCHED_S matched;
+
+    subcmd_search_subcmds(subcmd, argc-1, argv+1, &matched);
+    if (matched.shuld_help) {
+        subcmd_help(&matched, argc, argv);
+        return -1;
+    }
+
+    tok_num = TXT_GetTokenNum(matched.matched[0]->subcmd, " ");
+
+    func = matched.matched[0]->func;
+
+    return func(argc - tok_num, argv + tok_num);
+}
+

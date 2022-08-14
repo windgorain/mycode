@@ -326,7 +326,9 @@ BS_STATUS SVPN_LocalUser_Save(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN HANDLE hFi
 
     while (BS_OK == SVPN_LocalUser_GetNext(hSvpnContext, szUserName, szUserName))
     {
-        CMD_EXP_OutputMode(hFile, "local-user %s", szUserName);
+        if (0 != CMD_EXP_OutputMode(hFile, "local-user %s", szUserName)) {
+            continue;
+        }
 
         SVPN_CD_SaveProp(hSvpnContext, SVPN_CTXDATA_LOCAL_USER, szUserName, "Password", "password cipher", hFile);
         SVPN_CD_SaveElements(hSvpnContext, SVPN_CTXDATA_LOCAL_USER, szUserName, "Role", "role", SVPN_PROPERTY_SPLIT, hFile);

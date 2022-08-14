@@ -164,7 +164,7 @@ static USHORT nat_udp_GetPort(IN _NAT_UDP_CTRL_S *pstCtrl)
     UINT uiIndexFrom1;
     USHORT usPort;
     
-    uiIndexFrom1 = BITMAP1_GetAUnsettedBitIndexCycle(&pstCtrl->stUdpPortBitMap);
+    uiIndexFrom1 = BITMAP1_GetFreeCycle(&pstCtrl->stUdpPortBitMap);
 
     if (uiIndexFrom1 == 0)
     {
@@ -505,14 +505,14 @@ BS_STATUS _NAT_UDP_Init
         return BS_ERR;
     }
 
-    pstCtrl->hPrivateHashHandle = HASH_CreateInstance(_NAT_UDP_HASH_BUCKET_NUM, nat_udp_PrivateHashIndex);
+    pstCtrl->hPrivateHashHandle = HASH_CreateInstance(NULL, _NAT_UDP_HASH_BUCKET_NUM, nat_udp_PrivateHashIndex);
     if (NULL == pstCtrl->hPrivateHashHandle)
     {
         _NAT_UDP_Fini(pstCtrl);
         return BS_ERR;
     }
 
-    pstCtrl->hPubHashHandle = HASH_CreateInstance(_NAT_UDP_HASH_BUCKET_NUM, nat_udp_PubHashIndex);
+    pstCtrl->hPubHashHandle = HASH_CreateInstance(NULL, _NAT_UDP_HASH_BUCKET_NUM, nat_udp_PubHashIndex);
     if (NULL == pstCtrl->hPubHashHandle)
     {
         _NAT_UDP_Fini(pstCtrl);

@@ -46,7 +46,9 @@ static BS_STATUS _ldaputl_DomainDn2Domain(IN CHAR *pcDomainDN, OUT CHAR *pcDomai
 
     pcDomain[0] = '\0';
 
-    hKv = KV_Create(KV_FLAG_PERMIT_DUP_KEY);
+    KV_PARAM_S kv_param = {0};
+    kv_param.uiFlag = KV_FLAG_PERMIT_MUL_KEY;
+    hKv = KV_Create(&kv_param);
     if (NULL == hKv)
     {
         return BS_NO_MEMORY;

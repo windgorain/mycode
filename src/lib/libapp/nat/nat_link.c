@@ -110,7 +110,7 @@ BS_STATUS NAT_Link_OutPut(IN UINT uiIfIndex, IN MBUF_S *pstMbuf, IN USHORT usPro
     }
     else
     {
-        CompIf_Ioctl(uiIfIndex, IFNET_CMD_GET_MAC, &stSMacAddr);
+        IFNET_Ioctl(uiIfIndex, IFNET_CMD_GET_MAC, &stSMacAddr);
         pcHostMac = stSMacAddr.aucMac;
     }
 
@@ -136,7 +136,7 @@ BS_STATUS NAT_Link_OutPut(IN UINT uiIfIndex, IN MBUF_S *pstMbuf, IN USHORT usPro
         MAC_ADDR_COPY(pstEthHeader->stDMac.aucMac, stDMacAddr.aucMac);
     }
 
-    return CompIf_PhyOutput(uiIfIndex, pstMbuf);
+    return IFNET_PhyOutput(uiIfIndex, pstMbuf);
 }
 
 

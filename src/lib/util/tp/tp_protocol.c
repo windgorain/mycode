@@ -9,7 +9,13 @@
 
 BS_STATUS _TP_Protocol_Init(IN _TP_CTRL_S *pstCtrl)
 {
-    pstCtrl->hProtocolNap = NAP_Create(NAP_TYPE_HASH, _TP_PROTO_MAX, sizeof(_TP_PROTOCOL_S), 0);
+    NAP_PARAM_S param = {0};
+
+    param.enType = NAP_TYPE_HASH;
+    param.uiMaxNum = _TP_PROTO_MAX;
+    param.uiNodeSize = sizeof(_TP_PROTOCOL_S);
+
+    pstCtrl->hProtocolNap = NAP_Create(&param);
     if (NULL == pstCtrl->hProtocolNap)
     {
         return BS_NO_MEMORY;

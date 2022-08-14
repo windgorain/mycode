@@ -11,11 +11,8 @@
 /* poller %STRING */
 PLUG_API BS_STATUS POLLER_CMD_EnterIns(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
-    int id;
-
     if (argv[0][0] != 'n') {
-        id = POLLER_INS_Add(argv[1]);
-        if (id < 0) {
+        if (NULL == POLLER_INS_Add(argv[1])) {
             EXEC_OutString("Can't create poller\r\n");
             RETURN(BS_ERR);
         }

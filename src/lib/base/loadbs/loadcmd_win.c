@@ -28,7 +28,7 @@ VOID Load_Cmd(IN UINT uiRunForLinux /* 对windows来说是忽略的参数 */)
     HANDLE hHandle;
     HANDLE hCmdRunner;
 
-    hCmdRunner= CMD_EXP_CreateRunner();
+    hCmdRunner= CMD_EXP_CreateRunner(CMD_EXP_RUNNER_TYPE_CMD);
     if (hCmdRunner == NULL) {
         BS_WARNNING(("Can't create cmd exp handle!"));
         return;
@@ -42,8 +42,8 @@ VOID Load_Cmd(IN UINT uiRunForLinux /* 对windows来说是忽略的参数 */)
         BS_WARNNING(("Can't create cmd exp handle!"));
         return;
     }
-    EXEC_AttachToSelfThread(hHandle);
-    CMD_EXP_RunnerStart(hCmdRunner);
+    EXEC_Attach(hHandle);
+    CmdExp_RunnerOutputPrefix(hCmdRunner);
 
     for (;;)
     {

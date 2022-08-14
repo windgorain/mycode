@@ -51,7 +51,7 @@ typedef struct tagHTTP_ChunkParse
 *******************************************************************************/
 VOID HTTP_Chunk_BuildChunkFlag(IN UINT64 ui64DataLen, OUT CHAR szChunkBeginFlag[HTTP_CHUNK_FLAG_MAX_LEN + 1])
 {
-    (VOID)snprintf(szChunkBeginFlag, HTTP_CHUNK_FLAG_MAX_LEN + 1, "%llx\r\n", ui64DataLen);
+    (VOID)scnprintf(szChunkBeginFlag, HTTP_CHUNK_FLAG_MAX_LEN + 1, "%llx\r\n", ui64DataLen);
 
     return;
 }

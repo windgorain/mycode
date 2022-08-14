@@ -9,6 +9,7 @@
 #include "utl/net.h"
 #include "utl/num_utl.h"
 #include "utl/nap_utl.h"
+#include "utl/mem_cap.h"
 
 #include "nap_inner.h"
 
@@ -21,20 +22,19 @@ typedef struct
 static BS_STATUS nap_CommonInit
 (
     INOUT _NAP_HEAD_COMMON_S *pstCommonHead,
-    IN UINT uiMaxNum,
-    IN UINT uiNodeSize
+    NAP_PARAM_S *p
 )
 {
     UCHAR ucIndexBits;
     UCHAR ucSpaceBits;
     UINT uiSpaceMask;
 
-    pstCommonHead->uiMaxNum = uiMaxNum;
-    if (uiMaxNum == 0) {
+    pstCommonHead->uiMaxNum = p->uiMaxNum;
+    if (p->uiMaxNum == 0) {
         pstCommonHead->uiMaxNum = 0x7fffffff;
     }
 
-    pstCommonHead->uiNodeSize = uiNodeSize;
+    pstCommonHead->uiNodeSize = p->uiNodeSize;
 
     ucIndexBits = NUM_NeedBits(pstCommonHead->uiMaxNum);
 
@@ -44,7 +44,10 @@ static BS_STATUS nap_CommonInit
     
     pstCommonHead->ulIndexMask = ~uiSpaceMask;
 
-    pstCommonHead->hLBitmap = LBitMap_Create();
+    LBITMAP_PARAM_S lbitmap_param = {0};
+    lbitmap_param.memcap = p->memcap;
+
+    pstCommonHead->hLBitmap = LBitMap_Create(&lbitmap_param);
     if (NULL == pstCommonHead->hLBitmap) {
         return BS_NO_MEMORY;
     }
@@ -62,7 +65,7 @@ static VOID nap_CommonFini(INOUT _NAP_HEAD_COMMON_S *pstCommonHead)
     
     if (NULL != pstCommonHead->stSeqOpt.seq_array)
     {
-        MEM_Free(pstCommonHead->stSeqOpt.seq_array);
+        MemCap_Free(pstCommonHead->memcap, pstCommonHead->stSeqOpt.seq_array);
         pstCommonHead->stSeqOpt.seq_array = NULL;
     }
 }
@@ -97,11 +100,11 @@ static inline VOID nap_FreeIndex(IN _NAP_HEAD_COMMON_S *pstCommonHead, IN UINT u
     LBitMap_ClrBit(pstCommonHead->hLBitmap, uiIndex);
 }
 
-static UINT64 nap_CacleIDByIndex(IN _NAP_HEAD_COMMON_S *pstCommonHead, IN UINT uiIndex)
+static UINT nap_CacleIDByIndex(IN _NAP_HEAD_COMMON_S *pstCommonHead, IN UINT uiIndex)
 {
     UINT uiPos;
-    UINT64 ulTmp;
-    UINT64 ulID = uiIndex;
+    UINT ulTmp;
+    UINT ulID = uiIndex;
 
     if (TRUE == pstCommonHead->stSeqOpt.bEnable) {
         uiPos = uiIndex;
@@ -116,7 +119,7 @@ static UINT64 nap_CacleIDByIndex(IN _NAP_HEAD_COMMON_S *pstCommonHead, IN UINT u
     return ulID | 0x80000000;
 }
 
-static inline UINT nap_CacleIndexByID(IN _NAP_HEAD_COMMON_S *pstCommonHead, IN UINT64 ulID)
+static inline UINT nap_CacleIndexByID(IN _NAP_HEAD_COMMON_S *pstCommonHead, IN UINT ulID)
 {
     return (UINT)(ulID & pstCommonHead->ulIndexMask);
 }
@@ -126,13 +129,13 @@ static inline BOOL_T nap_IsIndexSetted(_NAP_HEAD_COMMON_S *pstCommonHead, UINT i
     return LBitMap_IsBitSetted(pstCommonHead->hLBitmap, index);
 }
 
-static BS_STATUS nap_SetSeqMask(IN HANDLE hNAPHandle, IN UINT64 ulSeqMask)
+static BS_STATUS nap_SetSeqMask(IN HANDLE hNAPHandle, IN UINT ulSeqMask)
 {
     UINT i;
     UCHAR ucSeqStartIndex = 0;
     _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
 
-    for (i=0; i<64; i++) {
+    for (i=0; i<32; i++) {
         if (ulSeqMask & 1ULL << i) {
             ucSeqStartIndex = i;
             break;
@@ -150,39 +153,34 @@ static BS_STATUS nap_SetSeqMask(IN HANDLE hNAPHandle, IN UINT64 ulSeqMask)
     return BS_OK;
 }
 
-NAP_HANDLE NAP_Create
-(
-    IN NAP_TYPE_E enType,
-    IN UINT uiMaxNum, /*0表示动态参数,数组类型不支持0*/
-    IN UINT uiNodeSize,
-    IN UINT uiFlag
-)
+NAP_HANDLE NAP_Create(NAP_PARAM_S *p)
 {
     _NAP_HEAD_COMMON_S *pstHeadCommon = NULL;
-    UINT uiNapNodeSize;
 
-    if (uiMaxNum > 0x7fffffff) {
+    if (p->uiMaxNum > 0x7fffffff) {
         BS_DBGASSERT(0);
         return NULL;
     }
 
-    uiNapNodeSize = uiNodeSize + sizeof(_NAP_NODE_COMMON_S);
+    NAP_PARAM_S param = *p;
 
-    switch (enType) {
+    param.uiNodeSize += sizeof(_NAP_NODE_COMMON_S);
+
+    switch (p->enType) {
         case NAP_TYPE_ARRAY:
-            pstHeadCommon = _NAP_ArrayCreate(uiMaxNum, uiNapNodeSize);
+            pstHeadCommon = _NAP_ArrayCreate(&param);
             break;
 
         case NAP_TYPE_PTR_ARRAY:
-            pstHeadCommon = _NAP_PtrArrayCreate(uiMaxNum, uiNapNodeSize);
+            pstHeadCommon = _NAP_PtrArrayCreate(&param);
             break;
 
         case NAP_TYPE_HASH:
-            pstHeadCommon = _NAP_HashCreate(uiMaxNum, uiNapNodeSize);
+            pstHeadCommon = _NAP_HashCreate(&param);
             break;
 
         case NAP_TYPE_AVL:
-            pstHeadCommon = _NAP_AvlCreate(uiMaxNum, uiNapNodeSize);
+            pstHeadCommon = _NAP_AvlCreate(&param);
             break;
 
         default:
@@ -190,9 +188,7 @@ NAP_HANDLE NAP_Create
     }
 
     if (NULL != pstHeadCommon) {
-        pstHeadCommon->uiFlag = uiFlag;
-
-        if (BS_OK != nap_CommonInit(pstHeadCommon, uiMaxNum, uiNodeSize)) {
+        if (BS_OK != nap_CommonInit(pstHeadCommon, p)) {
             NAP_Destory(pstHeadCommon);
             pstHeadCommon = NULL;
         }
@@ -214,11 +210,10 @@ VOID NAP_Destory(IN NAP_HANDLE hNAPHandle)
     pstCommonHead->pstFuncTbl->pfDestory(hNAPHandle);
 }
 
-UINT NAP_GetFlag(IN NAP_HANDLE hNapHandle)
+void * NAP_GetMemCap(NAP_HANDLE hNAPHandle)
 {
-    _NAP_HEAD_COMMON_S *pstCommonHead = hNapHandle;
-
-    return pstCommonHead->uiFlag;
+    _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
+    return pstCommonHead->memcap;
 }
 
 UINT NAP_GetNodeSize(IN NAP_HANDLE hNapHandle)
@@ -299,6 +294,7 @@ VOID * NAP_AllocByIndex(NAP_HANDLE hNapHandle, UINT uiSpecIndex)
     }
 
     pstCommonNode->ulID = nap_CacleIDByIndex(hNapHandle, uiIndex);
+    pstCommonHead->uiCount ++;
 
     return pstCommonNode + 1;
 }
@@ -496,7 +492,7 @@ BS_STATUS NAP_ChangeNodeID(IN NAP_HANDLE hNAPHandle, IN VOID *pstNode, IN UINT u
     _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
     _NAP_NODE_COMMON_S *pstCommonNode;
 
-    UINT64 uiOldNodeID = NAP_GetIDByNode(hNAPHandle, pstNode);
+    UINT uiOldNodeID = NAP_GetIDByNode(hNAPHandle, pstNode);
 
     if (uiOldNodeID == NAP_INVALID_ID) {
         return BS_NO_SUCH;
@@ -545,7 +541,7 @@ BS_STATUS NAP_EnableSeq
 
     if (pstCommonHead->stSeqOpt.seq_array == NULL) {
         pstCommonHead->stSeqOpt.seq_array =
-            MEM_Malloc(sizeof(USHORT) * uiSeqArrayEleNum);
+            MemCap_Malloc(pstCommonHead->memcap, sizeof(USHORT) * uiSeqArrayEleNum);
         if (NULL == pstCommonHead->stSeqOpt.seq_array) {
             return BS_NO_MEMORY;
         }

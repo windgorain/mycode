@@ -70,9 +70,15 @@ int PIDFile_ReadPID(char *filename)
         return -1;
     }
 
-    if (read(fd, pid, sizeof(pid) - 1) <= 0) {
+    int n = read(fd, pid, sizeof(pid) - 1);
+    if (n <= 0) {
+        close(fd);
         return -1;
     }
+
+    close(fd);
+
+    pid[n] = '\0';
 
     return TXT_Str2Ui(pid);
 }

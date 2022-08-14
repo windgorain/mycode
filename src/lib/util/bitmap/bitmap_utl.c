@@ -6,6 +6,7 @@
 ******************************************************************************/
 #include "bs.h"
 #include "utl/num_utl.h"
+#include "utl/array_bit.h"
 #include "utl/bitmap_utl.h"
 
 /* 初始化方法之一 */
@@ -62,150 +63,50 @@ BS_STATUS BITMAP_Destory(IN BITMAP_S * pstBitMap)
 }
 
 /* 获取一个setted位的Index */
-UINT BITMAP_GetASettedBitIndex(IN BITMAP_S *pstBitMap)
+INT64 BITMAP_GetBusy(BITMAP_S *pstBitMap)
 {
-    UINT uiIndex;
-
-    BITMAP_SCAN_SETTED_BEGIN(pstBitMap, uiIndex)
-    {
-        return uiIndex;
-    }BITMAP_SCAN_END();
-
-    return BITMAP_INVALID_INDEX;
+    return ArrayBit_GetBusy(pstBitMap->pulBitMap, pstBitMap->ulBitNum);
 }
 
 /* 获取某个指定位置之后的setted位的Index */
-UINT BITMAP_GetASettedBitIndexAfter(IN BITMAP_S *pstBitMap, IN UINT uiIndex)
+INT64 BITMAP_GetBusyFrom(BITMAP_S *pstBitMap, INT64 from)
 {
-    UINT _i, _j;
-    UINT uiIndexFound = BITMAP_INVALID_INDEX;
-    UINT uiStartUint;
-    UINT uiStartBit;
-
-    uiIndex ++;
-    if (uiIndex > pstBitMap->ulBitNum) {
-        uiIndex = 0;
-    }
-
-    uiStartUint = uiIndex / 32;
-    uiStartBit = uiIndex % 32;
-
-    for (_i=uiStartUint; _i<pstBitMap->uiUintNum; _i++)
-    {
-        if (pstBitMap->pulBitMap[_i] != 0)
-        {
-            for (_j=uiStartBit; _j<32; _j++)
-            {
-                if (pstBitMap->pulBitMap[_i] & (1 << _j))
-                {
-                    uiIndexFound = _i*32 + _j;
-                    break;
-                }
-            }
-            if (uiIndexFound != BITMAP_INVALID_INDEX)
-            {
-                break;
-            }
-        }
-
-        uiStartBit = 0;
-    }
-
-    return uiIndexFound;
+    return ArrayBit_GetBusyFrom(pstBitMap->pulBitMap, pstBitMap->ulBitNum, from);
 }
 
 /* 获取一个unsetted位的Index */
-UINT BITMAP_GetAUnsettedBitIndex(IN BITMAP_S *pstBitMap)
+INT64 BITMAP_GetFree(BITMAP_S *pstBitMap)
 {
-    UINT uiIndex;
-
-    BITMAP_SCAN_UNSETTED_BEGIN(pstBitMap, uiIndex) {
-        return uiIndex;
-    }BITMAP_SCAN_END();
-
-    return BITMAP_INVALID_INDEX;
+    return ArrayBit_GetFree(pstBitMap->pulBitMap, pstBitMap->ulBitNum);
 }
 
+/* 获取after之后的一个unsetted位的Index */
+INT64 BITMAP_GetFreeFrom(BITMAP_S *pstBitMap, INT64 from)
+{
+    return ArrayBit_GetFreeFrom(pstBitMap->pulBitMap, pstBitMap->ulBitNum, from);
+}
 
 /* 环绕形式的获取一个unsetted位的Index */
-UINT BITMAP_GetAUnsettedBitIndexCycle(IN BITMAP_S *pstBitMap)
+INT64 BITMAP_GetFreeCycle(BITMAP_S *pstBitMap)
 {
-    UINT _i, _j;
-    UINT uiIndex = BITMAP_INVALID_INDEX;
-    UINT uiStartUint;
-    UINT uiStartBit;
-
-    uiStartUint = pstBitMap->uiScanIndex / 32;
-    uiStartBit = pstBitMap->uiScanIndex % 32;
-
-    for (_i=uiStartUint; _i<pstBitMap->uiUintNum; _i++)
-    {
-        if (pstBitMap->pulBitMap[_i] != 0xffffffff)
-        {
-            for (_j=uiStartBit; _j<32; _j++)
-            {
-                if (pstBitMap->pulBitMap[_i] & (1 << _j))
-                {
-                    continue;
-                }
-                uiIndex = _i*32 + _j;
-
-                break;
-            }
-            if (uiIndex != BITMAP_INVALID_INDEX)
-            {
-                break;
-            }
-        }
-
-        uiStartBit = 0;
-    }
-
-    if (uiIndex >= pstBitMap->ulBitNum)
-    {
-        uiIndex = BITMAP_INVALID_INDEX;
-    }
-
-    if (uiIndex == BITMAP_INVALID_INDEX) /* 扫描到结尾了,还没找到,则从头开始找 */ \
-    {
-        for (_i=0; _i<=uiStartUint; _i++)
-        {
-            if (pstBitMap->pulBitMap[_i] == 0xffffffff)
-            {
-                continue;
-            }
-
-            for (_j = 0; _j<32; _j++)
-            {
-                if ((pstBitMap)->pulBitMap[_i] & (1 << _j))
-                {
-                    continue;
-                }
-                uiIndex = _i*32 + _j;
-                break;
-            }
-            break;
-        }
-
-        if (uiIndex >= pstBitMap->ulBitNum)
-        {
-            uiIndex = BITMAP_INVALID_INDEX;
+    INT64 index = ArrayBit_GetFreeFrom(pstBitMap->pulBitMap, pstBitMap->ulBitNum, pstBitMap->uiScanIndex);
+    if (index < 0) {
+        index = ArrayBit_GetFree(pstBitMap->pulBitMap, pstBitMap->uiScanIndex);
+        if (index < 0) {
+            return -1;
         }
     }
 
-    if (uiIndex != BITMAP_INVALID_INDEX)
-    {
-        pstBitMap->uiScanIndex = uiIndex + 1;
-        if (pstBitMap->uiScanIndex >= pstBitMap->ulBitNum) {
-            pstBitMap->uiScanIndex = 0;
-        }
+    pstBitMap->uiScanIndex = index + 1;
+    if (pstBitMap->uiScanIndex >= pstBitMap->ulBitNum) {
+        pstBitMap->uiScanIndex = 0;
     }
 
-    return uiIndex;
+    return index;
 }
 
 /* 从两个bitmap中获取都被设置的位的Index */
-UINT BITMAP_2GetSettedIndex(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2)
+INT64 BITMAP_2GetSettedIndex(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2)
 {
     UINT uiIndex;
     
@@ -215,31 +116,83 @@ UINT BITMAP_2GetSettedIndex(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2)
         }
     }BITMAP_SCAN_END();
 
-    return BITMAP_INVALID_INDEX;
+    return -1;
 }
 
 /* 从两个bitmap中获取都未被设置的位的Index */
-UINT BITMAP_2GetUnsettedIndex(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2)
+INT64 BITMAP_2GetUnsettedIndex(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2)
 {
     UINT uiIndex;
     
-    BITMAP_SCAN_UNSETTED_BEGIN(pstBitMap1, uiIndex)
-    {
-        if (! BITMAP_ISSET(pstBitMap2, uiIndex))
-        {
+    BITMAP_SCAN_UNSETTED_BEGIN(pstBitMap1, uiIndex) {
+        if (! BITMAP_ISSET(pstBitMap2, uiIndex)) {
             return uiIndex;
         }
     }BITMAP_SCAN_END();
 
-    return BITMAP_INVALID_INDEX;
+    return -1;
+}
+
+/* dst = src */
+void BITMAP_Copy(BITMAP_S *src, BITMAP_S *dst)
+{
+    BS_DBGASSERT(src->uiUintNum == dst->uiUintNum);
+
+    memcpy(dst->pulBitMap, src->pulBitMap, dst->uiUintNum * 4);
+}
+
+/* dst = ~src */
+void BITMAP_Not(BITMAP_S *src, BITMAP_S *dst)
+{
+    BS_DBGASSERT(src->uiUintNum == dst->uiUintNum);
+
+    UINT i;
+    for (i=0; i<dst->uiUintNum; i++) {
+        dst->pulBitMap[i] = ~src->pulBitMap[i];
+    }
+}
+
+/* dst = src1 | src2 */
+void BITMAP_Or(BITMAP_S *src1, BITMAP_S *src2, BITMAP_S *dst)
+{
+    BS_DBGASSERT(src1->uiUintNum == src2->uiUintNum);
+    BS_DBGASSERT(src1->uiUintNum == dst->uiUintNum);
+
+    UINT i;
+    for (i=0; i<dst->uiUintNum; i++) {
+        dst->pulBitMap[i] = src1->pulBitMap[i] | src2->pulBitMap[i];
+    }
+}
+
+/* dst = src1 & src2 */
+void BITMAP_And(BITMAP_S *src1, BITMAP_S *src2, BITMAP_S *dst)
+{
+    BS_DBGASSERT(src1->uiUintNum == src2->uiUintNum);
+    BS_DBGASSERT(src1->uiUintNum == dst->uiUintNum);
+
+    UINT i;
+    for (i=0; i<dst->uiUintNum; i++) {
+        dst->pulBitMap[i] = src1->pulBitMap[i] & src2->pulBitMap[i];
+    }
+}
+
+/* dst = src1 ^ src2 */
+void BITMAP_Xor(BITMAP_S *src1, BITMAP_S *src2, BITMAP_S *dst)
+{
+    BS_DBGASSERT(src1->uiUintNum == src2->uiUintNum);
+    BS_DBGASSERT(src1->uiUintNum == dst->uiUintNum);
+
+    UINT i;
+    for (i=0; i<dst->uiUintNum; i++) {
+        dst->pulBitMap[i] = src1->pulBitMap[i] ^ src2->pulBitMap[i];
+    }
 }
 
 VOID BITMAP_Zero(IN BITMAP_S * pstBitMap)
 {
     UINT i;
 
-    for (i=0; i<pstBitMap->uiUintNum; i++)
-    {
+    for (i=0; i<pstBitMap->uiUintNum; i++) {
         pstBitMap->pulBitMap[i] = 0;
     }
 }
@@ -285,8 +238,10 @@ static inline BOOL_T bitmap_TestUint(BITMAP_S *pstBitMap, UINT uiStartUint,
     return TRUE;
 }
 
-void BITMAP_SetTo(BITMAP_S *pstBitMap, UINT index, UINT to)
+void BITMAP_SetTo(BITMAP_S *pstBitMap, INT64 index, int to)
 {
+    BS_DBGASSERT(((to == 0) || (to == 1)));
+
     if (to) {
         BITMAP_SET(pstBitMap, index);
     } else {
@@ -294,15 +249,16 @@ void BITMAP_SetTo(BITMAP_S *pstBitMap, UINT index, UINT to)
     }
 }
 
-static inline BS_STATUS bitmap_SetBitsTo(BITMAP_S *pstBitMap, UINT uiStartBit,
-        UINT uiCount, UINT to)
+static inline BS_STATUS bitmap_SetBitsTo(BITMAP_S *pstBitMap, INT64 start_bit, UINT uiCount, int to)
 {
-    UINT uiEndBit = uiStartBit + uiCount;
+    UINT uiEndBit = start_bit + uiCount;
     UINT uiTmpBitEnd;
     UINT uiStartUint, uiEndUint;
     UINT i;
 
-    if (uiStartBit >= pstBitMap->ulBitNum) {
+    BS_DBGASSERT(((to == 0) || (to == 1)));
+
+    if (start_bit >= pstBitMap->ulBitNum) {
         return BS_OUT_OF_RANGE;
     }
 
@@ -310,10 +266,10 @@ static inline BS_STATUS bitmap_SetBitsTo(BITMAP_S *pstBitMap, UINT uiStartBit,
         uiEndBit = pstBitMap->ulBitNum;
     }
 
-    uiTmpBitEnd = NUM_UP_ALIGN(uiStartBit, 32);
+    uiTmpBitEnd = NUM_UP_ALIGN(start_bit, 32);
     uiTmpBitEnd = MIN(uiTmpBitEnd, uiEndBit);
 
-    for (i=uiStartBit; i<uiTmpBitEnd; i++) {
+    for (i=start_bit; i<uiTmpBitEnd; i++) {
         BITMAP_SetTo(pstBitMap, i, to);
     }
 
@@ -321,8 +277,7 @@ static inline BS_STATUS bitmap_SetBitsTo(BITMAP_S *pstBitMap, UINT uiStartBit,
     uiEndUint = uiEndBit/32;
 
     if (uiEndUint - uiStartUint) {
-        bitmap_SetUintTo(pstBitMap, uiStartUint,
-                uiEndUint - uiStartUint, to);
+        bitmap_SetUintTo(pstBitMap, uiStartUint, uiEndUint - uiStartUint, to);
     }
 
     for (i=uiEndUint*32; i<uiEndBit; i++) {
@@ -332,15 +287,14 @@ static inline BS_STATUS bitmap_SetBitsTo(BITMAP_S *pstBitMap, UINT uiStartBit,
     return BS_OK;
 }
 
-static inline BOOL_T bitmap_TestBits(BITMAP_S *pstBitMap, UINT uiStartBit,
-        UINT uiCount)
+static inline BOOL_T bitmap_TestBits(BITMAP_S *pstBitMap, INT64 start_bit, UINT uiCount)
 {
-    UINT uiEndBit = uiStartBit + uiCount;
+    UINT uiEndBit = start_bit + uiCount;
     UINT uiTmpBitEnd;
     UINT uiStartUint, uiEndUint;
     UINT i;
 
-    if (uiStartBit >= pstBitMap->ulBitNum) {
+    if (start_bit >= pstBitMap->ulBitNum) {
         BS_DBGASSERT(0);
         return FALSE;
     }
@@ -349,10 +303,10 @@ static inline BOOL_T bitmap_TestBits(BITMAP_S *pstBitMap, UINT uiStartBit,
         uiEndBit = pstBitMap->ulBitNum;
     }
 
-    uiTmpBitEnd = NUM_UP_ALIGN(uiStartBit, 32);
+    uiTmpBitEnd = NUM_UP_ALIGN(start_bit, 32);
     uiTmpBitEnd = MIN(uiTmpBitEnd, uiEndBit);
 
-    for (i=uiStartBit; i<uiTmpBitEnd; i++) {
+    for (i=start_bit; i<uiTmpBitEnd; i++) {
         if (! BITMAP_ISSET(pstBitMap, i)) {
             return FALSE;
         }
@@ -394,19 +348,19 @@ BS_STATUS BITMAP_ClrUint(BITMAP_S * pstBitMap, UINT uiStartUint, UINT uiCount)
     return bitmap_SetUintTo(pstBitMap, uiStartUint, uiCount, 0);
 }
 
-BS_STATUS BITMAP_SetBits(BITMAP_S *pstBitMap, UINT uiStartBit, UINT uiCount)
+BS_STATUS BITMAP_SetBits(BITMAP_S *pstBitMap, INT64 start_bit, UINT uiCount)
 {
-    return bitmap_SetBitsTo(pstBitMap, uiStartBit, uiCount, 0xffffffff);
+    return bitmap_SetBitsTo(pstBitMap, start_bit, uiCount, 0xffffffff);
 }
 
-BS_STATUS BITMAP_ClrBits(BITMAP_S *pstBitMap, UINT uiStartBit, UINT uiCount)
+BS_STATUS BITMAP_ClrBits(BITMAP_S *pstBitMap, INT64 start_bit, UINT uiCount)
 {
-    return bitmap_SetBitsTo(pstBitMap, uiStartBit, uiCount, 0);
+    return bitmap_SetBitsTo(pstBitMap, start_bit, uiCount, 0);
 }
 
-BOOL_T BITMAP_IsSetBits(BITMAP_S *pstBitMap, UINT uiStartBit, UINT uiCount)
+BOOL_T BITMAP_IsSetBits(BITMAP_S *pstBitMap, INT64 start_bit, UINT uiCount)
 {
-    return bitmap_TestBits(pstBitMap, uiStartBit, uiCount);
+    return bitmap_TestBits(pstBitMap, start_bit, uiCount);
 }
 
 BOOL_T BITMAP_IsAllSetted(BITMAP_S *pstBitMap)

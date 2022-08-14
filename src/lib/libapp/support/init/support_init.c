@@ -11,7 +11,6 @@
 
 BS_STATUS Support_Init()
 {
-    SupportComp_Init();
     SupportBridge_Init();
 
     return BS_OK;

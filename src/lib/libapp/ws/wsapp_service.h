@@ -45,14 +45,10 @@ BOOL_T WSAPP_Service_IsWebCenterOptReadonly(IN WSAPP_SERVICE_S *pstService);
 CHAR * WSAPP_Service_GetDescription(IN WSAPP_SERVICE_S *pstService);
 UINT WSAPP_Service_GetNextID(IN UINT uiCurId);
 CHAR * WSAPP_Service_GetNameByID(IN UINT uiServiceID);
-BS_STATUS WSAPP_Service_SetDocRoot(IN CHAR *pcServiceName, IN CHAR *pcDocRoot);
-BS_STATUS WSAPP_Service_SetIndex(IN CHAR *pcServiceName, IN CHAR *pcIndex);
 BS_STATUS WSAPP_Service_Bind(IN CHAR *pcService);
 VOID WSAPP_Service_UnBind(IN CHAR *pcService);
 WSAPP_SERVICE_HANDLE WSAPP_Service_GetByName(IN CHAR *pcService);
 BS_STATUS WSAPP_Service_SetDeliverTbl(IN CHAR *pcService, IN WS_DELIVER_TBL_HANDLE hDeliverTbl);
-BS_STATUS WSAPP_Service_SetUserData(IN CHAR *pcService, IN UINT64 ulUserData);
-UINT64 WSAPP_Service_GetUserDataByWsContext(IN WS_CONTEXT_HANDLE hWsContext);
 
 #ifdef __cplusplus
     }

@@ -26,6 +26,25 @@ CHAR * LSTR_Strchr(IN LSTR_S *pstLstr, IN CHAR cChr)
     return TXT_Strnchr(pstLstr->pcData, cChr, pstLstr->uiLen);
 }
 
+CHAR * LSTR_ReverseStrchr(IN LSTR_S *pstLstr, IN CHAR cChr)
+{
+    UINT uiLen, i;
+    char *pcBuf = pstLstr->pcData;
+
+    uiLen = pstLstr->uiLen;
+    if (0 == uiLen) {
+        return NULL;
+    }
+
+    for (i=uiLen; i>0; i--) {
+        if (pcBuf[i-1] == cChr) {
+            return &pcBuf[i-1];
+        }
+    }
+
+    return NULL;
+}
+
 CHAR *LSTR_Strstr(IN LSTR_S *pstLstr, IN CHAR *pcToFind)
 {
     return TXT_Strnstr(pstLstr->pcData, pcToFind, pstLstr->uiLen);
@@ -199,8 +218,8 @@ INT LSTR_Cmp(IN LSTR_S *pstStr, IN LSTR_S *pstStr2)
 /*str结构按照字符串进行不区分大小写比较 */
 INT LSTR_CaseCmp(IN LSTR_S *pstStr, IN LSTR_S *pstStr2)
 {
-    CHAR   c1;
-    CHAR   c2;
+    int c1;
+    int c2;
     UINT   uiLen   = MIN(pstStr->uiLen, pstStr2->uiLen);
     UINT   uiLoop  = 0;
     CHAR  *pcStr   = pstStr->pcData;
@@ -208,17 +227,8 @@ INT LSTR_CaseCmp(IN LSTR_S *pstStr, IN LSTR_S *pstStr2)
 
     while (uiLoop < uiLen)
     {
-        c1 = pcStr[uiLoop];
-        if (isupper(c1))
-        {
-           c1 = tolower(c1);
-        }
-
-        c2 = pcStr2[uiLoop];
-        if (isupper(c2))
-        {
-            c2 = tolower(c2);
-        }
+        c1 = tolower(pcStr[uiLoop]);
+        c2 = tolower(pcStr2[uiLoop]);
 
         if (c1 != c2)
         {
@@ -481,7 +491,6 @@ LSTR_KV_S * LSTR_GetNextKV(INOUT LSTR_KV_ITER_S *iter, IN char split, IN char eq
     return &iter->kv;
 }
 
-/* 扫描kv */
 int LSTR_ScanMultiKV(IN LSTR_S *pstStr, IN char cSplit, IN char cEque, PF_LSTR_MULTI_KV_SCAN_CB pfCallBack, IN void *pUserHandle)
 {
     LSTR_S stEle;

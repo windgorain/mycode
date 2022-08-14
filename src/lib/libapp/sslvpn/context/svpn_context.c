@@ -40,8 +40,7 @@ typedef struct
 
 static NO_HANDLE g_hSvpnContextNo = NULL;
 static DLL_HEAD_S g_stSvpnContextListenerList = DLL_HEAD_INIT_VALUE(&g_stSvpnContextListenerList);
-static CHAR *g_apcSvpnContextProperty[] = {"Description", "WsService"};
-static UINT g_uiSvpnContextPropertyCount = sizeof(g_apcSvpnContextProperty)/sizeof(CHAR*);
+static CHAR *g_apcSvpnContextProperty[] = {"Description", "WsService", NULL};
 
 static BS_STATUS _svpn_context_BindServiceExt
 (
@@ -79,7 +78,7 @@ static BS_STATUS _svpn_context_BindServiceExt
 
     if (! TXT_IS_EMPTY(pcWsService))
     {
-        if (BS_OK != COMP_WSAPP_BindService(pcWsService))
+        if (BS_OK != WSAPP_BindService(pcWsService))
         {
             return BS_ERR;
         }
@@ -88,17 +87,17 @@ static BS_STATUS _svpn_context_BindServiceExt
     pcOldWsService = NO_GetKeyValue(pstContext, pcLocalKey);
     if (! TXT_IS_EMPTY(pcOldWsService))
     {
-        COMP_WSAPP_UnBindService(pcOldWsService);
+        WSAPP_UnBindService(pcOldWsService);
     }
 
     if (! TXT_IS_EMPTY(pcWsService))
     {
         SVPN_Deliver_BindContext(pcWsService);
-        COMP_WSAPP_SetServiceUserData(pcWsService, NO_GetObjectID(g_hSvpnContextNo, pstContext));
+        WSAPP_SetUserData(pcWsService, NO_GetObjectID(g_hSvpnContextNo, pstContext));
 
         LOCAL_INFO_ExpandToConfPath("web/context/", szFullPath);
-        COMP_WSAPP_SetDocRoot(pcWsService, szFullPath);
-        COMP_WSAPP_SetIndex(pcWsService, "/index.htm");
+        WSAPP_SetDocRoot(pcWsService, szFullPath);
+        WSAPP_SetIndex(pcWsService, "/index.htm");
     }
 
     NO_SetKeyValue(g_hSvpnContextNo, pstContext, pcLocalKey, pcWsService);
@@ -263,7 +262,7 @@ static BS_STATUS _svpn_context_kf_Modify(IN MIME_HANDLE hMime, IN HANDLE hUserHa
 static BS_STATUS _svpn_context_kf_Get(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, IN KFAPP_PARAM_S *pstParam)
 {
     SVPN_CfgLock_RLock();
-    JSON_NO_Get(g_hSvpnContextNo, hMime, pstParam->pstJson, g_apcSvpnContextProperty, g_uiSvpnContextPropertyCount);
+    JSON_NO_Get(g_hSvpnContextNo, hMime, pstParam->pstJson, g_apcSvpnContextProperty);
     SVPN_CfgLock_RUnLock();
 
 	return BS_OK;
@@ -291,7 +290,7 @@ static BS_STATUS _svpn_context_kf_List(IN MIME_HANDLE hMime, IN HANDLE hUserHand
     BS_STATUS eRet;
     
     SVPN_CfgLock_RLock();
-    eRet = JSON_NO_List(g_hSvpnContextNo, hMime, pstParam->pstJson, g_apcSvpnContextProperty, g_uiSvpnContextPropertyCount);
+    eRet = JSON_NO_List(g_hSvpnContextNo, pstParam->pstJson, g_apcSvpnContextProperty);
     SVPN_CfgLock_RUnLock();
 
     return eRet;
@@ -299,17 +298,22 @@ static BS_STATUS _svpn_context_kf_List(IN MIME_HANDLE hMime, IN HANDLE hUserHand
 
 VOID SVPN_ContextKf_Init()
 {
-    COMP_KFAPP_RegFunc("svpn.context.IsExist", _svpn_context_kf_IsExist, NULL);
-    COMP_KFAPP_RegFunc("svpn.context.Add", _svpn_context_kf_Add, NULL);
-    COMP_KFAPP_RegFunc("svpn.context.Modify", _svpn_context_kf_Modify, NULL);
-    COMP_KFAPP_RegFunc("svpn.context.Get", _svpn_context_kf_Get, NULL);
-    COMP_KFAPP_RegFunc("svpn.context.Delete", _svpn_context_kf_Del, NULL);
-    COMP_KFAPP_RegFunc("svpn.context.List", _svpn_context_kf_List, NULL);
+    KFAPP_RegFunc("svpn.context.IsExist", _svpn_context_kf_IsExist, NULL);
+    KFAPP_RegFunc("svpn.context.Add", _svpn_context_kf_Add, NULL);
+    KFAPP_RegFunc("svpn.context.Modify", _svpn_context_kf_Modify, NULL);
+    KFAPP_RegFunc("svpn.context.Get", _svpn_context_kf_Get, NULL);
+    KFAPP_RegFunc("svpn.context.Delete", _svpn_context_kf_Del, NULL);
+    KFAPP_RegFunc("svpn.context.List", _svpn_context_kf_List, NULL);
 }
 
 BS_STATUS SVPN_Context_Init()
 {
-    g_hSvpnContextNo = NO_CreateAggregate(SVPN_CONTEXT_MAX_NUM, sizeof(SVPN_CONTEXT_S), 0);
+    OBJECT_PARAM_S obj_param = {0};
+
+    obj_param.uiMaxNum = SVPN_CONTEXT_MAX_NUM;
+    obj_param.uiObjSize = sizeof(SVPN_CONTEXT_S);
+
+    g_hSvpnContextNo = NO_CreateAggregate(&obj_param);
     if (NULL == g_hSvpnContextNo)
     {
         return BS_ERR;
@@ -383,14 +387,14 @@ BS_STATUS SVPN_Context_AddContext(IN CHAR *pcContextName)
         return BS_ERR;
     }
 
-    pcAutoWsService = COMP_WSAPP_Service_AddAutoNameService(WSAPP_SERVICE_FLAG_SAVE_HIDE
+    pcAutoWsService = WSAPP_AddAutoNameService(WSAPP_SERVICE_FLAG_SAVE_HIDE
             | WSAPP_SERVICE_FLAG_WEB_HIDE
             | WSAPP_SERVICE_FLAG_WEB_READONLY);
 
     if (NULL != pcAutoWsService)
     {
         snprintf(szDomainName, sizeof(szDomainName), "_svpn_%s", pcContextName);
-        COMP_WSAPP_ServiceBindGw(pcAutoWsService, WSAPP_INNER_GW_NAME, NULL, szDomainName);
+        WSAPP_BindGw(pcAutoWsService, WSAPP_INNER_GW_NAME, NULL, szDomainName);
         _svpn_context_BindServiceExt(pcContextName, pcAutoWsService, "AutoWsService");
     }
 
@@ -413,14 +417,14 @@ BS_STATUS SVPN_Context_DelContext(IN CHAR *pcContextName)
     pcWsService = NO_GetKeyValue(pstContext, "WsService");
     if (! TXT_IS_EMPTY(pcWsService))
     {
-        COMP_WSAPP_UnBindService(pcWsService);
+        WSAPP_UnBindService(pcWsService);
     }
 
     pcWsService = NO_GetKeyValue(pstContext, "AutoWsService");
     if (! TXT_IS_EMPTY(pcWsService))
     {
-        COMP_WSAPP_UnBindService(pcWsService);
-        COMP_WSAPP_DelService(pcWsService);
+        WSAPP_UnBindService(pcWsService);
+        WSAPP_DelService(pcWsService);
     }
 
     _svpn_context_IssuEvent(pstContext, SVPN_CONTEXT_EVENT_DESTROY);
@@ -491,7 +495,7 @@ SVPN_CONTEXT_HANDLE SVPN_Context_GetContextByWsTrans(IN WS_TRANS_HANDLE hWsTrans
     UINT64 uiSvpnContextID;
 
     hWsContext = WS_Trans_GetContext(hWsTrans);
-    uiSvpnContextID = COMP_WSAPP_GetServiceUserDataByWsContext(hWsContext);
+    uiSvpnContextID = WSAPP_GetUserDataByWsContext(hWsContext);
 
     return SVPN_Context_GetByID(uiSvpnContextID);
 }

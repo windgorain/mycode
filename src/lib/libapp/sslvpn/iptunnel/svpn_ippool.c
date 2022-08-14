@@ -155,7 +155,7 @@ static BS_STATUS svpn_ippool_AddFibRange
     stFibNode.stFibKey.uiDstOrStartIp = uiStartIP;
     stFibNode.stFibKey.uiMaskOrEndIp = uiEndIP;
 
-    CompWanFib_AddRange(0, &stFibNode);
+    WanFib_AddRange(0, &stFibNode);
 
     return BS_OK;
 }
@@ -171,7 +171,7 @@ static BS_STATUS svpn_ippool_DelFibRange
     stFibKey.uiDstOrStartIp = uiStartIP;
     stFibKey.uiMaskOrEndIp = uiEndIP;
 
-    CompWanFib_DelRange(0, &stFibKey);
+    WanFib_DelRange(0, &stFibKey);
 
     return BS_OK;
 }

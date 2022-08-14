@@ -83,7 +83,7 @@ static _VNETS_UMS_NODE_S * vnets_ums_Find
 
 BS_STATUS _VNETS_UMS_Init()
 {
-    g_hVnetsUmsHash = HASH_CreateInstance(_VNETS_UMS_HASH_BUCKET, vnets_ums_HashIndex);
+    g_hVnetsUmsHash = HASH_CreateInstance(NULL, _VNETS_UMS_HASH_BUCKET, vnets_ums_HashIndex);
     if (NULL == g_hVnetsUmsHash)
     {
         return BS_NO_MEMORY;

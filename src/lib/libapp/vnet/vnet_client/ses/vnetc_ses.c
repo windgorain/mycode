@@ -52,7 +52,7 @@ static BS_STATUS vnetc_ses_SendPkt(IN MBUF_S *pstMbuf, IN VOID *pUserContext)
     pstPhyContext = VNETC_Context_GetPhyContext(pstMbuf);
     *pstPhyContext = *pstContext;
 
-    return CompIf_PhyOutput(pstContext->uiIfIndex, pstMbuf);
+    return IFNET_PhyOutput(pstContext->uiIfIndex, pstMbuf);
 }
 
 static BS_STATUS vnetc_ses_EventNotify(IN UINT uiSesID, IN UINT uiEvent)

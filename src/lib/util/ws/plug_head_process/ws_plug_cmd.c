@@ -12,6 +12,7 @@
 #include "utl/kv_utl.h"
 #include "utl/data2hex_utl.h"
 #include "utl/ws_utl.h"
+#include "utl/mem_cap.h"
 
 #include "../ws_def.h"
 #include "../ws_conn.h"
@@ -88,7 +89,7 @@ static BS_STATUS ws_plugcmd_SetCookie(IN WS_TRANS_S *pstTrans, IN KV_HANDLE hKv)
 #define WS_PLUGCMD_HEX_HEADER "HEX("
 #define WS_PLUGCMD_HEX_HEADER_LEN STR_LEN(WS_PLUGCMD_HEX_HEADER)
 
-static CHAR * ws_plugcmd_KvDecodeHex(IN LSTR_S *pstLstr)
+static CHAR * ws_plugcmd_KvDecodeHex(IN LSTR_S *pstLstr, void *memcap)
 {
     CHAR *pcData;
     UINT uiLen;
@@ -113,7 +114,7 @@ static CHAR * ws_plugcmd_KvDecodeHex(IN LSTR_S *pstLstr)
 
     uiRetLen = uiLen/2;
 
-    pcRet = MEM_Malloc(uiRetLen + 1);
+    pcRet = MemCap_Malloc(memcap, uiRetLen + 1);
     if (NULL == pcRet)
     {
         return NULL;
@@ -121,7 +122,7 @@ static CHAR * ws_plugcmd_KvDecodeHex(IN LSTR_S *pstLstr)
 
     if (BS_OK != DH_Data2Hex((UCHAR*)pcData, uiLen, pcRet))
     {
-        MEM_Free(pcRet);
+        MemCap_Free(memcap, pcRet);
         return NULL;
     }
 
@@ -130,18 +131,18 @@ static CHAR * ws_plugcmd_KvDecodeHex(IN LSTR_S *pstLstr)
     return pcRet;
 }
 
-static CHAR * ws_pluccmd_KvDecode(IN LSTR_S *pstLstr)
+static CHAR * ws_pluccmd_KvDecode(IN LSTR_S *pstLstr, void *memcap)
 {
     CHAR *pcTmp;
     
     if ((pstLstr->uiLen > WS_PLUGCMD_HEX_HEADER_LEN)
         && (strnicmp(pstLstr->pcData, WS_PLUGCMD_HEX_HEADER, WS_PLUGCMD_HEX_HEADER_LEN) == 0))
     {
-        return ws_plugcmd_KvDecodeHex(pstLstr);
+        return ws_plugcmd_KvDecodeHex(pstLstr, memcap);
     }
     else
     {
-        pcTmp = MEM_Malloc(pstLstr->uiLen + 1);
+        pcTmp = MemCap_Malloc(memcap, pstLstr->uiLen + 1);
 
         if (NULL != pcTmp)
         {

@@ -21,5 +21,5 @@ aux_source_directory(./trans SRC)
 aux_source_directory(./ulm SRC)
 aux_source_directory(./web_proxy SRC)
 INCLUDE(../my_libapp.txt)
-target_link_libraries(${LIB_NAME} comp-wsapp comp-if comp-wan pcre)
+target_link_libraries(${LIB_NAME} dynamic-ws dynamic-ifnet dynamic-wan pcre)
 

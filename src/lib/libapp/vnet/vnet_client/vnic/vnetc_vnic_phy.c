@@ -177,19 +177,19 @@ BS_STATUS VNET_VNIC_PHY_Init ()
     IF_TYPE_PARAM_S stTypeParam = {0};
 
     stPhyParam.pfPhyOutput = _VNET_VNIC_PHY_Output;
-    CompIf_SetPhyType("vnets.l2.vnic", &stPhyParam);
+    IFNET_SetPhyType("vnets.l2.vnic", &stPhyParam);
 
     stLinkParam.pfLinkInput = VNET_VNIC_LinkInput;
     stLinkParam.pfLinkOutput = VNET_VNIC_LinkOutput;
-    CompIf_SetLinkType("vnets.l2.vnic", &stLinkParam);
+    IFNET_SetLinkType("vnets.l2.vnic", &stLinkParam);
 
     stTypeParam.pcLinkType = "vnets.l2.vnic";
     stTypeParam.pcPhyType = "vnets.l2.vnic";
     stTypeParam.uiFlag = IF_TYPE_FLAG_HIDE;
 
-    CompIf_AddIfType("vnets.l2.vnic", &stTypeParam);
+    IFNET_AddIfType("vnets.l2.vnic", &stTypeParam);
 
-    g_ulVnetVnicIfIndex = CompIf_CreateIf("vnets.l2.vnic");
+    g_ulVnetVnicIfIndex = IFNET_CreateIf("vnets.l2.vnic");
     if (0 == g_ulVnetVnicIfIndex)
     {
         RETURN(BS_ERR);

@@ -13,9 +13,6 @@
 #endif /* __cplusplus */
 
 
-BS_STATUS Support_Ioctl(IN UINT uiCmd, IN VOID *pData);
-
-
 #ifdef __cplusplus
     }
 #endif /* __cplusplus */

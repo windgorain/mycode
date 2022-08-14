@@ -149,7 +149,7 @@ static void cff_Save2Buf(IN char *buf, IN VOID *pUserData)
         return;
     }
 
-    len = snprintf(save_buf->buf, save_buf->buf_size, "%s", buf);
+    len = scnprintf(save_buf->buf, save_buf->buf_size, "%s", buf);
 
     if (len > 0) {
         save_buf->buf += len;
@@ -462,6 +462,23 @@ BS_STATUS CFF_GetPropAsString(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag, IN CHAR 
     stTreParam.ulLevle = 1;
 
     return CFF_X_GetPropAsString(hCffHandle, &stTreParam, pcProp, ppcValue);
+}
+
+int CFF_CopyPropAsString(CFF_HANDLE hCffHandle, CHAR *pcTag, CHAR *pcProp, OUT CHAR *value, int value_size)
+{
+    char *val = NULL;
+    int ret;
+
+    ret = CFF_GetPropAsString(hCffHandle, pcTag, pcProp, &val);
+    if (ret < 0) {
+        return  ret;
+    }
+
+    if (strlcpy(value, val, value_size) >= value_size) {
+        RETURN(BS_FULL);
+    }
+
+    return 0;
 }
 
 BOOL_T CFF_IsPropExist(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag, IN CHAR *pcProp)

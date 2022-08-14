@@ -17,6 +17,7 @@
 #include "utl/msgque_utl.h"
 #include "comp/comp_pcap.h"
 #include "comp/comp_if.h"
+#include "comp/comp_wan.h"
 
 #include "../h/wan_vrf.h"
 #include "../h/wan_ifnet.h"
@@ -41,7 +42,7 @@ static VOID _wan_pcap_InterfaceSave(IN IF_INDEX ifIndex, IN HANDLE hFile)
 
 BS_STATUS WAN_PCAP_Init()
 {
-    CompIf_RegSave(_wan_pcap_InterfaceSave);
+    IFNET_RegSave(_wan_pcap_InterfaceSave);
 
     return BS_OK;
 }
@@ -77,19 +78,19 @@ PLUG_API BS_STATUS WAN_PCAP_SetIpHost
         return BS_ERR;
     }
 
-    ifIndex = CompIf_GetIfIndex(pcIfName);
+    ifIndex = IFNET_GetIfIndex(pcIfName);
     if (IF_INVALID_INDEX == ifIndex) {
         EXEC_OutString(" Interface is not exist.\r\n");
         return BS_ERR;
     }
 
-	if (BS_OK != COMP_PCAP_Ioctl(pcap_index, PCAP_IOCTL_CMD_GET_NET_INFO, &stInfo))
+	if (BS_OK != PCAP_Ioctl(pcap_index, PCAP_IOCTL_CMD_GET_NET_INFO, &stInfo))
     {
         EXEC_OutString(" Can't get the pcap netinfo.\r\n");
         return BS_ERR;
     }
 
-    CompIf_Ioctl(ifIndex, IFNET_CMD_GET_VRF, &uiVrf);
+    IFNET_Ioctl(ifIndex, IFNET_CMD_GET_VRF, &uiVrf);
 
     memset(&stFibNode, 0, sizeof(stFibNode));
     stFibNode.uiOutIfIndex = ifIndex;
@@ -97,12 +98,12 @@ PLUG_API BS_STATUS WAN_PCAP_SetIpHost
 
     WanFib_Add(uiVrf, &stFibNode);
 
-    WAN_IPAddr_SetMode(ifIndex, WAN_IP_ADDR_MODE_PCAP_HOST);
+    WanIPAddr_SetMode(ifIndex, WAN_IP_ADDR_MODE_PCAP_HOST);
 
     stAddrInfo.uiIfIndex = ifIndex;
     stAddrInfo.uiIP = stInfo.auiIpAddr[0];
     stAddrInfo.uiMask = stInfo.auiIpMask[0];
-    WAN_IPAddr_AddIp(&stAddrInfo);
+    WanIPAddr_AddIp(&stAddrInfo);
 
     return BS_OK;
 }

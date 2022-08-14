@@ -50,7 +50,7 @@ static VOID _svpn_iptunnel_SendPacket2Up(IN SVPN_IPTUN_NODE_S *pstNode, IN UCHAR
         return;
     }
 
-    CompIf_ProtoInput(g_ifSvpnIpTunnelInterface, pstMbuf, htons(ETH_P_IP));
+    IFNET_ProtoInput(g_ifSvpnIpTunnelInterface, pstMbuf, htons(ETH_P_IP));
 
     return;
 }
@@ -307,11 +307,9 @@ static VOID _svpn_iptun_ProcessLinkOutput(IN MBUF_S *pstMbuf)
 {
     IP_HEAD_S *pstIpHeader;
     SVPN_IPTUN_NODE_S *pstNode;
-    UINT uiWanVrf;
     SVPN_IPTUNNEL_HEAD_S stHead = {0};
 
     pstIpHeader = MBUF_MTOD(pstMbuf);
-    uiWanVrf = MBUF_GET_OUTVPNID(pstMbuf);
 
     pstNode = SVPN_IpTunNode_Find(pstIpHeader->unDstIp.uiIp);
     if (NULL == pstNode)
@@ -364,9 +362,9 @@ static BS_STATUS _svpn_iptunnel_LinkOutput
         &pstIpHeader->unSrcIp.uiIp, &pstIpHeader->unDstIp.uiIp,
         MBUF_TOTAL_DATA_LEN(pstMbuf)));
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     _svpn_iptun_ProcessLinkOutput(pstMbuf);
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     return BS_OK;
 }
@@ -377,15 +375,15 @@ BS_STATUS SVPN_IpTunnel_Init()
     IF_TYPE_PARAM_S stTypeParam = {0};
     
     stLinkParam.pfLinkOutput = _svpn_iptunnel_LinkOutput;
-    CompIf_SetLinkType("svpn.tunnel", &stLinkParam);
+    IFNET_SetLinkType("svpn.tunnel", &stLinkParam);
 
     stTypeParam.pcProtoType = IF_PROTO_IP_TYPE_MAME;
     stTypeParam.pcLinkType = "svpn.tunnel";
     stTypeParam.uiFlag = IF_TYPE_FLAG_HIDE;
 
-    CompIf_AddIfType("svpn.tunnel", &stTypeParam);
+    IFNET_AddIfType("svpn.tunnel", &stTypeParam);
     
-    g_ifSvpnIpTunnelInterface = CompIf_CreateIf("svpn.tunnel");
+    g_ifSvpnIpTunnelInterface = IFNET_CreateIf("svpn.tunnel");
     if (g_ifSvpnIpTunnelInterface == 0)
     {
         return BS_ERR;

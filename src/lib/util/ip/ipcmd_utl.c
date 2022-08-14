@@ -27,7 +27,7 @@ static char * _oswin_AdapterGuid2If(char *adapter_guid, char *ifname, int ifname
         return NULL;
     }
 
-    snprintf(ifname, ifname_size, "%d", uiIndex);
+    scnprintf(ifname, ifname_size, "%d", uiIndex);
 
     return ifname;
 }
@@ -43,7 +43,7 @@ static BS_STATUS _os_ipcmd_AddIP(char *adapter_guid, UINT ip, UINT mask, UINT pe
     unsigned char *cmask = (void*)&mask;
     unsigned char *cpeer = (void*)&peer;
 
-    snprintf(szCmd, sizeof(szCmd),
+    scnprintf(szCmd, sizeof(szCmd),
             "netsh interface ip set address name=%s source=static addr=%u.%u.%u.%u mask=%u.%u.%u.%u",
             _oswin_AdapterGuid2If(adapter_guid, ifname, sizeof(ifname)),
             cip[0], cip[1], cip[2], cip[3], cmask[0], cmask[1], cmask[2], cmask[3]);
@@ -94,7 +94,7 @@ static inline BS_STATUS _os_ipcmd_SetDns(char *adapter_guid, UINT uiDns)
     CHAR szCmd[256];
     char ifname[32];
 
-    snprintf(szCmd, sizeof(szCmd),
+    scnprintf(szCmd, sizeof(szCmd),
             "netsh interface ip set dns name=%s addr=%pI4 source=static",
             _oswin_AdapterGuid2If(adapter_guid, ifname, sizeof(ifname)), &uiDns);
 
@@ -108,7 +108,7 @@ static inline BS_STATUS _os_ipcmd_SetMtu(char *adapter_guid, UINT mtu)
     char cmd[256];
     char ifname[32];
 
-    snprintf(cmd, sizeof(cmd), "netsh interface ipv4 set subinterface %s mtu=%d",
+    scnprintf(cmd, sizeof(cmd), "netsh interface ipv4 set subinterface %s mtu=%d",
             _oswin_AdapterGuid2If(adapter_guid, ifname, sizeof(ifname)), mtu);
     PROCESS_CreateByFile(cmd, NULL, PROCESS_FLAG_WAIT_FOR_OVER | PROCESS_FLAG_HIDE);
 
@@ -126,10 +126,10 @@ static BS_STATUS _os_ipcmd_AddIP(char *ifname, UINT ip, UINT mask, UINT peer)
     unsigned char *cpeer = (void*)&peer;
 
     if (peer == 0) {
-    snprintf(cmd, sizeof(cmd), "ifconfig %s %u.%u.%u.%u netmask %u.%u.%u.%u",
+    scnprintf(cmd, sizeof(cmd), "ifconfig %s %u.%u.%u.%u netmask %u.%u.%u.%u",
 		ifname, cip[0], cip[1], cip[2], cip[3], cmask[0], cmask[1], cmask[2], cmask[3]);
     } else {
-    snprintf(cmd, sizeof(cmd), "ifconfig %s %u.%u.%u.%u netmask %u.%u.%u.%u pointopoint %u.%u.%u.%u",
+    scnprintf(cmd, sizeof(cmd), "ifconfig %s %u.%u.%u.%u netmask %u.%u.%u.%u pointopoint %u.%u.%u.%u",
 		ifname, cip[0], cip[1], cip[2], cip[3], cmask[0], cmask[1], cmask[2], cmask[3], cpeer[0], cpeer[1], cpeer[2], cpeer[3]);
     }
     
@@ -160,7 +160,7 @@ static inline BS_STATUS _os_ipcmd_SetMtu(char *ifname, UINT mtu)
 {
     char cmd[256];
 
-    snprintf(cmd, sizeof(cmd), "ifconfig %s mtu %d", ifname, mtu);
+    scnprintf(cmd, sizeof(cmd), "ifconfig %s mtu %d", ifname, mtu);
     system(cmd);
     return BS_OK;
 }
@@ -176,10 +176,10 @@ static BS_STATUS _os_ipcmd_AddIP(char *ifname, UINT ip, UINT mask, UINT peer)
     unsigned char *cpeer = (void*)&peer;
 
     if (peer == 0) {
-        snprintf(cmd, sizeof(cmd), "ifconfig %s %u.%u.%u.%u netmask %u.%u.%u.%u",
+        scnprintf(cmd, sizeof(cmd), "ifconfig %s %u.%u.%u.%u netmask %u.%u.%u.%u",
                 ifname, cip[0], cip[1], cip[2], cip[3], cmask[0], cmask[1], cmask[2], cmask[3]);
     } else {
-        snprintf(cmd, sizeof(cmd), "ifconfig %s %u.%u.%u.%u %u.%u.%u.%u netmask %u.%u.%u.%u up",
+        scnprintf(cmd, sizeof(cmd), "ifconfig %s %u.%u.%u.%u %u.%u.%u.%u netmask %u.%u.%u.%u up",
                 ifname, cip[0], cip[1], cip[2], cip[3],
                 cpeer[0], cpeer[1], cpeer[2], cpeer[3],
                 cmask[0], cmask[1], cmask[2], cmask[3]);
@@ -212,7 +212,7 @@ static inline BS_STATUS _os_ipcmd_SetMtu(char *ifname, UINT mtu)
 {
     char cmd[256];
 
-    snprintf(cmd, sizeof(cmd), "ifconfig %s mtu %d", ifname, mtu);
+    scnprintf(cmd, sizeof(cmd), "ifconfig %s mtu %d", ifname, mtu);
     system(cmd);
     return BS_OK;
 }

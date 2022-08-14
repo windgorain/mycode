@@ -8,17 +8,23 @@
 #include "utl/cpu_utl.h"
 #include <sys/ioctl.h>
 #include <fcntl.h>
+#ifndef __ARM__
 #include <cpuid.h>
+#endif
 
 UINT64 RDTSC_HZ = 0;
 UINT64 RDTSC_US_HZ = 0;
+UINT64 RDTSC_MS_HZ = 0;
 
 #ifdef __ARM__
 uint64_t get_tsc_freq_arch(void)
 {
+#if 0
 	uint64_t freq;
 	asm volatile("mrs %0, cntfrq_el0" : "=r" (freq));
 	return freq;
+#endif
+    return 0;
 }
 #endif
 
@@ -77,7 +83,7 @@ static int32_t rdmsr(int msr, uint64_t *val)
 uint64_t get_tsc_freq_arch(void)
 {
 	uint64_t tsc_hz = 0;
-	uint32_t a, b, c=0, d, maxleaf;
+	uint32_t a, b, c = 0, d, maxleaf;
 	uint8_t mult, model;
 	int32_t ret;
 
@@ -165,5 +171,6 @@ UINT64 RDTSC_GetHz()
 
 CONSTRUCTOR(init) {
     RDTSC_HZ = RDTSC_GetHz();
+    RDTSC_MS_HZ = RDTSC_HZ / 1000;
     RDTSC_US_HZ = RDTSC_HZ / 1000000;
 }

@@ -9,11 +9,13 @@ BS_STATUS ETH_GetEthHeadInfo(IN UCHAR *pucData, IN UINT uiDataLen, OUT ETH_PKT_I
 {
     USHORT usOffSet;
     ETH_HEADER_S *pstHeader;
+    ETH_VLAN_HEAD_S *pstVlan;
     ETH_LLC_S* pstLlc;
     ETH_SNAP_S *pstSnap;
     USHORT usPktLenOrType;
     UCHAR ucPktFmt = PKTFMT_OTHERS;
     USHORT usType = ETHERTYPE_OTHER;
+    USHORT usVlan = ETH_INVALID_VLAN_ID;
 
     if (uiDataLen <= sizeof(ETH_HEADER_S))
     {
@@ -28,17 +30,27 @@ BS_STATUS ETH_GetEthHeadInfo(IN UCHAR *pucData, IN UINT uiDataLen, OUT ETH_PKT_I
 
     if (ETH_IS_PKTTYPE(usPktLenOrType))
     {
-        if(ETHERTYPE_ISIS2 != usPktLenOrType)
+        if (ETHERTYPE_VLAN == usPktLenOrType)
+        {
+            pstVlan = (ETH_VLAN_HEAD_S *)((UCHAR*)pstHeader + usOffSet);
+            usVlan = ntohs(pstVlan->usVlanTci) & 0xFFF;
+
+            usType = ntohs(pstVlan->usProto);
+            usOffSet += sizeof(ETH_VLAN_HEAD_S);
+            ucPktFmt = PKTFMT_ETHII_ENCAP;
+        }
+        else if(ETHERTYPE_ISIS2 != usPktLenOrType)
         {   
+            usType = usPktLenOrType;
             ucPktFmt = PKTFMT_ETHII_ENCAP;
         }
         else
         {  
             /* ISIS2类型 */
+            usType = usPktLenOrType;
             usOffSet += ETH_LLC_LEN;
             ucPktFmt = PKTFMT_LLC_ENCAP;
         }
-        usType = usPktLenOrType;
     }
     else if (ETH_IS_PKTLEN(usPktLenOrType))
     {
@@ -97,6 +109,8 @@ BS_STATUS ETH_GetEthHeadInfo(IN UCHAR *pucData, IN UINT uiDataLen, OUT ETH_PKT_I
     pstHeadInfo->ucPktFmt = ucPktFmt;
     pstHeadInfo->usType = usType;
     pstHeadInfo->usHeadLen = usOffSet;
+    pstHeadInfo->usPktLenOrType = usPktLenOrType;
+    pstHeadInfo->usVlanId = usVlan;
 
     return BS_OK;
 }

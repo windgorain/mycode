@@ -69,8 +69,6 @@
         }   \
     }while (0)
 
-
-
 /* 解析recvMsg中的参数._pucPararms为recvMsg中第一个参数行的起始位置 */
 #define _SCALL_SCAN_PARAM_LINE_BEGIN(_pucParams,_eType,_ulParamLen,_pucParamdata)  \
     do {    \
@@ -92,7 +90,6 @@
             {
             
 #define _SCALL_SCAN_PARAM_LINE_END()    } } }while(0)
-
 
 typedef enum
 {
@@ -290,9 +287,9 @@ static BS_STATUS _SCALL_ParseMsg(IN UCHAR *pucRecvMsg, OUT _SCALL_MSG_S *pstMsg)
 static MBUF_S * _SCALL_FormSendData
 (
     IN UINT ulRetType,
-    IN HANDLE hRet,
+    IN UINT64 ret,
     IN CHAR *pszParamFmt,
-    IN HANDLE *ahParams
+    IN UINT64 *params
 )
 {
     MBUF_S *pstMbuf;
@@ -319,7 +316,7 @@ static MBUF_S * _SCALL_FormSendData
                 "void;0;\n", STR_LEN("void;0;\n"));
             break;
         case FUNCTBL_RET_UINT32:
-            sprintf(szNummber, "%lu", HANDLE_UINT(hRet));
+            sprintf(szNummber, "%lu", HANDLE_UINT(ret));
             sprintf(szLength, "%lu;", strlen(szNummber));
             TXT_Strlcpy(szTmp, "integer;", sizeof(szTmp));
             TXT_Strlcat(szTmp, szLength, sizeof(szTmp));
@@ -329,7 +326,7 @@ static MBUF_S * _SCALL_FormSendData
                 szTmp, strlen(szTmp));
             break;
         case FUNCTBL_RET_BOOL:
-            sprintf(szNummber, "%d\n", (HANDLE_UINT(hRet) == 0 ? 0 : 1));
+            sprintf(szNummber, "%d\n", (HANDLE_UINT(ret) == 0 ? 0 : 1));
             TXT_Strlcpy(szTmp, "boolean;1;", sizeof(szTmp));
             TXT_Strlcat(szTmp, szNummber, sizeof(szTmp));
             MBUF_CopyFromBufToMbuf(pstMbuf, MBUF_TOTAL_DATA_LEN(pstMbuf),
@@ -337,16 +334,16 @@ static MBUF_S * _SCALL_FormSendData
             break;
 
          case FUNCTBL_RET_STRING:
-            if (NULL != hRet)
+            if (NULL != ret)
             {
-                sprintf(szLength, "%lu;", STRING_GetLength(hRet));
+                sprintf(szLength, "%lu;", STRING_GetLength(ret));
                 TXT_Strlcpy(szTmp, "string;", sizeof(szTmp));
                 TXT_Strlcat(szTmp, szLength, sizeof(szTmp));
                 MBUF_CopyFromBufToMbuf(pstMbuf, MBUF_TOTAL_DATA_LEN(pstMbuf),
                     szTmp, strlen(szTmp));
                 MBUF_CopyFromBufToMbuf(pstMbuf, MBUF_TOTAL_DATA_LEN(pstMbuf),
-                    STRING_GetBuf(hRet), STRING_GetLength(hRet));
-                STRING_Delete(hRet);
+                    STRING_GetBuf(ret), STRING_GetLength(ret));
+                STRING_Delete(ret);
                 MBUF_CopyFromBufToMbuf(pstMbuf, MBUF_TOTAL_DATA_LEN(pstMbuf),
                     "\n", STR_LEN("\n"));
                 break;
@@ -354,17 +351,17 @@ static MBUF_S * _SCALL_FormSendData
             /* else  go on */
 
         case FUNCTBL_RET_SEQUENCE:
-            if (NULL == hRet)
+            if (NULL == ret)
             {
-                hRet = "";
+                ret = "";
             }
-            sprintf(szLength, "%lu;", strlen(hRet));
+            sprintf(szLength, "%lu;", strlen(ret));
             TXT_Strlcpy(szTmp, "string;", sizeof(szTmp));
             TXT_Strlcat(szTmp, szLength, sizeof(szTmp));
             MBUF_CopyFromBufToMbuf(pstMbuf, MBUF_TOTAL_DATA_LEN(pstMbuf),
                 szTmp, strlen(szTmp));
             MBUF_CopyFromBufToMbuf(pstMbuf, MBUF_TOTAL_DATA_LEN(pstMbuf),
-                hRet, strlen(hRet));
+                ret, strlen(ret));
             MBUF_CopyFromBufToMbuf(pstMbuf, MBUF_TOTAL_DATA_LEN(pstMbuf),
                 "\n", STR_LEN("\n"));
             break;
@@ -381,7 +378,7 @@ static MBUF_S * _SCALL_FormSendData
             /* 输出integer  */
             case 'p':
             {
-                pulParam = (UINT *)(ahParams[i]);
+                pulParam = (UINT *)(params[i]);
                 ulParam = *pulParam;
                 sprintf(szNummber, "%lu", ulParam);
                 sprintf(szLength, "%lu;", strlen(szNummber));
@@ -396,13 +393,13 @@ static MBUF_S * _SCALL_FormSendData
             /* 输出string  */
             case 'o':
             {
-                sprintf(szLength, "%lu;", STRING_GetLength(ahParams[i]));
+                sprintf(szLength, "%lu;", STRING_GetLength(params[i]));
                 TXT_Strlcpy(szTmp, "string;", sizeof(szTmp));
                 TXT_Strlcat(szTmp, szLength, sizeof(szTmp));
                 MBUF_CopyFromBufToMbuf(pstMbuf, MBUF_TOTAL_DATA_LEN(pstMbuf),
                     szTmp, strlen(szTmp));
                 MBUF_CopyFromBufToMbuf(pstMbuf, MBUF_TOTAL_DATA_LEN(pstMbuf),
-                    STRING_GetBuf(ahParams[i]), STRING_GetLength(ahParams[i]));
+                    STRING_GetBuf(params[i]), STRING_GetLength(params[i]));
                 MBUF_CopyFromBufToMbuf(pstMbuf, MBUF_TOTAL_DATA_LEN(pstMbuf),
                     "\n", STR_LEN("\n"));
                 break;
@@ -483,15 +480,15 @@ static BS_STATUS _SCALL_ProcReadMsg(IN _SCALL_STATE_S *pstState, IN UCHAR *pucRe
 {
     BS_STATUS eRet;
     _SCALL_MSG_S stMsg;
-    HANDLE_FUNC_X pfFunc;
+    PF_FUNCTBL_FUNC_X pfFunc;
     UINT ulRetType;
     CHAR szFuncFmt[128];
-    HANDLE ahParams[_SCALL_MAX_PARAM_NUM];
+    U64 params[_SCALL_MAX_PARAM_NUM];
     UINT aulIntParams[_SCALL_MAX_PARAM_NUM];
     HSTRING ahStringParams[_SCALL_MAX_PARAM_NUM];
     UINT ulFmtLen;
     UINT i;
-    HANDLE hRet;
+    UINT64 ret;
     MBUF_S *pstSendMbuf;
     UINT ulSendLen;
     CHAR szErrInfo[512] = "";
@@ -521,18 +518,18 @@ static BS_STATUS _SCALL_ProcReadMsg(IN _SCALL_STATE_S *pstState, IN UCHAR *pucRe
             case 'u':
             {
                 TXT_Atoui(stMsg.astParam[i].pcParamData, &aulIntParams[i]);
-                ahParams[i] = UINT_HANDLE(aulIntParams[i]);
+                params[i] = UINT_HANDLE(aulIntParams[i]);
                 break;
             }
             case 'p':
             {
                 TXT_Atoui(stMsg.astParam[i].pcParamData, &aulIntParams[i]);
-                ahParams[i] = &aulIntParams[i];
+                params[i] = &aulIntParams[i];
                 break;
             }
             case 'b':
             {
-                ahParams[i] = stMsg.astParam[i].pcParamData;
+                params[i] = stMsg.astParam[i].pcParamData;
                 break;
             }
             case 's':
@@ -546,7 +543,7 @@ static BS_STATUS _SCALL_ProcReadMsg(IN _SCALL_STATE_S *pstState, IN UCHAR *pucRe
                 {
                     RETURN(BS_NO_MEMORY);
                 }
-                ahParams[i] = ahStringParams[i];
+                params[i] = ahStringParams[i];
                 break;
             }
 
@@ -557,10 +554,10 @@ static BS_STATUS _SCALL_ProcReadMsg(IN _SCALL_STATE_S *pstState, IN UCHAR *pucRe
     }
 
     /* 调用pfFunc函数 */
-    hRet = pfFunc (ahParams[0], ahParams[1], ahParams[2], ahParams[3], ahParams[4],
-                    ahParams[5], ahParams[6], ahParams[7], ahParams[8], ahParams[9]);
+    ret = pfFunc (params[0], params[1], params[2], params[3], params[4],
+                    params[5], params[6], param[7], params[8], params[9]);
 
-    pstSendMbuf = _SCALL_FormSendData(ulRetType, hRet, szFuncFmt, ahParams);
+    pstSendMbuf = _SCALL_FormSendData(ulRetType, ret, szFuncFmt, params);
     for (i=0; i<_SCALL_MAX_PARAM_NUM; i++)
     {
         if (ahStringParams[i] != NULL)

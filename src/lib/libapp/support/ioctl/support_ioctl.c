@@ -10,7 +10,7 @@
 
 #include "../h/support_bridge.h"
 
-BS_STATUS Support_Ioctl(IN UINT uiCmd, IN VOID *pData)
+PLUG_API BS_STATUS Support_Ioctl(IN UINT uiCmd, IN VOID *pData)
 {
     BS_STATUS eRet = BS_OK;
 

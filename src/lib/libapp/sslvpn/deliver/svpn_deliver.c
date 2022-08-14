@@ -58,6 +58,6 @@ BS_STATUS SVPN_Deliver_Init()
 
 VOID SVPN_Deliver_BindContext(IN CHAR *pcWsService)
 {
-    COMP_WSAPP_SetDeliverTbl(pcWsService, g_hSvpnDeliverTbl);
+    WSAPP_SetDeliverTbl(pcWsService, g_hSvpnDeliverTbl);
 }
 

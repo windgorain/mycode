@@ -23,12 +23,12 @@ typedef struct {
     DLL_HEAD_S ob_list;
 }POLLER_INS_S;
 
-int POLLER_INS_Add(char *ins_name);
-int POLLER_INS_Del(int id);
+void POLLER_INS_Init();
+POLLER_INS_S * POLLER_INS_Add(char *ins_name);
+int POLLER_INS_Del(POLLER_INS_S *ins);
 int POLLER_INS_DelByName(char *name);
 char * POLLER_INS_GetName(int id);
-int POLLER_INS_GetByName(char *name);
-POLLER_INS_S * POLLER_INS_GetPoller(int id);
+POLLER_INS_S * POLLER_INS_GetByName(char *name);
 void POLLER_INS_Trigger(POLLER_INS_S *ins);
 
 #ifdef __cplusplus

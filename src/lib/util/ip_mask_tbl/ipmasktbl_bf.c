@@ -5,6 +5,7 @@
 ================================================================*/
 #include "bs.h"
 #include "utl/bit_opt.h"
+#include "utl/array_bit.h"
 #include "utl/net.h"
 #include "utl/ip_mask_tbl.h"
 

@@ -2,6 +2,7 @@
 #include "bs.h"
 
 #include "utl/txt_utl.h"
+#include "utl/exec_utl.h"
 #include "utl/dns_utl.h"
 
 #include "../../inc/vnet_conf.h"
@@ -27,7 +28,7 @@ static BS_STATUS _vnet_cmdudp_OpenService()
 }
 
 /* port _ULONG_<1-65535> */
-PLUG_API BS_STATUS VNETS_CmdUdp_SetServicePort(IN UINT ulArgc, IN UCHAR **argv)
+PLUG_API BS_STATUS VNETS_CmdUdp_SetServicePort(int argc, char **argv)
 {
     UINT uiPort;
 
@@ -67,23 +68,23 @@ PLUG_API BS_STATUS VNETS_CmdUdp_ShowThis(IN UINT ulArgc, IN UCHAR **argv)
 
 BS_STATUS VNETS_CmdUdp_Save(IN HANDLE hFile)
 {
-    if ((g_usVnetsCmdUdpPort != VNET_CONF_DFT_UDP_PORT)
-        || (g_bVnetsCmdUdpStart != FALSE))
-    {
-        CMD_EXP_OutputMode(hFile, "service udp");
-
-        if (g_usVnetsCmdUdpPort != VNET_CONF_DFT_UDP_PORT)
-        {
-            CMD_EXP_OutputCmd(hFile, "port %d", g_usVnetsCmdUdpPort);
-        }
-
-        if (g_bVnetsCmdUdpStart != FALSE)
-        {
-            CMD_EXP_OutputCmd(hFile, "start");
-        }
-
-        CMD_EXP_OutputModeQuit(hFile);
+    if ((g_usVnetsCmdUdpPort == VNET_CONF_DFT_UDP_PORT) || (g_bVnetsCmdUdpStart == FALSE)) {
+        return 0;
     }
+
+    if (0 != CMD_EXP_OutputMode(hFile, "service udp")) {
+        return 0;
+    }
+
+    if (g_usVnetsCmdUdpPort != VNET_CONF_DFT_UDP_PORT) {
+        CMD_EXP_OutputCmd(hFile, "port %d", g_usVnetsCmdUdpPort);
+    }
+
+    if (g_bVnetsCmdUdpStart) {
+        CMD_EXP_OutputCmd(hFile, "start");
+    }
+
+    CMD_EXP_OutputModeQuit(hFile);
 
     return BS_OK;
 }

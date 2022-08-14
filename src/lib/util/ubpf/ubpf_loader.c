@@ -222,6 +222,8 @@ ubpf_load_elf(struct ubpf_vm *vm, const void *elf, size_t elf_size, char **errms
     return rv;
 
 error:
-    free(text_copy);
+    if (text_copy) {
+        free(text_copy);
+    }
     return -1;
 }

@@ -23,7 +23,13 @@ static VOID tp_socket_DeleteAllTimer(IN _TP_CTRL_S *pstCtrl, IN _TP_SOCKET_S *ps
 
 BS_STATUS _TP_Socket_Init(_TP_CTRL_S *pstCtrl)
 {
-    pstCtrl->hSocketNap = NAP_Create(NAP_TYPE_HASH, _TP_ID_MAX, sizeof(_TP_SOCKET_S), 0);
+    NAP_PARAM_S param = {0};
+
+    param.enType = NAP_TYPE_HASH;
+    param.uiMaxNum = _TP_ID_MAX;
+    param.uiNodeSize = sizeof(_TP_SOCKET_S);
+
+    pstCtrl->hSocketNap = NAP_Create(&param);
     if (NULL == pstCtrl->hSocketNap)
     {
         return BS_NO_MEMORY;

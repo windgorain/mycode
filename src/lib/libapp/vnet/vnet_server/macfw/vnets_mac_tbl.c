@@ -9,6 +9,7 @@
 #include "utl/mac_table.h"
 #include "utl/mutex_utl.h"
 #include "utl/txt_utl.h"
+#include "utl/exec_utl.h"
 
 #include "../../inc/vnet_conf.h"
 
@@ -24,19 +25,19 @@
 typedef struct
 {
     MUTEX_S stMutex;
-    HANDLE hMacTbl;
+    MACTBL_HANDLE hMacTbl;
 }VNET_SERVER_MACTBL_S;
 
 static BS_STATUS vnets_mactbl_DomainEventCreate(IN VNETS_DOMAIN_RECORD_S *pstParam)
 {
     VNET_SERVER_MACTBL_S *pstMacTbl;
-    HANDLE hMacTbl;
+    MACTBL_HANDLE hMacTbl;
 
-    hMacTbl = MACTBL_CreateInstance(sizeof(VNETS_MAC_USER_DATA_S), 2);
-    if (NULL == hMacTbl)
-    {
+    hMacTbl = MACTBL_CreateInstance(sizeof(VNETS_MAC_USER_DATA_S));
+    if (NULL == hMacTbl) {
         return BS_NO_MEMORY;
     }
+    MACTBL_SetOldTick(hMacTbl, 2);
 
     pstMacTbl = MEM_ZMalloc(sizeof(VNET_SERVER_MACTBL_S));
     if (NULL == pstMacTbl)

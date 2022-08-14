@@ -15,19 +15,15 @@
 static CFF_HANDLE g_hSysCfgCff = 0;
 static CHAR * g_pcSysconfigFileName = "config.ini";
 
-BS_STATUS SYSCFG_Init()
+static void syscfg_init()
 {
-    if (g_pcSysconfigFileName != NULL)
-    {
+    if (g_pcSysconfigFileName != NULL) {
         g_hSysCfgCff = CFF_INI_Open(g_pcSysconfigFileName, CFF_FLAG_READ_ONLY);
-
-        if (NULL == g_hSysCfgCff)
-        {
-            RETURN(BS_CAN_NOT_OPEN);
-        }
     }
+}
 
-    return BS_OK;
+CONSTRUCTOR(init) {
+    syscfg_init();
 }
 
 CHAR * SYSCFG_GetConfigFileName()

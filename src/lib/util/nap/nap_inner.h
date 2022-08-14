@@ -22,7 +22,7 @@ typedef VOID* (*PF_NAP_GetNodeByIndex)(IN NAP_HANDLE hNAPHandle, IN UINT ulID);
 typedef struct
 {
     BOOL_T bEnable;
-    UINT64 ulSeqMask;
+    UINT   ulSeqMask;
     UCHAR  ucSeqStartIndex;
     USHORT *seq_array;  /* 序列数数组 */
     UINT   uiSeqArrayCount;  /* 序列数数组的长度 */
@@ -53,12 +53,13 @@ typedef struct
     UINT ulIndexMask; /* Index Mask */
     LBITMAP_HANDLE hLBitmap;
     _NAP_SEQ_OPT_S stSeqOpt;
+    void *memcap;
 }_NAP_HEAD_COMMON_S;
 
-_NAP_HEAD_COMMON_S * _NAP_ArrayCreate(IN UINT uiMaxNum, IN UINT uiNapNodeSize);
-_NAP_HEAD_COMMON_S * _NAP_PtrArrayCreate(IN UINT uiMaxNum, IN UINT uiNapNodeSize);
-_NAP_HEAD_COMMON_S * _NAP_HashCreate(IN UINT uiMaxNum, IN UINT uiNapNodeSize);
-_NAP_HEAD_COMMON_S * _NAP_AvlCreate(IN UINT uiMaxNum, IN UINT uiNapNodeSize);
+_NAP_HEAD_COMMON_S * _NAP_ArrayCreate(NAP_PARAM_S *p);
+_NAP_HEAD_COMMON_S * _NAP_PtrArrayCreate(NAP_PARAM_S *p);
+_NAP_HEAD_COMMON_S * _NAP_HashCreate(NAP_PARAM_S *p);
+_NAP_HEAD_COMMON_S * _NAP_AvlCreate(NAP_PARAM_S *p);
 
 #ifdef __cplusplus
     }

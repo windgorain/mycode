@@ -62,7 +62,7 @@ static void loadbs_linuxDump(int signo)
 
     Load_Cmd_Fini();
 
-    snprintf(buf, sizeof(buf), "/proc/%d/cmdline", getpid());
+    scnprintf(buf, sizeof(buf), "/proc/%d/cmdline", getpid());
     if(!(fh = fopen(buf, "r")))
             exit(0);
     if(!fgets(buf, sizeof(buf), fh))
@@ -70,7 +70,7 @@ static void loadbs_linuxDump(int signo)
     fclose(fh);
     if(buf[strlen(buf) - 1] == '\n')
             buf[strlen(buf) - 1] = '\0';
-    snprintf(cmd, sizeof(cmd), "gdb %s %d", buf, getpid());
+    scnprintf(cmd, sizeof(cmd), "gdb %s %d", buf, getpid());
     system(cmd);
 
     exit(0);
@@ -78,7 +78,7 @@ static void loadbs_linuxDump(int signo)
 #endif
 #endif
 
-PLUG_API VOID LoadBs_SetArgv(IN UINT uiArgc, IN CHAR **ppcArgv)
+PLUG_API void LoadBs_SetArgv(IN UINT uiArgc, IN CHAR **ppcArgv)
 {
     SYSINFO_SetArgv(uiArgc, ppcArgv);
 }
@@ -93,8 +93,6 @@ PLUG_API INT LoadBs_Init()
     }
 
     bIsInit = TRUE;
-
-    SYSINFO_Init0();
 
     FILE_SET_CURRENT_DIRECTORY(SYS_GetSelfFilePath());
 
@@ -112,4 +110,13 @@ PLUG_API INT LoadBs_Init()
     return 0;
 }
 
+void LoadBs_SetMainMode()
+{
+    PollerBs_SetMainMode();
+}
+
+void LoadBs_Main()
+{
+    PollerBs_Run();
+}
 

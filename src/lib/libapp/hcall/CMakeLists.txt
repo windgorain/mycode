@@ -4,4 +4,4 @@ aux_source_directory(./ SRC)
 set(NAME hcall)
 INCLUDE(../my_libapp.txt)
 
-target_link_libraries(${LIB_NAME} comp-wsapp)
+target_link_libraries(${LIB_NAME} dynamic-ws)

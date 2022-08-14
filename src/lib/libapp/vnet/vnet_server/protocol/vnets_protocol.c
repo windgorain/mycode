@@ -48,7 +48,7 @@ BS_STATUS VNETS_Protocol_SendData
 {
     MBUF_S *pstMbuf;
 
-    pstMbuf = VNETS_Context_CreateMbufByCopyBuf(128, pcData, ulDataLen);
+    pstMbuf = VNETS_Context_CreateMbufByCopyBuf(128, (void*)pcData, ulDataLen);
     if (NULL == pstMbuf)
     {
         return(BS_ERR);

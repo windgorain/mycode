@@ -11,9 +11,10 @@
 #include "utl/atomic_once.h"
 #include "utl/msgque_utl.h"
 #include "utl/event_utl.h"
+#include "utl/timerfd_utl.h"
 
 /* defines */
-#define _MTimer_DFT_TIME_PER_TICK 1000  /* ms */
+#define _MTimer_DFT_TIME_PER_TICK 100  /* ms */
 
 #define _VTIMER_MTimer_EVENT 1
 #define _MTimer_MSG_TYPE 1
@@ -23,14 +24,12 @@
 typedef struct
 {
     HANDLE  hClockId;
-    HANDLE  timer;
     THREAD_ID ulThreadID;
-    MSGQUE_HANDLE hQueID;
+    int timer_fd;
 }_MTimer_HEAD_S;
 
 /* var */
 static _MTimer_HEAD_S g_stMTimerHead;
-static EVENT_HANDLE g_hMtimerEventId = 0;
 
 static UINT _mtimer_Ms2Tick(UINT ms)
 {
@@ -39,43 +38,23 @@ static UINT _mtimer_Ms2Tick(UINT ms)
 
 static void _MTimer_Main(IN USER_HANDLE_S *pstUserHandle)
 {
-    UINT64 uiEvent = 0;
-    MSGQUE_MSG_S stMsg;
+    int ret;
+    UINT64 data;
 
     while (1) {
-        Event_Read(g_hMtimerEventId, _VTIMER_MTimer_EVENT,
-                &uiEvent, EVENT_FLAG_WAIT, BS_WAIT_FOREVER);
-
-        if (uiEvent & _VTIMER_MTimer_EVENT) {
-            while(BS_OK == MSGQUE_ReadMsg(g_stMTimerHead.hQueID, &stMsg)) {
-                if (_MTimer_MSG_TYPE == HANDLE_UINT(stMsg.ahMsg[0])) {
-                    VCLOCK_Step(g_stMTimerHead.hClockId);
-                }
-            }
+        ret = read(g_stMTimerHead.timer_fd, &data, sizeof(data));
+        if (ret > 0) {
+            VCLOCK_Step(g_stMTimerHead.hClockId);
         }
     }
 
     return;
 }
 
-static VOID _MTimer_OnTimer(IN HANDLE timer, IN USER_HANDLE_S *pstUserHandle)
-{
-    MSGQUE_MSG_S stMsg;
-
-    stMsg.ahMsg[0] = UINT_HANDLE(_MTimer_MSG_TYPE);
-    MSGQUE_WriteMsg(g_stMTimerHead.hQueID, &stMsg);
-    Event_Write(g_hMtimerEventId, _VTIMER_MTimer_EVENT);
-}
-
 static UINT _MTimer_GetAdjustTick()
 {
-    UINT ulMsgNum = 0;
-
-    /* 为了避免提前触发, 要加上现在消息队列中已有的消息个数,
-       并且在其基础上再加一个Tick*/
-    ulMsgNum = MSGQUE_Count(g_stMTimerHead.hQueID);
-
-    return ulMsgNum + 1;
+    /* 为了避免提前触发, 在其基础上再加一个Tick */
+    return 1;
 }
 
 static BS_STATUS _mtimer_InitOnce(void *ud)
@@ -87,48 +66,20 @@ static BS_STATUS _mtimer_InitOnce(void *ud)
         RETURN(BS_ERR);
     }
 
-    if (NULL == (g_hMtimerEventId = Event_Create()))
-    {
-        VCLOCK_DeleteInstance(g_stMTimerHead.hClockId);
-        g_stMTimerHead.hClockId = 0;
-        BS_WARNNING(("Can't crete event!"));
-        RETURN(BS_ERR);
-    }
-
-    if (NULL == (g_stMTimerHead.hQueID = MSGQUE_Create(128)))
-    {
-        Event_Delete(g_hMtimerEventId);
-        g_hMtimerEventId = 0;
-        VCLOCK_DeleteInstance(g_stMTimerHead.hClockId);
-        g_stMTimerHead.hClockId = 0;
-        BS_WARNNING(("Can't crete MTimer queue!"));
-        RETURN(BS_ERR);
-    }
-
-    g_stMTimerHead.timer = Timer_Create(_MTimer_DFT_TIME_PER_TICK,
-            TIMER_FLAG_CYCLE, _MTimer_OnTimer, NULL);
-    if (NULL == g_stMTimerHead.timer)
-    {
-        Event_Delete(g_hMtimerEventId);
-        g_hMtimerEventId = 0;
-        MSGQUE_Delete(g_stMTimerHead.hQueID);
-        g_stMTimerHead.hQueID = 0;
+    g_stMTimerHead.timer_fd = TimerFd_Create(_MTimer_DFT_TIME_PER_TICK, 0);
+    if (g_stMTimerHead.timer_fd < 0) {
         VCLOCK_DeleteInstance(g_stMTimerHead.hClockId);
         g_stMTimerHead.hClockId = 0;
         RETURN(BS_ERR);
     }
 
-    if (THREAD_ID_INVALID == (g_stMTimerHead.ulThreadID
-                = THREAD_Create("MTimer", NULL, _MTimer_Main, NULL)))
+    g_stMTimerHead.ulThreadID = THREAD_Create("MTimer", NULL, _MTimer_Main, NULL);
+    if (THREAD_ID_INVALID == g_stMTimerHead.ulThreadID)
     {
-        Event_Delete(g_hMtimerEventId);
-        g_hMtimerEventId = 0;
-        Timer_Delete(g_stMTimerHead.timer);
-        g_stMTimerHead.timer = NULL;
-        MSGQUE_Delete(g_stMTimerHead.hQueID);
-        g_stMTimerHead.hQueID = NULL;
         VCLOCK_DeleteInstance(g_stMTimerHead.hClockId);
         g_stMTimerHead.hClockId = 0;
+        TimerFd_Close(g_stMTimerHead.timer_fd);
+        g_stMTimerHead.timer_fd = -1;
         BS_WARNNING(("Can't crete MTimer thread!"));
         RETURN(BS_ERR);
     }
@@ -139,10 +90,10 @@ static BS_STATUS _mtimer_InitOnce(void *ud)
 static void _mtimer_Init()
 {
     static ATOM_ONCE_S once = ATOM_ONCE_INIT_VALUE;
-    AtomOnce_Do(&once, _mtimer_InitOnce, NULL);
+    AtomOnce_WaitDo(&once, _mtimer_InitOnce, NULL);
 }
 
-int MTimer_Add(MTIMER_S *timer, UINT time_ms, UINT flag,
+int MTimer_AddExt(MTIMER_S *timer, UINT first_time_ms,UINT time_ms, UINT flag,
         PF_TIME_OUT_FUNC pfFunc, USER_HANDLE_S *pstUserHandle)
 {
     UINT first_tick;
@@ -150,16 +101,22 @@ int MTimer_Add(MTIMER_S *timer, UINT time_ms, UINT flag,
 
     _mtimer_Init();
 
-    if (g_hMtimerEventId == NULL) {
+    if (g_stMTimerHead.timer_fd < 0) {
         BS_WARNNING(("MTimer not init"));
         RETURN(BS_NOT_INIT);
     }
 
     tick = _mtimer_Ms2Tick(time_ms);
-    first_tick = tick + _MTimer_GetAdjustTick();
+    first_tick = _mtimer_Ms2Tick(first_time_ms) + _MTimer_GetAdjustTick();
 
     return VCLOCK_AddTimer(g_stMTimerHead.hClockId, &timer->vclock,
             first_tick, tick, flag, pfFunc, pstUserHandle);
+}
+
+int MTimer_Add(MTIMER_S *timer, UINT time_ms, UINT flag,
+        PF_TIME_OUT_FUNC pfFunc, USER_HANDLE_S *pstUserHandle)
+{
+    return MTimer_AddExt(timer, time_ms, time_ms, flag, pfFunc, pstUserHandle);
 }
 
 int MTimer_Del(MTIMER_S *timer)
@@ -194,7 +151,7 @@ BS_STATUS MTimer_RestartWithTime(IN HANDLE hMTimerID, IN UINT ulTime/* ms */)
     ulTick = (ulTime + _MTimer_DFT_TIME_PER_TICK - 1) / _MTimer_DFT_TIME_PER_TICK;
 
     return VCLOCK_RestartWithTick(g_stMTimerHead.hClockId, hMTimerID,
-            ulTick, _MTimer_GetAdjustTick());
+             _MTimer_GetAdjustTick(), ulTick);
 }
 
 /* 得到还有多少ms 就超时了 */

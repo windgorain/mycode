@@ -68,7 +68,7 @@ HANDLE PHYMNG_Create()
         return 0;
     }
 
-    pstPhyMngHead->hHashId = HASH_CreateInstance(_PHYMNG_HASH_BUCKET_NUM, (PF_HASH_INDEX_FUNC)_PHYMNG_GetHashIndex);
+    pstPhyMngHead->hHashId = HASH_CreateInstance(NULL, _PHYMNG_HASH_BUCKET_NUM, (PF_HASH_INDEX_FUNC)_PHYMNG_GetHashIndex);
     if (0 == pstPhyMngHead->hHashId)
     {
         MEM_Free(pstPhyMngHead);

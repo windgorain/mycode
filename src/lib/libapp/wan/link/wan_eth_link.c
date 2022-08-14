@@ -6,7 +6,6 @@
 ******************************************************************************/
 #include "bs.h"
 
-#include "utl/ic_utl.h"
 #include "utl/bit_opt.h"
 #include "utl/sif_utl.h"
 #include "utl/ip_utl.h"
@@ -42,6 +41,7 @@ BS_STATUS WAN_ETH_LinkInput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf)
     ETH_HEADER_S * pstEthHeader;
     CHAR szIfName[IF_MAX_NAME_LEN + 1];
     USHORT usProto;
+    BOOL_T is_l3 = FALSE;
 
     if (BS_OK != MBUF_MakeContinue (pstMbuf, sizeof(ETH_HEADER_S)))
     {
@@ -53,16 +53,25 @@ BS_STATUS WAN_ETH_LinkInput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf)
 
     BS_DBG_OUTPUT(g_uiWanEthLinkDebugFlag, _WAN_ETH_LINK_DBG_PACKET,
              ("EthLink: Receive packet from %s,DestMAC:%pM,SourceMAC:%pM.\r\n",
-             CompIf_GetIfName(ulIfIndex, szIfName),
+             IFNET_GetIfName(ulIfIndex, szIfName),
              &pstEthHeader->stDMac,
              &pstEthHeader->stSMac));
 
     MBUF_SET_SOURCEMAC(pstMbuf, pstEthHeader->stSMac.aucMac);
     usProto = pstEthHeader->usProto;
 
-    MBUF_CutHead (pstMbuf, sizeof(ETH_HEADER_S));
 
-    return CompIf_ProtoInput(ulIfIndex, pstMbuf, usProto);
+    /* 判断是2层口还是三层口, 分别进行不同的处理 */
+    IFNET_Ioctl(ulIfIndex, IFNET_CMD_IS_L3, &is_l3);
+
+    if (is_l3) {
+        MBUF_CutHead (pstMbuf, sizeof(ETH_HEADER_S));
+        return IFNET_ProtoInput(ulIfIndex, pstMbuf, usProto);
+    } else { /* l2 */
+        /* TODO: 进入以太网交换机处理流程 */
+    }
+
+    return 0;
 }
 
 BS_STATUS WAN_ETH_LinkOutput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType/* 网络序 */)
@@ -130,7 +139,7 @@ BS_STATUS WAN_ETH_LinkOutput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT u
     }
     else
     {
-        CompIf_Ioctl(ulIfIndex, IFNET_CMD_GET_MAC, &stSMacAddr);
+        IFNET_Ioctl(ulIfIndex, IFNET_CMD_GET_MAC, &stSMacAddr);
         pcHostMac = stSMacAddr.aucMac;
     }
 
@@ -140,7 +149,7 @@ BS_STATUS WAN_ETH_LinkOutput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT u
     BS_DBG_OUTPUT(g_uiWanEthLinkDebugFlag, _WAN_ETH_LINK_DBG_PACKET,
          ("EthLink: Send packet to %pM.\r\n", pucDstMac));
 
-    return CompIf_PhyOutput (ulIfIndex, pstMbuf);
+    return IFNET_PhyOutput (ulIfIndex, pstMbuf);
 }
 
 /* debug eth packet */

@@ -13,7 +13,9 @@ NO_HANDLE g_hLdapAppSchemeNo = NULL;
 
 BS_STATUS LDAPAPP_Schema_Init()
 {
-    g_hLdapAppSchemeNo = NO_CreateAggregate(0, 0, 0);
+    OBJECT_PARAM_S no_param = {0};
+
+    g_hLdapAppSchemeNo = NO_CreateAggregate(&no_param);
     if (NULL == g_hLdapAppSchemeNo)
     {
         return BS_ERR;

@@ -16,16 +16,95 @@
 #include "utl/signal_utl.h"
 #include "utl/file_utl.h"
 #include "utl/bit_opt.h"
+#include "utl/txt_utl.h"
 #include "utl/stack_utl.h"
 #include "utl/exchar_utl.h"
+#include "utl/exec_utl.h"
 
 #include "cmd_func.h"
 
 static CMD_EXP_HDL g_cmd_exp = NULL;
 
-VOID CMD_EXP_ExitApp(UINT argc, CHAR **argv)
+#ifndef IN_DEBUG
+static int _cmd_exp_PasswdCmdHook(int event, void *data, void *ud, void *env)
 {
-    CmdExp_ExitApp(argc, argv);
+    char *line = data;
+
+    if (event != CMD_EXP_HOOK_EVENT_LINE) {
+        return 0;
+    }
+
+    void *runner = CmdExp_GetEnvRunner(env);
+
+    line = TXT_Strim(line);
+
+    if (0 != strcmp(line, "psee-passwd")) {
+        CmdExp_QuitMode(runner);
+    }
+
+    CmdExp_AltEnable(runner, TRUE);
+    CmdExp_SetRunnerHook(runner, NULL, NULL);
+    CmdExp_SetRunnerHookMode(runner, FALSE);
+
+    EXEC_OutString("\r\n");
+    CmdExp_RunnerOutputPrefix(runner);
+
+    return BS_STOLEN;
+}
+#endif
+
+int CMD_EXP_EnterSupper(UINT argc, CHAR **argv, void *env)
+{
+#ifndef IN_DEBUG
+    void *runner = CmdExp_GetEnvRunner(env);
+
+    CmdExp_SetRunnerHook(runner, _cmd_exp_PasswdCmdHook, NULL);
+    CmdExp_SetRunnerHookMode(runner, TRUE);
+    CmdExp_AltEnable(runner, FALSE);
+#endif
+
+    return 0;
+}
+
+static int _cmd_exp_ExitConfirm(int event, void *data, void *ud, void *env)
+{
+    char *char_data = data;
+    void *runner = CmdExp_GetEnvRunner(env);
+
+    if (event != CMD_EXP_HOOK_EVENT_CHAR) {
+        return 0;
+    }
+
+    if ((*char_data == 'Y') || (*char_data == 'y')) {
+        SYSRUN_Exit(0);
+    }
+
+    CmdExp_AltEnable(runner, TRUE);
+    CmdExp_SetRunnerHook(runner, NULL, NULL);
+    CmdExp_SetRunnerHookMode(runner, FALSE);
+
+    EXEC_OutString("\r\n");
+    CmdExp_RunnerOutputPrefix(runner);
+
+    return BS_STOLEN;
+}
+
+int CMD_EXP_ExitApp(UINT argc, CHAR **argv, void *env)
+{
+    if ((argc >= 2) && (0 == strcmp(argv[1], "force"))) {
+        SYSRUN_Exit(0);
+    }
+
+    void *runner = CmdExp_GetEnvRunner(env);
+
+    CmdExp_SetRunnerHook(runner, _cmd_exp_ExitConfirm, NULL);
+    CmdExp_SetRunnerHookMode(runner, TRUE);
+    CmdExp_AltEnable(runner, FALSE);
+
+    EXEC_OutString(" Exit the program? y/n:");
+    EXEC_Flush();
+
+    return 0;
 }
 
 /* 初始化命令行注册模块 */
@@ -61,15 +140,19 @@ VOID CMD_EXP_RegNoDbgFunc(IN CMD_EXP_NO_DBG_NODE_S *pstNode)
     return CmdExp_RegNoDbgFunc(g_cmd_exp, pstNode);
 }
 
-BS_STATUS CMD_EXP_RegSave(CHAR *pcFileName, CHAR *pcViews,
-        PF_CMD_EXP_SAVE pfSaveFunc)
+BS_STATUS CMD_EXP_RegSave(char *save_path, CMD_EXP_REG_CMD_PARAM_S *param)
 {
-    return CmdExp_RegSave(g_cmd_exp, pcFileName, pcViews, pfSaveFunc);
+    return CmdExp_RegSave(g_cmd_exp, save_path, param);
 }
 
-BS_STATUS CMD_EXP_UnRegSave(char *filename, char *pcViews)
+BS_STATUS CMD_EXP_RegEnter(CMD_EXP_REG_CMD_PARAM_S *param)
 {
-    return CmdExp_UnRegSave(g_cmd_exp, filename, pcViews);
+    return CmdExp_RegEnter(g_cmd_exp, param);
+}
+
+BS_STATUS CMD_EXP_UnRegSave(char *save_path, char *pcViews)
+{
+    return CmdExp_UnRegSave(g_cmd_exp, save_path, pcViews);
 }
 
 BS_STATUS CMD_EXP_RegCmd(IN CMD_EXP_REG_CMD_PARAM_S *pstParam)
@@ -108,10 +191,9 @@ int CMD_EXP_UnregCmdSimple(char *view, char *cmd)
 }
 
 /* 创建一个用于运行命令的实例 */
-HANDLE CMD_EXP_CreateRunner()
+HANDLE CMD_EXP_CreateRunner(UINT type)
 {
-    HANDLE runner = CmdExp_CreateRunner(g_cmd_exp);
-    return runner;
+    return CmdExp_CreateRunner(g_cmd_exp, type);
 }
 
 PLUG_API int CMD_EXP_DoCmd(char *cmd)

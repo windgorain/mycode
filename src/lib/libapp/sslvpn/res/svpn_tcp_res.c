@@ -94,7 +94,9 @@ BS_STATUS SVPN_TcpResCmd_Save(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN HANDLE hFi
         
     while (BS_OK == SVPN_CtxData_GetNextObject(hSvpnContext, SVPN_CTXDATA_TCP_RES, szName, szName, SVPN_MAX_RES_NAME_LEN + 1))
     {
-        CMD_EXP_OutputMode(hFile, "tcp-resource %s", szName);
+        if (0 != CMD_EXP_OutputMode(hFile, "tcp-resource %s", szName)) {
+            continue;
+        }
 
         SVPN_CD_SaveProp(hSvpnContext, SVPN_CTXDATA_TCP_RES, szName, "Description", "description", hFile);
         SVPN_CD_SaveElements(hSvpnContext, SVPN_CTXDATA_TCP_RES, szName, "ServerAddress", "address", ';', hFile);

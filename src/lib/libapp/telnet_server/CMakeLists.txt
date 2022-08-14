@@ -4,4 +4,4 @@ set(SRC "")
 aux_source_directory(./ SRC)
 INCLUDE(../my_libapp.txt)
 
-target_link_libraries(${LIB_NAME} comp-poller)
+target_link_libraries(${LIB_NAME} dynamic-poller)

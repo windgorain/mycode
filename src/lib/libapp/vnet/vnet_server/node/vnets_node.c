@@ -9,6 +9,7 @@
 #include "utl/mutex_utl.h"
 #include "utl/nap_utl.h"
 #include "utl/txt_utl.h"
+#include "utl/exec_utl.h"
 #include "utl/lstr_utl.h"
 #include "utl/rand_utl.h"
 
@@ -106,7 +107,13 @@ static VOID vnets_node_TpCloseNotify(IN UINT uiTPID, IN HANDLE *phPropertys, IN 
 
 BS_STATUS VNETS_NODE_Init()
 {
-    g_hVnetsNodeHandle = NAP_Create(NAP_TYPE_HASH, VNETS_NODE_MAX_NUM, sizeof(VNETS_NODE_S), 0);
+    NAP_PARAM_S nap_param = {0};
+
+    nap_param.enType = NAP_TYPE_HASH;
+    nap_param.uiMaxNum = VNETS_NODE_MAX_NUM;
+    nap_param.uiNodeSize = sizeof(VNETS_NODE_S);
+
+    g_hVnetsNodeHandle = NAP_Create(&nap_param);
     if (NULL == g_hVnetsNodeHandle)
     {
         return BS_ERR;

@@ -8,6 +8,7 @@
         
 #include "utl/nap_utl.h"
 #include "utl/rcu_utl.h"
+#include "utl/mem_cap.h"
 
 #include "nap_inner.h"
 
@@ -31,37 +32,17 @@ static VOID nap_ptrarray_Destory(IN HANDLE hNAPHandle)
 
     if (pstNAPHead->ppPrtArray)
     {
-        MEM_Free(pstNAPHead->ppPrtArray);
+        MemCap_Free(pstNAPHead->stCommonHead.memcap, pstNAPHead->ppPrtArray);
     }
     
-    MEM_Free(pstNAPHead);
+    MemCap_Free(pstNAPHead->stCommonHead.memcap, pstNAPHead);
 
     return;
 }
 
-static VOID * nap_ptrarray_InnerAlloc(IN _NAP_PTR_ARRAY_HEAD_S *pstHead)
+static inline void * nap_ptrarray_InnerAlloc(IN _NAP_PTR_ARRAY_HEAD_S *pstHead)
 {
-    UINT uiSize;
-    VOID *pNode;
-
-    uiSize = pstHead->uiNapNodeSize;
-    if (pstHead->stCommonHead.uiFlag & NAP_FLAG_RCU)
-    {
-        uiSize += sizeof(RCU_NODE_S);
-    }
-
-    pNode = MEM_Malloc(uiSize);
-    if (NULL == pNode)
-    {
-        return NULL;
-    }
-
-    if (pstHead->stCommonHead.uiFlag & NAP_FLAG_RCU)
-    {
-        pNode = (UCHAR*)pNode + sizeof(RCU_NODE_S);
-    }
-
-    return pNode;
+    return MemCap_Malloc(pstHead->stCommonHead.memcap, pstHead->uiNapNodeSize);
 }
 
 static VOID * nap_ptrarray_Alloc(IN HANDLE hNapHandle, IN UINT uiIndex)
@@ -76,24 +57,9 @@ static VOID * nap_ptrarray_Alloc(IN HANDLE hNapHandle, IN UINT uiIndex)
     return pstHead->ppPrtArray[uiPos];
 }
 
-static VOID nap_ptrarray_RcuFree(IN VOID *pstRcuNode)
-{
-    MEM_Free(pstRcuNode);
-}
-
 static VOID nap_ptrarray_InnerFree(IN _NAP_PTR_ARRAY_HEAD_S *pstNAPTbl, IN VOID *pNode)
 {
-    RCU_NODE_S *pstRcu;
-
-    if (pstNAPTbl->stCommonHead.uiFlag & NAP_FLAG_RCU)
-    {
-        pstRcu = (VOID*)((UCHAR*)pNode - sizeof(RCU_NODE_S));
-        RcuBs_Free(pstRcu, nap_ptrarray_RcuFree);
-    }
-    else
-    {
-        MEM_Free(pNode);
-    }
+    MemCap_Free(pstNAPTbl->stCommonHead.memcap, pNode);
 }
 
 static VOID nap_ptrarray_Free(IN HANDLE hNapHandle, IN VOID *pstNapNode, IN UINT uiIndex)
@@ -130,31 +96,32 @@ static _NAP_FUNC_TBL_S g_stNapPtrArrayFuncTbl =
     nap_ptrarray_GetNodeByIndex
 };
 
-_NAP_HEAD_COMMON_S * _NAP_PtrArrayCreate(IN UINT uiMaxNum, IN UINT uiNapNodeSize)
+_NAP_HEAD_COMMON_S * _NAP_PtrArrayCreate(NAP_PARAM_S *p)
 {
     _NAP_PTR_ARRAY_HEAD_S *pstNAPHead = NULL;
 
-    if (uiMaxNum == 0)
+    if (p->uiMaxNum == 0)
     {
         return NULL;
     }
 
-    pstNAPHead = MEM_ZMalloc(sizeof(_NAP_PTR_ARRAY_HEAD_S));
+    pstNAPHead = MemCap_ZMalloc(p->memcap, sizeof(_NAP_PTR_ARRAY_HEAD_S));
     if (pstNAPHead == NULL)
     {
         return NULL;
     }
 
+    pstNAPHead->stCommonHead.memcap = p->memcap;
     pstNAPHead->stCommonHead.pstFuncTbl = &g_stNapPtrArrayFuncTbl;
 
-    pstNAPHead->ppPrtArray = MEM_Malloc(sizeof(VOID*) * uiMaxNum);
+    pstNAPHead->ppPrtArray = MemCap_Malloc(p->memcap, sizeof(VOID*) * p->uiMaxNum);
     if (NULL == pstNAPHead->ppPrtArray)
     {
-        MEM_Free(pstNAPHead);
+        MemCap_Free(p->memcap, pstNAPHead);
         return NULL;
     }
 
-    pstNAPHead->uiNapNodeSize = uiNapNodeSize;
+    pstNAPHead->uiNapNodeSize = p->uiNodeSize;
 
     return (_NAP_HEAD_COMMON_S*) pstNAPHead;
 }

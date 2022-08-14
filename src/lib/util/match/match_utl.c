@@ -155,6 +155,7 @@ int Match_Do(MATCH_HANDLE head, void *key)
     MATCH_S *ctrl = head;
     int index;
 
+    if (!ctrl) return -1;
     index = match_GetByKey(ctrl, key);
     if (index < 0) {
         return -1;

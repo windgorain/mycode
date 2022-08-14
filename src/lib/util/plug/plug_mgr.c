@@ -11,6 +11,12 @@
 #include "utl/plug_utl.h"
 #include "utl/plug_mgr.h"
 
+typedef struct {
+    CFF_HANDLE hCff;
+    char *tag;
+    PLUG_MGR_NODE_S *plug_mgr_node;
+}PLUG_MGR_ENV_S;
+
 static PLUG_MGR_NODE_S *plugmgr_AllocNode(char *plug_name, char *filename)
 {
     PLUG_MGR_NODE_S *node;
@@ -55,7 +61,7 @@ static PLUG_MGR_NODE_S * plugmgr_LoadFile(PLUG_MGR_S *plug_mgr,
     PLUG_ID hPlug;
     CHAR *pszErroInfo = NULL;
     PLUG_MGR_NODE_S *node = plugmgr_AllocNode(plug_name, filename);
-    UINT_FUNC pfFunc;
+    UINT_FUNC_3 pfFunc;
 
     if (! node) {
         return NULL;
@@ -138,16 +144,14 @@ static VOID plugmgr_Load(PLUG_MGR_S *mgr, char *plug_name,
         char *file, char *conf_path, char *save_path)
 {
     printf("Load %s...", file);
-
     if (NULL != PlugMgr_Find(mgr, plug_name)) {
         printf(" This plugin has been loaded!\r\n");
         return;
     }
 
     if (NULL == plugmgr_LoadFile(mgr, plug_name, file, conf_path, save_path)) {
-        return;
+		return;
     }
-
     printf("OK\r\n");
 
     return;
@@ -156,19 +160,27 @@ static VOID plugmgr_Load(PLUG_MGR_S *mgr, char *plug_name,
 static VOID plugmgr_LoadOne(PLUG_MGR_S *mgr, CFF_HANDLE hCff, char *plug_name)
 {
     char *file = NULL;
-    char *conf_path = NULL;
+    char *conf_path = "";
     char *save_path = NULL;
+	char ext_file[256];
+	char ext_conf_path[256];
+	char ext_save_path[256];
+
     CFF_GetPropAsString(hCff, plug_name, "file", &file);
     CFF_GetPropAsString(hCff, plug_name, "conf_path", &conf_path);
     CFF_GetPropAsString(hCff, plug_name, "save_path", &save_path);
-    if ((file == NULL) || (conf_path == NULL)) {
+    if (file == NULL) {
         return;
     }
     if (save_path == NULL) {
         save_path = conf_path;
     }
+	
+	SYSINFO_ExpandWorkDir(ext_file, sizeof(ext_file), file);
+	SYSINFO_ExpandWorkDir(ext_conf_path, sizeof(ext_conf_path), conf_path);
+	SYSINFO_ExpandWorkDir(ext_save_path, sizeof(ext_save_path), save_path);
 
-    plugmgr_Load(mgr, plug_name, file, conf_path, save_path);
+    plugmgr_Load(mgr, plug_name, ext_file, ext_conf_path, ext_save_path);
 }
 
 /* 加载各个插件 */
@@ -186,7 +198,6 @@ static VOID plugmgr_EachLoad(CFF_HANDLE hCff, char *tag, void *ud)
     plugmgr_LoadOne(mgr, hCff, tag);
 }
 
-
 static VOID plugmgr_NotifyStage(CFF_HANDLE hCff, char *tag, void *ud)
 {
     USER_HANDLE_S *uh = ud;
@@ -194,8 +205,9 @@ static VOID plugmgr_NotifyStage(CFF_HANDLE hCff, char *tag, void *ud)
     int stage = HANDLE_UINT(uh->ahUserHandle[1]);
     PLUG_ID ulPlugId;
     PF_PLUG_STAGE pfFunc;
+    PLUG_MGR_ENV_S env;
 
-    PLUG_MGR_NODE_S *node =PlugMgr_Find(mgr, tag);
+    PLUG_MGR_NODE_S *node = PlugMgr_Find(mgr, tag);
     if (node == NULL) {
         return;
     }
@@ -210,7 +222,12 @@ static VOID plugmgr_NotifyStage(CFF_HANDLE hCff, char *tag, void *ud)
         return;
     }
 
-    pfFunc(stage);
+    memset(&env, 0, sizeof(env));
+    env.hCff = hCff;
+    env.tag = tag;
+    env.plug_mgr_node = node;
+
+    pfFunc(stage, &env);
 
     return;
 }
@@ -219,19 +236,18 @@ static VOID plugmgr_RegCmd(PLUG_MGR_S *mgr, char *plug_name, char *filename,
         char *conf_path, char *save_path, char *cmdfile)
 {
     PLUG_ID plug;
+    PLUG_MGR_NODE_S *node;
 
-    if (NULL == PlugMgr_Find(mgr, plug_name)) {
+    node = PlugMgr_Find(mgr, plug_name);
+    if (NULL == node) {
         return;
     }
 
-    plug = (PLUG_ID)PLUG_LOAD(filename);
-    if (plug == NULL) {
-        return;
-    }
+	plug = node->hPlug;
 
     /* 注册命令 */
     CHAR buf[FILE_MAX_PATH_LEN + 1];
-    snprintf(buf, sizeof(buf), "%s/%s", conf_path, cmdfile);
+    scnprintf(buf, sizeof(buf), "%s/%s", conf_path, cmdfile);
     CMD_CFG_RegCmd(buf, plug, save_path);
 }
 
@@ -245,7 +261,7 @@ static VOID plugmgr_UnRegCmd(PLUG_MGR_S *mgr, char *plug_name,
 
     /* 取消注册命令 */
     CHAR buf[FILE_MAX_PATH_LEN + 1];
-    snprintf(buf, sizeof(buf), "%s/%s", conf_path, cmdfile);
+    scnprintf(buf, sizeof(buf), "%s/%s", conf_path, cmdfile);
     CMD_CFG_UnRegCmd(buf, save_path);
 }
 
@@ -257,6 +273,9 @@ static VOID plugmgr_EachRegCmd(CFF_HANDLE hCff, char *tag, void *ud)
     char *file = NULL;
     char *conf_path = NULL;
     char *save_path = NULL;
+	char ext_file[256];
+	char ext_conf_path[256];
+	char ext_save_path[256];
 
     CFF_GetPropAsString(hCff, tag, "file", &file);
     CFF_GetPropAsString(hCff, tag, "conf_path", &conf_path);
@@ -268,7 +287,11 @@ static VOID plugmgr_EachRegCmd(CFF_HANDLE hCff, char *tag, void *ud)
         save_path = conf_path;
     }
 
-    plugmgr_RegCmd(mgr, tag, file, conf_path, save_path, cmdfile);
+	SYSINFO_ExpandWorkDir(ext_file, sizeof(ext_file), file);
+	SYSINFO_ExpandWorkDir(ext_conf_path, sizeof(ext_conf_path), conf_path);
+	SYSINFO_ExpandWorkDir(ext_save_path, sizeof(ext_save_path), save_path);
+    
+	plugmgr_RegCmd(mgr, tag, ext_file, ext_conf_path, ext_save_path, cmdfile);
 }
 
 static VOID plugmgr_EachUnRegCmd(CFF_HANDLE hCff, char *tag, void *ud)
@@ -278,6 +301,9 @@ static VOID plugmgr_EachUnRegCmd(CFF_HANDLE hCff, char *tag, void *ud)
     char *cmdfile = uh->ahUserHandle[1];
     char *conf_path = NULL;
     char *save_path = NULL;
+	char ext_cmdfile[256];
+	char ext_conf_path[256];
+	char ext_save_path[256];
 
     CFF_GetPropAsString(hCff, tag, "conf_path", &conf_path);
     CFF_GetPropAsString(hCff, tag, "save_path", &save_path);
@@ -287,35 +313,34 @@ static VOID plugmgr_EachUnRegCmd(CFF_HANDLE hCff, char *tag, void *ud)
     if (save_path == NULL) {
         save_path = conf_path;
     }
+	SYSINFO_ExpandWorkDir(ext_cmdfile, sizeof(ext_cmdfile), cmdfile);
+	SYSINFO_ExpandWorkDir(ext_conf_path, sizeof(ext_conf_path), conf_path);
+	SYSINFO_ExpandWorkDir(ext_save_path, sizeof(ext_save_path), save_path);
 
-    plugmgr_UnRegCmd(mgr, tag, conf_path, save_path, cmdfile);
+	plugmgr_UnRegCmd(mgr, tag, ext_conf_path, ext_save_path, ext_cmdfile);
 }
 
 static VOID plugmgr_RunCmd(PLUG_MGR_S *mgr, char *plug_name, char *file,
         char *conf_path, char *save_path, char *cfgfile)
 {
-    PLUG_ID plug;
-
-    if (NULL == PlugMgr_Find(mgr, plug_name)) {
-        return;
-    }
-
-    plug = (PLUG_ID)PLUG_LOAD(file);
-    if (plug == NULL) {
-        return;
+    PLUG_MGR_NODE_S *node;
+    
+	node = PlugMgr_Find(mgr, plug_name);
+    if (NULL == node) {
+		return;
     }
 
     CHAR buf[FILE_MAX_PATH_LEN + 1];
-    snprintf(buf, sizeof(buf), "%s/%s", save_path, cfgfile);
+    scnprintf(buf, sizeof(buf), "%s/%s", save_path, cfgfile);
     if (! FILE_IsFileExist(buf)) {
-        snprintf(buf, sizeof(buf), "%s/%s", conf_path, cfgfile);
+        scnprintf(buf, sizeof(buf), "%s/%s", conf_path, cfgfile);
         FILE_ChangeExternName(buf, "dft");
         if (! FILE_IsFileExist(buf)) {
             return;
         }
     }
 
-    CMD_MNG_CmdRestoreByFile(buf);
+    CMD_MNG_CmdRestoreByFile(0, buf);
 
     return;
 }
@@ -329,6 +354,9 @@ static VOID plugmgr_EachLoadCfg(CFF_HANDLE hCff, char *tag, void *ud)
     char *file = NULL;
     char *conf_path = NULL;
     char *save_path = NULL;
+	char ext_file[256];
+	char ext_conf_path[256];
+	char ext_save_path[256];
 
     CFF_GetPropAsString(hCff, tag, "file", &file);
     CFF_GetPropAsString(hCff, tag, "conf_path", &conf_path);
@@ -339,8 +367,11 @@ static VOID plugmgr_EachLoadCfg(CFF_HANDLE hCff, char *tag, void *ud)
     if (save_path == NULL) {
         save_path = conf_path;
     }
+	SYSINFO_ExpandWorkDir(ext_file, sizeof(ext_file), file);
+	SYSINFO_ExpandWorkDir(ext_conf_path, sizeof(ext_conf_path), conf_path);
+	SYSINFO_ExpandWorkDir(ext_save_path, sizeof(ext_save_path), save_path);
 
-    plugmgr_RunCmd(mgr, tag, file, conf_path, save_path, cfgfile);
+    plugmgr_RunCmd(mgr, tag, ext_file, ext_conf_path, ext_save_path, cfgfile);
 }
 
 int PlugMgr_LoadByCff(PLUG_MGR_S *mgr, CFF_HANDLE hCff)
@@ -413,6 +444,10 @@ int PlugMgr_LoadByCff(PLUG_MGR_S *mgr, CFF_HANDLE hCff)
 int PlugMgr_LoadManual(PLUG_MGR_S *mgr, char *ini_file, char *tag)
 {
     USER_HANDLE_S ud;
+
+    if (PlugMgr_Find(mgr, tag)) {
+        return 0;
+    }
 
     CFF_HANDLE hCff = CFF_INI_Open(ini_file, 0);
     if (hCff == NULL) {
@@ -500,6 +535,13 @@ int PlugMgr_Unload(PLUG_MGR_S *mgr, char *ini_file, char *plug_name)
         RETURN(BS_CAN_NOT_OPEN);
     }
 
+    int hot_remove = 0;
+    CFF_GetPropAsInt(hCff, plug_name, "hot_remove", &hot_remove);
+    if (! hot_remove) {
+        EXEC_OutString("Not support hot remove \r\n");
+        RETURN(BS_NOT_SUPPORT);
+    }
+
     ud.ahUserHandle[0] = mgr;
     ud.ahUserHandle[1] = UINT_HANDLE(PLUG_STAGE_STOP);
     plugmgr_NotifyStage(hCff, plug_name, &ud);
@@ -522,7 +564,6 @@ int PlugMgr_Unload(PLUG_MGR_S *mgr, char *ini_file, char *plug_name)
     return 0;
 }
 
-
 PLUG_MGR_NODE_S * PlugMgr_Next(PLUG_MGR_S *mgr, PLUG_MGR_NODE_S *curr/* NULL表示获取第一个 */)
 {
     if (! curr) {
@@ -536,3 +577,19 @@ int PlugMgr_GetStage(PLUG_MGR_S *mgr)
 {
     return mgr->stage;
 }
+
+char * PlugMgr_GetSavePathByEnv(void *env)
+{
+    PLUG_MGR_ENV_S *plug_env  = env;
+    CFF_HANDLE hCff = plug_env->hCff;
+    char *save_path = NULL;
+
+    CFF_GetPropAsString(hCff, plug_env->tag, "save_path", &save_path);
+
+    if (save_path == NULL) {
+        CFF_GetPropAsString(hCff, plug_env->tag, "conf_path", &save_path);
+    }
+
+    return save_path;
+}
+

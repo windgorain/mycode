@@ -32,9 +32,7 @@
 static NO_HANDLE g_hWsAppServiceNo = NULL;
 
 static CHAR *g_apcWsappServiceProperty[]
-    = {"Description", "Enable"};
-static UINT g_uiWsappServicePropertyCount = sizeof(g_apcWsappServiceProperty)/sizeof(CHAR*);
-
+    = {"Description", "Enable", NULL};
 
 static WSAPP_SERVICE_S * wsapp_service_Find(IN CHAR *pcServiceName)
 {
@@ -158,9 +156,8 @@ static BS_STATUS _wsapp_service_kf_List(IN MIME_HANDLE hMime, IN HANDLE hUserHan
     BS_STATUS eRet;
     
     WSAPP_CfgLock_RLock();
-    eRet = JSON_NO_ListWithCallBack(g_hWsAppServiceNo, hMime, pstParam->pstJson,
-        g_apcWsappServiceProperty, g_uiWsappServicePropertyCount,
-        _wsapp_service_kf_ListIsPermit, NULL);
+    eRet = JSON_NO_ListWithCallBack(g_hWsAppServiceNo, pstParam->pstJson,
+        g_apcWsappServiceProperty, _wsapp_service_kf_ListIsPermit, NULL);
     WSAPP_CfgLock_RUnLock();
 
     return eRet;
@@ -193,7 +190,7 @@ static BS_STATUS _wsapp_service_kf_AddProcess(IN MIME_HANDLE hMime, IN KFAPP_PAR
         return BS_ERR;
     }
 
-    for (i=0; i<g_uiWsappServicePropertyCount; i++)
+    for (i=0; g_apcWsappServiceProperty[i]!=NULL; i++)
     {
         pcTmp = MIME_GetKeyValue(hMime, g_apcWsappServiceProperty[i]);
         if (pcTmp != NULL)
@@ -249,7 +246,7 @@ static BS_STATUS _wsapp_service_kf_ModifyProcess(IN MIME_HANDLE hMime, IN KFAPP_
         return BS_NO_PERMIT;
     }
 
-    for (i=0; i<g_uiWsappServicePropertyCount; i++)
+    for (i=0; g_apcWsappServiceProperty[i]!=NULL; i++)
     {
         pcTmp = MIME_GetKeyValue(hMime, g_apcWsappServiceProperty[i]);
         if (pcTmp != NULL)
@@ -285,7 +282,7 @@ static BS_STATUS _wsapp_service_kf_Modify(IN MIME_HANDLE hMime, IN HANDLE hUserH
 static BS_STATUS _wsapp_service_kf_Get(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, IN KFAPP_PARAM_S *pstParam)
 {
     WSAPP_CfgLock_RLock();
-    JSON_NO_Get(g_hWsAppServiceNo, hMime, pstParam->pstJson, g_apcWsappServiceProperty, g_uiWsappServicePropertyCount);
+    JSON_NO_Get(g_hWsAppServiceNo, hMime, pstParam->pstJson, g_apcWsappServiceProperty);
     WSAPP_CfgLock_RUnLock();
 
 	return BS_OK;
@@ -468,21 +465,26 @@ static BS_STATUS _wsapp_servicebindgw_kf_Del(IN MIME_HANDLE hMime, IN HANDLE hUs
 
 static VOID _wsapp_service_kf_Init()
 {
-    COMP_KFAPP_RegFunc("ws.service.IsExist", _wsapp_service_kf_IsExist, NULL);
-    COMP_KFAPP_RegFunc("ws.service.Add", _wsapp_service_kf_Add, NULL);
-    COMP_KFAPP_RegFunc("ws.service.Modify", _wsapp_service_kf_Modify, NULL);
-    COMP_KFAPP_RegFunc("ws.service.Get", _wsapp_service_kf_Get, NULL);
-    COMP_KFAPP_RegFunc("ws.service.Delete", _wsapp_service_kf_Del, NULL);
-    COMP_KFAPP_RegFunc("ws.service.List", _wsapp_service_kf_List, NULL);
+    KFAPP_RegFunc("ws.service.IsExist", _wsapp_service_kf_IsExist, NULL);
+    KFAPP_RegFunc("ws.service.Add", _wsapp_service_kf_Add, NULL);
+    KFAPP_RegFunc("ws.service.Modify", _wsapp_service_kf_Modify, NULL);
+    KFAPP_RegFunc("ws.service.Get", _wsapp_service_kf_Get, NULL);
+    KFAPP_RegFunc("ws.service.Delete", _wsapp_service_kf_Del, NULL);
+    KFAPP_RegFunc("ws.service.List", _wsapp_service_kf_List, NULL);
 
-    COMP_KFAPP_RegFunc("ws.service.bindgw.Add", _wsapp_servicebindgw_kf_Add, NULL);
-    COMP_KFAPP_RegFunc("ws.service.bindgw.Delete", _wsapp_servicebindgw_kf_Del, NULL);
-    COMP_KFAPP_RegFunc("ws.service.bindgw.List", _wsapp_servicebindgw_kf_List, NULL);
+    KFAPP_RegFunc("ws.service.bindgw.Add", _wsapp_servicebindgw_kf_Add, NULL);
+    KFAPP_RegFunc("ws.service.bindgw.Delete", _wsapp_servicebindgw_kf_Del, NULL);
+    KFAPP_RegFunc("ws.service.bindgw.List", _wsapp_servicebindgw_kf_List, NULL);
 }
 
 BS_STATUS WSAPP_Service_Init()
 {
-    g_hWsAppServiceNo = NO_CreateAggregate(WSAPP_SERVICE_MAX_NUM, sizeof(WSAPP_SERVICE_S), 0);
+    OBJECT_PARAM_S no_p = {0};
+
+    no_p.uiMaxNum = WSAPP_SERVICE_MAX_NUM;
+    no_p.uiObjSize = sizeof(WSAPP_SERVICE_S);
+
+    g_hWsAppServiceNo = NO_CreateAggregate(&no_p);
     if (NULL == g_hWsAppServiceNo)
     {
         return BS_ERR;
@@ -762,7 +764,7 @@ BS_STATUS WSAPP_Service_NoBindGateway
     return BS_OK;
 }
 
-BS_STATUS WSAPP_Service_SetDocRoot(IN CHAR *pcServiceName, IN CHAR *pcDocRoot)
+BS_STATUS WSAPP_SetDocRoot(IN CHAR *pcServiceName, IN CHAR *pcDocRoot)
 {
     WSAPP_SERVICE_S *pstService;
     UINT i;
@@ -791,7 +793,7 @@ BS_STATUS WSAPP_Service_SetDocRoot(IN CHAR *pcServiceName, IN CHAR *pcDocRoot)
     return BS_OK;
 }
 
-BS_STATUS WSAPP_Service_SetIndex(IN CHAR *pcServiceName, IN CHAR *pcIndex)
+BS_STATUS WSAPP_SetIndex(IN CHAR *pcServiceName, IN CHAR *pcIndex)
 {
     WSAPP_SERVICE_S *pstService;
     UINT i;
@@ -960,7 +962,7 @@ BS_STATUS WSAPP_Service_SetDeliverTbl(IN CHAR *pcService, IN WS_DELIVER_TBL_HAND
     return BS_OK;
 }
 
-BS_STATUS WSAPP_Service_SetUserData(IN CHAR *pcService, IN UINT64 ulUserData)
+BS_STATUS WSAPP_SetUserData(IN CHAR *pcService, IN UINT64 ulUserData)
 {
     WSAPP_SERVICE_S *pstService;
 
@@ -975,7 +977,7 @@ BS_STATUS WSAPP_Service_SetUserData(IN CHAR *pcService, IN UINT64 ulUserData)
     return BS_OK;
 }
 
-UINT64 WSAPP_Service_GetUserDataByWsContext(IN WS_CONTEXT_HANDLE hWsContext)
+UINT64 WSAPP_GetUserDataByWsContext(IN WS_CONTEXT_HANDLE hWsContext)
 {
     UINT uiServiceID;
     WSAPP_SERVICE_S *pstService;

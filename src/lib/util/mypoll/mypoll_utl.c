@@ -131,7 +131,7 @@ STATIC VOID mypoll_FreeFdInfo
 {
     MYPOLL_FDINFO_S *pstFdInfo;
 
-    pstFdInfo = DARRAY_Del(pstCtrl->hFdInfoTbl, iSocketId);
+    pstFdInfo = DARRAY_Clear(pstCtrl->hFdInfoTbl, iSocketId);
     if (NULL != pstFdInfo)
     {
         MEM_Free(pstFdInfo);
@@ -175,7 +175,7 @@ MYPOLL_HANDLE MyPoll_Create()
     Socket_SetNoDelay(aiFd[0], 1);
     Socket_SetNoDelay(aiFd[1], 1);
 
-    pstCtrl->hFdInfoTbl = DARRAY_Create(1024);
+    pstCtrl->hFdInfoTbl = DARRAY_Create(1024, 128);
     if (NULL == pstCtrl->hFdInfoTbl)
     {
         MyPoll_Destory(pstCtrl);
@@ -445,6 +445,7 @@ BS_STATUS MyPoll_PostUserEvent(IN MYPOLL_HANDLE hMypoll, IN UINT uiEvent)
     return BS_OK;
 }
 
+/* 触发mypoller一次 */
 BS_STATUS MyPoll_Trigger(MYPOLL_HANDLE hMyPoll)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMyPoll;

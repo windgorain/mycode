@@ -4,6 +4,7 @@
 
 #include "utl/tp_utl.h"
 #include "utl/txt_utl.h"
+#include "utl/exec_utl.h"
 
 #include "../../inc/vnet_conf.h"
 #include "../../inc/vnet_tp.h"

@@ -39,9 +39,9 @@ static int ubpf_c2e(void *in, uint32_t in_len, void *out, uint32_t *out_len)
 	struct ebpf_inst *o_ins = out;
 	uint32_t i_len = in_len / sizeof(struct bpf_insn);
 	uint32_t o_len = 0, l;
-	uint32_t o_ins_order[UBPF_INST];
-	uint32_t i_ins_count[UBPF_INST];
-	uint32_t i_ins_count_acc[UBPF_INST];
+	uint32_t o_ins_order[UBPF_INST + 4];
+	uint32_t i_ins_count[UBPF_INST + 4];
+	uint32_t i_ins_count_acc[UBPF_INST + 4];
 
 	if (i_len > UBPF_INST) {
 		return -1;

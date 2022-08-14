@@ -13,7 +13,6 @@
 
 BS_STATUS ARPCheat_Init()
 {
-    COMP_PCAP_Init();
 	ARPCheat_Main_Init();
     ARPCheat_CMD_Init();
 

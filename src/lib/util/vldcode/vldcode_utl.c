@@ -90,15 +90,19 @@ HANDLE VLDCODE_CreateInstance(IN UINT ulMaxVldNum)
         return 0;
     }
 
-    pstCtrl->hHashId = HASH_CreateInstance(ulMaxVldNum / 5 + 1, (PF_HASH_INDEX_FUNC)_VLDCODE_HashIndex);
+    pstCtrl->hHashId = HASH_CreateInstance(NULL, ulMaxVldNum / 5 + 1, (PF_HASH_INDEX_FUNC)_VLDCODE_HashIndex);
     if (0 == pstCtrl->hHashId)
     {
         MEM_Free(pstCtrl);
         return 0;
     }
 
-    pstCtrl->hNapId = NAP_Create(NAP_TYPE_PTR_ARRAY, ulMaxVldNum, sizeof(_VLDCODE_NODE_S), 0);
-    
+    NAP_PARAM_S param = {0};
+    param.enType = NAP_TYPE_PTR_ARRAY;
+    param.uiMaxNum = ulMaxVldNum;
+    param.uiNodeSize = sizeof(_VLDCODE_NODE_S);
+
+    pstCtrl->hNapId = NAP_Create(&param);
     if (pstCtrl->hNapId == NULL)
     {
         HASH_DestoryInstance(pstCtrl->hHashId);

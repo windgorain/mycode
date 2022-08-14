@@ -9,6 +9,8 @@
 
 #include "utl/txt_utl.h"
 #include "utl/lstr_utl.h"
+#include "utl/bit_opt.h"
+#include "utl/array_bit.h"
 #include "utl/http_lib.h"
 
 #define HTTP_TIME_REMAIN_MAX_LEN  18
@@ -35,6 +37,8 @@
 #define HTTP_CONN_CLOSE                   "close"               /* Connection值域 close */
 #define HTTP_TRANSFER_ENCODE_CHUNKED      "chunked"             /* Transfer-Encoding值域 chunked */
 #define HTTP_MULTIPART_STR                "multipart"           /* Content-Type值域 multipart */    
+#define HTTP_CONTENT_TYPE_OCSP            "application/ocsp-response"       /* Content-Type值域 ocsp-response */
+#define HTTP_CONTENT_TYPE_JSON            "application/json"                /* Content-Type值域 json */
 
 #define HTTP_SET_STR(pcDest, pcSrc)  ((pcDest) = (pcSrc))
 
@@ -71,6 +75,7 @@ typedef struct tagHTTP_Head{
     CHAR *pcReason;                         /* HTTP应答Reason字段 */
     DLL_HEAD_S  stHeadFieldList;            /* 头域信息列表 */
     MEMPOOL_HANDLE hMemPool;
+    char *head_fields[HTTP_HF_MAX];         /* 指向常用头域，加速获取的Cache */
 }HTTP_HEAD_S;
 
 typedef struct tagHTTP_TokData
@@ -90,9 +95,9 @@ typedef struct tagHTTPSmartBuf
 typedef BS_STATUS (*HTTP_SCAN_LINE_PF)(IN CHAR *pcLineStart, IN ULONG ulLineLen, IN VOID *pUserContext);
 
 /* 每个月的天数 */
-STATIC UINT  g_auiHttpDay[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+static UINT  g_auiHttpDay[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
-STATIC const CHAR *g_apcHttpParseMethodStrTable[]= 
+static const CHAR *g_apcHttpParseMethodStrTable[]= 
 {
     "OPTIONS",
     "GET",        
@@ -104,7 +109,7 @@ STATIC const CHAR *g_apcHttpParseMethodStrTable[]=
     "CONNECT"
 };
 
-STATIC const CHAR *g_apcHttpStatueTable[] =
+static const CHAR *g_apcHttpStatueTable[] =
 {
     "100 continue"                        ,
     "101 Switching Protocols"             ,
@@ -148,7 +153,7 @@ STATIC const CHAR *g_apcHttpStatueTable[] =
     "505 HTTP Version not supported"                                                                      
 };
 
-STATIC UCHAR g_aucHttpStausCodeMap[] = 
+static UCHAR g_aucHttpStausCodeMap[] = 
 {
     /* 0 - 49 */
     HTTP_STATUS_CODE_BUTT, HTTP_STATUS_CODE_BUTT, HTTP_STATUS_CODE_BUTT, HTTP_STATUS_CODE_BUTT, HTTP_STATUS_CODE_BUTT,
@@ -301,14 +306,20 @@ CHAR *g_apcHttpCookieAV[ COOKIE_AV_BUTT ] =
     "Secure"
 };
 
-STATIC CHAR *g_pcEncode = "=`~!#$%^&()+{}|:\"<>?[]\\;\',/\t";
+static CHAR *g_pcEncode = "=`~!#$%^&()+{}|:\"<>?[]\\;\',/\t";
 
-STATIC const CHAR *g_apcWkday[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-STATIC const CHAR *g_apcMonth[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+static const CHAR *g_apcWkday[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+static const CHAR *g_apcMonth[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
+static char * g_http_head_hf_fields[] = {
+#define _(a,b) b,
+    HTTP_HF_DEFS
+#undef _
+    "unknown"
+};
                                                        
 /* 初始化拼接字符串buf结构 */
-STATIC BS_STATUS http_InitBufData(IN HTTP_HEAD_S *pstHttpHead, IN ULONG ulBufLen, INOUT HTTP_SMART_BUF_S *pstBuf)
+static BS_STATUS http_InitBufData(IN HTTP_HEAD_S *pstHttpHead, IN ULONG ulBufLen, INOUT HTTP_SMART_BUF_S *pstBuf)
 {
     CHAR *pcBuf;
 
@@ -335,7 +346,7 @@ STATIC BS_STATUS http_InitBufData(IN HTTP_HEAD_S *pstHttpHead, IN ULONG ulBufLen
 /*******************************************************************************
   提取拼接buf数据
 *******************************************************************************/
-STATIC CHAR *http_MoveBufData(INOUT HTTP_SMART_BUF_S *pstBuf, OUT ULONG *pulDataLen)
+static CHAR *http_MoveBufData(INOUT HTTP_SMART_BUF_S *pstBuf, OUT ULONG *pulDataLen)
 {
     CHAR  *pcBuf = NULL;
 
@@ -355,7 +366,7 @@ STATIC CHAR *http_MoveBufData(INOUT HTTP_SMART_BUF_S *pstBuf, OUT ULONG *pulData
 /*******************************************************************************
  向buf拼接字符串
 *******************************************************************************/
-STATIC BS_STATUS http_AppendBufStr(IN CHAR *pcStr, INOUT HTTP_SMART_BUF_S *pstBuf)
+static BS_STATUS http_AppendBufStr(IN CHAR *pcStr, INOUT HTTP_SMART_BUF_S *pstBuf)
 {
     ULONG ulLen;
     
@@ -383,7 +394,7 @@ STATIC BS_STATUS http_AppendBufStr(IN CHAR *pcStr, INOUT HTTP_SMART_BUF_S *pstBu
 /*******************************************************************************
   得到某个字符在指定字符串中的出现次数
 *******************************************************************************/
-STATIC ULONG http_GetCharsNumInString(IN CHAR *pcString, IN CHAR cChar)
+static ULONG http_GetCharsNumInString(IN CHAR *pcString, IN CHAR cChar)
 {
     CHAR *pcPos = NULL;
     CHAR *pcEnd = NULL;
@@ -408,7 +419,7 @@ STATIC ULONG http_GetCharsNumInString(IN CHAR *pcString, IN CHAR cChar)
 /*******************************************************************************
   检查一个字符串是否为数字          
 *******************************************************************************/
-STATIC BOOL_T http_CheckStringIsDigital(IN CHAR *pcString, IN ULONG ulLen)
+static BOOL_T http_CheckStringIsDigital(IN CHAR *pcString, IN ULONG ulLen)
 {
     CHAR *pcPos, *pcEnd;
 
@@ -534,7 +545,7 @@ UINT HTTP_GetHeadLen(IN CHAR *pcHttpData, IN ULONG ulDataLen)
 /*******************************************************************************
   扫描HTTP头域数据，判断是否存在续行
 *******************************************************************************/
-STATIC BOOL_T http_IsHaveContinueLine(IN CHAR *pcHttpHead, IN ULONG ulHeadLen)
+static BOOL_T http_IsHaveContinueLine(IN CHAR *pcHttpHead, IN ULONG ulHeadLen)
 {
     /* 入参合法性检查 */
     BS_DBGASSERT(NULL != pcHttpHead);
@@ -641,7 +652,7 @@ CHAR * HTTP_Strim(IN CHAR *pcData, IN ULONG ulDataLen, IN CHAR *pcSkipChars, OUT
 /*******************************************************************************
   将所有的头域数据分行扫描，对每行都使用回调函数进行处理
 *******************************************************************************/
-STATIC BS_STATUS http_ScanLine(IN CHAR *pcData, IN ULONG ulDataLen, IN HTTP_SCAN_LINE_PF pfFunc, IN VOID *pUserContext)
+static BS_STATUS http_ScanLine(IN CHAR *pcData, IN ULONG ulDataLen, IN HTTP_SCAN_LINE_PF pfFunc, IN VOID *pUserContext)
 {
     CHAR *pcLineBegin = pcData;
     CHAR *pcLineEnd = NULL;
@@ -689,7 +700,7 @@ STATIC BS_STATUS http_ScanLine(IN CHAR *pcData, IN ULONG ulDataLen, IN HTTP_SCAN
 /*******************************************************************************
   压缩一行数据，去掉续行中的\t\r\n，拷贝其余数据到pUserContext传出
 *******************************************************************************/
-STATIC BS_STATUS http_CompressHeadLine(IN CHAR *pcLineStart, IN ULONG ulLineLen, IN VOID *pUserContext)
+static BS_STATUS http_CompressHeadLine(IN CHAR *pcLineStart, IN ULONG ulLineLen, IN VOID *pUserContext)
 {
     CHAR *pcHead = NULL;
     ULONG ulHeadLen = 0;
@@ -722,7 +733,7 @@ STATIC BS_STATUS http_CompressHeadLine(IN CHAR *pcLineStart, IN ULONG ulLineLen,
 /*******************************************************************************
   新生成一个压缩的HTTP头, 新生成的头以'\0'结束.
 *******************************************************************************/
-STATIC CHAR * http_CompressHead(IN HTTP_HEAD_S *pstHttpHead, IN CHAR *pcHttpHead, IN ULONG ulHeadLen)
+static CHAR * http_CompressHead(IN HTTP_HEAD_S *pstHttpHead, IN CHAR *pcHttpHead, IN ULONG ulHeadLen)
 {
     CHAR *pcHead = NULL;
 
@@ -743,19 +754,33 @@ STATIC CHAR * http_CompressHead(IN HTTP_HEAD_S *pstHttpHead, IN CHAR *pcHttpHead
     return pcHead;
 }
 
+static inline void * http_DupStr(HTTP_HEAD_S *pstHttp, void *data, ULONG data_len)
+{
+    char *pcWord = (CHAR*)MEMPOOL_Alloc(pstHttp->hMemPool, data_len + 1);
+    if (! pcWord) {
+        return NULL;
+    }
+
+    if (data_len > 0) {
+        memcpy(pcWord, data, data_len);
+    }
+
+    pcWord[data_len] = '\0';
+
+    return pcWord;
+}
+
 /*******************************************************************************
   对指定长度字符串进行起始空格和结束空格过滤，然后申请一块内存，
   将过滤后的字符串拷贝后返回。
 *******************************************************************************/
-STATIC CHAR * http_GetWord(IN HTTP_HEAD_S *pstHttpHead, IN CHAR *pcSrc, IN ULONG ulHeadLen)
+static inline CHAR * http_GetWord(IN HTTP_HEAD_S *pstHttpHead, IN CHAR *pcSrc, IN ULONG ulHeadLen)
 {
-    CHAR *pcWord = NULL;
     CHAR *pcRealBegin = NULL;
     ULONG ulRealLen = 0;
 
     /* 入参合法性检查,uiHeadLen允许为0 */
     BS_DBGASSERT(NULL != pcSrc);    
-    
 
     /* 滤掉头尾的空格和TAB */
     pcRealBegin = HTTP_Strim(pcSrc, ulHeadLen, HTTP_SP_HT_STRING, &ulRealLen);
@@ -763,35 +788,40 @@ STATIC CHAR * http_GetWord(IN HTTP_HEAD_S *pstHttpHead, IN CHAR *pcSrc, IN ULONG
     {
         return NULL;
     }
-    
-    /* 分配一块内存，拷贝找到的字符串 */
-    pcWord = (CHAR *)MEMPOOL_Alloc(pstHttpHead->hMemPool, ulRealLen+1);
-    if(NULL == pcWord)
-    {
-        return NULL;
-    }
-    pcWord[0] = '\0';
 
-    if (ulRealLen > 0)
-    {
-        memcpy(pcWord, pcRealBegin, ulRealLen);
-        pcWord[ulRealLen] = '\0';
+    return http_DupStr(pstHttpHead, pcRealBegin, ulRealLen);
+}
+
+static inline int http_AddDynamicHeadField(HTTP_HEAD_S *pstHttp, char *key, ULONG key_len, char *val, ULONG val_len)
+{
+    HTTP_HEAD_FIELD_S *pstHeadField = MEMPOOL_ZAlloc(pstHttp->hMemPool, sizeof(HTTP_HEAD_FIELD_S));
+    if(NULL == pstHeadField) {
+        return BS_ERR;
     }
 
-    return pcWord;
+    pstHeadField->pcFieldName = http_GetWord(pstHttp, key, key_len);
+    if (NULL == pstHeadField->pcFieldName) {
+        MEMPOOL_Free(pstHttp->hMemPool, pstHeadField);
+        return BS_ERR;
+    }
+    pstHeadField->uiFieldNameLen = strlen(pstHeadField->pcFieldName);
+    pstHeadField->pcFieldValue = http_GetWord(pstHttp, val, val_len);
+
+    DLL_ADD(&(pstHttp->stHeadFieldList), (DLL_NODE_S *)pstHeadField);        
+
+    return BS_OK;
 }
 
 /*******************************************************************************
   解析HTTP头域信息
 *******************************************************************************/
-STATIC BS_STATUS http_ParseField(IN CHAR *pcLineStart, IN ULONG ulLineLen, IN VOID *pUserContext)
+static BS_STATUS http_ParseField(IN CHAR *pcLineStart, IN ULONG ulLineLen, IN VOID *pUserContext)
 {
     CHAR *pcFieldName = NULL;
     CHAR *pcValue = NULL;
     ULONG ulFieldNameLen;
     ULONG ulFieldValueLen;
     HTTP_HEAD_S *pstHttpHead = pUserContext;
-    HTTP_HEAD_FIELD_S *pstHeadField = NULL;
     CHAR *pcSplit;
 
     BS_DBGASSERT(NULL != pUserContext);
@@ -810,32 +840,13 @@ STATIC BS_STATUS http_ParseField(IN CHAR *pcLineStart, IN ULONG ulLineLen, IN VO
     pcValue = pcSplit + 1;
     ulFieldValueLen = ulLineLen - (ulFieldNameLen + 1);
 
-
-    pstHeadField = (HTTP_HEAD_FIELD_S *)MEMPOOL_ZAlloc(pstHttpHead->hMemPool, sizeof(HTTP_HEAD_FIELD_S));
-    if(NULL == pstHeadField)
-    {
-        return BS_ERR;
-    }
-    pcFieldName = http_GetWord(pstHttpHead, pcFieldName, ulFieldNameLen);
-    pcValue     = http_GetWord(pstHttpHead, pcValue, ulFieldValueLen);    
-    pstHeadField->pcFieldName  = pcFieldName;     
-    pstHeadField->pcFieldValue = pcValue;
-    if((NULL == pcValue) || (NULL == pcFieldName) || ('\0' == pcFieldName[0]))
-    {
-        /* 头域是空字符串返回错误 */        
-        return BS_ERR;
-    }
-    else
-    {
-        DLL_ADD(&(pstHttpHead->stHeadFieldList), (DLL_NODE_S *)pstHeadField);        
-        return BS_OK;
-    }
- 
+    return http_AddDynamicHeadField(pstHttpHead, pcFieldName, ulFieldNameLen, pcValue, ulFieldValueLen);
 }
+
 /*******************************************************************************
  解析HTTP头域信息
 *******************************************************************************/
-STATIC HTTP_METHOD_E http_MethodParse(IN CHAR *pcMethodData)
+static HTTP_METHOD_E http_MethodParse(IN CHAR *pcMethodData)
 {
     ULONG i = 0;
     
@@ -855,7 +866,7 @@ STATIC HTTP_METHOD_E http_MethodParse(IN CHAR *pcMethodData)
 /*******************************************************************************
     设置经解码的简单的绝对路径
 *******************************************************************************/
-STATIC BS_STATUS http_HeadSetSimpleUri(IN HTTP_HEAD_S *pstHttpHead)
+static BS_STATUS http_HeadSetSimpleUri(IN HTTP_HEAD_S *pstHttpHead)
 {
     CHAR *pcAbsUriDecoded = NULL;
     CHAR *pcSimpleAbsUri = NULL;
@@ -899,6 +910,7 @@ STATIC BS_STATUS http_HeadSetSimpleUri(IN HTTP_HEAD_S *pstHttpHead)
     pcSimpleAbsUri = (CHAR *)MEMPOOL_Alloc(pstHttpHead->hMemPool, ulSrcUriLen+1);
     if( NULL == pcSimpleAbsUri)
     {
+        MEMPOOL_Free(pstHttpHead->hMemPool, pcAbsUriDecoded);
         return BS_ERR;
     }
     pcSimpleAbsUri[0] = '\0';
@@ -983,12 +995,14 @@ STATIC BS_STATUS http_HeadSetSimpleUri(IN HTTP_HEAD_S *pstHttpHead)
     /* 更新简单绝对URI */   
     HTTP_SET_STR(pstUriInfo->pcSimpleAbsPath, pcSimpleAbsUri);
 
+    MEMPOOL_Free(pstHttpHead->hMemPool, pcAbsUriDecoded);
+
     return BS_OK;       
 }
 /*******************************************************************************
   设置URI中的AbsUri                                           
 *******************************************************************************/
-STATIC BS_STATUS http_HeadSetAbsUri(IN HTTP_HEAD_S *pstHttpHead)
+static BS_STATUS http_HeadSetAbsUri(IN HTTP_HEAD_S *pstHttpHead)
 {
     ULONG ulMatchLen = 0;
     CHAR *pcFullPath = NULL;
@@ -1054,7 +1068,7 @@ STATIC BS_STATUS http_HeadSetAbsUri(IN HTTP_HEAD_S *pstHttpHead)
 /*******************************************************************************
   解析请求行URI
 *******************************************************************************/
-STATIC BS_STATUS http_ParseSubUri (IN HTTP_HEAD_S *pstHttpHead)
+static BS_STATUS http_ParseSubUri (IN HTTP_HEAD_S *pstHttpHead)
 {
     CHAR *pcFullUri = NULL;
     CHAR *pcTemp = NULL;
@@ -1137,7 +1151,7 @@ STATIC BS_STATUS http_ParseSubUri (IN HTTP_HEAD_S *pstHttpHead)
 /*******************************************************************************
   设置HTTP请求的URI                                             
 *******************************************************************************/
-STATIC BS_STATUS http_HeadSetUri (IN HTTP_HEAD_S *pstHttpHead)
+static BS_STATUS http_HeadSetUri (IN HTTP_HEAD_S *pstHttpHead)
 {
     ULONG ulRet = BS_ERR;
 
@@ -1162,39 +1176,9 @@ STATIC BS_STATUS http_HeadSetUri (IN HTTP_HEAD_S *pstHttpHead)
 }
 
 /*******************************************************************************
-  删除HTTP头域                                                          
-*******************************************************************************/
-STATIC BS_STATUS http_DelHeadField(IN HTTP_HEAD_PARSER hHttpInstance, IN CHAR *pcFieldName)
-{
-    HTTP_HEAD_S *pstHttpHead = NULL;
-    DLL_NODE_S *pstCurrentNode = NULL;
-    HTTP_HEAD_FIELD_S *pstHeadField = NULL;
-
-    /* 入参合法性检查 */
-    if(NULL == hHttpInstance)
-    {
-        return BS_ERR;
-    }
-    pstHttpHead = (HTTP_HEAD_S *)hHttpInstance;
-
-    /* 遍历链表找到匹配的头域 */
-    DLL_SCAN(&(pstHttpHead->stHeadFieldList), pstCurrentNode)
-    {
-        pstHeadField = (HTTP_HEAD_FIELD_S *)pstCurrentNode;
-        if(0 == stricmp(pstHeadField->pcFieldName, pcFieldName))
-        {
-            DLL_DEL(&(pstHttpHead->stHeadFieldList), pstCurrentNode);
-            break;
-        }
-    }
-    
-    return BS_OK;
-}
-
-/*******************************************************************************
  根据分隔符查找数据                                                         
 *******************************************************************************/
-STATIC BS_STATUS http_StrTok(IN CHAR *pcDelim, INOUT HTTP_TOK_DATA_S *pstData, OUT HTTP_TOK_DATA_S *pstFound)
+static BS_STATUS http_StrTok(IN CHAR *pcDelim, INOUT HTTP_TOK_DATA_S *pstData, OUT HTTP_TOK_DATA_S *pstFound)
 {
     CHAR *pcBegin;
     ULONG ulNewLen;
@@ -1250,7 +1234,7 @@ STATIC BS_STATUS http_StrTok(IN CHAR *pcDelim, INOUT HTTP_TOK_DATA_S *pstData, O
 /*******************************************************************************
   解析HTTP头域
 *******************************************************************************/
-STATIC BS_STATUS http_ParseHeadFileds
+static BS_STATUS http_ParseHeadFileds
 (
     IN HTTP_HEAD_S *pstHttpHead, 
     IN CHAR *pcHeadFields, 
@@ -1295,7 +1279,7 @@ STATIC BS_STATUS http_ParseHeadFileds
 /*******************************************************************************
  获取HTTP状态码
 *******************************************************************************/
-STATIC BS_STATUS http_GetStatusCode(IN HTTP_TOK_DATA_S *pstTok, OUT HTTP_STATUS_CODE_E *penStatusCode)
+static BS_STATUS http_GetStatusCode(IN HTTP_TOK_DATA_S *pstTok, OUT HTTP_STATUS_CODE_E *penStatusCode)
 {
     CHAR *pcData;
     ULONG ulDataLen;
@@ -1331,7 +1315,7 @@ STATIC BS_STATUS http_GetStatusCode(IN HTTP_TOK_DATA_S *pstTok, OUT HTTP_STATUS_
 /*******************************************************************************
   解析HTTP请求/响应行中的Version字段
 *******************************************************************************/
-STATIC HTTP_VERSION_E http_ParseVersion(IN CHAR *pcData, IN ULONG ulDataLen)
+static HTTP_VERSION_E http_ParseVersion(IN CHAR *pcData, IN ULONG ulDataLen)
 {
     CHAR szVersion[HTTP_VERSION_STR_LEN + 1];
     HTTP_VERSION_E enVersion;
@@ -1369,7 +1353,7 @@ STATIC HTTP_VERSION_E http_ParseVersion(IN CHAR *pcData, IN ULONG ulDataLen)
 /*******************************************************************************
   解析HTTP请求行
 *******************************************************************************/
-STATIC BS_STATUS http_ParseRequestFirstLine(IN HTTP_HEAD_PARSER hHttpInstance, IN CHAR *pcFirstLine, IN ULONG ulFirstLineLen)
+static BS_STATUS http_ParseRequestFirstLine(IN HTTP_HEAD_PARSER hHttpInstance, IN CHAR *pcFirstLine, IN ULONG ulFirstLineLen)
 {
     CHAR *pcTemp = NULL;
     HTTP_VERSION_E enVer = HTTP_VERSION_BUTT;
@@ -1432,7 +1416,7 @@ STATIC BS_STATUS http_ParseRequestFirstLine(IN HTTP_HEAD_PARSER hHttpInstance, I
 /*******************************************************************************
  解析HTTP响应行
 *******************************************************************************/
-STATIC BS_STATUS http_ParseResponseFirstLine
+static BS_STATUS http_ParseResponseFirstLine
 (
     IN HTTP_HEAD_PARSER hHttpInstance, 
     IN CHAR *pcFirstLine, 
@@ -1501,7 +1485,7 @@ STATIC BS_STATUS http_ParseResponseFirstLine
 /*******************************************************************************
   解析FCGI格式响应行. 
 *******************************************************************************/
-STATIC BS_STATUS http_ParseFCGI
+static BS_STATUS http_ParseFCGI
 (
     IN HTTP_HEAD_PARSER hHttpInstance, 
     IN CHAR *pcHead, 
@@ -1574,7 +1558,7 @@ STATIC BS_STATUS http_ParseFCGI
     }
 
     /* 例如FCGI响应头第一行为Status : 200 OK ,最后生成的头域中不应该再有这一项，因此删除 */
-    (VOID) http_DelHeadField(hHttpInstance, HTTP_HEAD_FIELD_STATUS);
+    (VOID) HTTP_DelHeadField(hHttpInstance, HTTP_HEAD_FIELD_STATUS);
     
     return BS_OK;
 }
@@ -1582,7 +1566,7 @@ STATIC BS_STATUS http_ParseFCGI
 /*******************************************************************************
   解析HTTP第一行，根据头类型参数分别解析"请求行"或"响应行"
 *******************************************************************************/
-STATIC BS_STATUS http_ParseFirstLine
+static BS_STATUS http_ParseFirstLine
 (
     IN HTTP_HEAD_PARSER hHttpInstance, 
     IN CHAR *pcFirstLine, 
@@ -2214,7 +2198,7 @@ BS_STATUS HTTP_DateToStr(IN time_t stTimeSrc, OUT CHAR szDataStr[HTTP_RFC1123_DA
     }
 
     /* 将时间转换成协议要求的字符串格式 */
-    (VOID)snprintf( szDataStr, HTTP_RFC1123_DATESTR_LEN + 1, "%3s, %02lu %3s %lu %02lu:%02lu:%02lu GMT",
+    (VOID)scnprintf( szDataStr, HTTP_RFC1123_DATESTR_LEN + 1, "%3s, %02lu %3s %lu %02lu:%02lu:%02lu GMT",
                     g_apcWkday[ulWday],
                     ulMday,
                     g_apcMonth[ulMon - 1],
@@ -2256,6 +2240,8 @@ VOID HTTP_DelHeadField(IN HTTP_HEAD_PARSER hHttpInstance, IN CHAR *pcFieldName)
 
     if (NULL != pstHeadFieldFound)
     {
+        HTTP_ClearHF(pstHttpHead);
+
         DLL_DEL(&(pstHttpHead->stHeadFieldList), pstHeadFieldFound);
 
         if (NULL != pstHeadFieldFound->pcFieldName)
@@ -2300,13 +2286,20 @@ BS_STATUS HTTP_SetHeadField(IN HTTP_HEAD_PARSER hHttpInstance, IN CHAR *pcFieldN
 
     /* 生成内存并拷贝 */
     pcTempName  = MEMPOOL_Strdup(pstHttpHead->hMemPool, pcFieldName);;
+    if (! pcTempName) {
+        MEMPOOL_Free(pstHttpHead->hMemPool, pstHeadField);
+        RETURN(BS_NO_MEMORY);
+    }
     pcTempValue = MEMPOOL_Strdup(pstHttpHead->hMemPool, pcFieldValue);
+    if (! pcTempValue) {
+        MEMPOOL_Free(pstHttpHead->hMemPool, pstHeadField);
+        MEMPOOL_Free(pstHttpHead->hMemPool, pcTempName);
+        RETURN(BS_NO_MEMORY);
+    }
+
     pstHeadField->pcFieldName  = pcTempName;
     pstHeadField->pcFieldValue = pcTempValue;
-    if((NULL == pcTempName)||(NULL == pcTempValue))
-    {
-        return BS_ERR;
-    }
+    pstHeadField->uiFieldNameLen = strlen(pcTempName);
 
     /* 加入链表 */
     DLL_ADD(&(pstHttpHead->stHeadFieldList), (DLL_NODE_S *)pstHeadField);
@@ -2330,22 +2323,20 @@ VOID HTTP_SetRevalidate(IN HTTP_HEAD_PARSER hHttpInstance)
 *******************************************************************************/
 CHAR * HTTP_GetHeadField(IN HTTP_HEAD_PARSER hHttpInstance, IN CHAR *pcFieldName)
 {
-    HTTP_HEAD_S *pstHttpHead = NULL;
+    HTTP_HEAD_S *pstHttpHead = hHttpInstance;
     DLL_NODE_S *pstCurrentNode = NULL;
     HTTP_HEAD_FIELD_S *pstHeadField = NULL;
 
-    /* 入参合法性检查 */
-    if((NULL == hHttpInstance) || (NULL == pcFieldName))
-    {
-        return NULL;
-    }
-    pstHttpHead = (HTTP_HEAD_S *)hHttpInstance;
+    BS_DBGASSERT(NULL != hHttpInstance);
+    BS_DBGASSERT(NULL != pcFieldName);
+
+    UCHAR len = strlen(pcFieldName);
 
     /* 遍历链表找到匹配的头域 */
     DLL_SCAN(&(pstHttpHead->stHeadFieldList), pstCurrentNode)
     {
         pstHeadField = (HTTP_HEAD_FIELD_S *)pstCurrentNode;
-        if(0 == stricmp(pstHeadField->pcFieldName, pcFieldName))
+        if ((len == pstHeadField->uiFieldNameLen) && (0 == stricmp(pstHeadField->pcFieldName, pcFieldName)))
         {
             return pstHeadField->pcFieldValue;
         }
@@ -2353,6 +2344,42 @@ CHAR * HTTP_GetHeadField(IN HTTP_HEAD_PARSER hHttpInstance, IN CHAR *pcFieldName
     return NULL;    
 }
 
+/* Get Headfield fast  */
+CHAR * HTTP_GetHF(HTTP_HEAD_PARSER hHttpInstance, HTTP_HEAD_FIELD_E field)
+{
+    HTTP_HEAD_S *pstHttpHead = hHttpInstance;
+    char *value = NULL;
+
+    BS_DBGASSERT(field < HTTP_HF_MAX);
+
+    if (pstHttpHead->head_fields[field] == UINT_HANDLE(1)) {
+        return NULL;
+    }
+
+    if (pstHttpHead->head_fields[field]) {
+        return pstHttpHead->head_fields[field];
+    }
+
+    value = HTTP_GetHeadField(pstHttpHead, g_http_head_hf_fields[field]);
+
+    if (value) {
+        pstHttpHead->head_fields[field] = value;
+    } else {
+        pstHttpHead->head_fields[field] = UINT_HANDLE(1);
+    }
+
+    return value;
+}
+
+void HTTP_ClearHF(HTTP_HEAD_PARSER hHttpInstance)
+{
+    HTTP_HEAD_S *pstHttpHead = hHttpInstance;
+    int i;
+
+    for (i=0; i<HTTP_HF_MAX; i++) {
+        pstHttpHead->head_fields[i] = NULL;
+    }
+}
 
 /*******************************************************************************
   获取HTTP头域下一个节点
@@ -2427,7 +2454,7 @@ BS_STATUS HTTP_SetContentLen(IN HTTP_HEAD_PARSER hHttpInstance, IN UINT64 uiValu
     }
     
     /* 设置Content域值 */
-    snprintf(szContentLen, sizeof(szContentLen), "%llu", uiValue);
+    scnprintf(szContentLen, sizeof(szContentLen), "%llu", uiValue);
     return HTTP_SetHeadField(hHttpInstance, HTTP_FIELD_CONTENT_LENGTH, szContentLen);
 }
 
@@ -2825,7 +2852,7 @@ BS_STATUS HTTP_SetReason (IN HTTP_HEAD_PARSER hHttpInstance, IN CHAR *pcReason)
 /*******************************************************************************
   UriDecode内部封装函数，判断%后的两个字符是否为16进制数据，并转换为字符输出
 *******************************************************************************/
-STATIC BS_STATUS http_DecodeHex(IN CHAR *pcStrBegin, IN CHAR *pcStrEnd, OUT CHAR *pcValue)
+static BS_STATUS http_DecodeHex(IN CHAR *pcStrBegin, IN CHAR *pcStrEnd, OUT CHAR *pcValue)
 {
     CHAR szTmp[HTTP_COPY_LEN+1] = {0};
     INT iValue = 0;
@@ -2915,6 +2942,7 @@ CHAR * HTTP_UriDecode(IN MEMPOOL_HANDLE hMemPool, IN CHAR *pcUri, IN ULONG ulUri
     *pcDesTmp = '\0';
     if(BS_OK != ulErrCode)
     {
+        MEMPOOL_Free(hMemPool, pcBuf);
         pcBuf = NULL;
     }
 
@@ -2959,11 +2987,11 @@ CHAR * HTTP_UriEncode(IN MEMPOOL_HANDLE hMemPool, IN CHAR *pcUri, IN ULONG ulUri
             ('%'  == *pcSrcTmp) )
         {
             /* 将这些值转换成%ASCII码的形式 */
-            (VOID)snprintf( pcDstTmp, ulLen, "%%" );
+            (VOID)scnprintf( pcDstTmp, ulLen, "%%" );
             pcDstTmp++;
             ulLen--;
 
-            (VOID)snprintf( pcDstTmp, ulLen, "%02X", *pcSrcTmp );
+            (VOID)scnprintf( pcDstTmp, ulLen, "%02X", *pcSrcTmp );
             pcDstTmp += 2;
             ulLen -= 2;
             
@@ -3091,7 +3119,7 @@ CHAR * HTTP_DataEncode(IN MEMPOOL_HANDLE hMemPool, IN CHAR *pcData, IN ULONG ulD
         if(' ' == *pcSrcTmp)
         {
             /* 将空格转换成'+' */
-            (VOID)snprintf( pcDstTmp, ulLen, "+" );
+            (VOID)scnprintf( pcDstTmp, ulLen, "+" );
             pcDstTmp++;
             pcSrcTmp++;
             ulLen--;
@@ -3100,11 +3128,11 @@ CHAR * HTTP_DataEncode(IN MEMPOOL_HANDLE hMemPool, IN CHAR *pcData, IN ULONG ulD
 
         if(NULL != strchr(g_pcEncode, *pcSrcTmp))
         {      
-            (VOID)snprintf( pcDstTmp, ulLen, "%%" );
+            (VOID)scnprintf( pcDstTmp, ulLen, "%%" );
             pcDstTmp++;
             ulLen--;
             /* 将匹配到的字符转换成%ASCII码的形式 */
-            (VOID)snprintf( pcDstTmp, ulLen, "%02X", *pcSrcTmp );
+            (VOID)scnprintf( pcDstTmp, ulLen, "%02X", *pcSrcTmp );
             pcDstTmp += 2;
             ulLen -= 2;
 
@@ -3169,7 +3197,7 @@ BS_STATUS HTTP_SetUriParam (IN HTTP_HEAD_PARSER hHttpInstance, IN CHAR *pcParam)
 /*******************************************************************************
   构造并拼装http 请求方法
 *******************************************************************************/
-STATIC BS_STATUS http_BuildRequestMethod(IN HTTP_METHOD_E enMethod, INOUT HTTP_SMART_BUF_S *pstBuf)
+static BS_STATUS http_BuildRequestMethod(IN HTTP_METHOD_E enMethod, INOUT HTTP_SMART_BUF_S *pstBuf)
 {
     CHAR *pcGetWord = NULL;
     ULONG ulRet;
@@ -3198,7 +3226,7 @@ STATIC BS_STATUS http_BuildRequestMethod(IN HTTP_METHOD_E enMethod, INOUT HTTP_S
 /*******************************************************************************
   根据已经设置好的Path、Param、Query来设置FullURI
 *******************************************************************************/
-STATIC BS_STATUS http_BuildRequestFullURI (IN HTTP_URI_INFO_S *pstURIInfo, INOUT HTTP_SMART_BUF_S *pstBuf)
+static BS_STATUS http_BuildRequestFullURI (IN HTTP_URI_INFO_S *pstURIInfo, INOUT HTTP_SMART_BUF_S *pstBuf)
 {
     CHAR *pcUriPathTmp;
     ULONG ulRet;
@@ -3258,7 +3286,7 @@ STATIC BS_STATUS http_BuildRequestFullURI (IN HTTP_URI_INFO_S *pstURIInfo, INOUT
 /*******************************************************************************
   构造并拼装http 头域
 *******************************************************************************/
-STATIC BS_STATUS http_BuildHeadField(IN HTTP_HEAD_FIELD_S *pstHeadField, INOUT HTTP_SMART_BUF_S *pstBuf)
+static BS_STATUS http_BuildHeadField(IN HTTP_HEAD_FIELD_S *pstHeadField, INOUT HTTP_SMART_BUF_S *pstBuf)
 {
     ULONG ulRet;
 
@@ -3289,7 +3317,7 @@ STATIC BS_STATUS http_BuildHeadField(IN HTTP_HEAD_FIELD_S *pstHeadField, INOUT H
 /*******************************************************************************
   构造并拼装http version
 *******************************************************************************/
-STATIC BS_STATUS http_BuildVersion(IN HTTP_VERSION_E enVersion, INOUT HTTP_SMART_BUF_S *pstBuf)
+static BS_STATUS http_BuildVersion(IN HTTP_VERSION_E enVersion, INOUT HTTP_SMART_BUF_S *pstBuf)
 {
     ULONG ulRet = BS_OK;
     CHAR *pcStr = NULL;
@@ -3333,7 +3361,7 @@ STATIC BS_STATUS http_BuildVersion(IN HTTP_VERSION_E enVersion, INOUT HTTP_SMART
 /*******************************************************************************
   获取状态码和reason字符串                        
 *******************************************************************************/
-STATIC CHAR* http_GetStatusStr(IN HTTP_STATUS_CODE_E enStatusCode)
+static CHAR* http_GetStatusStr(IN HTTP_STATUS_CODE_E enStatusCode)
 {
     if(enStatusCode >= HTTP_STATUS_CODE_BUTT)
     {
@@ -3346,7 +3374,7 @@ STATIC CHAR* http_GetStatusStr(IN HTTP_STATUS_CODE_E enStatusCode)
 /*******************************************************************************
   构造并拼装http reason
 *******************************************************************************/
-STATIC BS_STATUS http_BuildReason(IN HTTP_HEAD_S *pstHttpHead, INOUT HTTP_SMART_BUF_S *pstBuf)
+static BS_STATUS http_BuildReason(IN HTTP_HEAD_S *pstHttpHead, INOUT HTTP_SMART_BUF_S *pstBuf)
 {
     ULONG ulRet = BS_OK;
     CHAR *pcGetWord = NULL;
@@ -3389,7 +3417,7 @@ STATIC BS_STATUS http_BuildReason(IN HTTP_HEAD_S *pstHttpHead, INOUT HTTP_SMART_
 /*******************************************************************************
   构造HTTP请求头                         
 *******************************************************************************/
-STATIC CHAR * http_BuildHttpRequestHead(IN HTTP_HEAD_S *pstHttpHead, OUT ULONG *pulHeadLen)
+static CHAR * http_BuildHttpRequestHead(IN HTTP_HEAD_S *pstHttpHead, OUT ULONG *pulHeadLen)
 {
     CHAR *pcHead = NULL;
     DLL_NODE_S *pstNode = NULL;
@@ -3436,7 +3464,7 @@ STATIC CHAR * http_BuildHttpRequestHead(IN HTTP_HEAD_S *pstHttpHead, OUT ULONG *
 /*******************************************************************************
   构造HTTP响应头                         
 *******************************************************************************/
-STATIC CHAR * http_BuildHttpResponseHead(IN HTTP_HEAD_S *pstHttpHead, OUT ULONG *pulHeadLen)
+static CHAR * http_BuildHttpResponseHead(IN HTTP_HEAD_S *pstHttpHead, OUT ULONG *pulHeadLen)
 {
     CHAR *pcHead = NULL;
     DLL_NODE_S *pstNode = NULL;
@@ -3519,12 +3547,9 @@ HTTP_TRANSFER_ENCODING_E HTTP_GetTransferEncoding (IN HTTP_HEAD_PARSER hHttpInst
 {
     CHAR *pcTransEncode = NULL;
 
-    /* 入参合法性检查 */
-    if(NULL == hHttpInstance)
-    {
-        return HTTP_TRANSFER_ENCODING_BUTT;
-    }
-    pcTransEncode = HTTP_GetHeadField(hHttpInstance, HTTP_FIELD_TRANSFER_ENCODING);
+    BS_DBGASSERT(NULL != hHttpInstance);
+
+    pcTransEncode = HTTP_GetHF(hHttpInstance, HTTP_HF_TRANSFER_ENCODING);
     if(NULL != pcTransEncode)
     {
         if(0 == strcmp(pcTransEncode, HTTP_TRANSFER_ENCODE_CHUNKED))
@@ -3539,16 +3564,12 @@ HTTP_TRANSFER_ENCODING_E HTTP_GetTransferEncoding (IN HTTP_HEAD_PARSER hHttpInst
 *******************************************************************************/
 HTTP_CONNECTION_E HTTP_GetConnection (IN HTTP_HEAD_PARSER hHttpInstance)
 {
-    HTTP_HEAD_S *pstHttpHead = NULL;
+    HTTP_HEAD_S *pstHttpHead = (HTTP_HEAD_S *)hHttpInstance;
     CHAR *pcTransEncode = NULL;
 
-    /* 入参合法性检查 */
-    if(NULL == hHttpInstance)
-    {
-        return HTTP_CONNECTION_BUTT;
-    }
-    pstHttpHead = (HTTP_HEAD_S *)hHttpInstance;
-    pcTransEncode = HTTP_GetHeadField(hHttpInstance, HTTP_FIELD_CONNECTION);
+    BS_DBGASSERT(NULL != hHttpInstance);
+
+    pcTransEncode = HTTP_GetHF(hHttpInstance, HTTP_HF_CONNECTION);
     if(NULL != pcTransEncode)
     {
         if(0 == stricmp(pcTransEncode, HTTP_CONN_KEEP_ALIVE))
@@ -3619,18 +3640,14 @@ BS_STATUS HTTP_SetConnection (IN HTTP_HEAD_PARSER hHttpInstance, IN HTTP_CONNECT
 *******************************************************************************/
 HTTP_BODY_TRAN_TYPE_E HTTP_GetBodyTranType (IN HTTP_HEAD_PARSER hHttpInstance )
 {
-    /* 入参合法性检查 */
-    if(NULL == hHttpInstance)
-    {
-        return HTTP_BODY_TRAN_TYPE_NONE;
-    }
+    BS_DBGASSERT(NULL != hHttpInstance);
 
     if (HTTP_TRANSFER_ENCODING_CHUNK == HTTP_GetTransferEncoding(hHttpInstance))
     {
         return HTTP_BODY_TRAN_TYPE_CHUNKED;
     }
 
-    if (NULL != HTTP_GetHeadField(hHttpInstance, HTTP_FIELD_CONTENT_LENGTH))
+    if (NULL != HTTP_GetHF(hHttpInstance, HTTP_HF_CONTENT_LENGTH))
     {
         return HTTP_BODY_TRAN_TYPE_CONTENT_LENGTH;
     }
@@ -3666,6 +3683,14 @@ HTTP_BODY_CONTENT_TYPE_E HTTP_GetContentType (IN HTTP_HEAD_PARSER hHttpInstance 
         {
             return HTTP_BODY_CONTENT_TYPE_MULTIPART;
         }
+        if (0 == strnicmp(pcContentType, HTTP_CONTENT_TYPE_OCSP, strlen(HTTP_CONTENT_TYPE_OCSP)))
+        {
+            return HTTP_BODY_CONTENT_TYPE_OCSP;
+        }
+        if (0 == strnicmp(pcContentType, HTTP_CONTENT_TYPE_JSON, strlen(HTTP_CONTENT_TYPE_JSON)))
+        {
+            return HTTP_BODY_CONTENT_TYPE_JSON;
+        }
     }
 
     return HTTP_BODY_CONTENT_TYPE_NORMAL;
@@ -3688,7 +3713,7 @@ BS_STATUS HTTP_SetChunk (IN HTTP_HEAD_PARSER hHttpInstance)
 /*******************************************************************************
   将一个Range段中的字符串解析为数据存到RangePart结构中                     
 *******************************************************************************/
-STATIC BS_STATUS http_range_DoParse
+static BS_STATUS http_range_DoParse
 (
     IN HTTP_RANGE_PART_S *pstRangePart, 
     IN CHAR *pcStart, 
@@ -3869,6 +3894,7 @@ HTTP_RANGE_S * HTTP_GetRange(IN HTTP_HEAD_PARSER hHttpInstance)
     pstRangePart = (HTTP_RANGE_PART_S*)MEMPOOL_ZAlloc(pstHttpHead->hMemPool, ulRangeNum * sizeof(HTTP_RANGE_PART_S));
     if (NULL == pstRangePart)
     {
+        MEMPOOL_Free(pstHttpHead->hMemPool, pstRange);
         return NULL;
     }
 
@@ -3908,6 +3934,8 @@ HTTP_RANGE_S * HTTP_GetRange(IN HTTP_HEAD_PARSER hHttpInstance)
     
     if (BS_OK != ulRet)
     {
+        MEMPOOL_Free(pstHttpHead->hMemPool, pstRangePart);
+        MEMPOOL_Free(pstHttpHead->hMemPool, pstRange);
         return NULL;
     }
 
@@ -3920,7 +3948,7 @@ HTTP_RANGE_S * HTTP_GetRange(IN HTTP_HEAD_PARSER hHttpInstance)
 /*******************************************************************************
   根据Cookie的port字段生成对应的字符串              
 *******************************************************************************/
-STATIC BS_STATUS http_BuildPortList
+static BS_STATUS http_BuildPortList
 (
     IN USHORT ausPort[HTTP_MAX_COOKIE_PORT_NUM], 
     INOUT CHAR **ppcBuf, 
@@ -3961,7 +3989,7 @@ STATIC BS_STATUS http_BuildPortList
         return BS_ERR;
     }
     
-    iLen = snprintf((CHAR*)pcBuf, ulLeftLen, "; %s=\"", g_apcHttpCookieAV[COOKIE_AV_PORT]);
+    iLen = scnprintf((CHAR*)pcBuf, ulLeftLen, "; %s=\"", g_apcHttpCookieAV[COOKIE_AV_PORT]);
     BS_DBGASSERT(iLen > 0);
     
     /* 偏移指针，计算内存剩余长度 */
@@ -3981,7 +4009,7 @@ STATIC BS_STATUS http_BuildPortList
         
         /* 将整数转化成字符串 */
         memset(szTemp, 0, (ULONG)HTTP_COOKIE_ULTOA_LEN);
-        iLen = snprintf(szTemp, (ULONG)HTTP_COOKIE_ULTOA_LEN, "%d", ausPort[i]);
+        iLen = scnprintf(szTemp, (ULONG)HTTP_COOKIE_ULTOA_LEN, "%d", ausPort[i]);
         BS_DBGASSERT(iLen > 0);
         ulLenTemp = strlen(szTemp);
         
@@ -3991,7 +4019,7 @@ STATIC BS_STATUS http_BuildPortList
             return BS_ERR;
         }
         /* 将PortNum值放入，并在其后加一个',' */
-        snprintf((CHAR*)pcBuf, ulLeftLen, "%s,", szTemp);
+        scnprintf((CHAR*)pcBuf, ulLeftLen, "%s,", szTemp);
         ulLeftLen -= (ulLenTemp + 1);
         pcBuf += (ulLenTemp + 1);
     }
@@ -4007,7 +4035,7 @@ STATIC BS_STATUS http_BuildPortList
 /*******************************************************************************
   生成指定的Param字符串                
 *******************************************************************************/
-STATIC BS_STATUS http_BuildCookieParam(IN CHAR *pcKey, 
+static BS_STATUS http_BuildCookieParam(IN CHAR *pcKey, 
                                      IN CHAR *pcValue, 
                                      IN BOOL_T bIsNeedQuot, 
                                      IN CHAR *pcBeforeSeparator, 
@@ -4047,7 +4075,7 @@ STATIC BS_STATUS http_BuildCookieParam(IN CHAR *pcKey,
         memset(szTemp, 0, (ULONG)HTTP_COOKIE_ULTOA_LEN);
         if (NULL != pcBeforeSeparator)
         {
-            snprintf(szTemp, (ULONG)HTTP_COOKIE_ULTOA_LEN, "%s", pcBeforeSeparator);
+            scnprintf(szTemp, (ULONG)HTTP_COOKIE_ULTOA_LEN, "%s", pcBeforeSeparator);
         }
         if (TRUE == bIsNeedQuot)
         {
@@ -4058,7 +4086,7 @@ STATIC BS_STATUS http_BuildCookieParam(IN CHAR *pcKey,
             TXT_Strlcat(szTemp, "%s=%s", sizeof(szTemp));
         }
 
-        ulTmpLen = (ULONG)(UINT)snprintf(pcDest, *pulLen, szTemp, pcKey, pcValue);
+        ulTmpLen = (ULONG)(UINT)scnprintf(pcDest, *pulLen, szTemp, pcKey, pcValue);
         BS_DBGASSERT(ulTmpLen == ulLen);
         *pulLen -= ulTmpLen;
         *ppcBuf += ulTmpLen;
@@ -4074,7 +4102,7 @@ STATIC BS_STATUS http_BuildCookieParam(IN CHAR *pcKey,
 /*******************************************************************************
   组装Cookie字符串                      
 *******************************************************************************/
-STATIC BS_STATUS http_DoBuildServerCookie
+static BS_STATUS http_DoBuildServerCookie
 (
     IN HTTP_SERVER_COOKIE_S *pstCookie, 
     IN HTTP_COOKIE_TYPE_E enCookieType,
@@ -4168,7 +4196,7 @@ STATIC BS_STATUS http_DoBuildServerCookie
     /* 组装Max-Age:其默认值是0xFFFFFFFF，如果其值是默认值，则认为用户未设置，故不组装Max-Age */
     if (pstCookie->ulMaxAge != 0xFFFFFFFF)
     {
-        snprintf(szTemp, (ULONG)HTTP_COOKIE_ULTOA_LEN, "%d", (UINT)(pstCookie->ulMaxAge));
+        scnprintf(szTemp, (ULONG)HTTP_COOKIE_ULTOA_LEN, "%d", (UINT)(pstCookie->ulMaxAge));
         if ( BS_OK != http_BuildCookieParam(g_apcHttpCookieAV[COOKIE_AV_MAXAGE],
                                                      szTemp, 
                                                      FALSE, 
@@ -4215,7 +4243,7 @@ STATIC BS_STATUS http_DoBuildServerCookie
     }
 
     /* 组装Version, 必选 */       
-    snprintf(szTemp, (ULONG)HTTP_COOKIE_ULTOA_LEN, "%d", (UINT)(pstCookie->ulVersion));
+    scnprintf(szTemp, (ULONG)HTTP_COOKIE_ULTOA_LEN, "%d", (UINT)(pstCookie->ulVersion));
     
     if (BS_OK != http_BuildCookieParam(g_apcHttpCookieAV[COOKIE_AV_VERSION],
                                                szTemp, 
@@ -4272,6 +4300,7 @@ CHAR * HTTP_BuildServerCookie
     pcCookieString[0] = '\0';
     if (BS_OK != http_DoBuildServerCookie(pstCookie, enCookieType, pcCookieString))
     {
+        MEMPOOL_Free(hMemPool, pcCookieString);
         return NULL;
     }
 
@@ -4279,5 +4308,53 @@ CHAR * HTTP_BuildServerCookie
     
     return pcCookieString;
     
+}
+
+static UINT g_http_head_chars_valid_map[8]; /* 合法http头字符的位图表 */
+
+static void http_init_chars_valid_map()
+{
+    int i;
+    for (i=32; i<127; i++) {
+        ArrayBit_Set(g_http_head_chars_valid_map, i);
+    }
+    ArrayBit_Set(g_http_head_chars_valid_map, '\r');
+    ArrayBit_Set(g_http_head_chars_valid_map, '\n');
+}
+
+BOOL_T HTTP_IsValidHeadChars(unsigned char *buf, int len)
+{
+    int i;
+
+    for (i=0; i<len; i++) {
+        if (0 == ArrayBit_Test(g_http_head_chars_valid_map, buf[i])) {
+            // printf("xxx=%u %c \r\n", buf[i], buf[i]);
+            return FALSE;
+        }
+    }
+    
+    return TRUE;
+}
+
+/* 判断一段buf是不是http头的格式 */
+BOOL_T HTTP_IsHttpHead(char *buf, int len)
+{
+    if (len < HTTP_MIN_FIRST_LINE_LEN) {
+        return FALSE;
+    }
+
+    if (TXT_Strnchr(buf, ' ', HTTP_MIN_FIRST_LINE_LEN) == NULL) {
+        return FALSE;
+    }
+
+    if (! HTTP_IsValidHeadChars((void*)buf, HTTP_MIN_FIRST_LINE_LEN)) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+CONSTRUCTOR(init) {
+    http_init_chars_valid_map();
 }
 

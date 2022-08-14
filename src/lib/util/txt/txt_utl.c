@@ -274,6 +274,17 @@ static BS_STATUS txt_ReplaceSubStr
     return txt_ReplaceSubStr(pucTxtOutBuf, pucSubStrFrom, pucSubStrTo, pucTxtOutBuf, ulSize);
 }
 
+void TXT_ReplaceChar(INOUT char *pcTxtBuf, char from, char to)
+{
+    char *c = pcTxtBuf;
+    while (*c) {
+        if (*c == from) {
+            *c = to;
+        }
+        c++;
+    }
+}
+
 VOID TXT_ReplaceSubStr(IN CHAR *pcTxtBuf, IN CHAR *pcSubStrFrom, IN CHAR *pcSubStrTo, OUT CHAR *pcTxtOutBuf, IN ULONG ulSize)
 {
     BS_DBGASSERT(NULL != pcTxtBuf);
@@ -354,11 +365,11 @@ CHAR * TXT_StrimHead(IN CHAR *pcData, IN ULONG ulDataLen, IN CHAR *pcSkipChars)
         return NULL;
     }
 
-
     if (0 == ulDataLen)
     {
         return pcData;
     }
+
     while (pcTemp < pcEnd)
     {
         if(NULL == strchr(pcSkipChars, *pcTemp))
@@ -399,6 +410,15 @@ ULONG TXT_StrimTail(IN CHAR *pcData, IN ULONG ulDataLen, IN CHAR *pcSkipChars)
     }
 
     return ((ULONG)(pcTemp + 1) - (ULONG)pcData);
+}
+
+CHAR * TXT_StrimHeadTail(CHAR *pcData, ULONG ulDataLen, CHAR *pcSkipChars, OUT ULONG *pulNewLen)
+{
+    CHAR *head = TXT_StrimHead(pcData, ulDataLen, pcSkipChars);
+    ULONG len = ulDataLen - (head - pcData);
+    *pulNewLen = TXT_StrimTail(head, len, pcSkipChars);
+
+    return head;
 }
 
 CHAR * TXT_StrimString(IN CHAR *pcData, IN CHAR *pcSkipChars)
@@ -443,7 +463,7 @@ VOID TXT_StrimAndMove(IN CHAR *pszStr)
 			break;
 	}
 
-    memcpy(pszStr, pt, strlen(pt) + 1);
+    memmove(pszStr, pt, strlen(pt) + 1);
 
 	len = strlen(pt);
 	if (len)
@@ -496,6 +516,26 @@ char * TXT_StrimAll(IN CHAR *pcStr)
     *pcWrite = '\0';
 
     return pcStr;
+}
+
+/* 将不包含头尾空白字符的结果copy到dst */
+char * TXT_StrimTo(char *in, char *out)
+{
+    in = TXT_StrimHead(in, strlen(in), " \t\r\n");
+    strcpy(out, in);
+    TXT_Strim(out);
+
+    return out;
+}
+
+/* 将不包含空白字符的结果copy到dst */
+char * TXT_StrimAllTo(char *in, char *out)
+{
+    in = TXT_StrimHead(in, strlen(in), " \t\r\n");
+    strcpy(out, in);
+    TXT_StrimAll(out);
+
+    return out;
 }
 
 /* 得到字符串中第一个非空格\t \n \r 字符的指针, 如果找不到, 返回NULL . */
@@ -584,7 +624,41 @@ CHAR * TXT_FindOneOf(IN CHAR *pszStr, IN CHAR *pszPattern)
     return NULL;
 }
 
-UINT TXT_StrToToken(IN CHAR *pszStr, IN CHAR *pszPattern, OUT CHAR *apszArgz[], IN UINT uiMaxArgz)
+/* 获取有多少个token */
+UINT TXT_GetTokenNum(IN CHAR *pszStr, IN CHAR *pszPatterns)
+{
+    CHAR * pt = pszStr;
+    CHAR * pt1;
+    UINT uiCount = 0;
+    UINT uiPatternLen;
+
+    if (*pszStr == '\0') {
+        return 0;
+    }
+
+    uiPatternLen = strlen(pszPatterns);
+
+    do {
+        pt = (CHAR*)TXT_FindFirstNonSuch((UCHAR*)pt, strlen(pt), (UCHAR*)pszPatterns, uiPatternLen);
+        if (pt == NULL) {
+            return uiCount;
+        }
+
+        pt1 = TXT_FindOneOf(pt, pszPatterns);
+        if (NULL != pt1) {
+            pt1 ++;
+        }
+
+        uiCount ++;
+
+        pt = pt1;
+    } while (pt != NULL);
+
+    return uiCount;
+}
+
+/* pszPatterns是隔离符集合 */
+UINT TXT_StrToToken(IN CHAR *pszStr, IN CHAR *pszPatterns, OUT CHAR *apszArgz[], IN UINT uiMaxArgz)
 {
     CHAR * pt = pszStr;
     CHAR * pt1;
@@ -599,15 +673,15 @@ UINT TXT_StrToToken(IN CHAR *pszStr, IN CHAR *pszPattern, OUT CHAR *apszArgz[], 
         return 0;
     }
 
-    uiPatternLen = strlen(pszPattern);
+    uiPatternLen = strlen(pszPatterns);
 
     do {
-        pt = (CHAR*)TXT_FindFirstNonSuch((UCHAR*)pt, strlen(pt), (UCHAR*)pszPattern, uiPatternLen);
+        pt = (CHAR*)TXT_FindFirstNonSuch((UCHAR*)pt, strlen(pt), (UCHAR*)pszPatterns, uiPatternLen);
         if (pt == NULL) {
             return uiCount;
         }
 
-        pt1 = TXT_FindOneOf(pt, pszPattern);
+        pt1 = TXT_FindOneOf(pt, pszPatterns);
         if (NULL != pt1) {
             *pt1 = '\0';
             pt1 ++;
@@ -625,7 +699,7 @@ UINT TXT_StrToToken(IN CHAR *pszStr, IN CHAR *pszPattern, OUT CHAR *apszArgz[], 
 /*
  将解析后的结果放在HSTACK中返回
 */
-HANDLE TXT_StrToDynamicToken(IN CHAR *pszStr, IN CHAR *pszPattern)
+HANDLE TXT_StrToDynamicToken(IN CHAR *pszStr, IN CHAR *pszPatterns)
 {
     CHAR *pt1, *pt = pszStr;
     HANDLE hStack;
@@ -642,16 +716,16 @@ HANDLE TXT_StrToDynamicToken(IN CHAR *pszStr, IN CHAR *pszPattern)
         return NULL;
     }
 
-    uiPatternLen = strlen(pszPattern);
+    uiPatternLen = strlen(pszPatterns);
 
     do {
-        pt = (CHAR*)TXT_FindFirstNonSuch((void*)pt, strlen(pt), (void*)pszPattern, uiPatternLen);
+        pt = (CHAR*)TXT_FindFirstNonSuch((void*)pt, strlen(pt), (void*)pszPatterns, uiPatternLen);
         if (pt == NULL)
         {
             return hStack;
         }
 
-        pt1 = TXT_FindOneOf(pt, pszPattern);
+        pt1 = TXT_FindOneOf(pt, pszPatterns);
         if (NULL != pt1)
         {
             *pt1 = '\0';
@@ -842,26 +916,21 @@ char * TXT_Invert(char *in, char *out)
 }
 
 /* 从最后开始扫描字符 */
+CHAR * TXT_ReverseStrnchr(CHAR *pcBuf, CHAR ch2Find, UINT uiLen)
+{
+    LSTR_S lstr;
+    lstr.pcData = pcBuf;
+    lstr.uiLen = uiLen;
+    return LSTR_ReverseStrchr(&lstr, ch2Find);
+}
+
+/* 从最后开始扫描字符 */
 CHAR * TXT_ReverseStrchr(IN CHAR *pcBuf, IN CHAR ch2Find)
 {
-    UINT uiLen;
-    UINT i;
-
-    uiLen = strlen(pcBuf);
-    if (0 == uiLen)
-    {
-        return 0;
-    }
-
-    for (i=uiLen; i>0; i--)
-    {
-        if (pcBuf[i-1] == ch2Find)
-        {
-            return &pcBuf[i-1];
-        }
-    }
-
-    return NULL;
+    LSTR_S lstr;
+    lstr.pcData = pcBuf;
+    lstr.uiLen = strlen(pcBuf);
+    return LSTR_ReverseStrchr(&lstr, ch2Find);
 }
 
 CHAR *TXT_Strnstr(IN CHAR *s1, IN CHAR *s2, IN ULONG ulLen) 
@@ -883,6 +952,29 @@ CHAR *TXT_Strnstr(IN CHAR *s1, IN CHAR *s2, IN ULONG ulLen)
 		{
 			return s1;
 		}
+
+		s1++;
+	}
+
+	return NULL;
+}
+
+char * TXT_Strnistr(char *s1, char *s2, ULONG ulLen) 
+{
+	ULONG ulLen2;
+
+	ulLen2 = strlen(s2);
+
+	if (ulLen2 == 0) {
+		return s1;
+	}
+
+	while (ulLen >= ulLen2) {
+		ulLen--;
+
+        if (0 == strnicmp(s1, s2, ulLen2)) {
+            return s1;
+        }
 
 		s1++;
 	}
@@ -1102,7 +1194,7 @@ VOID TXT_Strlwr(INOUT CHAR *pszString)
     }
 }
 
-CHAR *TXT_Strdup(IN CHAR *pcStr)
+char *TXT_Strdup(IN CHAR *pcStr)
 {
     UINT uiLen;
     CHAR *pcDup;
@@ -1274,6 +1366,16 @@ VOID TXT_StrSplit(IN CHAR *pcString, IN CHAR cSplitChar, OUT LSTR_S * pstStr1, O
     LSTR_Split(&stString, cSplitChar, pstStr1, pstStr2);
 }
 
+VOID TXT_MStrSplit(IN CHAR *pcString, IN CHAR *pcSplitChar, OUT LSTR_S * pstStr1, OUT LSTR_S * pstStr2)
+{
+    LSTR_S stString;
+
+    stString.pcData = pcString;
+    stString.uiLen = strlen(pcString);
+
+    LSTR_MSplit(&stString, pcSplitChar, pstStr1, pstStr2);
+}
+
 /* 将字符串添加转义字符 */
 char * TXT_Str2Translate(char *str, char *trans_char_sets, char *out, int out_size)
 {
@@ -1306,3 +1408,4 @@ char * TXT_Str2Translate(char *str, char *trans_char_sets, char *out, int out_si
 
     return out;
 }
+

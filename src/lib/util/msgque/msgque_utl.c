@@ -48,8 +48,7 @@ void MSGQUE_Delete(MSGQUE_S *q)
 
 UINT MSGQUE_Count(MSGQUE_S *q)
 {
-	UINT count = (q->prod - q->cons) & q->mask;
-	return (count > q->capacity) ? q->capacity : count;
+	return (q->prod - q->cons);
 }
 
 UINT MSGQUE_FreeCount(MSGQUE_S *q)
@@ -59,7 +58,10 @@ UINT MSGQUE_FreeCount(MSGQUE_S *q)
 
 int MSGQUE_Full(MSGQUE_S *q)
 {
-	return MSGQUE_FreeCount(q) == 0;
+	if (MSGQUE_FreeCount(q) == 0) {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 int MSGQUE_Empty(MSGQUE_S *q)

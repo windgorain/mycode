@@ -44,20 +44,6 @@ typedef struct
     WS_DELIVER_TBL_HANDLE hDeliverTbl;
 }WSAPP_SERVICE_S;
 
-
-CHAR * WSAPP_ServiceCfg_AddAutoNameService(IN UINT uiFlag);
-BS_STATUS WSAPP_ServiceCfg_Del(IN CHAR *pcServiceName);
-BS_STATUS WSAPP_ServiceCfg_ServiceBindGateway
-(
-    IN CHAR *pcService,
-    IN CHAR *pcGateWay,
-    IN CHAR *pcVHost,
-    IN CHAR *pcDomain
-);
-BS_STATUS WSAPP_ServiceCfg_Bind(IN CHAR *pcService);
-BS_STATUS WSAPP_ServiceCfg_UnBind(IN CHAR *pcService);
-BS_STATUS WSAPP_ServiceCfg_SetDeliverTbl(IN CHAR *pcService, IN WS_DELIVER_TBL_HANDLE hDeliverTbl);
-
 #ifdef __cplusplus
     }
 #endif /* __cplusplus */

@@ -8,111 +8,73 @@
 
 #include "utl/jhash_utl.h"
 
-
-/*****************************************************************************
-  Description: JHash通用接口，对一系列的字节计算Hash值。
-               该函数对pKey的起始地址和长度没有对齐要求。
-        Input: pKey        ----  存放Hash Key的缓冲区
-               uiLength    ----  Hash Key的长度，单位字节
-       Return: Hash值
-      Caution: 如果Hash的Key为一个结构，需要注意结构所占空间中否有可能出现随机值的地方。
-               如果可能出现随机值，需要对这些地方明确赋值。
-*****************************************************************************/
-UINT JHASH_GeneralBuffer(VOID *pKey, UINT uiLength, UINT initval)
+UINT JHASH_GeneralBuffer(void *key, UINT length, UINT initval)
 {
-    UINT uia, uib, uic;
-    UINT uiRemainlen;
-    UCHAR *pucKey = (UCHAR *)pKey;
+	UINT a, b, c;
+	UCHAR *k = key;
+    UINT *d;
 
-    uiRemainlen = uiLength;
-    uia = uib = JHASH_GOLDEN_RATIO;
-    uic = initval;
+	a = b = c = JHASH_INITVAL + length + initval;
 
-    while (uiRemainlen >= 12)
-    {
-        uia += (pucKey[0] +((UINT)pucKey[1]<<8) +((UINT)pucKey[2]<<16) +((UINT)pucKey[3 ]<<24));
-        uib += (pucKey[4] +((UINT)pucKey[5]<<8) +((UINT)pucKey[6]<<16) +((UINT)pucKey[7 ]<<24));
-        uic += (pucKey[8] +((UINT)pucKey[9]<<8) +((UINT)pucKey[10]<<16)+((UINT)pucKey[11]<<24));
+	while (length > 12) {
+        d = (void*)k;
+		a += d[0];
+		b += d[1];
+		c += d[2];
+		JHASH_MIX(a, b, c);
+		length -= 12;
+		k += 12;
+	}
 
-        JHASH_MIX(uia,uib,uic);
+	switch (length) {
+	case 12: c += (UINT)k[11]<<24;
+	case 11: c += (UINT)k[10]<<16;
+	case 10: c += (UINT)k[9]<<8;
+	case 9:  c += k[8];
+	case 8:  b += (UINT)k[7]<<24;
+	case 7:  b += (UINT)k[6]<<16;
+	case 6:  b += (UINT)k[5]<<8;
+	case 5:  b += k[4];
+	case 4:  a += (UINT)k[3]<<24;
+	case 3:  a += (UINT)k[2]<<16;
+	case 2:  a += (UINT)k[1]<<8;
+	case 1:  a += k[0];
+		 JHASH_FINAL(a, b, c);
+	case 0:
+		break;
+	}
 
-        pucKey      += 12;
-        uiRemainlen -= 12;
-    }
-    
-    switch (uiRemainlen)
-    {
-        case 11:
-            uic += ((UINT)pucKey[10]<<24);
-        case 10:
-            uic += ((UINT)pucKey[9]<<16);
-        case 9 :
-            uic += ((UINT)pucKey[8]<<8);         
-        case 8 :
-            uib += ((UINT)pucKey[7]<<24);      
-        case 7 :
-            uib += ((UINT)pucKey[6]<<16);
-        case 6 :
-            uib += ((UINT)pucKey[5]<<8);
-        case 5 :
-            uib += pucKey[4];   
-        case 4 :
-            uia += ((UINT)pucKey[3]<<24);
-        case 3 :
-            uia += ((UINT)pucKey[2]<<16);
-        case 2 :
-            uia += ((UINT)pucKey[1]<<8);
-        case 1 :
-            uia += pucKey[0];
-        default:
-            uic += uiLength;
-    };
-
-    JHASH_MIX(uia,uib,uic);
-
-    return uic;
+	return c;
 }
 
-/*****************************************************************************
-  Description: 对一个连续存放的Key计算Hash值。要求Key的起始地址和长度4字节对齐。
-        Input: puiKey      ----  存放Hash Key的缓冲区
-               uiLength    ----  Hash Key中UINT的个数。
-      Caution: 如果Hash的Key为一个结构，需要注意结构所占空间中否有可能出现随机值的地方。
-               如果可能出现随机值，需要对这些地方明确赋值。
-*****************************************************************************/
-UINT JHASH_U32Buffer(UINT *puiKey, UINT uiLength, UINT initval)
+/*
+  对一个连续存放的Key计算Hash值。要求Key的起始地址和长度4字节对齐。
+*/
+UINT JHASH_U32Buffer(UINT *k, UINT length, UINT initval)
 {
-    UINT uia, uib, uic;
-    UINT uiRemainlen;
+	UINT a, b, c;
 
-    uia = uib = JHASH_GOLDEN_RATIO;
-    uic = initval;
-    uiRemainlen = uiLength;
+	a = b = c = JHASH_INITVAL + (length<<2) + initval;
 
-    while (uiRemainlen >= 3)
-    {
-        uia += puiKey[0];
-        uib += puiKey[1];
-        uic += puiKey[2];
+	while (length > 3) {
+		a += k[0];
+		b += k[1];
+		c += k[2];
+		JHASH_MIX(a, b, c);
+		length -= 3;
+		k += 3;
+	}
 
-        JHASH_MIX(uia, uib, uic);
+	switch (length) {
+	case 3: c += k[2];
+	case 2: b += k[1];
+	case 1: a += k[0];
+		JHASH_FINAL(a, b, c);
+	case 0:	
+		break;
+	}
 
-        puiKey += 3;
-        uiRemainlen -= 3;
-    }
-    switch (uiRemainlen)
-    {
-        case 2 :
-            uib += puiKey[1];  
-        case 1 :
-            uia += puiKey[0];
-        default:
-            uic += uiLength * 4;
-    };
-
-    JHASH_MIX(uia,uib,uic);
-
-    return uic;
+	return c;
 }
 
 

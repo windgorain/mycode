@@ -10,13 +10,6 @@
 
 UINT RAND_Get()
 {
-    static int is_sranded = 0;
-
-    if (! is_sranded) {
-        is_sranded = 1;
-        srand(time(NULL));
-    }
-
     return rand();
 }
 
@@ -34,7 +27,44 @@ UINT RAND_GetNonZero()
 VOID RAND_Entropy(IN UINT uiEntropy)
 {
     UINT seed = RAND_Get() + uiEntropy;
-
     srand(seed);
+}
+
+#ifdef IN_UNIXLIKE
+/* 获取/dev/urandom随机数 */
+unsigned long RAND_GetRandom()
+{
+	int fd=0;
+	unsigned long ul_num = 0;
+
+	fd=open("/dev/urandom",O_RDONLY);
+	if(fd<0) {
+        return RAND_Get();
+	}
+
+	int ret=read(fd,&ul_num,sizeof(ul_num));
+	if(ret<0){
+		close(fd);
+        return RAND_Get();
+	}
+
+	close(fd);
+
+	return ul_num;
+}
+#else
+unsigned long RAND_GetRandom()
+{
+    return RAND_Get();
+}
+#endif
+
+static void rand_init()
+{
+    srand(time(NULL));
+}
+
+CONSTRUCTOR(init) {
+    rand_init();
 }
 

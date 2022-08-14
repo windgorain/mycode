@@ -1,0 +1,9 @@
+set(SRC "")
+aux_source_directory(. SRC)
+
+add_library(${NAME} SHARED ${SRC} )
+set_target_properties(${NAME} PROPERTIES PREFIX "")
+set_target_properties(${NAME} PROPERTIES OUTPUT_NAME "${NAME}")
+set_target_properties(${NAME} PROPERTIES SUFFIX ".so")
+set_target_properties(${NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out/plug/precver/lib")
+target_link_libraries(${NAME} dynamic-precver util pcap)

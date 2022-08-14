@@ -9,7 +9,7 @@
 #include "utl/tcp_utl.h"
 #include "utl/stream2ip.h"
 
-#define STREAM2IP_MAX_IP_LEN 2048
+#define STREAM2IP_MAX_IP_LEN 1500
 #define STREAM2IP_MAX_TCP_PAYLOAD_LEN  (STREAM2IP_MAX_IP_LEN - sizeof(struct s2ip_tcp_hdr) - sizeof(struct s2ip_ipv4_hdr) - sizeof(ETH_HEADER_S))
 
 /**

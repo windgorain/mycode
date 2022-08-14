@@ -17,7 +17,7 @@
 #include "../inc/vnets_web.h"
 
 /* broadcast { permit | deny } */
-PLUG_API BS_STATUS VNETS_SetPermitBroadcast(IN UINT ulArgc, IN UCHAR **argv)
+PLUG_API BS_STATUS VNETS_SetPermitBroadcast(int ulArgc, char **argv)
 {
     BOOL_T bIsPermit = FALSE;
 

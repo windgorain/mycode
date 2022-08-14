@@ -50,7 +50,7 @@ static inline VOID vnetc_node_DirectDetect(IN VNETC_NID_S *pstNode)
 
 static inline BS_STATUS vnetc_node_Send2Vnic(IN MBUF_S * pstMbuf)
 {
-    return CompIf_LinkOutput(VNETC_VNIC_PHY_GetVnicIfIndex(), pstMbuf, 0);
+    return IFNET_LinkOutput(VNETC_VNIC_PHY_GetVnicIfIndex(), pstMbuf, 0);
 }
 
 static inline BS_STATUS vnetc_node_BuildHeader
@@ -126,7 +126,7 @@ static BS_STATUS vnetc_node_SendPkt(IN VNETC_NID_S *pstNode, IN MBUF_S *pstMbuf,
         return BS_ERR;
     }
 
-    return CompIf_LinkOutput(uiIfIndex, pstMbuf, 0);
+    return IFNET_LinkOutput(uiIfIndex, pstMbuf, 0);
 }
 
 static BS_STATUS vnetc_node_VnicPktBroadCast(IN MBUF_S *pstMbuf, IN USHORT usProto)
@@ -147,7 +147,7 @@ static BS_STATUS vnetc_node_VnicPktBroadCast(IN MBUF_S *pstMbuf, IN USHORT usPro
         return BS_ERR;
     }
 
-    return CompIf_LinkOutput(uiIfIndex, pstMbuf, 0);
+    return IFNET_LinkOutput(uiIfIndex, pstMbuf, 0);
 }
 
 static BS_STATUS vnetc_node_NetPktBroadCast(IN MBUF_S *pstMbuf)
@@ -286,7 +286,7 @@ BS_STATUS VNETC_NODE_PktOutput(IN UINT uiDstNID, IN MBUF_S *pstMbuf, IN USHORT u
 
     if (pstNode->uiFlag & VNETC_NODE_FLAG_INNER)
     {
-        return CompIf_LinkOutput(pstNode->uiIfIndex, pstMbuf, 0);
+        return IFNET_LinkOutput(pstNode->uiIfIndex, pstMbuf, 0);
     }
 
     return vnetc_node_SendPkt(pstNode, pstMbuf, usProto);

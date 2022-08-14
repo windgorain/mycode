@@ -15,7 +15,63 @@
 #include "utl/socket_utl.h"
 #include "utl/ip_string.h"
 
-/* 解析字符串 IP/Mask */
+/* 解析字符串 IP/Prefix, 输出IP_PREFIX_S */
+BS_STATUS IPString_ParseIpPrefix(CHAR *pcIpPrefixString, OUT IP_PREFIX_S *pstIpPrefix)
+{
+    LSTR_S stIP;
+    LSTR_S stPrefix;
+    CHAR szTmp[32];
+    UINT uiPrefix = 0;
+
+    TXT_StrSplit(pcIpPrefixString, '/', &stIP, &stPrefix);
+
+    LSTR_Strim(&stIP, TXT_BLANK_CHARS, &stIP);
+    LSTR_Strim(&stPrefix, TXT_BLANK_CHARS, &stPrefix);
+
+    if ((stIP.uiLen > 15) || (stPrefix.uiLen > 2))
+    {
+        return BS_BAD_PARA;
+    }
+
+    LSTR_Strlcpy(&stIP, sizeof(szTmp), szTmp);
+    if (!Socket_IsIPv4(szTmp)){
+        return BS_BAD_PARA;
+    }
+    pstIpPrefix->uiIP = Socket_Ipsz2IpHost(szTmp);
+  
+    if (stPrefix.uiLen == 0) {
+        uiPrefix = 32;
+    } else {
+        uiPrefix = atoi(stPrefix.pcData);
+    }
+
+    if (uiPrefix > 32) 
+    {
+        return BS_BAD_PARA;
+    }
+    pstIpPrefix->ucPrefix = (UCHAR)uiPrefix;
+
+    return BS_OK;
+}
+
+/* 解析字符串 IP/Prefix, 输出IP_MAKS_S */
+BS_STATUS IPString_ParseIpPrefix_OutIpMask(CHAR *pcIpPrefixString, OUT IP_MAKS_S *pstIpMask)
+{
+    BS_STATUS enRet;
+    IP_PREFIX_S stPrefix;
+
+    enRet = IPString_ParseIpPrefix(pcIpPrefixString, &stPrefix);
+    if (BS_OK != enRet) {
+        return enRet;
+    }
+
+    pstIpMask->uiIP = stPrefix.uiIP;
+    pstIpMask->uiMask = PREFIX_2_MASK(stPrefix.ucPrefix);
+
+    return BS_OK;
+}
+
+/* 解析字符串 IP/Mask, 输出IP_MAKS_S */
 BS_STATUS IPString_ParseIpMask(CHAR *pcIpMaskString, OUT IP_MAKS_S *pstIpMask)
 {
     LSTR_S stIP;
@@ -40,6 +96,7 @@ BS_STATUS IPString_ParseIpMask(CHAR *pcIpMaskString, OUT IP_MAKS_S *pstIpMask)
 
     return BS_OK;
 }
+
 
 /* 解析字符串IP/Mask列表,比如:1.1.1.1/255.0.0.0,2.1.1.1./255.0.0.0,
    返回值: IP个数
@@ -68,11 +125,25 @@ UINT IPString_ParseIpMaskList(IN CHAR *pcIpMaskString, IN CHAR cSplitChar, IN UI
 CHAR * IPString_IP2String(IN UINT ip/*net order*/, OUT CHAR *str)
 {
     UCHAR *pucData = (void*)&ip;
-
-    int len = sprintf(str, "%u.%u.%u.%u", pucData[0], pucData[1], pucData[2], pucData[3]);
-    pucData[len] = 0;
-
+    sprintf(str, "%u.%u.%u.%u", pucData[0], pucData[1], pucData[2], pucData[3]);
     return str;
+}
+
+INT IPString_IpMask2String_OutIpPrefix(IN IP_MAKS_S *pstIpMask, IN INT iStrLen, OUT CHAR *str)
+{
+    int len;
+    UCHAR *pucData;
+    UINT uiIpNet;
+    UCHAR ucPrefix;
+
+    uiIpNet = ntohl(pstIpMask->uiIP);
+    pucData = (VOID *)&uiIpNet;
+    ucPrefix = MASK_2_PREFIX(pstIpMask->uiMask);
+
+    len = scnprintf(str, iStrLen, "%u.%u.%u.%u", pucData[0], pucData[1], pucData[2], pucData[3]);
+    len += scnprintf(str+len, iStrLen-len, "/%hhu", ucPrefix);
+
+    return len;
 }
 
 CHAR * IPString_IPHeader2String(IN VOID *ippkt, OUT CHAR *info, IN UINT infosize)
@@ -83,7 +154,7 @@ CHAR * IPString_IPHeader2String(IN VOID *ippkt, OUT CHAR *info, IN UINT infosize
 
     iph = ippkt;
 
-    snprintf(info, infosize,
+    scnprintf(info, infosize,
             "\"ip_head_len\":%u,\"ip_tos\":%u,\"ip_total_length\":%u,\"ip_pkt_id\":%d,"
             "\"ip_flag\":%u,\"ip_frag_offset\":%u,\"ip_ttl\":%u,\"ip_protocol\":%u,\"ip_head_chksum\":\"%04x\","
             "\"sip\":\"%s\",\"dip\":\"%s\"",
@@ -103,5 +174,4 @@ CHAR * IPString_IPHeader2Hex(IN VOID *ippkt, OUT CHAR *info)
 
     return info;
 }
-
 

@@ -160,7 +160,7 @@ BS_STATUS VNETS_Web_Init()
 
 VOID VNETS_Web_BindService(IN CHAR *pcWsService)
 {
-    COMP_WSAPP_SetDeliverTbl(pcWsService, g_hVnetsWebDeliverTbl);
+    WSAPP_SetDeliverTbl(pcWsService, g_hVnetsWebDeliverTbl);
 }
 
 

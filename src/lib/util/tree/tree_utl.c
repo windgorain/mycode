@@ -5,13 +5,12 @@
 * History:     
 ******************************************************************************/
 #include "bs.h"
-
 #include "utl/tree_utl.h"
 
 /* 
 双向父优先深度遍历
 就像走路一样,经过每个节点，有去有回。
- 不像是深度遍历只取不回的跳跃遍历.
+ 不像是深度遍历只去不回的跳跃遍历.
  root节点也遍历.每个节点都有来回两次.
  */
 static BS_WALK_RET_E _TREE_DepthBackWalk
@@ -175,5 +174,16 @@ VOID TREE_NodeInit(IN TREE_NODE_S *pstNode)
     DLL_INIT(&pstNode->stChildNode);
 }
 
+TREE_HANDLE Tree_Create()
+{
+    TREE_CTRL_S *ctrl;
 
+    ctrl = MEM_ZMalloc(sizeof(TREE_CTRL_S));
+    if (! ctrl) {
+        return NULL;
+    }
+
+    TREE_NodeInit(&ctrl->root);
+    return ctrl;
+}
 

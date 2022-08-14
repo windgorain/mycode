@@ -41,6 +41,99 @@ typedef struct {
 }SSL_EXTENSION_SNI_S;
 #pragma pack()
 
+static USHORT grease_[] = {0x0a0a,0x1a1a,0x2a2a,0x3a3a,0x4a4a,0x5a5a,0x6a6a,0x7a7a,
+               0x8a8a,0x9a9a,0xaaaa,0xbaba,0xcaca,0xdada,0xeaea,0xfafa};
+
+static USHORT ext_data_extract_[] = {0x0001,0x0005,0x0007,0x0008,0x0009,0x000a,0x000b,
+                              0x000d,0x000f,0x0010,0x0011,0x0013,0x0014,0x0018,
+                              0x001b,0x001c,0x002b,0x002d,0x0032,0x5500};
+
+BOOL_T SSLDecode_TypeInGrase(USHORT type)
+{
+    int i;
+
+    for(i=0; i< sizeof(grease_)/sizeof(USHORT); i++) {
+        if(type ==grease_[i]) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+BOOL_T SSLDecode_TypeInExtract(USHORT type)
+{
+    int i;
+
+    for(i=0; i< sizeof(ext_data_extract_)/sizeof(USHORT); i++) {
+        if(type == ext_data_extract_[i]) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+BOOL_T SSLDecode_TypeInDecode(USHORT type)
+{
+    if(SSLDecode_TypeInGrase(type)) {
+        return TRUE;
+    }
+    
+    if(SSLDecode_TypeInExtract(type)) {
+        return TRUE;
+    }
+
+    return FALSE;
+
+}
+
+
+USHORT SSLDecode_DegreaseTypeCode(USHORT type)
+{
+    if(SSLDecode_TypeInGrase(type)) {
+        return 0x0a0a;
+    }
+    
+    return type;
+}
+
+int SSLDecode_DegreaseExtData(USHORT ext_type, SSL_DECODE_EXTENSION_S*ext,
+                      char* finger_buf, int buf_len)
+{
+    USHORT ext_value;
+    int i, length=0;
+    
+    if(ext_type == 0x000a) {
+        for(i=0; i<ext->len; i+=2) {
+            ext_value = *(USHORT*)((char*)ext->data+i);
+            if(SSLDecode_TypeInGrase(ext_value)) {
+                ext_value = 0x0a0a;
+            }
+            length += scnprintf(finger_buf+length, buf_len-length, "%04x", ntohs(ext_value));
+        }
+    }else if(ext_type == 0x002b) {
+        ext_value = *(char*)ext->data;
+        length += scnprintf(finger_buf+length, buf_len-length, "%02x", ext_value);
+        for(i=1; i<ext->len; i+=2) {
+            ext_value = *(USHORT*)((char*)ext->data+i);
+            if(SSLDecode_TypeInGrase(ext_value)) {
+                ext_value = 0x0a0a;
+            }
+            length += scnprintf(finger_buf+length, buf_len-length, "%04x", ntohs(ext_value));
+        }
+    }else {
+        for(i=0; i<ext->len; i++) {
+            ext_value = *((char*)ext->data+i);
+            length += scnprintf(finger_buf+length, buf_len-length, "%02x", ext_value);
+        }
+    }
+
+    length += scnprintf(finger_buf+length, buf_len-length, ")");
+
+    return length;
+}
+
 int SSLDecode_IsRecordComplete(void *buf, int buf_len)
 {
     SSL_RECORD_S *record;
@@ -67,8 +160,6 @@ int SSLDecode_ParseClientHello(UCHAR *buf, int buf_len, SSL_CLIENT_HELLO_INFO_S 
     int tmp_len = buf_len;
     UCHAR *tmp_buf = buf;
 
-    memset(client_hello_info, 0, sizeof(SSL_CLIENT_HELLO_INFO_S));
-
     if (! SSLDecode_IsRecordComplete(tmp_buf, tmp_len)) {
         return -1;
     }
@@ -90,6 +181,8 @@ int SSLDecode_ParseClientHello(UCHAR *buf, int buf_len, SSL_CLIENT_HELLO_INFO_S 
     if (client_hello->handshake_type != SSL_HANDSHAKE_TYPE_CLIENT_HELLO) {
         return -1;
     }
+
+    memset(client_hello_info, 0, sizeof(SSL_CLIENT_HELLO_INFO_S));
 
     client_hello_info->len = client_hello->len[0];
     client_hello_info->len = (client_hello_info->len << 8) | client_hello->len[1];

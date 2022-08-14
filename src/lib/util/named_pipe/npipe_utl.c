@@ -15,8 +15,41 @@
 
 #include "utl/npipe_utl.h"
 
+int NPIPE_OpenDgram(IN CHAR *name)
+{
+	int					fd, len, err, rval;
+	struct sockaddr_un	un;
 
-INT NPIPE_Listen(IN CHAR *name)
+	/* create a UNIX domain stream socket */
+	if ((fd = Socket_Create(AF_UNIX, SOCK_DGRAM)) < 0)
+		return(-1);
+
+	unlink(name);	/* in case it already exists */
+
+	/* fill in socket address structure */
+	memset(&un, 0, sizeof(un));
+	un.sun_family = AF_UNIX;
+	TXT_Strlcpy(un.sun_path, name, sizeof(un.sun_path));
+	len = BS_OFFSET(struct sockaddr_un, sun_path) + strlen(name);
+
+	/* bind the name to the descriptor */
+	if (bind(fd, (struct sockaddr *)&un, len) < 0) {
+		rval = -2;
+		goto errout;
+	}
+
+//    chmod(name, S_IRWXO);
+
+	return(fd);
+
+errout:
+	err = errno;
+	close(fd);
+	errno = err;
+	return(rval);
+}
+
+int NPIPE_Listen(IN CHAR *name)
 {
 	int					fd, len, err, rval;
 	struct sockaddr_un	un;
@@ -44,7 +77,7 @@ INT NPIPE_Listen(IN CHAR *name)
 		goto errout;
 	}
 
-    chmod(name, S_IRWXO);
+//    chmod(name, S_IRWXO);
 
 	return(fd);
 
@@ -67,6 +100,11 @@ int NPIPE_Accept(int listenfd, OUT uid_t *uidptr)
 	{
 		return(-1);		/* often errno=EINTR, if signal caught */
 	}
+
+    if (len >= sizeof(un)) {
+        close(clifd);
+        return -1;
+    }
 
 	/* obtain the client's uid from its calling address */
 	len -= BS_OFFSET(struct sockaddr_un, sun_path); /* len of pathname */

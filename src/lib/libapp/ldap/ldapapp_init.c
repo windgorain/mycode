@@ -15,7 +15,6 @@ BS_STATUS LDAPAPP_Init()
     LDAPAPP_Lock_Init();
     LDAPAPP_Cmd_Init();
     LDAPAPP_Schema_Init();
-    LDAPAPP_Comp_Init();
 
     return BS_OK;
 }

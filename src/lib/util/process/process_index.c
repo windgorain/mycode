@@ -30,6 +30,7 @@ int ProcessIndex_Get(char *index_file)
 
     int ret = read(file, buf, sizeof(buf) - 1);
     if (ret >= 0) {
+        buf[ret] = '\0';
         index = TXT_Str2Ui(buf);
     }
 

@@ -216,10 +216,12 @@ int CuckooHash_Init(CUCKOO_HASH_S *cuckoo_hash, CUCKOO_HASH_NODE_S *table,
         UINT bucket_num, UINT bucket_depth)
 {
     if (! NUM_IS2N(bucket_num)) {
+        BS_DBGASSERT(0);
         RETURN(BS_BAD_PARA);
     }
 
     if (! NUM_IS2N(bucket_depth)) {
+        BS_DBGASSERT(0);
         RETURN(BS_BAD_PARA);
     }
 
@@ -227,6 +229,7 @@ int CuckooHash_Init(CUCKOO_HASH_S *cuckoo_hash, CUCKOO_HASH_NODE_S *table,
     if (table == NULL) {
         table = MEM_Malloc(sizeof(CUCKOO_HASH_NODE_S) * bucket_num * bucket_depth);
         if (table == NULL) {
+            BS_WARNNING(("Can't alloc mem"));
             RETURN(BS_NO_MEMORY);
         }
         table_alloced = 1;

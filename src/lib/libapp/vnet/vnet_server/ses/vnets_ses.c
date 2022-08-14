@@ -8,6 +8,7 @@
 
 #include "utl/ses_utl.h"
 #include "utl/mutex_utl.h"
+#include "utl/exec_utl.h"
 #include "comp/comp_if.h"
 
 #include "../inc/vnets_phy.h"
@@ -48,7 +49,7 @@ static BS_STATUS vnets_ses_SendPkt(IN MBUF_S *pstMbuf, IN VOID *pUserContext)
 
     *pstPhyContext = *pstContext;
 
-    return CompIf_PhyOutput(pstContext->uiIfIndex, pstMbuf);
+    return IFNET_PhyOutput(pstContext->uiIfIndex, pstMbuf);
 }
 
 static BS_STATUS vnets_ses_EventNotify(IN UINT uiSesID, IN UINT uiEvent)

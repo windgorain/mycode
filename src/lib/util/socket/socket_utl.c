@@ -8,8 +8,10 @@
 
 #include "utl/num_utl.h"
 #include "utl/bit_opt.h"
+#include "utl/txt_utl.h"
 #include "utl/mem_utl.h"
 #include "utl/socket_utl.h"
+#include <sys/un.h>
 
 static VOID socket_WindowInit()
 {
@@ -41,14 +43,12 @@ static INT socket_GetLastErrno()
     iErr = WSAGetLastError();
 #else
     iErr = errno;
-    if ((EINPROGRESS == iErr) || (EINTR == iErr))
-    {
+    if ((EINPROGRESS == iErr) || (EINTR == iErr)) {
         iErr = EAGAIN;
     }
 #endif
 
-    if (iErr > 0)
-    {
+    if (iErr > 0) {
         iErr = -iErr;
     }
 
@@ -122,7 +122,8 @@ BS_STATUS Socket_Read2
     return eRet;
 }
 
-INT Socket_Accept(IN INT iListenSocketId, OUT struct sockaddr *pstAddr/* 可以为NULL */, INOUT INT *piLen/* 可以为NULL */)
+/* pstAddr和piLen可以为NULL */
+int _Socket_Accept(int fd, OUT struct sockaddr *pstAddr, INOUT INT *piLen, char *filename, int line)
 {
     /*接受连接*/
     struct sockaddr server_addr;
@@ -138,15 +139,12 @@ INT Socket_Accept(IN INT iListenSocketId, OUT struct sockaddr *pstAddr/* 可以�
         piLenTmp = &length;
     }
 
-    s = (INT)accept(iListenSocketId, pstAddrTmp, (UINT*)piLenTmp);
+    s = (INT)accept(fd, pstAddrTmp, (UINT*)piLenTmp);
 
-    if (s >= 0)
-    {
+    if (s >= 0) {
         iRet = s;
-        SSHOW_Add(s);
-    }
-    else
-    {
+        SSHOW_Add(s, filename, line);
+    } else {
         iRet = socket_GetLastErrno();
     }
 
@@ -160,12 +158,9 @@ INT Socket_Write(IN INT iSocketId, IN VOID *data, IN UINT ulLen, IN UINT ulFlag)
     INT iRet;
 
     iSendLen = send(iSocketId, data, (INT)ulLen, (INT)ulFlag);
-    if (iSendLen >= 0)
-    {
+    if (iSendLen > 0) {
         iRet = iSendLen;
-    }
-    else
-    {
+    } else {
         iRet = socket_GetLastErrno();
     }
 
@@ -203,9 +198,8 @@ int Socket_Connect(IN INT iSocketID, IN UINT ulIp/* 主机序 */, IN USHORT usPo
 {
     struct sockaddr_in server_addr;     /* 服务器地址结构   */
 
-    if ((ulIp == 0) || (usPort == 0))
-    {
-        return BS_ERR;
+    if ((ulIp == 0) || (usPort == 0)) {
+        return 0;
     }
 
     Mem_Zero (&server_addr, sizeof(struct sockaddr_in));
@@ -214,12 +208,64 @@ int Socket_Connect(IN INT iSocketID, IN UINT ulIp/* 主机序 */, IN USHORT usPo
     server_addr.sin_addr.s_addr = htonl(ulIp);
     server_addr.sin_port = htons(usPort);
 
-    if (connect(iSocketID, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0 )
-    {
+    if (connect(iSocketID, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0 ) {
         return socket_GetLastErrno();
     }
 
     return BS_OK;
+}
+
+int Socket_ConnectUnixSocket(int fd, char *path)
+{
+    struct sockaddr_un server_addr;
+
+    server_addr.sun_family = AF_LOCAL;
+    strlcpy(server_addr.sun_path, path, sizeof(server_addr.sun_path));
+
+    if (connect(fd, (struct sockaddr*)&server_addr, sizeof(struct sockaddr_un)) < 0) {
+        return socket_GetLastErrno();
+    }
+
+    return 0;
+}
+
+int Socket_UDPClient(UINT ip/* 主机序 */, USHORT port/* 主机序 */)
+{
+    int fd;
+
+    if ((fd = Socket_Create(AF_INET, SOCK_DGRAM)) < 0 ) {
+        return -1;
+    }
+
+    if (Socket_Connect(fd, ip, port) < 0) {
+        Socket_Close(fd);
+    }
+
+    return fd;
+}
+
+int Socket_UnixSocketClient(char *path, int type, int flags)
+{
+    int fd;
+
+    if ((fd = Socket_Create(AF_LOCAL, type)) < 0 ) {
+        return -1;
+    }
+
+    if (flags & O_NONBLOCK) {
+        Socket_SetNoBlock(fd, 1);
+    }
+
+    int ret = Socket_ConnectUnixSocket(fd, path);
+    if (ret < 0) {
+        if (ret == EAGAIN) {
+            return fd;
+        }
+        Socket_Close(fd);
+        return -1;
+    }
+
+    return fd;
 }
 
 BOOL_T Socket_IsIPv4(IN CHAR *pcIpOrName)
@@ -312,7 +358,7 @@ UINT Socket_Ipsz2IpNetWitchCheck(IN CHAR *pcIP)
 }
 
 /* 将字符串形式的IP 转换成网络序IP地址 */
-UINT Socket_Ipsz2IpNet(IN CHAR *pcIP)
+UINT Socket_Ipsz2IpNet(char *pcIP)
 {
     return inet_addr(pcIP);
 }
@@ -549,7 +595,7 @@ BS_STATUS Socket_Close(IN INT iSocketId)
     return BS_OK;
 }
 
-INT Socket_Create(IN INT iFamily, IN UINT ulType)
+int _Socket_Create(int iFamily, UINT ulType, char *filename, int line)
 {
     INT s;
 
@@ -558,12 +604,11 @@ INT Socket_Create(IN INT iFamily, IN UINT ulType)
     /* 建立Socket  */
     s = socket (iFamily, (INT)ulType, 0);
 
-    if (s < 0)
-    {
+    if (s < 0) {
         return s;
     }
 
-    SSHOW_Add(s);
+    SSHOW_Add(s, filename, line);
 
     return s;
 }
@@ -588,7 +633,6 @@ BS_STATUS Socket_Listen(IN INT iSocketID, UINT ulLocalIp/* 网络序 */, IN USHO
 
     return BS_OK;
 }
-
 
 BS_STATUS Socket_SendTo
 (
@@ -651,7 +695,7 @@ BS_STATUS Socket_RecvFrom
     return BS_OK;
 }
 
-BS_STATUS Socket_Pair(UINT uiType, OUT INT aiFd[2])
+BS_STATUS _Socket_Pair(UINT uiType, OUT INT aiFd[2], char *filename, int line)
 {
 #ifndef IN_WINDOWS
 	int fd[2];
@@ -661,8 +705,8 @@ BS_STATUS Socket_Pair(UINT uiType, OUT INT aiFd[2])
         RETURN(BS_ERR);
     }
 
-    SSHOW_Add(fd[0]);
-    SSHOW_Add(fd[1]);
+    SSHOW_Add(fd[0], filename, line);
+    SSHOW_Add(fd[1], filename, line);
 
     aiFd[0] = (UINT)fd[0];
     aiFd[1] = (UINT)fd[1];
@@ -674,12 +718,12 @@ BS_STATUS Socket_Pair(UINT uiType, OUT INT aiFd[2])
     UINT uiIp;
     USHORT usPort;
 
-    if ((iListenFd = Socket_Create(AF_INET, uiType)) < 0)
+    if ((iListenFd = _Socket_Create(AF_INET, uiType, filename, line)) < 0)
     {
         RETURN(BS_ERR);
     }
 
-    if ((iConnectFd = Socket_Create(AF_INET, uiType)) < 0)
+    if ((iConnectFd = _Socket_Create(AF_INET, uiType, filename, line)) < 0)
     {
         Socket_Close(iListenFd);
         RETURN(BS_ERR);
@@ -740,12 +784,16 @@ BS_STATUS Socket_SetNoDelay(IN INT iSocketID, IN BOOL_T bNoDelay)
 {
     INT iOn = 0;
 
-    if (bNoDelay)
-    {
+    if (bNoDelay) {
         iOn = 1;
     }
     
     return Socket_SetSockOpt(iSocketID, IPPROTO_TCP, TCP_NODELAY, &iOn, sizeof(INT));
+}
+
+int Socket_SetReuseAddr(int fd, int reuse/* 0 or 1*/)
+{
+    return Socket_SetSockOpt(fd, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse, sizeof(int));
 }
 
 INT Socket_Dup(IN INT iFd)
@@ -772,7 +820,7 @@ INT Socket_Dup(IN INT iFd)
 
     if (iNewFd >= 0)
     {
-        SSHOW_Add(iNewFd);
+        SSHOW_Add(iNewFd, __FILE__, __LINE__);
     }
 
     return iNewFd;
@@ -797,3 +845,123 @@ INT Socket_Inheritable(IN INT iFd)
 #endif
 }
 
+int _Socket_OpenUdp(UINT ip/*net order*/, USHORT port/*net order*/, char *file, int line)
+{
+    int fd;
+
+    fd = _Socket_Create(AF_INET, SOCK_DGRAM, file, line);
+    if ((ip == 0) && (port == 0)) {
+        return fd;
+    }
+
+    if (ip || port) {
+        int ret = Socket_Bind(fd, ip, port);
+        if (ret != 0) {
+            Socket_Close(fd);
+            return ret;
+        }
+    }
+
+    return fd;
+}
+
+int _Socket_UdpClient(UINT ip/*网络序*/, USHORT port/*网络序*/, char *file, int line)
+{
+    int fd;
+    int ret;
+
+    fd = _Socket_Create(AF_INET, SOCK_DGRAM, file, line);
+    if (fd < 0) {
+        return fd;
+    }
+
+    ret = Socket_Connect(fd, ip, port);
+    if (ret != 0) {
+        Socket_Close(fd);
+        return ret;
+    }
+
+    return fd;
+}
+
+int _Socket_TcpServer(UINT ip/* 网络序 */, USHORT port/* 网络序 */, char *file, int line)
+{
+    int fd;
+    int ret;
+
+    fd = _Socket_Create(AF_INET, SOCK_STREAM, file, line);
+    if (fd < 0) {
+        RETURN(BS_ERR);
+    }
+
+    ret = Socket_Listen(fd, ip, port, 5);
+    if (0 != ret) {
+        Socket_Close(fd);
+        return ret;
+    }
+
+    return fd;
+}
+
+int _Socket_UnixServer(char *path, int type, char *file, int line)
+{
+	struct sockaddr_un un;
+    int fd;
+    int ret;
+
+	if ((fd = _Socket_Create(AF_UNIX, type, file, line)) < 0) {
+        return fd;
+    }
+
+	unlink(path);	/* in case it already exists */
+
+	memset(&un, 0, sizeof(un));
+	un.sun_family = AF_UNIX;
+	strlcpy(un.sun_path, path, sizeof(un.sun_path));
+	int len = BS_OFFSET(struct sockaddr_un, sun_path) + strlen(path);
+
+    ret = bind(fd, (struct sockaddr *)&un, len); 
+	if (ret < 0) {
+        Socket_Close(fd);
+        return ret;
+	}
+
+    if (type == SOCK_STREAM) {
+        if ((ret = listen(fd, 5)) < 0) {
+            Socket_Close(fd);
+            return ret;
+        }
+    }
+
+    return fd;
+}
+
+int _Socket_UnixClient(char *path, int type, int no_block, char *file, int line)
+{
+    struct sockaddr_un un;
+    int fd;
+    int ret, len;
+
+    fd = _Socket_Create(AF_UNIX, type, file, line);
+    if (fd < 0) {
+        return fd;
+    }
+
+	memset(&un, 0, sizeof(un));
+    un.sun_family = AF_UNIX;
+	strlcpy(un.sun_path, path, sizeof(un.sun_path));
+	len = BS_OFFSET(struct sockaddr_un, sun_path) + strlen(path);
+
+    if (no_block) {
+        Socket_SetNoBlock(fd, 1);
+    }
+
+    ret = connect(fd, (void*)&un, len);
+
+    if ((ret < 0) && (errno != EINPROGRESS)) {
+        Socket_Close(fd);
+        return ret;
+    }
+
+    return fd;
+}

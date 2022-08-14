@@ -6,6 +6,7 @@
 ******************************************************************************/
 #include "bs.h"
 
+#include "utl/mem_cap.h"
 #include "utl/large_bitmap.h"
 
 #define LBITMAP_LEVEL_1 1
@@ -40,11 +41,17 @@ typedef struct
     LBITMAP_COMMON_S stCommon;
 }LBITMAP_LEAF_S;
 
+typedef struct {
+    LBITMAP_LEVEL_S level1;
+    void *memcap;
+}LBITMAP_CTRL_S;
+
 static BS_STATUS lbitmap_Get
 (
-    IN LBITMAP_COMMON_S *pstCommon,
-    IN UINT uiRangeMin,
-    IN UINT uiRangeMax,
+    LBITMAP_CTRL_S *ctrl,
+    LBITMAP_COMMON_S *pstCommon,
+    UINT uiRangeMin,
+    UINT uiRangeMax,
     OUT UINT *puiBitIndex 
 );
 
@@ -67,18 +74,40 @@ static BOOL_T lbitmap_IsBitSetted(IN const LBITMAP_BITS_S *pstBits, IN UCHAR ucB
 static BOOL_T lbitmap_IsAllSetted(IN const LBITMAP_BITS_S *pstBits)
 {
     UINT uiPos;
-    BOOL_T bRet = TRUE;
 
-    for (uiPos = 0; uiPos < LBITMAP_NODE_BITUINT_NUM; uiPos++)
-    {
-        if (pstBits->auiBits[uiPos] != 0xffffffff)
-        {
-            bRet = FALSE;
-            break;
+    for (uiPos = 0; uiPos < LBITMAP_NODE_BITUINT_NUM; uiPos++) {
+        if (pstBits->auiBits[uiPos] != 0xffffffff) {
+            return FALSE;
         }
     }
 
-    return bRet;
+    return TRUE;
+}
+
+static BOOL_T lbitmap_IsAllCleared(LBITMAP_BITS_S *pstBits)
+{
+    UINT uiPos;
+
+    for (uiPos = 0; uiPos < LBITMAP_NODE_BITUINT_NUM; uiPos++) {
+        if (pstBits->auiBits[uiPos] != 0) {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+static BOOL_T lbitmap_IsLevelEmpty(LBITMAP_LEVEL_S *level)
+{
+    UINT uiPos;
+
+    for (uiPos = 0; uiPos < LBITMAP_NODE_NUM; uiPos++) {
+        if (level->apstNextLevel[uiPos]) {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
 }
 
 static VOID lbitmap_SetBit(IN LBITMAP_BITS_S *pstBits, IN UCHAR ucBitIndex)
@@ -109,38 +138,32 @@ static VOID lbitmap_ClrBit(IN LBITMAP_BITS_S *pstBits, IN UCHAR ucBitIndex)
 
 static VOID lbitmap_GetLevelDesc(IN UCHAR ucLevel, OUT UINT *puiOffset, OUT UINT *puiMask)
 {
-    switch (ucLevel)
-    {
-        case LBITMAP_LEVEL_1:
-        {
+    switch (ucLevel) {
+        case LBITMAP_LEVEL_1: {
             *puiOffset = 24;
             *puiMask = 0xffffff;
             break;
         }
 
-        case LBITMAP_LEVEL_2:
-        {
+        case LBITMAP_LEVEL_2: {
             *puiOffset = 16;
             *puiMask = 0xffff;
             break;
         }
 
-        case LBITMAP_LEVEL_3:
-        {
+        case LBITMAP_LEVEL_3: {
             *puiOffset = 8;
             *puiMask = 0xff;
             break;
         }
 
-        case LBITMAP_LEVEL_LEAF:
-        {
+        case LBITMAP_LEVEL_LEAF: {
             *puiOffset = 0;
             *puiMask = 0x0;
             break;
         }
 
-        default:
-        {
+        default: {
             BS_DBGASSERT(0);
             break;
         }
@@ -149,9 +172,9 @@ static VOID lbitmap_GetLevelDesc(IN UCHAR ucLevel, OUT UINT *puiOffset, OUT UINT
 
 static BS_STATUS lbitmap_GetInLeaf
 (
-    IN LBITMAP_LEAF_S *pstLeaf,
-    IN UINT uiRangeMin,
-    IN UINT uiRangeMax,
+    LBITMAP_LEAF_S *pstLeaf,
+    UINT uiRangeMin,
+    UINT uiRangeMax,
     OUT UINT *puiBitIndex 
 )
 {
@@ -165,28 +188,22 @@ static BS_STATUS lbitmap_GetInLeaf
     ucStartUint = ((uiRangeMin >> 5) & 0x7);
     ucStopUint = ((uiRangeMax >> 5) & 0x7);
 
-    for (uiUintPos=ucStartUint; uiUintPos<=ucStopUint; uiUintPos++)
-    {
-        if (pstLeaf->stCommon.stBits.auiBits[uiUintPos] == 0xffffffff)
-        {
+    for (uiUintPos=ucStartUint; uiUintPos<=ucStopUint; uiUintPos++) {
+        if (pstLeaf->stCommon.stBits.auiBits[uiUintPos] == 0xffffffff) {
             continue;
         }
 
         ucStartBit = 0;
-        if (uiUintPos == ucStartUint)
-        {
+        if (uiUintPos == ucStartUint) {
             ucStartBit = uiRangeMin & 0x1F;
         }
         ucStopBit = 31;
-        if (uiUintPos == ucStopUint)
-        {
+        if (uiUintPos == ucStopUint) {
             ucStopBit = uiRangeMax & 0x1F;
         }
 
-        for (uiBitPos=ucStartBit; uiBitPos<=ucStopBit; uiBitPos++)
-        {
-            if (0 == (pstLeaf->stCommon.stBits.auiBits[uiUintPos] & (1 << uiBitPos)))
-            {
+        for (uiBitPos=ucStartBit; uiBitPos<=ucStopBit; uiBitPos++) {
+            if (0 == (pstLeaf->stCommon.stBits.auiBits[uiUintPos] & (1 << uiBitPos))) {
                 pstLeaf->stCommon.stBits.auiBits[uiUintPos] |= (1 << uiBitPos);
                 *puiBitIndex = uiUintPos * 32 + uiBitPos;
                 return BS_OK;
@@ -246,21 +263,17 @@ static BS_STATUS lbitmap_GetBusyInLeaf
     return BS_NOT_FOUND;
 }
 
-static VOID * lbitmap_AllocNode(IN UCHAR ucLevel)
+static VOID * lbitmap_AllocNode(LBITMAP_CTRL_S *ctrl, UCHAR ucLevel)
 {
     LBITMAP_COMMON_S *pstCommon;
 
-    if (ucLevel == LBITMAP_LEVEL_LEAF)
-    {
-        pstCommon = MEM_ZMalloc(sizeof(LBITMAP_LEAF_S));
-    }
-    else
-    {
-        pstCommon = MEM_ZMalloc(sizeof(LBITMAP_LEVEL_S));
+    if (ucLevel == LBITMAP_LEVEL_LEAF) {
+        pstCommon = MemCap_ZMalloc(ctrl->memcap, sizeof(LBITMAP_LEAF_S));
+    } else {
+        pstCommon = MemCap_ZMalloc(ctrl->memcap, sizeof(LBITMAP_LEVEL_S));
     }
 
-    if (NULL != pstCommon)
-    {
+    if (NULL != pstCommon) {
         pstCommon->ucLevel = ucLevel;
     }
 
@@ -269,10 +282,11 @@ static VOID * lbitmap_AllocNode(IN UCHAR ucLevel)
 
 static BS_STATUS lbitmap_GetSpec
 (
-    IN LBITMAP_LEVEL_S *pstLevel,
-    IN UINT uiPos,
-    IN UINT uiRangeMin,
-    IN UINT uiRangeMax,
+    LBITMAP_CTRL_S *ctrl,
+    LBITMAP_LEVEL_S *pstLevel,
+    UINT uiPos,
+    UINT uiRangeMin,
+    UINT uiRangeMax,
     OUT UINT *puiBitIndex 
 )
 {
@@ -281,31 +295,26 @@ static BS_STATUS lbitmap_GetSpec
     UINT uiBitIndex = 0;
     BS_STATUS eRet;
     
-    if (pstLevel->apstNextLevel[uiPos] == NULL)
-    {
-        pstLevel->apstNextLevel[uiPos] = lbitmap_AllocNode(pstLevel->stCommon.ucLevel + 1);
-        if (pstLevel->apstNextLevel[uiPos] == NULL)
-        {
+    if (pstLevel->apstNextLevel[uiPos] == NULL) {
+        pstLevel->apstNextLevel[uiPos] = lbitmap_AllocNode(ctrl, pstLevel->stCommon.ucLevel + 1);
+        if (pstLevel->apstNextLevel[uiPos] == NULL) {
             return BS_NO_RESOURCE;
         }
     }
 
     lbitmap_GetLevelDesc(pstLevel->stCommon.ucLevel, &uiOffset, &uiMask);
 
-    if (TRUE == lbitmap_IsBitSetted(&pstLevel->stCommon.stBits, (UCHAR)uiPos))
-    {
+    if (TRUE == lbitmap_IsBitSetted(&pstLevel->stCommon.stBits, (UCHAR)uiPos)) {
         return BS_NOT_FOUND;
     }
 
-    eRet= lbitmap_Get(pstLevel->apstNextLevel[uiPos], uiRangeMin, uiRangeMax, &uiBitIndex);
-    if (BS_OK != eRet)
-    {
+    eRet= lbitmap_Get(ctrl, pstLevel->apstNextLevel[uiPos], uiRangeMin, uiRangeMax, &uiBitIndex);
+    if (BS_OK != eRet) {
         return eRet;
     }
 
     uiBitIndex |= (uiPos << uiOffset);
-    if (TRUE == lbitmap_IsAllSetted(&pstLevel->apstNextLevel[uiPos]->stBits))
-    {
+    if (TRUE == lbitmap_IsAllSetted(&pstLevel->apstNextLevel[uiPos]->stBits)) {
         lbitmap_SetBit(&pstLevel->stCommon.stBits, (UCHAR)uiPos);
     }
 
@@ -316,9 +325,10 @@ static BS_STATUS lbitmap_GetSpec
 
 static BS_STATUS lbitmap_GetInLevel
 (
-    IN LBITMAP_LEVEL_S *pstLevel,
-    IN UINT uiRangeMin,
-    IN UINT uiRangeMax,
+    LBITMAP_CTRL_S *ctrl,
+    LBITMAP_LEVEL_S *pstLevel,
+    UINT uiRangeMin,
+    UINT uiRangeMax,
     OUT UINT *puiBitIndex 
 )
 {
@@ -336,21 +346,17 @@ static BS_STATUS lbitmap_GetInLevel
     uiIndexStart = (uiRangeMin >> uiOffset) & 0xff;
     uiIndexStop = (uiRangeMax >> uiOffset) & 0xff;
 
-    for (uiPos=uiIndexStart; uiPos<=uiIndexStop; uiPos++)
-    {
+    for (uiPos=uiIndexStart; uiPos<=uiIndexStop; uiPos++) {
         uiNextRangMin = 0;
-        if (uiPos == uiIndexStart)
-        {
+        if (uiPos == uiIndexStart) {
             uiNextRangMin = uiRangeMin & uiMask;
         }
         uiNextRangMax = uiMask;
-        if (uiPos == uiIndexStop)
-        {
+        if (uiPos == uiIndexStop) {
             uiNextRangMax = uiRangeMax & uiMask;
         }
 
-        if (BS_OK == lbitmap_GetSpec(pstLevel, uiPos, uiNextRangMin, uiNextRangMax, puiBitIndex))
-        {
+        if (BS_OK == lbitmap_GetSpec(ctrl, pstLevel, uiPos, uiNextRangMin, uiNextRangMax, puiBitIndex)) {
             eRet = BS_OK;
             break;
         }
@@ -361,19 +367,17 @@ static BS_STATUS lbitmap_GetInLevel
 
 static BS_STATUS lbitmap_Get
 (
-    IN LBITMAP_COMMON_S *pstCommon,
-    IN UINT uiRangeMin,
-    IN UINT uiRangeMax,
+    LBITMAP_CTRL_S *ctrl,
+    LBITMAP_COMMON_S *pstCommon,
+    UINT uiRangeMin,
+    UINT uiRangeMax,
     OUT UINT *puiBitIndex 
 )
 {
-    if (pstCommon->ucLevel == LBITMAP_LEVEL_LEAF)
-    {
+    if (pstCommon->ucLevel == LBITMAP_LEVEL_LEAF) {
         return lbitmap_GetInLeaf((LBITMAP_LEAF_S*)pstCommon, uiRangeMin, uiRangeMax, puiBitIndex); 
-    }
-    else
-    {
-        return lbitmap_GetInLevel((LBITMAP_LEVEL_S*)pstCommon, uiRangeMin, uiRangeMax, puiBitIndex);
+    } else {
+        return lbitmap_GetInLevel(ctrl, (LBITMAP_LEVEL_S*)pstCommon, uiRangeMin, uiRangeMax, puiBitIndex);
     }
 }
 
@@ -403,18 +407,17 @@ static LBITMAP_LEAF_S * lbitmap_GetIndexLeaf(IN LBITMAP_COMMON_S *pstCommon, IN 
     return lbitmap_GetIndexLeaf(pstLevel->apstNextLevel[uiIndexTmp], uiIndex & uiMask);
 }
 
-/* 清除对应的位 */
-static VOID lbitmap_ClearBit(IN LBITMAP_COMMON_S *pstCommon, IN UINT uiIndex)
+/* 清除对应的位, 并返回是节点是否全空了 */
+static BOOL_T lbitmap_ClearBit(LBITMAP_CTRL_S *pstCtrl, LBITMAP_COMMON_S *pstCommon, UINT uiIndex)
 {
     UINT uiOffset = 0;
     UINT uiMask = 0;
     UINT uiIndexTmp;
     LBITMAP_LEVEL_S *pstLevel;
 
-    if (pstCommon->ucLevel == LBITMAP_LEVEL_LEAF)
-    {
+    if (pstCommon->ucLevel == LBITMAP_LEVEL_LEAF) {
         lbitmap_ClrBit(&pstCommon->stBits, (UCHAR)(uiIndex & 0xff));
-        return;
+        return lbitmap_IsAllCleared(&pstCommon->stBits);
     }
 
     pstLevel = (LBITMAP_LEVEL_S*)pstCommon;
@@ -425,93 +428,105 @@ static VOID lbitmap_ClearBit(IN LBITMAP_COMMON_S *pstCommon, IN UINT uiIndex)
 
     lbitmap_ClrBit(&pstCommon->stBits, uiIndexTmp);
 
-    if (pstLevel->apstNextLevel[uiIndexTmp] == NULL)
-    {
-        return;
+    if (pstLevel->apstNextLevel[uiIndexTmp] == NULL) {
+        return FALSE;
     }
 
-    lbitmap_ClearBit(pstLevel->apstNextLevel[uiIndexTmp], uiIndex & uiMask);
+    if (lbitmap_ClearBit(pstCtrl, pstLevel->apstNextLevel[uiIndexTmp], uiIndex & uiMask)) {
+        MemCap_Free(pstCtrl->memcap, pstLevel->apstNextLevel[uiIndexTmp]);
+        pstLevel->apstNextLevel[uiIndexTmp] = NULL;
+        return lbitmap_IsLevelEmpty(pstLevel);
+    }
 
-    return;
+    return FALSE;
 }
 
 /* 设置对应Index的Bit */
-BS_STATUS lbitmap_SetIndexBit(IN LBITMAP_COMMON_S *pstCommon, IN UINT uiIndex)
+BS_STATUS lbitmap_SetIndexBit(LBITMAP_CTRL_S *ctrl, LBITMAP_COMMON_S *pstCommon, UINT uiIndex)
 {
     UINT uiOffset = 0;
     UINT uiMask = 0;
     UINT uiIndexTmp;
     LBITMAP_LEVEL_S *pstLevel;
 
-    if (pstCommon->ucLevel == LBITMAP_LEVEL_LEAF)
-    {
+    if (pstCommon->ucLevel == LBITMAP_LEVEL_LEAF) {
         lbitmap_SetBit(&pstCommon->stBits, (UCHAR)(uiIndex & 0xff));
         return BS_OK;
-    }
-    else
-    {
+    } else {
         pstLevel = (LBITMAP_LEVEL_S*)pstCommon;
 
         lbitmap_GetLevelDesc(pstCommon->ucLevel, &uiOffset, &uiMask);
         uiIndexTmp = (uiIndex >> uiOffset) & 0xff;
 
-        if (pstLevel->apstNextLevel[uiIndexTmp] == NULL)
-        {
-            pstLevel->apstNextLevel[uiIndexTmp] = lbitmap_AllocNode(pstLevel->stCommon.ucLevel + 1);
-            if (pstLevel->apstNextLevel[uiIndexTmp] == NULL)
-            {
+        if (pstLevel->apstNextLevel[uiIndexTmp] == NULL) {
+            pstLevel->apstNextLevel[uiIndexTmp] = lbitmap_AllocNode(ctrl, pstLevel->stCommon.ucLevel + 1);
+            if (pstLevel->apstNextLevel[uiIndexTmp] == NULL) {
                 return BS_NO_MEMORY;
             }
         }
 
-        return lbitmap_SetIndexBit(pstLevel->apstNextLevel[uiIndexTmp], uiIndex & uiMask);
+        return lbitmap_SetIndexBit(ctrl, pstLevel->apstNextLevel[uiIndexTmp], uiIndex & uiMask);
     }
 }
 
-static VOID lbitmap_Destory(IN LBITMAP_COMMON_S *pstCommon)
+static VOID lbitmap_Reset(LBITMAP_CTRL_S *ctrl, LBITMAP_COMMON_S *pstCommon)
 {
     UINT uiPos;
     LBITMAP_LEVEL_S *pstLevel;
 
-    if (NULL != pstCommon)
-    {
-        if (pstCommon->ucLevel != LBITMAP_LEVEL_LEAF)
-        {
-            pstLevel = (LBITMAP_LEVEL_S*)pstCommon;
+    if (! pstCommon) {
+        return;
+    }
 
-            for (uiPos = 0; uiPos < LBITMAP_NODE_NUM; uiPos++)
-            {
-                lbitmap_Destory(pstLevel->apstNextLevel[uiPos]);
-                pstLevel->apstNextLevel[uiPos] = NULL;
-            }
+    if (pstCommon->ucLevel != LBITMAP_LEVEL_LEAF) {
+        pstLevel = (LBITMAP_LEVEL_S*)pstCommon;
+
+        for (uiPos = 0; uiPos < LBITMAP_NODE_NUM; uiPos++) {
+            lbitmap_Reset(ctrl, pstLevel->apstNextLevel[uiPos]);
+            pstLevel->apstNextLevel[uiPos] = NULL;
         }
+    }
 
-        MEM_Free(pstCommon);
+    if (pstCommon->ucLevel != LBITMAP_LEVEL_1) {
+        MemCap_Free(ctrl->memcap, pstCommon);
     }
 
     return;
 }
 
-LBITMAP_HANDLE LBitMap_Create(VOID)
+LBITMAP_HANDLE LBitMap_Create(LBITMAP_PARAM_S *p /* NULL为默认参数 */)
 {
-    LBITMAP_LEVEL_S *pstCtrl;
+    static LBITMAP_PARAM_S lbitmap_default_param = {0};
+    LBITMAP_CTRL_S *pstCtrl;
 
-    pstCtrl = MEM_ZMalloc(sizeof(LBITMAP_LEVEL_S));
+    if (p == NULL) {
+        p = &lbitmap_default_param;
+    }
+
+    pstCtrl = MemCap_ZMalloc(p->memcap, sizeof(LBITMAP_CTRL_S));
     if (NULL == pstCtrl)
     {
         return NULL;
     }
+    pstCtrl->memcap = p->memcap;
 
-    pstCtrl->stCommon.ucLevel = LBITMAP_LEVEL_1;
+    pstCtrl->level1.stCommon.ucLevel = LBITMAP_LEVEL_1;
 
     return pstCtrl;
 }
 
 VOID LBitMap_Destory(IN LBITMAP_HANDLE hLBitMap)
 {
-    lbitmap_Destory(hLBitMap);
-
+    LBITMAP_CTRL_S *pstCtrl = hLBitMap;
+    lbitmap_Reset(pstCtrl, &pstCtrl->level1.stCommon);
+    MemCap_Free(pstCtrl->memcap, hLBitMap);
     return;
+}
+
+void LBitMap_Reset(LBITMAP_HANDLE hLBitMap)
+{
+    LBITMAP_CTRL_S *pstCtrl = hLBitMap;
+    lbitmap_Reset(pstCtrl, &pstCtrl->level1.stCommon);
 }
 
 /* 从指定区间找到一个空闲位, 但不设置上它 */
@@ -524,8 +539,9 @@ BS_STATUS LBitMap_TryByRange
 )
 {
     UINT uiIndex = 0;
+    LBITMAP_CTRL_S *pstCtrl = hLBitMap;
 
-    if (BS_OK != lbitmap_Get(hLBitMap, uiRangeMin, uiRangeMax, &uiIndex))
+    if (BS_OK != lbitmap_Get(pstCtrl, &pstCtrl->level1.stCommon, uiRangeMin, uiRangeMax, &uiIndex))
     {
         return BS_NOT_FOUND;
     }
@@ -545,17 +561,21 @@ BS_STATUS LBitMap_AllocByRange
     OUT UINT *puiBitIndex
 )
 {
-    return lbitmap_Get(hLBitMap, uiRangeMin, uiRangeMax, puiBitIndex);
+    LBITMAP_CTRL_S *pstCtrl = hLBitMap;
+    return lbitmap_Get(pstCtrl, &pstCtrl->level1.stCommon, uiRangeMin, uiRangeMax, puiBitIndex);
 }
 
 BS_STATUS LBitMap_SetBit(IN LBITMAP_HANDLE hLBitMap, IN UINT uiBitIndex)
 {
-    return lbitmap_SetIndexBit(hLBitMap, uiBitIndex);
+    LBITMAP_CTRL_S *pstCtrl = hLBitMap;
+
+    return lbitmap_SetIndexBit(pstCtrl, &pstCtrl->level1.stCommon, uiBitIndex);
 }
 
 VOID LBitMap_ClrBit(IN LBITMAP_HANDLE hLBitMap, IN UINT uiBitIndex)
 {
-    lbitmap_ClearBit(hLBitMap, uiBitIndex);
+    LBITMAP_CTRL_S *pstCtrl = hLBitMap;
+    lbitmap_ClearBit(pstCtrl, &pstCtrl->level1.stCommon, uiBitIndex);
 }
 
 BOOL_T LBitMap_IsBitSetted(IN LBITMAP_HANDLE hLBitMap, IN UINT uiBitIndex)
@@ -639,7 +659,7 @@ BS_STATUS LBitMap_GetFirstBusyBit(IN LBITMAP_HANDLE hLBitMap, OUT UINT *puiBitIn
     return lbitmap_GetBusyBit(hLBitMap, 0, 0xffffffff, puiBitIndex);
 }
 
-BS_STATUS LBitMap_GetNextBusyBit(IN LBITMAP_HANDLE hLBitMap, IN UINT uiCurrentBitIndex, OUT UINT *puiBitIndex)
+BS_STATUS LBitMap_GetNextBusyBit(LBITMAP_HANDLE hLBitMap, UINT uiCurrentBitIndex, OUT UINT *puiBitIndex)
 {
     return lbitmap_GetBusyBit(hLBitMap, uiCurrentBitIndex + 1, 0xffffffff, puiBitIndex);
 }

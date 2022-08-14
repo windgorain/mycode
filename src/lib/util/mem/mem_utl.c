@@ -4,29 +4,98 @@
 * Description: 
 * History:     
 ******************************************************************************/
- 
-
 #include "bs.h"
 #include "utl/mem_utl.h"
 
-VOID * MEM_Find(IN VOID *pMem, IN UINT ulMemLen, IN VOID *pMemToFind, IN UINT ulMemToFindLen)
+void * MEM_FindOneOf(void *mem, UINT mem_len, void *to_finds, UINT to_finds_len)
 {
-    UINT ulOffset;
+    UCHAR *data = mem;
+    UCHAR *end = data + mem_len;
+
+    BS_DBGASSERT(NULL != data);
+
+    while (data < end) {
+        if (MEM_FindOne(to_finds, to_finds_len, *data)) {
+            return data;
+        }
+        data ++;
+    }
+
+    return NULL;
+}
+
+void * MEM_FindOne(void *mem, UINT mem_len, UCHAR to_find)
+{
+    UCHAR *data = mem;
+    UCHAR *end = data + mem_len;
+
+    BS_DBGASSERT(NULL != data);
+
+    while (data < end) {
+        if (*data == to_find) {
+            return data;
+        }
+        data ++;
+    }
+
+    return NULL;
+}
+
+void * MEM_Find(IN VOID *pMem, IN UINT ulMemLen, IN VOID *pMemToFind, IN UINT ulMemToFindLen)
+{
+    UCHAR *data = pMem;
+    UCHAR *end;
 
     BS_DBGASSERT(NULL != pMem);
     BS_DBGASSERT(NULL != pMemToFind);
     BS_DBGASSERT(ulMemToFindLen > 0);
     
-    if (ulMemToFindLen > ulMemLen)
-    {
+    if (ulMemToFindLen > ulMemLen) {
         return NULL;
     }
 
-    for (ulOffset=0; ulOffset<=(ulMemLen-ulMemToFindLen); ulOffset++)
-    {
-        if (memcmp((UCHAR*)pMem + ulOffset, pMemToFind, ulMemToFindLen) == 0)
-        {
-            return (UCHAR*)pMem + ulOffset;
+    end = data + (ulMemLen - ulMemToFindLen) + 1;
+
+    for (; data < end; data++) {
+        if (*data != *(UCHAR*)pMemToFind) {
+            continue;
+        }
+
+        if (memcmp(data, pMemToFind, ulMemToFindLen) == 0) {
+            return data;
+        }
+    }
+
+    return NULL;
+}
+
+void * MEM_CaseFind(void *pMem, UINT ulMemLen, void *pMemToFind, UINT ulMemToFindLen)
+{
+    UCHAR *data = pMem;
+    UCHAR *end;
+    UCHAR ch;
+
+    BS_DBGASSERT(NULL != pMem);
+    BS_DBGASSERT(NULL != pMemToFind);
+    BS_DBGASSERT(ulMemToFindLen > 0);
+    
+    if (ulMemToFindLen > ulMemLen) {
+        return NULL;
+    }
+
+    end = data + (ulMemLen - ulMemToFindLen) + 1;
+
+    UCHAR first = *(UCHAR*)pMemToFind;
+    first = tolower(first);
+
+    for (; data < end; data++) {
+        ch = tolower(*data);
+        if (ch != first) {
+            continue;
+        }
+
+        if (MEM_CaseCmp(data, ulMemToFindLen, pMemToFind, ulMemToFindLen) == 0) {
+            return data;
         }
     }
 
@@ -51,6 +120,34 @@ INT MEM_Cmp(IN UCHAR *pucMem1, IN UINT uiMem1Len, IN UCHAR *pucMem2, IN UINT uiM
     iCmp = uiMem1Len - uiMem2Len;
 
     return iCmp;
+}
+
+int MEM_CaseCmp(UCHAR *pucMem1, UINT uiMem1Len, UCHAR *pucMem2, UINT uiMem2Len)
+{
+    int c1;
+    int c2;
+    int i;
+    UINT   uiLen   = MIN(uiMem1Len, uiMem2Len);
+    UCHAR  *tmp1 = pucMem1;
+    UCHAR  *tmp2 = pucMem2;
+
+    for (i=0; i<uiLen; i++) {
+        c1 = tolower(tmp1[i]);
+        c2 = tolower(tmp2[i]);
+        if (c1 != c2) {
+            return (c1 - c2);
+        }
+    }
+
+    if (uiMem1Len == uiMem2Len) {
+        return 0;
+    }
+
+    if (uiMem1Len > uiMem2Len) {
+        return 1;
+    }
+
+    return -1;
 }
 
 VOID MEM_Print(IN UCHAR *pucMem, IN UINT uiLen)
@@ -128,38 +225,6 @@ BS_STATUS MEM_DiscreteFind
     return BS_NOT_FOUND;
 }
 
-/* 将一块内存中的指定偏移和长度的数据进行移动 */
-VOID MEM_Move(IN VOID *pData, IN ULONG ulOldOffset, IN ULONG ulDataLen, IN ULONG ulNewOffset)
-{
-    ULONG i;
-    UCHAR *pucData = pData;
-    UCHAR *pucSrc;
-    UCHAR *pucDst;
-
-    if (ulOldOffset == ulNewOffset)
-    {
-        return;
-    }
-
-    if (ulOldOffset > ulNewOffset)
-    {
-        MEM_Copy(pucData + ulNewOffset, pucData + ulOldOffset, ulDataLen);
-    }
-    else
-    {
-        pucSrc = pucData + ulOldOffset + ulDataLen - 1;
-        pucDst = pucData + ulNewOffset + ulDataLen - 1;
-        for (i=ulDataLen; i>0; i--)
-        {
-            *pucDst = *pucSrc;
-            pucDst --;
-            pucSrc --;
-        }
-    }
-
-    return;
-}
-
 /* 将内存中的内容反序 */
 void MEM_Invert(void *in, int len, void *out)
 {
@@ -203,3 +268,48 @@ int MEM_IsFF(void *data, int size)
 
     return 1;
 }
+
+/* 按照ULONG格式一个个的赋值为0 */
+void MEM_ZeroByUlong(void *data, int count)
+{
+    ULONG *a = data;
+    int i;
+
+    for (i=0; i<count; i++) {
+        *a = 0;
+        a++;
+    }
+}
+
+/* 将内存中的src字符替换为dst, 返回替换了多少个字符 */
+int MEM_ReplaceChar(void *data, int len, UCHAR src, UCHAR dst)
+{
+    int i;
+    int count = 0;
+    UCHAR *tmp = data;
+
+    for (i=0; i<len; i++) {
+        if (tmp[i] == src) {
+            tmp[i] = dst;
+            count ++;
+        }
+    }
+
+    return count;
+}
+
+/* 交换两块内存的内容 */
+void MEM_Exchange(void *buf1, void *buf2, int len)
+{
+    unsigned char *d1 = buf1;
+    unsigned char *d2 = buf2;
+    unsigned char tmp;
+    int i;
+
+    for (i=0; i<len; i++) {
+        tmp = d1[i];
+        d1[i] = d2[i];
+        d2[i] = tmp;
+    }
+}
+

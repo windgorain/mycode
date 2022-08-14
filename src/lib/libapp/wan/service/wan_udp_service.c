@@ -6,7 +6,6 @@
 ******************************************************************************/
 #include "bs.h"
 
-#include "utl/ic_utl.h"
 #include "utl/ip_utl.h"
 #include "utl/udp_utl.h"
 
@@ -122,7 +121,7 @@ BS_STATUS WanUdpService_Output(IN MBUF_S *pstMbuf, IN WAN_UDP_SERVICE_PARAM_S *p
     return WAN_IpFwd_Output(pstMbuf, pstParam->uiPeerIP, pstParam->uiLocalIP, IP_PROTO_UDP);
 }
 
-BS_STATUS WanUdpService_RegService
+PLUG_API BS_STATUS WanUdpService_RegService
 (
     IN USHORT usPort/* 网络序 */,
     IN UINT uiFlag, /* WAN_UDP_SERVICE_FLAG_XXX */

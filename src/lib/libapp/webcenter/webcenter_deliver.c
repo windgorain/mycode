@@ -99,6 +99,6 @@ BS_STATUS WebCenter_Deliver_Init()
 
 VOID WebCenter_Deliver_BindService(IN CHAR *pcWsService)
 {
-    COMP_WSAPP_SetDeliverTbl(pcWsService, g_hWebCenterDeliverTbl);
+    WSAPP_SetDeliverTbl(pcWsService, g_hWebCenterDeliverTbl);
 }
 

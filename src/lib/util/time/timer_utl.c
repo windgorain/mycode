@@ -28,7 +28,7 @@ static void timerutl_UnLock(TIMER_UTL_CTRL_S *ctrl)
     MUTEX_V(&ctrl->lock);
 }
 
-static void timerutl_Main(IN USER_HANDLE_S *pstUserHandle)
+static void timerutl_os_Main(IN USER_HANDLE_S *pstUserHandle)
 {
     TIMER_UTL_CTRL_S *ctrl = pstUserHandle->ahUserHandle[0];
 
@@ -37,6 +37,13 @@ static void timerutl_Main(IN USER_HANDLE_S *pstUserHandle)
         Sleep(ctrl->precision);
         VCLOCK_Step(ctrl->vclock);
     }
+}
+
+static void timerutl_os_init(TIMER_UTL_CTRL_S *ctrl)
+{
+    USER_HANDLE_S user_data;
+    user_data.ahUserHandle[0] = ctrl;
+    THREAD_Create("Timer", NULL, timerutl_os_Main, &user_data);
 }
 
 static BS_STATUS timerutl_CallBackFunc(TIMER_UTL_CTRL_S *ctrl, UINT timer_id)
@@ -92,17 +99,20 @@ static void timerutl_DeleteTimer(TIMER_UTL_CTRL_S *ctrl, VCLOCK_HANDLE vclock_id
 
 BS_STATUS TimerUtl_Init(TIMER_UTL_CTRL_S *ctrl, int precision/* 精度,ms */)
 {
-    USER_HANDLE_S user_data;
- 
+    NAP_PARAM_S param = {0};
+
     memset(ctrl, 0, sizeof(TIMER_UTL_CTRL_S));
     MUTEX_Init(&ctrl->lock);
-    ctrl->node_pool = NAP_Create(NAP_TYPE_HASH, 0xffff, sizeof(_TIMER_UTL_NODE_S), 0);
+
+    param.enType = NAP_TYPE_HASH;
+    param.uiMaxNum = 0xffff;
+    param.uiNodeSize = sizeof(_TIMER_UTL_NODE_S);
+    ctrl->node_pool = NAP_Create(&param);
     NAP_EnableSeq(ctrl->node_pool, 0, 0xffff);
     ctrl->vclock = VCLOCK_CreateInstance(TRUE);
     ctrl->precision = precision;
 
-    user_data.ahUserHandle[0] = ctrl;
-    THREAD_Create("Timer", NULL, timerutl_Main, &user_data);
+    timerutl_os_init(ctrl);
 
     return 0;
 }

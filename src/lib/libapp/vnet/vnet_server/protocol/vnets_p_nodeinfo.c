@@ -9,6 +9,7 @@
 
 #include "utl/txt_utl.h"
 #include "utl/eth_utl.h"
+#include "utl/socket_utl.h"
 
 #include "../../inc/vnet_conf.h"
 
@@ -19,7 +20,6 @@
 
 BS_STATUS VNETS_P_NodeInfo_Input(IN MIME_HANDLE hMime, IN VNETS_PROTOCOL_PACKET_INFO_S *pstPacketInfo)
 {
-    UINT uiRecvSesID;
     UINT uiDomainId;
     UINT uiNodeID;
     CHAR *pcIP;
@@ -40,8 +40,6 @@ BS_STATUS VNETS_P_NodeInfo_Input(IN MIME_HANDLE hMime, IN VNETS_PROTOCOL_PACKET_
     {
         return BS_ERR;
     }
-
-    uiRecvSesID = VNETS_Context_GetRecvSesID(pstPacketInfo->pstMBuf);
 
     pcIP = MIME_GetKeyValue(hMime, "IP");
     pcMask = MIME_GetKeyValue(hMime, "Mask");

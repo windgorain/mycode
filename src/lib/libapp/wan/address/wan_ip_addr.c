@@ -15,6 +15,7 @@
 #include "utl/json_utl.h"
 #include "comp/comp_if.h"
 #include "comp/comp_kfapp.h"
+#include "comp/comp_wan.h"
 
 #include "../h/wan_ifnet.h"
 #include "../h/wan_fib.h"
@@ -49,40 +50,30 @@ static VOID _wan_ipaddr_EventNotify
     BOOL_T bHaveOld = FALSE;
     BOOL_T bHaveNew = FALSE;
 
-    if ((NULL != pstOld) && (pstOld->uiIP != 0))
-    {
+    if ((NULL != pstOld) && (pstOld->uiIP != 0)) {
         bHaveOld = TRUE;
     }
 
-    if ((NULL != pstNew) && (pstNew->uiIP != 0))
-    {
+    if ((NULL != pstNew) && (pstNew->uiIP != 0)) {
         bHaveNew = TRUE;
     }
 
-    if (bHaveOld == FALSE)
-    {
-        if (bHaveNew == FALSE)
-        {
+    if (bHaveOld == FALSE) {
+        if (bHaveNew == FALSE) {
             return;
-        }
-        else
-        {
+        } else {
             uiEvent = WAN_IPADDR_EVENT_ADD_ADDR;
         }
-    }
-    else
-    {
-        if (bHaveNew == FALSE)
-        {
+    } else {
+        if (bHaveNew == FALSE) {
             uiEvent = WAN_IPADDR_EVENT_DEL_ADDR;
-        }
-        else
-        {
+        } else {
             uiEvent = WAN_IPADDR_EVENT_MODIFY_ADDR;
         }
     }
 
-    OB_CHAIN_NOTIFY4(&g_stWanIpAddrObserverList, UINT_HANDLE(ifIndex), (ULONG)uiEvent, pstOld, pstNew);
+    OB_CHAIN_NOTIFY(&g_stWanIpAddrObserverList, PF_WAN_IPAddr_EventNotify,
+            ifIndex, (ULONG)uiEvent, pstOld, pstNew);
 }
 
 static VOID wan_ipaddr_IfCreateEvent(IN UINT uiIfIndex)
@@ -93,7 +84,7 @@ static VOID wan_ipaddr_IfCreateEvent(IN UINT uiIfIndex)
     {
         return;
     }
-    CompIf_SetUserData(uiIfIndex, g_uiWanIpAddrIfUserDataIndex, pstIpAddrCtrl);
+    IFNET_SetUserData(uiIfIndex, g_uiWanIpAddrIfUserDataIndex, pstIpAddrCtrl);
 }
 
 static VOID wan_ipaddr_IfDelEvent(IN UINT uiIfIndex)
@@ -101,7 +92,7 @@ static VOID wan_ipaddr_IfDelEvent(IN UINT uiIfIndex)
     _IPADDR_IF_CTRL_S *pstIpAddrCtrl;
     UINT i;
     
-    if (BS_OK != CompIf_GetUserData(uiIfIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
+    if (BS_OK != IFNET_GetUserData(uiIfIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
     {
         return;
     }
@@ -183,14 +174,14 @@ static BS_STATUS _wan_ipaddr_kf_Get(IN MIME_HANDLE hMime, IN HANDLE hUserHandle,
 
     cJSON_AddStringToObject(pstParam->pstJson, "Interface", pcName);
 
-    ifIndex = CompIf_GetIfIndex(pcName);
+    ifIndex = IFNET_GetIfIndex(pcName);
     if (IF_INVALID_INDEX == ifIndex)
     {
         JSON_SetFailed(pstParam->pstJson, "Not exist");
         return BS_OK;
     }
 
-    if ((BS_OK != CompIf_GetUserData(ifIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
+    if ((BS_OK != IFNET_GetUserData(ifIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
         || (pstIpAddrCtrl == NULL))
     {
         JSON_SetFailed(pstParam->pstJson, "Not exist");
@@ -253,7 +244,7 @@ static BS_STATUS _wan_ipaddr_kf_ModifyIpMask(IN IF_INDEX ifIndex, IN IP_MAKS_S *
     WAN_IP_ADDR_INFO_S stInfo;
     BS_STATUS eRet = BS_OK;
 
-    if ((BS_OK != CompIf_GetUserData(ifIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
+    if ((BS_OK != IFNET_GetUserData(ifIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
         || (pstIpAddrCtrl == NULL))
     {
         return BS_ERR;
@@ -288,7 +279,7 @@ static BS_STATUS _wan_ipaddr_kf_ModifyIpMask(IN IF_INDEX ifIndex, IN IP_MAKS_S *
         stInfo.uiIP = uiIP;
         stInfo.uiMask = uiMask;
 
-        eRet |= WAN_IPAddr_AddIp(&stInfo);
+        eRet |= WanIPAddr_AddIp(&stInfo);
     }
 
     return eRet;
@@ -310,7 +301,7 @@ static BS_STATUS _wan_ipaddr_kf_Modify(IN MIME_HANDLE hMime, IN HANDLE hUserHand
         return BS_OK;
     }
 
-    ifIndex = CompIf_GetIfIndex(pcName);
+    ifIndex = IFNET_GetIfIndex(pcName);
     if (IF_INVALID_INDEX == ifIndex)
     {
         JSON_SetFailed(pstParam->pstJson, "Not exist");
@@ -340,17 +331,17 @@ static BS_STATUS _wan_ipaddr_kf_Modify(IN MIME_HANDLE hMime, IN HANDLE hUserHand
 
 BS_STATUS WAN_IPAddr_KfInit()
 {
-    COMP_KFAPP_RegFunc("IPAddress.Modify", _wan_ipaddr_kf_Modify, NULL);
-    COMP_KFAPP_RegFunc("IPAddress.Get", _wan_ipaddr_kf_Get, NULL);
+    KFAPP_RegFunc("IPAddress.Modify", _wan_ipaddr_kf_Modify, NULL);
+    KFAPP_RegFunc("IPAddress.Get", _wan_ipaddr_kf_Get, NULL);
 
     return BS_OK;
 }
 
 BS_STATUS WAN_IPAddr_Init()
 {
-    g_uiWanIpAddrIfUserDataIndex = CompIf_AllocUserDataIndex();
+    g_uiWanIpAddrIfUserDataIndex = IFNET_AllocUserDataIndex();
 
-    return CompIf_RegEvent(wan_ipaddr_IfEvent, NULL);
+    return IFNET_RegEvent(wan_ipaddr_IfEvent, NULL);
 }
 
 /* 匹配本地网段 */
@@ -361,7 +352,7 @@ BS_STATUS WAN_IPAddr_MatchNetCover(IN UINT uiIfIndex, IN UINT uiIpAddr/* 网络�
     WAN_IP_ADDR_INFO_S *pstTmp;
     UINT i;
 
-    if ((BS_OK != CompIf_GetUserData(uiIfIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
+    if ((BS_OK != IFNET_GetUserData(uiIfIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
         || (pstIpAddrCtrl == NULL))
     {
         return BS_NOT_FOUND;
@@ -404,7 +395,7 @@ static BS_STATUS wan_ipaddr_MatchBestNetNormal
     UINT i;
     UINT uiIpAddrHost = ntohl(uiIpAddr);
 
-    if ((BS_OK != CompIf_GetUserData(uiIfIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
+    if ((BS_OK != IFNET_GetUserData(uiIfIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
         || (pstIpAddrCtrl == NULL))
     {
         return BS_NOT_FOUND;
@@ -541,7 +532,7 @@ BOOL_T WAN_IPAddr_IsInterfaceIp(IN UINT uiIfIndex, IN UINT uiIP/* 网络序 */)
         return FALSE;
     }
 
-    if ((BS_OK != CompIf_GetUserData(uiIfIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
+    if ((BS_OK != IFNET_GetUserData(uiIfIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
         || (pstIpAddrCtrl == NULL))
     {
         return FALSE;
@@ -595,11 +586,11 @@ static VOID wan_ipaddr_DelIpFromList(IN UINT uiVrf, IN WAN_IP_ADDR_INFO_S *pstIp
     return;
 }
 
-BS_STATUS WAN_IPAddr_SetMode(IN IF_INDEX ifIndex, IN WAN_IP_ADDR_MODE_E enMode)
+PLUG_API BS_STATUS WanIPAddr_SetMode(IN IF_INDEX ifIndex, IN WAN_IP_ADDR_MODE_E enMode)
 {
     _IPADDR_IF_CTRL_S *pstIpAddrCtrl;
 
-    if (BS_OK != CompIf_GetUserData(ifIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
+    if (BS_OK != IFNET_GetUserData(ifIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
     {
         return BS_ERR;
     }
@@ -618,7 +609,7 @@ WAN_IP_ADDR_MODE_E WAN_IPAddr_GetMode(IN IF_INDEX ifIndex)
 {
     _IPADDR_IF_CTRL_S *pstIpAddrCtrl;
 
-    if (BS_OK != CompIf_GetUserData(ifIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
+    if (BS_OK != IFNET_GetUserData(ifIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
     {
         return WAN_IP_ADDR_MODE_MAX;
     }
@@ -626,7 +617,7 @@ WAN_IP_ADDR_MODE_E WAN_IPAddr_GetMode(IN IF_INDEX ifIndex)
     return pstIpAddrCtrl->stIpAddrs.enIpMode;
 }
 
-BS_STATUS WAN_IPAddr_AddIp(IN WAN_IP_ADDR_INFO_S *pstAddrInfo)
+PLUG_API BS_STATUS WanIPAddr_AddIp(IN WAN_IP_ADDR_INFO_S *pstAddrInfo)
 {
     FIB_NODE_S stFib;
     WAN_IP_ADDR_INFO_S stOld;
@@ -636,7 +627,7 @@ BS_STATUS WAN_IPAddr_AddIp(IN WAN_IP_ADDR_INFO_S *pstAddrInfo)
     WAN_IP_ADDR_INFO_S stConflict;
     UINT uiVrf = 0;
 
-    if (BS_OK != CompIf_GetUserData(pstAddrInfo->uiIfIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
+    if (BS_OK != IFNET_GetUserData(pstAddrInfo->uiIfIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
     {
         return BS_ERR;
     }
@@ -710,7 +701,7 @@ BS_STATUS WAN_IPAddr_DelIp(IN IF_INDEX ifIndex, IN UINT uiIP)
         return BS_BAD_PARA;
     }
 
-    if (BS_OK != CompIf_GetUserData(ifIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
+    if (BS_OK != IFNET_GetUserData(ifIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
     {
         return BS_ERR;
     }
@@ -748,7 +739,7 @@ BS_STATUS WAN_IPAddr_GetInterfaceAllIp(IN IF_INDEX ifIndex, OUT WAN_IP_ADDR_S *p
 {
     _IPADDR_IF_CTRL_S *pstIpAddrCtrl;
 
-    if ((BS_OK != CompIf_GetUserData(ifIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
+    if ((BS_OK != IFNET_GetUserData(ifIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
         || (NULL == pstIpAddrCtrl))
     {
         return BS_ERR;
@@ -764,7 +755,7 @@ BS_STATUS WAN_IPAddr_DelInterfaceAllIp(IN IF_INDEX ifIndex)
     _IPADDR_IF_CTRL_S *pstIpAddrCtrl;
     INT i;
 
-    if ((BS_OK != CompIf_GetUserData(ifIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
+    if ((BS_OK != IFNET_GetUserData(ifIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
         || (NULL == pstIpAddrCtrl))
     {
         return BS_ERR;
@@ -784,7 +775,7 @@ BS_STATUS WAN_IPAddr_GetFirstIp(IN UINT uiIfIndex, OUT WAN_IP_ADDR_INFO_S *pstAd
     _IPADDR_IF_CTRL_S *pstIpAddrCtrl;
     UINT i;
 
-    if ((BS_OK != CompIf_GetUserData(uiIfIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
+    if ((BS_OK != IFNET_GetUserData(uiIfIndex, g_uiWanIpAddrIfUserDataIndex, (VOID*)&pstIpAddrCtrl))
         || (NULL == pstIpAddrCtrl))
     {
         return BS_NO_SUCH;
@@ -804,6 +795,6 @@ BS_STATUS WAN_IPAddr_GetFirstIp(IN UINT uiIfIndex, OUT WAN_IP_ADDR_INFO_S *pstAd
 
 BS_STATUS WAN_IPAddr_RegListener(IN PF_WAN_IPAddr_EventNotify pfFunc, IN USER_HANDLE_S *pstUserHandle)
 {
-    return OB_CHAIN_Add(&g_stWanIpAddrObserverList, (UINT_FUNC_X)pfFunc, pstUserHandle);
+    return OB_CHAIN_Add(&g_stWanIpAddrObserverList, (void *)pfFunc, pstUserHandle);
 }
 

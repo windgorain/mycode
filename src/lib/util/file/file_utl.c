@@ -10,6 +10,9 @@
 #include "utl/mem_utl.h"
 #include "utl/file_utl.h"
 #include "utl/txt_utl.h"
+#include "utl/cjson.h"
+#include "utl/passwd_utl.h"
+#include <stdbool.h>
 
 /* funcs */
 #ifdef IN_WINDOWS
@@ -60,9 +63,9 @@ char * FILE_ToAbsPath(char *base_dir, char *path, OUT char *dst, int dst_size)
     } else {
         base_dir_len = strlen(base_dir);
         if ((base_dir[base_dir_len - 1] == '/') || (base_dir[base_dir_len - 1] == '\\')) {
-            iRet = snprintf(dst, dst_size, "%s%s", base_dir, path);
+            iRet = scnprintf(dst, dst_size, "%s%s", base_dir, path);
         } else {
-            iRet = snprintf(dst, dst_size, "%s/%s", base_dir, path);
+            iRet = scnprintf(dst, dst_size, "%s/%s", base_dir, path);
         }
     }
 
@@ -86,6 +89,7 @@ char * FILE_Dup2AbsPath(IN char *base_dir, IN char *path)
     return strdup(new_filename);
 }
 
+/* 从路径中获取文件名 */
 CHAR * FILE_GetFileNameFromPath(IN CHAR *pszPath)
 {
     UINT ulLen;
@@ -485,6 +489,31 @@ BS_STATUS FILE_SetUtcTime
     return BS_OK;
 }
 
+/* 创建目录, 如果已经存在, BS_ALREADY_EXIST*/
+BS_STATUS FILE_MakeDir(char *path)
+{
+    int ret = mkdir(path, 0777);
+    if (ret < 0) {
+        if (errno == EEXIST) {
+            return BS_ALREADY_EXIST;
+        }
+    }
+
+    return ret;
+}
+
+/* 创建目录, 如果已经存在, 返回OK */
+BS_STATUS FILE_MakeDir2(char *path)
+{
+    int ret = mkdir(path, 0777);
+    if (ret < 0) {
+        if (errno == EEXIST) {
+            return 0;
+        }
+    }
+
+    return ret;
+}
 
 /* 创建路径上的所有目录, 如果已经存在，则返回BS_ALREADY_EXIST */
 /* pszPath:  以'/'或'\\'结尾的一个路径, 如果不是,则自动忽略最后一个'/'或'\\'之后的字符 */
@@ -520,6 +549,39 @@ BS_STATUS FILE_MakeDirs(IN CHAR *pszPath)
     }
 
     return BS_OK;
+}
+
+/* 创建路径上的所有目录, 如果已经存在，也返回OK */
+BS_STATUS FILE_MakePath(IN CHAR *pszPath)
+{
+    CHAR *pcSplit, *pszDir;
+    CHAR szPath[FILE_MAX_PATH_LEN + 1];
+    int ret = 0;
+
+    BS_DBGASSERT(NULL != pszPath);
+
+    if (strlen(pszPath) > FILE_MAX_PATH_LEN) {
+        RETURN(BS_TOO_LONG);
+    }
+
+    TXT_Strlcpy(szPath, pszPath, sizeof(szPath));
+
+    FILE_PATH_TO_UNIX(szPath);
+
+    pszDir = szPath;
+    while (NULL != (pcSplit = strchr(pszDir, '/'))) {
+        *pcSplit = '\0';
+        if (szPath[0]) {
+            ret = FILE_MakeDir2(szPath);
+            if (ret != 0) {
+                break;
+            }
+        }
+        *pcSplit = '/';
+        pszDir = pcSplit + 1;
+    }
+
+    return FILE_MakeDir2(pszPath);
 }
 
 BS_STATUS FILE_MakeFile(IN CHAR *pszFilePath)

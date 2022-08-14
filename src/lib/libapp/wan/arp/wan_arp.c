@@ -8,7 +8,6 @@
 
 #include "utl/mbuf_utl.h"
 #include "utl/exec_utl.h"
-#include "utl/ic_utl.h"
 #include "utl/fib_utl.h"
 #include "utl/ipfwd_service.h"
 #include "utl/vf_utl.h"
@@ -57,7 +56,7 @@ static BS_STATUS wan_arp_SendPacket(IN MBUF_S *pstMbuf, IN USER_HANDLE_S *pstUse
     BS_DBG_OUTPUT(g_uiWanArpDebugFlag, _WAN_ARP_DBG_FLAG_PACKET,
         ("ARP: Send arp packet.\r\n"));
 
-    return CompIf_LinkOutput(uiIfIndex, pstMbuf, htons(ETH_P_ARP));
+    return IFNET_LinkOutput(uiIfIndex, pstMbuf, htons(ETH_P_ARP));
 }
 
 static BOOL_T wan_arp_IsHostIP(IN UINT uiIfIndex, ARP_HEADER_S *pstArpHeader, IN USER_HANDLE_S *pstUserHandle)
@@ -137,7 +136,7 @@ static VOID wan_arp_VFEventDestory(IN UINT uiVrfID)
 
     if (NULL != pstArp)
     {
-        RcuBs_Free(&pstArp->stRcu, _wan_arp_RcuFree);
+        RcuEngine_Call(&pstArp->stRcu, _wan_arp_RcuFree);
     }
 
     return;
@@ -217,7 +216,7 @@ BS_STATUS WAN_ARP_PacketInput(IN MBUF_S *pstArpPacket)
 
     uiVrfID = MBUF_GET_INVPNID(pstArpPacket);
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     pstArp = WanVrf_GetData(uiVrfID, WAN_VRF_PROPERTY_INDEX_ARP);
     if ((NULL != pstArp) && (NULL != pstArp->hArp))
     {
@@ -230,7 +229,7 @@ BS_STATUS WAN_ARP_PacketInput(IN MBUF_S *pstArpPacket)
         MBUF_Free(pstArpPacket);
         eRet = BS_NO_SUCH;
     }
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     return eRet;
 }
@@ -251,7 +250,7 @@ BS_STATUS WAN_ARP_GetMacByIp
 
     uiVrfID = MBUF_GET_OUTVPNID(pstMbuf);
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     pstArp = WanVrf_GetData(uiVrfID, WAN_VRF_PROPERTY_INDEX_ARP);
     if ((NULL != pstArp) && (NULL != pstArp->hArp))
     {
@@ -261,7 +260,7 @@ BS_STATUS WAN_ARP_GetMacByIp
     {
         eRet = BS_NO_SUCH;
     }
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     return eRet;
 }
@@ -323,7 +322,7 @@ PLUG_API BS_STATUS WAN_ARP_ShowArp
 
     uiVrfID = WAN_VrfCmd_GetVrfByEnv(pEnv);
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     pstArp = WanVrf_GetData(uiVrfID, WAN_VRF_PROPERTY_INDEX_ARP);
     if ((NULL != pstArp) && (NULL != pstArp->hArp))
     {
@@ -334,7 +333,7 @@ PLUG_API BS_STATUS WAN_ARP_ShowArp
 
         EXEC_OutString("\r\n");
     }
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     return BS_OK;
 }

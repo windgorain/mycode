@@ -10,8 +10,8 @@
 #include "utl/hash_utl.h"
 #include "utl/txt_utl.h"
 #include "utl/nap_utl.h"
-
-#define _NO_HASH_BUCKETS_NUM 1024
+#include "utl/map_utl.h"
+#include "utl/mem_cap.h"
 
 typedef struct
 {
@@ -21,18 +21,10 @@ typedef struct
 
 typedef struct
 {
-    HANDLE hObjectAggregate; /* 未命名对象集合 */
-    HASH_HANDLE hHashTbl;
+    HANDLE hAggregate; /* 未命名对象集合 */
+    MAP_HANDLE name_map;
+    void *memcap;
 }_NO_INSTANCE_S;
-
-static INT _no_CmpHashNode
-(
-    IN _NO_NODE_S * pstHashNode1,
-    IN _NO_NODE_S * pstHadhNode2
-)
-{
-    return strcmp(pstHashNode1->pcName, pstHadhNode2->pcName);
-}
 
 static inline _NO_NODE_S * _no_Object2Node(IN VOID * pObject)
 {
@@ -46,60 +38,38 @@ static inline VOID * _no_Node2Object(IN _NO_NODE_S * pstNode)
 
 static VOID _no_FreeNode(IN _NO_INSTANCE_S *pstInstance, IN _NO_NODE_S *pstNode)
 {
-    HASH_Del(pstInstance->hHashTbl, pstNode);
+    MAP_Del(pstInstance->name_map, pstNode->pcName, strlen(pstNode->pcName));
 
-    if (NULL != pstNode->pcName)
-    {
-        MEM_RcuFree(pstNode->pcName);
+    if (NULL != pstNode->pcName) {
+        MemCap_Free(pstInstance->memcap, pstNode->pcName);
     }
 
-    OBJECT_FreeObject(pstInstance->hObjectAggregate, pstNode);
+    OBJECT_FreeObject(pstInstance->hAggregate, pstNode);
 }
 
-static UINT _no_GetHashIndex(IN VOID *pstHashNode)
-{
-    _NO_NODE_S *pstNode = (_NO_NODE_S*)pstHashNode;
-    CHAR *pcChar;
-    UINT ulIndex = 0;
-
-    pcChar = pstNode->pcName;
-
-    while (*pcChar != '\0')
-    {
-        ulIndex += *pcChar;
-        pcChar ++;
-    }
-
-    return ulIndex;
-}
-
-NO_HANDLE NO_CreateAggregate
-(
-    IN UINT uiMaxNum/* 0表示不限制 */,
-    IN UINT uiObjSize/* 对象大小 */,
-    IN UINT uiFlag  /* OBJECT_FLAG_XXX */ 
-)
+NO_HANDLE NO_CreateAggregate(OBJECT_PARAM_S *p)
 {
     _NO_INSTANCE_S *pstInstance;
 
-    pstInstance = MEM_ZMalloc(sizeof(_NO_INSTANCE_S));
-    if (NULL == pstInstance)
-    {
+    pstInstance = MemCap_ZMalloc(p->memcap, sizeof(_NO_INSTANCE_S));
+    if (NULL == pstInstance) {
+        return NULL;
+    }
+    pstInstance->memcap = p->memcap;
+
+    OBJECT_PARAM_S param = *p;
+    param.uiObjSize = p->uiObjSize + sizeof(_NO_NODE_S);
+
+    pstInstance->hAggregate = OBJECT_CreateAggregate(&param);
+    if (NULL == pstInstance->hAggregate) {
+        MemCap_Free(p->memcap, pstInstance);
         return NULL;
     }
 
-    pstInstance->hObjectAggregate = OBJECT_CreateAggregate(uiMaxNum, uiObjSize + sizeof(_NO_NODE_S), uiFlag);
-    if (NULL == pstInstance->hObjectAggregate)
-    {
-        MEM_Free(pstInstance);
-        return NULL;
-    }
-
-    pstInstance->hHashTbl = HASH_CreateInstance(_NO_HASH_BUCKETS_NUM, _no_GetHashIndex);
-    if (NULL == pstInstance->hHashTbl)
-    {
-        OBJECT_DestroyAggregate(pstInstance->hObjectAggregate);
-        MEM_Free(pstInstance);
+    pstInstance->name_map = MAP_Create(NULL);
+    if (NULL == pstInstance->name_map) {
+        OBJECT_DestroyAggregate(pstInstance->hAggregate);
+        MemCap_Free(p->memcap, pstInstance);
         return NULL;
     }
 
@@ -117,28 +87,25 @@ VOID NO_DestroyAggregate(IN NO_HANDLE hAggregate)
         return;
     }
 
-    if (NULL != pstInstance->hObjectAggregate)
-    {
-        while (0 != (ulID = OBJECT_GetNextID(pstInstance->hObjectAggregate, ulID)))
-        {
-            pstNode = OBJECT_GetObjectByID(pstInstance->hObjectAggregate, ulID);
+    if (NULL != pstInstance->hAggregate) {
+        while (0 != (ulID = OBJECT_GetNextID(pstInstance->hAggregate, ulID))) {
+            pstNode = OBJECT_GetObjectByID(pstInstance->hAggregate, ulID);
             _no_FreeNode(pstInstance, pstNode);
         }
     }
 
-    if (NULL != pstInstance->hHashTbl)
-    {
-        HASH_DestoryInstance(pstInstance->hHashTbl);
+    if (NULL != pstInstance->name_map) {
+        MAP_Destroy(pstInstance->name_map, NULL, NULL);
     }
 
-    MEM_Free(pstInstance);
+    MemCap_Free(pstInstance->memcap, pstInstance);
 }
 
 VOID NO_EnableSeq(IN NO_HANDLE hAggregate, IN UINT64 ulMask, IN UINT uiCount)
 {
     _NO_INSTANCE_S *pstInstance = hAggregate;
 
-    OBJECT_EnableSeq(pstInstance->hObjectAggregate, ulMask, uiCount);
+    OBJECT_EnableSeq(pstInstance->hAggregate, ulMask, uiCount);
 }
 
 VOID * NO_NewObject(IN NO_HANDLE hAggregate, IN CHAR *pcName)
@@ -155,7 +122,7 @@ VOID * NO_NewObject(IN NO_HANDLE hAggregate, IN CHAR *pcName)
     }
 
     uiLen = strlen(pcName);
-    pcNameTmp = MEM_RcuMalloc(uiLen + 1);
+    pcNameTmp = MemCap_Malloc(pstInstance->memcap, uiLen + 1);
     if (NULL == pcNameTmp)
     {
         return NULL;
@@ -163,15 +130,15 @@ VOID * NO_NewObject(IN NO_HANDLE hAggregate, IN CHAR *pcName)
 
     TXT_Strlcpy(pcNameTmp, pcName, uiLen + 1);
 
-    pstNode = OBJECT_NewObject(pstInstance->hObjectAggregate);
+    pstNode = OBJECT_NewObject(pstInstance->hAggregate);
     if (NULL == pstNode)
     {
-        MEM_RcuFree(pcNameTmp);
+        MemCap_Free(pstInstance->memcap, pcNameTmp);
         return NULL;
     }
     pstNode->pcName = pcNameTmp;
 
-    HASH_Add(pstInstance->hHashTbl, pstNode);
+    MAP_Add(pstInstance->name_map, pstNode->pcName, strlen(pstNode->pcName), pstNode, 0);
 
     return _no_Node2Object(pstNode);
 }
@@ -195,7 +162,7 @@ VOID * NO_NewObjectForNameIndex(IN NO_HANDLE hAggregate, IN CHAR *pcNamePrefix /
         pcNamePrefix = "";
     }
 
-    pstNode = OBJECT_NewObject(pstInstance->hObjectAggregate);
+    pstNode = OBJECT_NewObject(pstInstance->hAggregate);
     if (NULL == pstNode)
     {
         return NULL;
@@ -203,16 +170,16 @@ VOID * NO_NewObjectForNameIndex(IN NO_HANDLE hAggregate, IN CHAR *pcNamePrefix /
     
     uiSize = strlen(pcNamePrefix) + 16;
 
-    pcNameTmp = MEM_Malloc(uiSize);
+    pcNameTmp = MemCap_Malloc(pstInstance->memcap, uiSize);
     if (NULL == pcNameTmp)
     {
-        OBJECT_FreeObject(pstInstance->hObjectAggregate, pstNode);
+        OBJECT_FreeObject(pstInstance->hAggregate, pstNode);
 		return NULL;
     }
-    snprintf(pcNameTmp, uiSize, "%s%lld", pcNamePrefix, OBJECT_GetIDByObject(pstInstance->hObjectAggregate, pstNode));
+    snprintf(pcNameTmp, uiSize, "%s%lld", pcNamePrefix, OBJECT_GetIDByObject(pstInstance->hAggregate, pstNode));
     pstNode->pcName = pcNameTmp;
 
-    HASH_Add(pstInstance->hHashTbl, pstNode);
+    MAP_Add(pstInstance->name_map, pstNode->pcName, strlen(pstNode->pcName), pstNode, 0);
 
     return _no_Node2Object(pstNode);
 }
@@ -257,13 +224,12 @@ VOID NO_FreeObjectByID(IN NO_HANDLE hAggregate, IN UINT64 ulID)
     }
 }
 
-VOID NO_FreeObjectByName(IN NO_HANDLE hAggregate, IN CHAR *pcName)
+VOID NO_FreeObjectByName(NO_HANDLE hAggregate, char *name)
 {
-    VOID *pNode;
+    void *pNode;
 
-    pNode = NO_GetObjectByName(hAggregate, pcName);
-    if (NULL != pNode)
-    {
+    pNode = NO_GetObjectByName(hAggregate, name);
+    if (NULL != pNode) {
         NO_FreeObject(hAggregate, pNode);
     }
 }
@@ -280,15 +246,14 @@ UINT64 NO_GetObjectID(IN NO_HANDLE hAggregate, IN VOID * pObject)
 
     pstNode = _no_Object2Node(pObject);
 
-    return OBJECT_GetIDByObject(pstInstance->hObjectAggregate, pstNode);
+    return OBJECT_GetIDByObject(pstInstance->hAggregate, pstNode);
 }
 
 CHAR * NO_GetName(IN VOID * pObject)
 {
     _NO_NODE_S *pstNode;
 
-    if (NULL == pObject)
-    {
+    if (NULL == pObject) {
         BS_DBGASSERT(0);
         return 0;
     }
@@ -309,7 +274,7 @@ VOID * NO_GetObjectByID(IN NO_HANDLE hAggregate, IN UINT64 ulID)
         return NULL;
     }
 
-    pstNode = OBJECT_GetObjectByID(pstInstance->hObjectAggregate, ulID);
+    pstNode = OBJECT_GetObjectByID(pstInstance->hAggregate, ulID);
     if (NULL == pstNode)
     {
         return NULL;
@@ -322,7 +287,6 @@ VOID * NO_GetObjectByName(IN NO_HANDLE hAggregate, IN CHAR *pcName)
 {
     _NO_INSTANCE_S *pstInstance = hAggregate;
     _NO_NODE_S *pstNode;
-    _NO_NODE_S stNode;
 
     if ((NULL == hAggregate) || (NULL == pcName))
     {
@@ -330,12 +294,8 @@ VOID * NO_GetObjectByName(IN NO_HANDLE hAggregate, IN CHAR *pcName)
         return NULL;
     }
 
-    stNode.pcName = pcName;
-
-    pstNode = (_NO_NODE_S *)HASH_Find(pstInstance->hHashTbl,
-        (PF_HASH_CMP_FUNC)_no_CmpHashNode, (HASH_NODE_S *)&stNode);
-    if (NULL == pstNode)
-    {
+    pstNode = MAP_Get(pstInstance->name_map, pcName, strlen(pcName));
+    if (NULL == pstNode) {
         return NULL;
     }
 
@@ -353,7 +313,7 @@ CHAR * NO_GetNameByID(IN NO_HANDLE hAggregate, IN UINT64 ulID)
         return NULL;
     }
 
-    pstNode = OBJECT_GetObjectByID(pstInstance->hObjectAggregate, ulID);
+    pstNode = OBJECT_GetObjectByID(pstInstance->hAggregate, ulID);
     if (NULL == pstNode)
     {
         return NULL;
@@ -371,26 +331,20 @@ UINT64 NO_GetIDByName(IN NO_HANDLE hAggregate, IN CHAR *pcName)
     return NO_GetObjectID(hAggregate, pObject);
 }
 
-BS_STATUS NO_SetProperty(IN VOID *pObject, IN UINT uiPropertyIndex, IN HANDLE hValue)
+BS_STATUS NO_SetProperty(void *object, UINT property_index, void *value)
 {
     _NO_NODE_S *pstNode;
 
-    pstNode = _no_Object2Node(pObject);
+    pstNode = _no_Object2Node(object);
 
-    return OBJECT_SetProperty(pstNode, uiPropertyIndex, hValue);
+    return OBJECT_SetProperty(pstNode, property_index, value);
 }
 
-BS_STATUS NO_SetPropertyByID
-(
-    IN NO_HANDLE hAggregate,
-    IN UINT64 ulObjectId,
-    IN UINT uiPropertyIndex,
-    IN HANDLE hValue
-)
+BS_STATUS NO_SetPropertyByID(NO_HANDLE hAggregate, UINT64 id, UINT property_index, void *value)
 {
     _NO_INSTANCE_S *pstInstance = hAggregate;
 
-    return OBJECT_SetPropertyByID(pstInstance->hObjectAggregate, ulObjectId, uiPropertyIndex, hValue);
+    return OBJECT_SetPropertyByID(pstInstance->hAggregate, id, property_index, value);
 }
 
 BS_STATUS NO_GetProperty(IN VOID *pObject, IN UINT uiPropertyIndex, OUT HANDLE *phValue)
@@ -412,17 +366,17 @@ BS_STATUS NO_GetPropertyByID
 {
     _NO_INSTANCE_S *pstInstance = hAggregate;
 
-    return OBJECT_GetPropertyByID(pstInstance->hObjectAggregate, ulObjectId, uiPropertyIndex, phValue);
+    return OBJECT_GetPropertyByID(pstInstance->hAggregate, ulObjectId, uiPropertyIndex, phValue);
 }
 
-BS_STATUS NO_SetKeyValue(IN NO_HANDLE hAggregate, IN VOID *pObject, IN CHAR *pcKey, IN CHAR *pcValue)
+BS_STATUS NO_SetKeyValue(HANDLE hAggregate, void *obj, char *key, char *value)
 {
     _NO_NODE_S *pstNode;
     _NO_INSTANCE_S *pstInstance = hAggregate;
 
-    pstNode = _no_Object2Node(pObject);
+    pstNode = _no_Object2Node(obj);
 
-    return OBJECT_SetKeyValue(pstInstance->hObjectAggregate, pstNode, pcKey, pcValue);
+    return OBJECT_SetKeyValue(pstInstance->hAggregate, pstNode, key, value);
 }
 
 BS_STATUS NO_SetKeyValueByID
@@ -435,7 +389,7 @@ BS_STATUS NO_SetKeyValueByID
 {
     _NO_INSTANCE_S *pstInstance = hAggregate;
 
-    return OBJECT_SetKeyValueByID(pstInstance->hObjectAggregate, ulObjectId, pcKey, pcValue);
+    return OBJECT_SetKeyValueByID(pstInstance->hAggregate, ulObjectId, pcKey, pcValue);
 }
 
 CHAR * NO_GetKeyValue(IN VOID *pObject, IN CHAR *pcKey)
@@ -456,7 +410,7 @@ CHAR * NO_GetKeyValueByID
 {
     _NO_INSTANCE_S *pstInstance = hAggregate;
 
-    return OBJECT_GetKeyValueByID(pstInstance->hObjectAggregate, ulObjectId, pcKey);
+    return OBJECT_GetKeyValueByID(pstInstance->hAggregate, ulObjectId, pcKey);
 }
 
 CHAR * NO_GetKeyValueByName
@@ -487,7 +441,7 @@ UINT64 NO_GetNextID(IN NO_HANDLE hAggregate, IN UINT64 ulCurrentID)
         return 0;
     }
     
-    return OBJECT_GetNextID(pstInstance->hObjectAggregate, ulCurrentID);
+    return OBJECT_GetNextID(pstInstance->hAggregate, ulCurrentID);
 }
 
 /* 根据名字字典序进行获取下一个 */
@@ -518,6 +472,6 @@ UINT NO_GetCount(IN NO_HANDLE hAggregate)
 {
     _NO_INSTANCE_S *pstInstance = hAggregate;
 
-    return OBJECT_GetCount(pstInstance->hObjectAggregate);
+    return OBJECT_GetCount(pstInstance->hAggregate);
 }
 

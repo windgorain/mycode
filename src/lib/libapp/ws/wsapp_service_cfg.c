@@ -14,7 +14,7 @@
 #include "wsapp_service.h"
 #include "wsapp_cfglock.h"
 
-CHAR * WSAPP_ServiceCfg_AddAutoNameService(IN UINT uiFlag)
+CHAR * WSAPP_AddAutoNameService(IN UINT uiFlag)
 {
     CHAR *pcName;
 
@@ -25,7 +25,7 @@ CHAR * WSAPP_ServiceCfg_AddAutoNameService(IN UINT uiFlag)
     return pcName;
 }
 
-BS_STATUS WSAPP_ServiceCfg_Del(IN CHAR *pcServiceName)
+BS_STATUS WSAPP_DelService(IN CHAR *pcServiceName)
 {
     BS_STATUS eRet;
 
@@ -36,7 +36,7 @@ BS_STATUS WSAPP_ServiceCfg_Del(IN CHAR *pcServiceName)
     return eRet;
 }
 
-BS_STATUS WSAPP_ServiceCfg_ServiceBindGateway
+BS_STATUS WSAPP_BindGw
 (
     IN CHAR *pcService,
     IN CHAR *pcGateWay,
@@ -53,7 +53,7 @@ BS_STATUS WSAPP_ServiceCfg_ServiceBindGateway
     return eRet;
 }
 
-BS_STATUS WSAPP_ServiceCfg_Bind(IN CHAR *pcService)
+BS_STATUS WSAPP_BindService(IN CHAR *pcService)
 {
     BS_STATUS eRet;
 
@@ -64,7 +64,7 @@ BS_STATUS WSAPP_ServiceCfg_Bind(IN CHAR *pcService)
     return eRet;
 }
 
-BS_STATUS WSAPP_ServiceCfg_UnBind(IN CHAR *pcService)
+BS_STATUS WSAPP_UnBindService(IN CHAR *pcService)
 {
     WSAPP_CfgLock_WLock();
     WSAPP_Service_UnBind(pcService);
@@ -73,7 +73,7 @@ BS_STATUS WSAPP_ServiceCfg_UnBind(IN CHAR *pcService)
 	return BS_OK;
 }
 
-BS_STATUS WSAPP_ServiceCfg_SetDeliverTbl(IN CHAR *pcService, IN WS_DELIVER_TBL_HANDLE hDeliverTbl)
+BS_STATUS WSAPP_SetDeliverTbl(IN CHAR *pcService, IN WS_DELIVER_TBL_HANDLE hDeliverTbl)
 {
     BS_STATUS eRet;
 

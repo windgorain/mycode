@@ -9,9 +9,81 @@
 
 #include "utl/txt_utl.h"
 #include "utl/dns_utl.h"
+#include "utl/bit_opt.h"
 
+/* 遇到了cxxx, 获取offset  */
+static int _dns_get_offset(char *name, int len)
+{
+    USHORT offset = 0;
 
-static USHORT g_usDnsTID; /* DNS标识 */
+    if (len < 2) {
+        RETURN(BS_ERR);
+    }
+
+    MEM_Copy(&offset, name, sizeof(USHORT));
+    offset = ntohs(offset);
+    BIT_CLR(offset, 0xC000);
+
+    return offset;
+}
+
+static int _dns_EachQuery(void *dns_header, UINT pkt_len,
+        UCHAR *rrhead, UINT datalen, PF_DNS_WALK_RR func, void *ud)
+{
+    DNS_WALK_QR_S qr;
+    int rrsize;
+    UINT name_size = DNS_GetDnsNameSize(rrhead, datalen);
+
+    rrsize = sizeof(DNS_QST_S) + name_size;
+    if (rrsize > datalen) {
+        return BS_ERR;
+    }
+
+    qr.dns_header = dns_header;
+    qr.rrtype = DNS_RRTYPE_QUERY;
+    qr.rr_data = rrhead;
+    qr.rr_struct = rrhead + name_size;
+    qr.rr_size = rrsize;
+    qr.dns_pkt_len = pkt_len;
+    qr.domain_size = name_size;
+
+    func(&qr, ud);
+
+    return rrsize;
+}
+
+static int _dns_EachRR(void *dns_header, UINT pkt_len,
+        int rrtype, UCHAR *rrhead, UINT datalen, PF_DNS_WALK_RR func, void *ud)
+{
+    DNS_WALK_QR_S qr;
+    int rrsize;
+    DNS_RR_S *rr_struct;
+    UINT name_size = DNS_GetDnsNameSize(rrhead, datalen);
+
+    rrsize = sizeof(DNS_RR_S) + name_size;
+    if (rrsize > datalen) {
+        return BS_ERR;
+    }
+
+    rr_struct = (void*)(rrhead + name_size);
+    rrsize += ntohs(rr_struct->usRDLen);
+    if (rrsize > datalen) {
+        return BS_ERR;
+    }
+
+    qr.dns_header = dns_header;
+    qr.rrtype = rrtype;
+    qr.rr_data = rrhead;
+    qr.rr_struct = rr_struct;
+    qr.rr_size = rrsize;
+    qr.dns_pkt_len = pkt_len;
+    qr.domain_size = name_size;
+
+    func(&qr, ud);
+
+    return rrsize;
+}
+
 
 /* 返回解析出了多少个Label, 如果返回0表示出错 */
 UINT DNS_DomainName2Labels(IN CHAR *pcDomainName, OUT DNS_LABELS_S *pstLabels)
@@ -44,7 +116,7 @@ UINT DNS_DomainName2Labels(IN CHAR *pcDomainName, OUT DNS_LABELS_S *pstLabels)
     return uiLabelNum;
 }
 
-/* 获得DNS的数字分格式的域名的长度,包含开头的第一个数字和最后的'\0' . 返回0表示出错 */
+/* 获得DNS的数字分格式的域名的长度(不展开),包含开头的第一个数字和最后的'\0' . 返回0表示出错 */
 UINT DNS_GetDnsNameSize(IN UCHAR *pucData, IN UINT uiMaxSize)
 {
     UINT uiDnsNameSize = 0;
@@ -54,30 +126,27 @@ UINT DNS_GetDnsNameSize(IN UCHAR *pucData, IN UINT uiMaxSize)
 
     uiDnsNameMaxSize = MIN(uiMaxSize, DNS_MAX_DNS_NAME_SIZE);
 
-    if (uiDnsNameMaxSize < 2)
-    {
+    if (uiDnsNameMaxSize < 2) {
         return 0;
     }
 
-    if ((pucDataTmp[0] & 0xc0) == 0xc0)
-    {
-        return 2;
-    }
+    while (*pucDataTmp != 0) {
+        if ((pucDataTmp[0] & 0xc0) == 0xc0) {
+            uiDnsNameSize ++;
+            break;
+        }
 
-    while (*pucDataTmp != 0)
-    {
         uiLableLen = *pucDataTmp;
         uiDnsNameSize += (uiLableLen + 1);
 
-        if (uiDnsNameSize >= uiDnsNameMaxSize)
-        {
+        if (uiDnsNameSize >= uiDnsNameMaxSize) {
             return 0;
         }
 
         pucDataTmp = pucData + uiDnsNameSize;
     }
 
-    return uiDnsNameSize + 1/* 1为最后的一个'\0' */;
+    return uiDnsNameSize + 1;
 }
 
 /* 将普通的点分格式的域名转成DNS的数字分格式的域名. 返回组装后的长度(含'\0'). 返回0为失败 */
@@ -220,23 +289,74 @@ UCHAR * DNS_GetRDByRR(IN UCHAR *pucRRWithDomain, IN UINT uiDataLen, OUT USHORT *
     return pucRRWithDomain + uiPrefixLen;
 }
 
+/* 遍历Query和RR */
+void DNS_WalkQR(DNS_HEADER_S *pstDnsHeader, UINT uiDataLen, PF_DNS_WALK_RR func, void *ud)
+{
+    UCHAR *rrhead;
+    USHORT count;
+    UINT reserved_len = uiDataLen;
+    int rrsize;
+    int i;
+
+    if (uiDataLen <= sizeof(DNS_HEADER_S)) {
+        return;
+    }
+
+    rrhead = (UCHAR*)(pstDnsHeader + 1);
+    reserved_len -= sizeof(DNS_HEADER_S);
+
+    count = ntohs(pstDnsHeader->usQdCount);
+    for (i=0; i<count; i++) {
+        rrsize = _dns_EachQuery(pstDnsHeader, uiDataLen, rrhead, reserved_len, func, ud);
+        if (rrsize < 0) {
+            return;
+        }
+        reserved_len -= rrsize;
+        rrhead += rrsize;
+    }
+
+    count = ntohs(pstDnsHeader->usAnCount);
+    for (i=0; i<count; i++) {
+        rrsize = _dns_EachRR(pstDnsHeader, uiDataLen, DNS_RRTYPE_ANSWER, rrhead, reserved_len, func, ud);
+        if (rrsize < 0) {
+            return;
+        }
+        reserved_len -= rrsize;
+        rrhead += rrsize;
+    }
+
+    count = ntohs(pstDnsHeader->usNsCount);
+    for (i=0; i<count; i++) {
+        rrsize = _dns_EachRR(pstDnsHeader, uiDataLen, DNS_RRTYPE_AUTHORITY, rrhead, reserved_len, func, ud);
+        if (rrsize < 0) {
+            return;
+        }
+        reserved_len -= rrsize;
+        rrhead += rrsize;
+    }
+
+    count = ntohs(pstDnsHeader->usArCount);
+    for (i=0; i<count; i++) {
+        rrsize = _dns_EachRR(pstDnsHeader, uiDataLen, DNS_RRTYPE_ADDITIONAL, rrhead, reserved_len, func, ud);
+        if (rrsize < 0) {
+            return;
+        }
+        reserved_len -= rrsize;
+        rrhead += rrsize;
+    }
+}
 
 /* 返回构造之后的报文长度 */
-UINT DNS_BuildQuestPacket
-(
-    IN CHAR *pcDomainName,
-    IN USHORT usType,
-    OUT DNS_PKT_S *pstPkt
-)
+UINT DNS_BuildQuestPacket(CHAR *pcDomainName, USHORT usType, OUT DNS_PKT_S *pstPkt)
 {
     UINT uiLen;
     CHAR *pucData;
     DNS_HEADER_S *pstDnsHeader;
     UINT uiRemainSize;
     DNS_QST_S *pstQst;
+    static USHORT g_usDnsTID; /* DNS标识 */
 
-    if (strlen(pcDomainName) > DNS_MAX_DOMAIN_NAME_LEN)
-    {
+    if (strlen(pcDomainName) > DNS_MAX_DOMAIN_NAME_LEN) {
         return 0;
     }
 
@@ -364,48 +484,47 @@ UINT DNS_BuildRRCompress
     return uiBuildSize;
 }
 
-int DNS_GetDomainNameByPacket
-(
-    IN UCHAR *pucDnsPkt,
-    IN UINT uiPktLen,
-    OUT CHAR szDomainName[DNS_MAX_DOMAIN_NAME_LEN + 1]
-)
+int DNS_GetRRDomainName(UCHAR *dns_pkt, int pkt_len, void *rr, OUT char domain_name[DNS_MAX_DOMAIN_NAME_LEN + 1])
 {
-    UCHAR *pucData;
+    UCHAR *pucData = rr;
     UINT uiLen;
-    CHAR *pcDst;
+    CHAR *pcDst = domain_name;
     UCHAR *pucTail;
     UINT uiDomainNameLen = 0;
 
-    szDomainName[0] = '\0';
+    domain_name[0] = '\0';
 
-    if (uiPktLen <= sizeof(DNS_HEADER_S))
-    {
-        return BS_ERR;
+    pucTail = dns_pkt + pkt_len;
+
+    if (pucData >= pucTail) {
+        RETURN(BS_BAD_PARA);
     }
 
-    pucData = pucDnsPkt + sizeof(DNS_HEADER_S);
-    pcDst = szDomainName;
-
-    pucTail = pucDnsPkt + uiPktLen;
-
-    while (*pucData != 0)
-    {
-        uiLen = *pucData;
-        if (uiLen > DNS_MAX_LABEL_LEN)
-        {
-            return BS_ERR;
+    while (*pucData != 0) {
+        if (BIT_MATCH(*pucData, 0xC0)) { /* 处理压缩情况 */
+            int offset = _dns_get_offset((char*)pucData, pucTail - pucData);
+            if (offset < 0) {
+                RETURN(BS_ERR);
+            }
+            if (offset >= (pucData - dns_pkt)) { /* 只能指向之前的位置 */
+                RETURN(BS_ERR);
+            }
+            pucData = dns_pkt + offset;
+            continue;
         }
 
-        if (uiDomainNameLen + uiLen > DNS_MAX_DOMAIN_NAME_LEN)
-        {
-            return BS_ERR;
+        uiLen = *pucData;
+        if (uiLen > DNS_MAX_LABEL_LEN) {
+            RETURN(BS_ERR);
+        }
+
+        if (uiDomainNameLen + uiLen > DNS_MAX_DOMAIN_NAME_LEN) {
+            RETURN(BS_ERR);
         }
 
         pucData ++;
-        if (pucData + uiLen > pucTail)
-        {
-            return BS_ERR;
+        if (pucData + uiLen > pucTail) {
+            RETURN(BS_OUT_OF_RANGE);
         }
         
         memcpy(pcDst, pucData, uiLen);
@@ -418,13 +537,27 @@ int DNS_GetDomainNameByPacket
         uiDomainNameLen += (uiLen + 1);
     }
 
-    if (pcDst != szDomainName)
-    {
+    if (pcDst != domain_name) {
         pcDst --;
         *pcDst = '\0';
     }
 
-    return BS_OK;
+    return 0;
+}
+
+int DNS_GetQueryNameByPacket(UCHAR *pucDnsPkt, int pkt_len, OUT char szDomainName[DNS_MAX_DOMAIN_NAME_LEN + 1])
+{
+    UCHAR *pucData;
+
+    szDomainName[0] = '\0';
+
+    if (pkt_len <= sizeof(DNS_HEADER_S)) {
+        return BS_ERR;
+    }
+
+    pucData = pucDnsPkt + sizeof(DNS_HEADER_S);
+
+    return DNS_GetRRDomainName(pucDnsPkt, pkt_len, pucData, szDomainName);
 }
 
 /* 返回主机序DNS Server地址. 这个函数应该拿到HostIpInfo模块去 */

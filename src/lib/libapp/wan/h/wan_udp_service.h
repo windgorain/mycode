@@ -17,13 +17,6 @@
 VOID WanUdpService_Init();
 BS_STATUS WanUdpService_Input(IN MBUF_S *pstMbuf);
 BS_STATUS WanUdpService_Output(IN MBUF_S *pstMbuf, IN WAN_UDP_SERVICE_PARAM_S *pstParam);
-BS_STATUS WanUdpService_RegService
-(
-    IN USHORT usPort/* 网络序 */,
-    IN UINT uiFlag, /* WAN_UDP_SERVICE_FLAG_XXX */
-    IN PF_WAN_SERVICE_FUNC pfServiceFunc,
-    IN USER_HANDLE_S *pstUserHandle
-);
 
 #ifdef __cplusplus
     }

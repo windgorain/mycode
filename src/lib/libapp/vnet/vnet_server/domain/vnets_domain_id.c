@@ -23,7 +23,7 @@ UINT _VNETS_DomainId_Get()
 {
     UINT uiIndex = 0;
 
-    uiIndex = BITMAP1_GetAUnsettedBitIndexCycle(&g_stVnetsDomainIdBitmap);
+    uiIndex = BITMAP1_GetFreeCycle(&g_stVnetsDomainIdBitmap);
     if (uiIndex == 0)
     {
         return 0;

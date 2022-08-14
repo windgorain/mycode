@@ -13,6 +13,7 @@
 
 #ifdef IN_UNIXLIKE
 
+#include <sys/syscall.h>
 #include "process_inc.h"
 
 #define _PROCESS_LINUX_MAX_ARGC 120
@@ -74,6 +75,7 @@ BOOL_T _OS_PROCESS_IsPidExist(IN UINT pid)
     fgets(buff, sizeof(buff), ptr);
 
     if(strcmp(buff,"ABNORMAL")==0) {  /*ps command error*/
+        pclose(ptr);
         return FALSE;
     }
     
@@ -100,6 +102,7 @@ BOOL_T _OS_PROCESS_IsProcessNameExist(IN char *process)
     printf("%s\r\n", buff);
 
     if(strcmp(buff,"ABNORMAL")==0) {  /*ps command error*/
+        pclose(ptr);
         return FALSE;
     }
     
@@ -120,6 +123,16 @@ int _OS_PROCESS_RenameSelf(IN char *new_name)
 UINT _OS_PROCESS_GetPid()
 {
     return getpid();
+}
+
+UINT64 _OS_PROCESS_GetTid()
+{
+#ifdef IN_LINUX
+    return syscall(__NR_gettid);
+#endif
+#ifdef IN_MAC
+    return syscall(SYS_thread_selfid);
+#endif
 }
 
 #endif

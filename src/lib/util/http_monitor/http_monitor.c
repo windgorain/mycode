@@ -12,10 +12,6 @@ int HttpMonitor_Init(HTTP_MONITOR_S *ctrl, HTTP_SOURCE_E type)
     memset(ctrl, 0, sizeof(HTTP_MONITOR_S));
     ctrl->state = HTTP_MONITOR_STATE_HEAD;
     ctrl->type = type;
-    ctrl->head_parser = HTTP_CreateHeadParser();
-    if (NULL == ctrl->head_parser) {
-        RETURN(BS_NO_MEMORY);
-    }
 
     return 0;
 }
@@ -50,13 +46,37 @@ static BS_STATUS httpmonitor_Body(UCHAR *pucData, UINT uiDataLen,
             pucData, uiDataLen, ctrl->ud);
 }
 
-static int httpmonitor_ProcessHead(HTTP_MONITOR_S *ctrl, UCHAR *data, int len)
+static int httpmonitor_ProcessHead(HTTP_MONITOR_S *ctrl, UCHAR *data, int len, int force_parse)
 {
     UINT headlen;
     int ret;
 
+    if (len < HTTP_MIN_FIRST_LINE_LEN) {
+        return 0;
+    }
+
+    if (FALSE == HTTP_IsHttpHead((char*)data, len)) {
+        return BS_NOT_SUPPORT;
+    }
+
     headlen = HTTP_GetHeadLen((char*)data, len);
     if (headlen == 0) {
+        if (len >= HTTP_MAX_HEAD_LENGTH) {
+            return BS_TOO_LONG;
+        }
+        if (! force_parse) {
+            return 0;
+        } else {
+            headlen = len;
+        }
+    }
+
+    if (ctrl->head_parser) {
+        HTTP_DestoryHeadParser(ctrl->head_parser);
+    }
+
+    ctrl->head_parser = HTTP_CreateHeadParser();
+    if (! ctrl->head_parser) {
         return 0;
     }
 
@@ -115,7 +135,7 @@ static int httpmonitor_Process(HTTP_MONITOR_S *ctrl, UCHAR *data, int len)
 
     switch (ctrl->state) {
         case HTTP_MONITOR_STATE_HEAD:
-            process_len = httpmonitor_ProcessHead(ctrl, data, len);
+            process_len = httpmonitor_ProcessHead(ctrl, data, len, 0);
             break;
         case HTTP_MONITOR_STATE_BODY:
             process_len = httpmonitor_ProcessBody(ctrl, data, len);
@@ -165,5 +185,20 @@ int HttpMonitor_Input(HTTP_MONITOR_S *ctrl, UINT64 offset, UCHAR *data,
     }while (process_len < len_in);
 
     return process_len;
+}
+
+/* 强制解析头部,即使不全 */
+int HttpMonitor_ForceParseHead(HTTP_MONITOR_S *ctrl, UCHAR *data, int len, PF_HTTP_MONITOR_OUTPUT output, void *ud)
+{
+    if (ctrl->state != HTTP_MONITOR_STATE_HEAD) {
+        return 0;
+    }
+
+    return httpmonitor_ProcessHead(ctrl, data, len, 1);
+}
+
+int HttpMonitor_GetState(HTTP_MONITOR_S *ctrl)
+{
+    return ctrl->state;
 }
 

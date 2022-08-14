@@ -9,11 +9,12 @@
 #include "utl/hash_utl.h"        
 #include "utl/nap_utl.h"
 #include "utl/rcu_utl.h"
+#include "utl/mem_cap.h"
 
 #include "nap_inner.h"
 
 
-#define _NAP_HASH_MAX_BUCKET_NUM  1024
+#define _NAP_HASH_MAX_BUCKET_NUM  (1024 * 16)
 
 
 typedef struct
@@ -38,24 +39,9 @@ static UINT nap_hash_Index(IN VOID *pstHashNode)
     return pstNode->uiIndex;
 }
 
-static VOID nap_hash_RcuFree(IN VOID *pstRcuNode)
-{
-    MEM_Free(pstRcuNode);
-}
-
 static VOID nap_hash_InnerFree(IN _NAP_HASH_TBL_S *pstNAPTbl, IN VOID *pNode)
 {
-    RCU_NODE_S *pstRcu;
-
-    if (pstNAPTbl->stCommonHead.uiFlag & NAP_FLAG_RCU)
-    {
-        pstRcu = (VOID*)((UCHAR*)pNode - sizeof(RCU_NODE_S));
-        RcuBs_Free(pstRcu, nap_hash_RcuFree);
-    }
-    else
-    {
-        MEM_Free(pNode);
-    }
+    MemCap_Free(pstNAPTbl->stCommonHead.memcap, pNode);
 }
 
 static VOID nap_hash_FreeEach(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
@@ -79,7 +65,7 @@ static VOID nap_hash_Destory(IN HANDLE hNAPHandle)
         HASH_DestoryInstance(pstNAPTbl->hHashTbl);
     }
     
-    MEM_Free(pstNAPTbl);
+    MemCap_Free(pstNAPTbl->stCommonHead.memcap, pstNAPTbl);
 
     return;
 }
@@ -103,28 +89,9 @@ static _NAP_HASH_NODE_S * nap_hash_Find(IN _NAP_HASH_TBL_S *pstNAPTbl, IN UINT u
 
 static VOID * nap_hash_InnerAlloc(IN _NAP_HASH_TBL_S *pstNAPTbl)
 {
-    UINT uiSize;
-    VOID *pNode;
+    UINT uiSize = (sizeof(_NAP_HASH_NODE_S) + pstNAPTbl->uiNapNodeSize);
 
-    uiSize = (sizeof(_NAP_HASH_NODE_S) + pstNAPTbl->uiNapNodeSize);
-
-    if (pstNAPTbl->stCommonHead.uiFlag & NAP_FLAG_RCU)
-    {
-        uiSize += sizeof(RCU_NODE_S);
-    }
-
-    pNode = MEM_Malloc(uiSize);
-    if (NULL == pNode)
-    {
-        return NULL;
-    }
-
-    if (pstNAPTbl->stCommonHead.uiFlag & NAP_FLAG_RCU)
-    {
-        pNode = (UCHAR*)pNode + sizeof(RCU_NODE_S);
-    }
-
-    return pNode;
+    return MemCap_Malloc(pstNAPTbl->stCommonHead.memcap, uiSize);
 }
 
 static VOID * nap_hash_Alloc(IN HANDLE hNapHandle, IN UINT uiIndex)
@@ -179,26 +146,27 @@ static _NAP_FUNC_TBL_S g_stNapHashFuncTbl =
     nap_hash_GetNodeByIndex
 };
 
-_NAP_HEAD_COMMON_S * _NAP_HashCreate(IN UINT uiMaxNum, IN UINT uiNapNodeSize)
+_NAP_HEAD_COMMON_S * _NAP_HashCreate(NAP_PARAM_S *p)
 {
     _NAP_HASH_TBL_S *pstNAPTbl = NULL;
 
-    pstNAPTbl = MEM_ZMalloc(sizeof(_NAP_HASH_TBL_S));
+    pstNAPTbl = MemCap_ZMalloc(p->memcap, sizeof(_NAP_HASH_TBL_S));
     if (pstNAPTbl == NULL)
     {
         return NULL;
     }
 
+    pstNAPTbl->stCommonHead.memcap = p->memcap;
     pstNAPTbl->stCommonHead.pstFuncTbl = &g_stNapHashFuncTbl;
 
-    pstNAPTbl->hHashTbl = HASH_CreateInstance(_NAP_HASH_MAX_BUCKET_NUM, nap_hash_Index);
+    pstNAPTbl->hHashTbl = HASH_CreateInstance(p->memcap, _NAP_HASH_MAX_BUCKET_NUM, nap_hash_Index);
     if (NULL == pstNAPTbl->hHashTbl)
     {
-        MEM_Free(pstNAPTbl);
+        MemCap_Free(p->memcap, pstNAPTbl);
         return NULL;
     }
 
-    pstNAPTbl->uiNapNodeSize = uiNapNodeSize;
+    pstNAPTbl->uiNapNodeSize = p->uiNodeSize;
 
     return (_NAP_HEAD_COMMON_S*) pstNAPTbl;
 }

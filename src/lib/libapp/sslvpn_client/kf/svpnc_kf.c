@@ -97,15 +97,13 @@ static BS_STATUS svpnc_kf_IpTunnelStart(IN MIME_HANDLE hMime, IN HANDLE hUserHan
 
 BS_STATUS SVPNC_KF_Init()
 {
-    COMP_KFAPP_Init();
-
-    COMP_KFAPP_RegFunc("svpnc.SetServerAddress", svpnc_kf_SetServerAddress, NULL);
-    COMP_KFAPP_RegFunc("svpnc.SetUserName", svpnc_kf_SetUserName, NULL);
-    COMP_KFAPP_RegFunc("svpnc.SetPassword", svpnc_kf_SetUserPassword, NULL);
-    COMP_KFAPP_RegFunc("svpnc.Login", svpnc_kf_Login, NULL);
-    COMP_KFAPP_RegFunc("svpnc.SetCookie", svpnc_kf_SetCookie, NULL);
-    COMP_KFAPP_RegFunc("svpnc.TcpRelayStart", svpnc_kf_TcpRelayStart, NULL);
-    COMP_KFAPP_RegFunc("svpnc.IpTunnelStart", svpnc_kf_IpTunnelStart, NULL);
+    KFAPP_RegFunc("svpnc.SetServerAddress", svpnc_kf_SetServerAddress, NULL);
+    KFAPP_RegFunc("svpnc.SetUserName", svpnc_kf_SetUserName, NULL);
+    KFAPP_RegFunc("svpnc.SetPassword", svpnc_kf_SetUserPassword, NULL);
+    KFAPP_RegFunc("svpnc.Login", svpnc_kf_Login, NULL);
+    KFAPP_RegFunc("svpnc.SetCookie", svpnc_kf_SetCookie, NULL);
+    KFAPP_RegFunc("svpnc.TcpRelayStart", svpnc_kf_TcpRelayStart, NULL);
+    KFAPP_RegFunc("svpnc.IpTunnelStart", svpnc_kf_IpTunnelStart, NULL);
 
 	return BS_OK;
 }

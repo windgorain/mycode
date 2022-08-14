@@ -184,18 +184,16 @@ BS_STATUS VNETC_KF_Init()
     CFF_HANDLE hIniHandle;
     CHAR *pcPassword;
 
-    COMP_KFAPP_Init();
-
-    COMP_KFAPP_RegFunc("vnetc.SetServerAddress", vnetc_kf_SetServerAddress, NULL);
-    COMP_KFAPP_RegFunc("vnetc.SetUserName", vnetc_kf_SetUserName, NULL);
-    COMP_KFAPP_RegFunc("vnetc.SetPassword", vnetc_kf_SetPassword, NULL);
-    COMP_KFAPP_RegFunc("vnetc.SavePassword", vnetc_kf_SavePassword, NULL);
-    COMP_KFAPP_RegFunc("vnetc.IsHavePassword", vnetc_kf_IsHavePassword, NULL);
-    COMP_KFAPP_RegFunc("vnetc.Start", vnetc_kf_Start, NULL);
-    COMP_KFAPP_RegFunc("vnetc.GetUserStatus", vnetc_kf_GetUserStatus, NULL);
-    COMP_KFAPP_RegFunc("vnetc.GetAddressInfo", vnetc_kf_GetAddressInfo, NULL);
-    COMP_KFAPP_RegFunc("vnetc.SetDescription", vnetc_kf_SetDescription, NULL);
-    COMP_KFAPP_RegFunc("vnetc.Logout", vnetc_kf_Logout, NULL);
+    KFAPP_RegFunc("vnetc.SetServerAddress", vnetc_kf_SetServerAddress, NULL);
+    KFAPP_RegFunc("vnetc.SetUserName", vnetc_kf_SetUserName, NULL);
+    KFAPP_RegFunc("vnetc.SetPassword", vnetc_kf_SetPassword, NULL);
+    KFAPP_RegFunc("vnetc.SavePassword", vnetc_kf_SavePassword, NULL);
+    KFAPP_RegFunc("vnetc.IsHavePassword", vnetc_kf_IsHavePassword, NULL);
+    KFAPP_RegFunc("vnetc.Start", vnetc_kf_Start, NULL);
+    KFAPP_RegFunc("vnetc.GetUserStatus", vnetc_kf_GetUserStatus, NULL);
+    KFAPP_RegFunc("vnetc.GetAddressInfo", vnetc_kf_GetAddressInfo, NULL);
+    KFAPP_RegFunc("vnetc.SetDescription", vnetc_kf_SetDescription, NULL);
+    KFAPP_RegFunc("vnetc.Logout", vnetc_kf_Logout, NULL);
     
     hIniHandle = CFF_INI_Open(_VNETC_CONF_FILE_NAME, CFF_FLAG_READ_ONLY);
     if (NULL != hIniHandle)

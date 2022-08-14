@@ -21,9 +21,6 @@
 
 BS_STATUS WSAPP_Init()
 {
-    COMP_ACL_Init();
-    COMP_KFAPP_Init();
-    WSAPP_COMP_Init();
     WSAPP_CfgLock_Init();
     WSAPP_GW_Init();
     WSAPP_Service_Init();

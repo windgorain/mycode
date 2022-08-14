@@ -13,18 +13,12 @@ static MUTEX_S g_poller_mutex;
 
 PLUG_API void * PollerComp_Get(char *name)
 {
-    int id;
-    POLLER_INS_S *ins;
-
-    id = POLLER_INS_GetByName(name);
-    if (id < 0) {
+    POLLER_INS_S *ins = POLLER_INS_GetByName(name);
+    if (! ins) {
         return NULL;
     }
 
-    ins = POLLER_INS_GetPoller(id);
-    if (ins) {
-        ATOM_INC_FETCH(&ins->ref);
-    }
+    ATOM_INC_FETCH(&ins->ref);
 
     return ins;
 }
@@ -32,17 +26,16 @@ PLUG_API void * PollerComp_Get(char *name)
 PLUG_API void PollerComp_Free(void *ins)
 {
     POLLER_INS_S *the_ins = ins;
-
     ATOM_DEC_FETCH(&the_ins->ref);
 }
 
 PLUG_API MYPOLL_HANDLE PollerComp_GetMyPoll(void *ins)
 {
     POLLER_INS_S *the_ins = ins;
-
     return the_ins->mypoller;
 }
 
+/* 注册一个ob响应trigger事件 */
 PLUG_API void PollerComp_RegOb(void *ins, OB_S *ob)
 {
     POLLER_INS_S *the_ins = ins;
@@ -61,24 +54,14 @@ PLUG_API void PollerComp_UnRegOb(OB_S *ob)
 
 PLUG_API void PollerComp_Trigger(void *ins)
 {
-    POLLER_INS_Trigger(ins);
+    if (ins) {
+        POLLER_INS_Trigger(ins);
+    }
 }
-
-static COMP_POLLER_S g_poller_comp = {
-    .comp.comp_name = COMP_POLLER_NAME,
-    .poller_get = PollerComp_Get,
-    .poller_free = PollerComp_Free,
-    .poller_get_mypoll = PollerComp_GetMyPoll,
-    .poller_reg_ob = PollerComp_RegOb,
-    .poller_unreg_ob = PollerComp_UnRegOb,
-    .poller_trigger = PollerComp_Trigger
-};
 
 int PollerComp_Init()
 {
     MUTEX_Init(&g_poller_mutex);
-
-    COMP_Reg(&g_poller_comp.comp);
 
     return 0;
 }

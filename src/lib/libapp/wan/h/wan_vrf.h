@@ -57,24 +57,11 @@ typedef enum {
 BS_STATUS WanVrf_Init();
 BS_STATUS WanVrf_Init2();
 
-/* 返回0表示失败 */
-UINT WanVrf_CreateVrf(IN CHAR *pcVrfName);
-VOID WanVrf_DestoryVrf(IN UINT uiVrfID);
-BS_STATUS WanVrf_RegEventListener
-(
-    IN UINT uiPriority,
-    IN PF_WAN_VRF_EVENT_FUNC pfEventFunc,
-    IN USER_HANDLE_S * pstUserHandle
-);
-BS_STATUS WanVrf_SetData(IN UINT uiVrfID, IN UINT enIndex, IN HANDLE hData);
-HANDLE WanVrf_GetData(IN UINT uiVrfID, IN UINT enIndex);
 UINT WanVrf_GetIdByName(IN CHAR *pcName);
 BS_STATUS WanVrf_GetNameByID(IN UINT uiVrfID, OUT CHAR szName[WAN_VRF_MAX_NAME_LEN + 1]);
 /* 相比于WAN_VRF_GetNameByID, 直接返回字符串 */
 CHAR * WanVrf_GetNameByID2(IN UINT uiVrfID, OUT CHAR szName[WAN_VRF_MAX_NAME_LEN + 1]);
 UINT WanVrf_GetNext(IN UINT uiCurrentVrf);
-/* 自动分配一个DataIndex */
-UINT WanVrf_AllocDataIndex();
 
 #ifdef __cplusplus
     }

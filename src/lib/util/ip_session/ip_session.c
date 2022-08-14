@@ -8,22 +8,57 @@
 #include "utl/ob_utl.h"
 #include "utl/box_utl.h"
 #include "utl/vclock_utl.h"
+#include "utl/ip_utl.h"
 #include "utl/ip_session.h"
 
-#define IP_SESSION_DFT_TIMEOUT_STEPS 300
+static UINT g_ipsession_dft_timeout_steps[IP_SESSION_STATE_MAX] = {
+    5,  // CLOSED 
+    5,  // LISTEN
+    10, // SYN_SEND
+    10, // SYN_RCVD
+    300,// EST
+    5,  // CLOSE_WAIT
+    10, // FIN1
+    10, // CLOSING
+    10, // LAST_ACK
+    10, // FIN2
+    5,  // TIME_WAIT
+    10, // UDP
+    5,  // ICMP
+};
+
+#ifdef IN_DEBUG
+static void ipsession_Test()
+{
+    int i;
+    for (i=1; i<IP_SESSION_STATE_MAX; i++) {
+        BS_DBGASSERT(g_ipsession_dft_timeout_steps[i] != 0);
+    }
+}
+
+CONSTRUCTOR(test) {
+    ipsession_Test();
+}
+#endif
 
 int IPSession_Init(IP_SESSION_CTRL_S *ctrl, CUCKOO_HASH_NODE_S *hash_table,
         UINT bucket_num, UINT bucket_depth)
 {
     int ret;
+    int i;
+
+    memset(ctrl, 0, sizeof(IP_SESSION_CTRL_S));
 
     ret = IPTupBox_Init(&ctrl->ip_tup_box, hash_table, bucket_num,
             bucket_depth);
     if (ret != BS_OK) {
+        BS_WARNNING(("Can't init ip session"));
         return ret;
     }
 
-    ctrl->timeout_tick = IP_SESSION_DFT_TIMEOUT_STEPS;
+    for (i=0; i<IP_SESSION_STATE_MAX; i++) {
+        ctrl->timeout_tick[i] = g_ipsession_dft_timeout_steps[i];
+    }
 
     VCLOCK_InitInstance(&ctrl->vclock, FALSE);
 
@@ -37,9 +72,9 @@ void IPSession_Fini(IP_SESSION_CTRL_S *ctrl)
     Box_Fini(&ctrl->ip_tup_box, NULL, NULL);
 }
 
-void IPSession_SetTimeoutSteps(IP_SESSION_CTRL_S *ctrl, unsigned int tick)
+void IPSession_SetTimeoutSteps(IP_SESSION_CTRL_S *ctrl, int state, UINT tick)
 {
-    ctrl->timeout_tick = tick;
+    ctrl->timeout_tick[state] = tick;
 }
 
 IP_SESSION_CTRL_S * IPSession_Create(UINT bucket_num, UINT bucket_depth)
@@ -67,7 +102,24 @@ void IPSession_Destroy(IP_SESSION_CTRL_S *ctrl)
 {
     IPSession_Fini(ctrl);
     MEM_Free(ctrl->ip_tup_box.hash.table);
+    if (ctrl->find_cache) {
+        MEM_Free(ctrl->find_cache);
+    }
     MEM_Free(ctrl);
+}
+
+int IPSession_CacheEnable(IP_SESSION_CTRL_S *ctrl)
+{
+    if (ctrl->find_cache) {
+        return 0;
+    }
+
+    ctrl->find_cache = MEM_ZMalloc(sizeof(IP_SESSION_CACHE_S));
+    if (! ctrl->find_cache) {
+        RETURN(BS_NO_MEMORY);
+    }
+
+    return 0;
 }
 
 void IPSession_RegOb(IP_SESSION_CTRL_S *ctrl, OB_S *ob)
@@ -82,22 +134,22 @@ void IPSession_UnregOb(IP_SESSION_CTRL_S *ctrl, OB_S *ob)
 
 static void ipsession_NotifyBeforeAdd(IP_SESSION_CTRL_S *ctrl, IP_SESSION_S *session)
 {
-    OB_NOTIFY2(&ctrl->ob_list, session, IP_SESSION_EVENT_BEFORE_ADD);
+    OB_NOTIFY(&ctrl->ob_list, PF_IPSESSION_OB, session, IP_SESSION_EVENT_BEFORE_ADD);
 }
 
 static void ipsession_NotifyAfterAdd(IP_SESSION_CTRL_S *ctrl, IP_SESSION_S *session)
 {
-    OB_NOTIFY2(&ctrl->ob_list, session, IP_SESSION_EVENT_AFTER_ADD);
+    OB_NOTIFY(&ctrl->ob_list, PF_IPSESSION_OB, session, IP_SESSION_EVENT_AFTER_ADD);
 }
 
 static void ipsession_NotifyBeforeDel(IP_SESSION_CTRL_S *ctrl, IP_SESSION_S *session)
 {
-    OB_NOTIFY2(&ctrl->ob_list, session, IP_SESSION_EVENT_BEFORE_DEL);
+    OB_NOTIFY(&ctrl->ob_list, PF_IPSESSION_OB, session, IP_SESSION_EVENT_BEFORE_DEL);
 }
 
 static void ipsession_NotifyAfterDel(IP_SESSION_CTRL_S *ctrl, IP_SESSION_S *session)
 {
-    OB_NOTIFY2(&ctrl->ob_list, session, IP_SESSION_EVENT_AFTER_DEL);
+    OB_NOTIFY(&ctrl->ob_list, PF_IPSESSION_OB, session, IP_SESSION_EVENT_AFTER_DEL);
 }
 
 static void ipsession_timeout(HANDLE timer, USER_HANDLE_S *pstUserHandle)
@@ -110,38 +162,58 @@ static void ipsession_timeout(HANDLE timer, USER_HANDLE_S *pstUserHandle)
     IPSession_Del(ctrl, &session->key);
 }
 
-static inline int ipsession_KeyInit(IP_TUP_KEY_S *key, UCHAR family, UCHAR protocol,
-        UINT client_ip, UINT server_ip, USHORT client_port, USHORT server_port)
+static inline int ipsession_cacal_client_index(UCHAR family, UINT *client_ip, UINT *server_ip)
 {
-    int client_index = MIN(client_ip, server_ip) == client_ip ? 0 : 1;
+    int index = 0;
+
+    if (family == AF_INET) {
+        index = (MIN(client_ip[0], server_ip[0]) == client_ip[0]) ? 0 : 1;
+    } else if (family == AF_INET6) {
+        index = (IP6_ADDR_MIN(client_ip, server_ip) == client_ip) ? 0 : 1;
+    } else {
+        BS_DBGASSERT(0);
+    }
+
+    return index;
+}
+
+static inline int ipsession_KeyInit(IP_TUP_KEY_S *key, UCHAR family, UCHAR protocol,
+        UINT *client_ip, UINT *server_ip, USHORT client_port, USHORT server_port, UINT tun_id)
+{
+    int client_index = ipsession_cacal_client_index(family, client_ip, server_ip);
     int server_index = client_index == 0 ? 1 : 0;
 
     key->family = family;
     key->protocol = protocol;
-    key->ip[client_index].ip4 = client_ip;
-    key->ip[server_index].ip4 = server_ip;
+    if (family == AF_INET) {
+        key->ip[client_index].ip4 = client_ip[0];
+        key->ip[server_index].ip4 = server_ip[0];
+    } else {
+        IP6_ADDR_COPY(key->ip[client_index].ip6, client_ip);
+        IP6_ADDR_COPY(key->ip[server_index].ip6, server_ip);
+    }
     key->port[client_index] = client_port;
     key->port[server_index] = server_port;
+    key->tun_id = tun_id;
 
     return client_index;
 }
 
 /* 返回Client ip所占的index */
 int IPSession_KeyInit(IP_TUP_KEY_S *key, UCHAR family, UCHAR protocol,
-        UINT client_ip, UINT server_ip, USHORT client_port, USHORT server_port)
+        UINT *client_ip, UINT *server_ip, USHORT client_port, USHORT server_port, UINT vnet_id)
 {
     memset(key, 0, sizeof(IP_TUP_KEY_S));
-
     return ipsession_KeyInit(key, family, protocol,
-            client_ip, server_ip, client_port, server_port);
+            client_ip, server_ip, client_port, server_port, vnet_id);
 }
 
 void IPSession_SessInit(IP_SESSION_S *session, UCHAR family, UCHAR protocol,
-        UINT client_ip, UINT server_ip, USHORT client_port, USHORT server_port)
+        UINT *client_ip, UINT *server_ip, USHORT client_port, USHORT server_port, UINT vnet_id)
 {
     memset(session, 0, sizeof(IP_SESSION_S));
     session->client_index = ipsession_KeyInit(&session->key, family, protocol,
-            client_ip, server_ip, client_port, server_port);
+            client_ip, server_ip, client_port, server_port, vnet_id);
 }
 
 int IPSession_Add(IP_SESSION_CTRL_S *ctrl, IP_SESSION_S *session)
@@ -160,8 +232,9 @@ int IPSession_Add(IP_SESSION_CTRL_S *ctrl, IP_SESSION_S *session)
 
     user_handle.ahUserHandle[0] = ctrl;
 
+    int state = session->state;
     VCLOCK_AddTimer(&ctrl->vclock, &session->vclock_timer,
-            ctrl->timeout_tick, ctrl->timeout_tick,
+            ctrl->timeout_tick[state], ctrl->timeout_tick[state],
             0, ipsession_timeout, &user_handle);
 
     ipsession_NotifyAfterAdd(ctrl, session);
@@ -176,7 +249,25 @@ int IPSession_Find(IP_SESSION_CTRL_S *ctrl, IP_TUP_KEY_S *key)
 
 IP_SESSION_S * IPSession_FindSession(IP_SESSION_CTRL_S *ctrl, IP_TUP_KEY_S *key)
 {
-    return Box_FindData(&ctrl->ip_tup_box, key);
+    IP_SESSION_S *sess=NULL;
+    USHORT index=0;
+
+    if (ctrl->find_cache) {
+        index = key->port[0] ^ key->port[1];
+        sess = ctrl->find_cache->session[index];
+        if (sess) {
+            if (0 == memcmp(&sess->key, key, sizeof(IP_TUP_KEY_S))) {
+                return sess;
+            }
+        }
+    }
+
+    sess = Box_FindData(&ctrl->ip_tup_box, key);
+    if (ctrl->find_cache && sess) {
+        ctrl->find_cache->session[index] = sess;
+    }
+
+    return sess;
 }
 
 IP_SESSION_S * IPSession_DelByIndex(IP_SESSION_CTRL_S *ctrl, int index)
@@ -189,6 +280,10 @@ IP_SESSION_S * IPSession_DelByIndex(IP_SESSION_CTRL_S *ctrl, int index)
     }
 
     ipsession_NotifyBeforeDel(ctrl, session);
+    if (ctrl->find_cache) {
+        USHORT index = session->key.port[0] ^ session->key.port[1];
+        ctrl->find_cache->session[index] = NULL;
+    }
     Box_DelByIndex(&ctrl->ip_tup_box, index);
     VCLOCK_DelTimer(&ctrl->vclock, &session->vclock_timer);
     ipsession_NotifyAfterDel(ctrl, session);
@@ -232,5 +327,12 @@ void IPSession_TimeStep(IP_SESSION_CTRL_S *ctrl)
 void IPSession_Refresh(IP_SESSION_CTRL_S *ctrl, IP_SESSION_S *session)
 {
     VCLOCK_Refresh(&ctrl->vclock, &session->vclock_timer);
+}
+
+void IPSession_SetState(IP_SESSION_CTRL_S *ctrl, IP_SESSION_S *session, int state)
+{
+    session->state = state;
+    VCLOCK_RestartWithTick(&ctrl->vclock, &session->vclock_timer,
+            ctrl->timeout_tick[state], ctrl->timeout_tick[state]);
 }
 

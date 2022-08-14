@@ -14,7 +14,8 @@
 typedef struct
 {
     UINT uiSize;  /* 数组大小 */
-    UINT uiCount; /* 数组里面挂了多少个数据 */
+    USHORT step_num;  /* 每次内存不够后,扩张的步伐 */
+    USHORT reserved;
     HANDLE * phArray;
 }_DARRAY_CTRL_S;
 
@@ -73,9 +74,9 @@ static UINT darray_ExpandAndAdd(IN _DARRAY_CTRL_S *pstCtrl, IN HANDLE hData)
 
     BS_DBGASSERT(NULL != pstCtrl);
 
-    uiIndex = pstCtrl->uiSize - 1;
+    uiIndex = pstCtrl->uiSize;
 
-    if (BS_OK != darray_Expand(pstCtrl, pstCtrl->uiSize + _DARRAY_DFT_STEP_SIZE))
+    if (BS_OK != darray_Expand(pstCtrl, pstCtrl->uiSize + pstCtrl->step_num))
     {
         return DARRAY_INVALID_INDEX;
     }
@@ -85,7 +86,7 @@ static UINT darray_ExpandAndAdd(IN _DARRAY_CTRL_S *pstCtrl, IN HANDLE hData)
     return uiIndex;
 }
 
-DARRAY_HANDLE DARRAY_Create(IN UINT uiStaticNum/* 静态分配的个数 */)
+DARRAY_HANDLE DARRAY_Create(UINT init_num/* 初始分配的个数 */, USHORT step_num)
 {
     _DARRAY_CTRL_S *pstCtrl;
 
@@ -95,15 +96,20 @@ DARRAY_HANDLE DARRAY_Create(IN UINT uiStaticNum/* 静态分配的个数 */)
         return NULL;
     }
 
-    if (uiStaticNum != 0)
+    if (init_num != 0)
     {
-        pstCtrl->phArray = MEM_ZMalloc(sizeof(HANDLE) * uiStaticNum);
+        pstCtrl->phArray = MEM_ZMalloc(sizeof(HANDLE) * init_num);
         if (NULL == pstCtrl->phArray)
         {
             MEM_Free(pstCtrl);
             return NULL;
         }
-        pstCtrl->uiSize = uiStaticNum;
+        pstCtrl->uiSize = init_num;
+    }
+
+    pstCtrl->step_num = step_num;
+    if (step_num == 0) {
+        pstCtrl->step_num = _DARRAY_DFT_STEP_SIZE;
     }
 
     return pstCtrl;
@@ -124,7 +130,8 @@ VOID DARRAY_Destory(IN DARRAY_HANDLE hDArray)
     }
 }
 
-/* 返回将数据添加到的Index */
+/* 返回将数据添加到的Index
+ 它认为NULL为未被占用的位置, 故对于NULL为有效值的情况, 不要使用Add函数,而应使用Set函数 */
 UINT DARRAY_Add(IN DARRAY_HANDLE hDArray, IN HANDLE hData)
 {
     UINT uiIndex;
@@ -139,10 +146,6 @@ UINT DARRAY_Add(IN DARRAY_HANDLE hDArray, IN HANDLE hData)
         uiIndex = darray_ExpandAndAdd(hDArray, hData);
     }
 
-    if (uiIndex != DARRAY_INVALID_INDEX) {
-        pstCtrl->uiCount ++;
-    }
-
     return uiIndex;
 }
 
@@ -150,19 +153,12 @@ BS_STATUS DARRAY_Set(IN DARRAY_HANDLE hDArray, IN UINT uiIndex, IN HANDLE hData)
 {
     _DARRAY_CTRL_S *pstCtrl = hDArray;
 
-    BS_DBGASSERT(NULL != hData);
-
     if (uiIndex >= pstCtrl->uiSize)
     {
         if (BS_OK != darray_Expand(pstCtrl, uiIndex + 1))
         {
             return BS_NO_MEMORY;
         }
-    }
-
-    if (NULL == pstCtrl->phArray[uiIndex])
-    {
-        pstCtrl->uiCount ++;
     }
 
     pstCtrl->phArray[uiIndex] = hData;
@@ -174,7 +170,7 @@ HANDLE DARRAY_Get(IN DARRAY_HANDLE hDArray, IN UINT uiIndex)
 {
     _DARRAY_CTRL_S *pstCtrl = hDArray;
 
-    if (uiIndex >= pstCtrl->uiSize)
+    if (unlikely((uiIndex >= pstCtrl->uiSize)))
     {
         return NULL;
     }
@@ -182,7 +178,21 @@ HANDLE DARRAY_Get(IN DARRAY_HANDLE hDArray, IN UINT uiIndex)
     return pstCtrl->phArray[uiIndex];
 }
 
-HANDLE DARRAY_Del(IN DARRAY_HANDLE hDArray, IN UINT uiIndex)
+UINT DARRAY_FindIntData(IN DARRAY_HANDLE hDArray, IN HANDLE hData)
+{
+    _DARRAY_CTRL_S *pstCtrl = hDArray;
+    UINT uiIndex = 0; 
+
+    for(uiIndex = 0; uiIndex <= pstCtrl->uiSize; uiIndex++) {
+        if(hData == pstCtrl->phArray[uiIndex]) {
+            return (uiIndex);
+        }
+    }
+    return DARRAY_INVALID_INDEX;
+}
+
+/* 将对应的节点设置为NULL，并返回原来的值 */
+HANDLE DARRAY_Clear(IN DARRAY_HANDLE hDArray, IN UINT uiIndex)
 {
     _DARRAY_CTRL_S *pstCtrl = hDArray;
     HANDLE hData;
@@ -193,21 +203,9 @@ HANDLE DARRAY_Del(IN DARRAY_HANDLE hDArray, IN UINT uiIndex)
     }
 
     hData = pstCtrl->phArray[uiIndex];
-    if (NULL != hData)
-    {
-        pstCtrl->uiCount --;
-        pstCtrl->phArray[uiIndex] = NULL;
-    }
+    pstCtrl->phArray[uiIndex] = NULL;
 
     return hData;
-}
-
-/* 得到有多少个数据 */
-UINT DARRAY_GetCount(IN DARRAY_HANDLE hDArray)
-{
-    _DARRAY_CTRL_S *pstCtrl = hDArray;
-
-    return pstCtrl->uiCount;
 }
 
 /* 得到现在动态数组的大小 */

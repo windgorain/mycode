@@ -9,6 +9,7 @@
 #include "utl/mutex_utl.h"
 #include "utl/rcu_utl.h"
 #include "utl/txt_utl.h"
+#include "utl/mem_cap.h"
 #include "utl/vf_utl.h"
 #include "utl/hash_utl.h"
 
@@ -30,7 +31,7 @@ typedef struct
 typedef struct
 {
     RCU_NODE_S stRcuNode;
-    VF_PARAM_S stParam;
+    VF_P_S stParam;
 }VF_DATA_S;
 
 typedef struct
@@ -42,12 +43,13 @@ typedef struct
 typedef struct
 {
     UINT uiMaxVD;
-    DLL_HEAD_S stListenerList;  /* 放置VD_EVENT_NODE_S */
     UINT uiRegNodeNum; /* 记录有多少人注册了event */
+    UINT bCreateLock:1;
+    DLL_HEAD_S stListenerList;  /* 放置VD_EVENT_NODE_S */
     VF_NODE_S *pstVds; /* 指向VF数组 */
     HASH_HANDLE hNameIdTbl;  /* 根据Name记录ID的表 */
-    BOOL_T bCreateLock;
     MUTEX_S stMutex;
+    void *memcap;
 }VF_CTRL_S;
 
 static inline VOID vf_Lock(IN VF_CTRL_S *pstCtrl)
@@ -66,7 +68,7 @@ static inline VOID vf_UnLock(IN VF_CTRL_S *pstCtrl)
     }
 }
 
-static BS_STATUS vf_EventNotify(IN VF_CTRL_S *pstCtrl, IN VF_PARAM_S *pstParam, IN UINT uiEvent)
+static BS_STATUS vf_EventNotify(IN VF_CTRL_S *pstCtrl, IN VF_P_S *param, IN UINT uiEvent)
 {
     VF_EVENT_NODE_S *pstNode;
 
@@ -74,18 +76,11 @@ static BS_STATUS vf_EventNotify(IN VF_CTRL_S *pstCtrl, IN VF_PARAM_S *pstParam, 
     {
         if (NULL != pstNode->pfEventFunc)
         {
-            pstNode->pfEventFunc(uiEvent, pstParam, &pstNode->stUserHandle);
+            pstNode->pfEventFunc(uiEvent, param, &pstNode->stUserHandle);
         }
     }
 
     return BS_OK;
-}
-
-static VOID vf_RcuDestoryVF(IN VOID *pRcuNode)
-{
-    VF_DATA_S *pstData = BS_ENTRY(pRcuNode, stRcuNode, VF_DATA_S);
-
-    MEM_Free(pstData);
 }
 
 static UINT vf_NameIdIndex(IN VOID *pNode)
@@ -105,24 +100,24 @@ static UINT vf_NameIdIndex(IN VOID *pNode)
     return uiIndex;
 }
 
-VF_HANDLE VF_Create(IN UINT uiMaxVD, IN BOOL_T bCreateLock)
+VF_HANDLE VF_Create(VF_PARAM_S *p)
 {
     VF_CTRL_S *pstCtrl;
 
-    pstCtrl = MEM_ZMalloc(sizeof(VF_CTRL_S) + sizeof(VF_EVENT_NODE_S) * uiMaxVD);
+    pstCtrl = MEM_ZMalloc(sizeof(VF_CTRL_S) + sizeof(VF_EVENT_NODE_S) * p->uiMaxVD);
     if (NULL == pstCtrl)
     {
         return NULL;
     }
 
-    pstCtrl->pstVds = MEM_ZMalloc(sizeof(VF_NODE_S) * uiMaxVD);
+    pstCtrl->pstVds = MEM_ZMalloc(sizeof(VF_NODE_S) * p->uiMaxVD);
     if (NULL == pstCtrl->pstVds)
     {
         MEM_Free(pstCtrl);
         return NULL;
     }
 
-    pstCtrl->hNameIdTbl = HASH_CreateInstance(1024, vf_NameIdIndex);
+    pstCtrl->hNameIdTbl = HASH_CreateInstance(p->memcap, 1024, vf_NameIdIndex);
     if (NULL == pstCtrl->hNameIdTbl)
     {
         MEM_Free(pstCtrl->pstVds);
@@ -130,14 +125,14 @@ VF_HANDLE VF_Create(IN UINT uiMaxVD, IN BOOL_T bCreateLock)
         return NULL;
     }
 
-    if (bCreateLock)
+    if (p->bCreateLock)
     {
         MUTEX_Init(&pstCtrl->stMutex);
-        pstCtrl->bCreateLock = bCreateLock;
+        pstCtrl->bCreateLock = p->bCreateLock;
     }
 
     DLL_INIT(&pstCtrl->stListenerList);
-    pstCtrl->uiMaxVD = uiMaxVD;
+    pstCtrl->uiMaxVD = p->uiMaxVD;
 
     return pstCtrl;
 }
@@ -179,7 +174,7 @@ UINT VF_RegEventListener
         return VF_INVALID_USER_INDEX;
     }
 
-    pstNode = MEM_ZMalloc(sizeof(VF_EVENT_NODE_S));
+    pstNode = MemCap_ZMalloc(pstCtrl->memcap, sizeof(VF_EVENT_NODE_S));
     if (NULL == pstNode)
     {
         return VF_INVALID_USER_INDEX;
@@ -216,16 +211,17 @@ UINT VF_CreateVF(IN VF_HANDLE hVf, IN CHAR *pcVfName)
         return VF_INVALID_VF;
     }
 
-    pstNameIdNode = MEM_ZMalloc(sizeof(VF_NAME_ID_NODE_S));
+    pstNameIdNode = MemCap_ZMalloc(pstCtrl->memcap, sizeof(VF_NAME_ID_NODE_S));
     if (NULL == pstNameIdNode)
     {
         return VF_INVALID_VF;
     }
 
-    pstData = MEM_ZMalloc(sizeof(VF_DATA_S) + (sizeof(VOID*) * pstCtrl->uiRegNodeNum));
+    pstData = MemCap_ZMalloc(pstCtrl->memcap,
+            sizeof(VF_DATA_S) + (sizeof(VOID*) * pstCtrl->uiRegNodeNum));
     if (NULL == pstData)
     {
-        MEM_Free(pstNameIdNode);
+        MemCap_Free(pstCtrl->memcap, pstNameIdNode);
         return VF_INVALID_VF;
     }
 
@@ -257,8 +253,8 @@ UINT VF_CreateVF(IN VF_HANDLE hVf, IN CHAR *pcVfName)
 
     if (uiVFID == VF_INVALID_VF)
     {
-        MEM_Free(pstNameIdNode);
-        MEM_Free(pstData);
+        MemCap_Free(pstCtrl->memcap, pstNameIdNode);
+        MemCap_Free(pstCtrl->memcap, pstData);
     }
 
     return uiVFID;
@@ -293,7 +289,7 @@ VOID VF_DestoryVF(IN VF_HANDLE hVf, IN UINT uiVFID)
         pstData = pstCtrl->pstVds[uiVDIndex].pstData;
         pstCtrl->pstVds[uiVDIndex].pstData = NULL;
         pstData->stParam.uiVFID = VF_INVALID_VF;
-        RcuBs_Free(&pstData->stRcuNode, vf_RcuDestoryVF);
+        MemCap_Free(pstCtrl->memcap, pstData);
     }
     vf_UnLock(pstCtrl);
 

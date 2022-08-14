@@ -145,7 +145,9 @@ BS_STATUS SVPN_RoleCmd_Save(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN HANDLE hFile
         
     while (BS_OK == SVPN_CtxData_GetNextObject(hSvpnContext, SVPN_CTXDATA_ROLE, szName, szName, SVPN_MAX_RES_NAME_LEN + 1))
     {
-        CMD_EXP_OutputMode(hFile, "role %s", szName);
+        if (0 != CMD_EXP_OutputMode(hFile, "role %s", szName)) {
+            continue;
+        }
 
         SVPN_CD_SaveProp(hSvpnContext, SVPN_CTXDATA_ROLE, szName, "Description", "description", hFile);
         SVPN_CD_SaveElements(hSvpnContext, SVPN_CTXDATA_ROLE, szName, "ACL", "acl", SVPN_PROPERTY_SPLIT, hFile);

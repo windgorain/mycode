@@ -8,6 +8,7 @@
         
 #include "utl/nap_utl.h"
 #include "utl/rcu_utl.h"
+#include "utl/mem_cap.h"
 
 #include "nap_inner.h"
 
@@ -29,10 +30,10 @@ static VOID nap_array_Destory(IN HANDLE hNAPHandle)
     }
 
     if (pstNAPHead->pucMem) {
-        MEM_Free(pstNAPHead->pucMem);
+        MemCap_Free(pstNAPHead->stCommonHead.memcap, pstNAPHead->pucMem);
     }
     
-    MEM_Free(pstNAPHead);
+    MemCap_Free(pstNAPHead->stCommonHead.memcap, pstNAPHead);
 
     return;
 }
@@ -41,11 +42,6 @@ static VOID * nap_array_Alloc(IN HANDLE hNapHandle, IN UINT uiIndex)
 {
     _NAP_ARRAY_HEAD_S *pstHead = hNapHandle;
     UINT uiPos = uiIndex;
-
-    if (pstHead->stCommonHead.uiFlag & NAP_FLAG_RCU)
-    {
-        BS_DBGASSERT(0);
-    }
 
     return (VOID*)(pstHead->pucMem + uiPos * pstHead->uiNapNodeSize);
 }
@@ -71,29 +67,30 @@ static _NAP_FUNC_TBL_S g_stNapStaticFuncTbl =
     nap_array_GetNodeByIndex
 };
 
-_NAP_HEAD_COMMON_S * _NAP_ArrayCreate(IN UINT uiMaxNum, IN UINT uiNapNodeSize)
+_NAP_HEAD_COMMON_S * _NAP_ArrayCreate(NAP_PARAM_S *p)
 {
-    UINT uiNAPSize = uiNapNodeSize * uiMaxNum;
+    UINT uiNAPSize = p->uiNodeSize * p->uiMaxNum;
     _NAP_ARRAY_HEAD_S *pstNAPHead = NULL;
 
-    if (uiMaxNum == 0) {
+    if (p->uiMaxNum == 0) {
         return NULL;
     }
 
-    pstNAPHead = MEM_ZMalloc(sizeof(_NAP_ARRAY_HEAD_S));
+    pstNAPHead = MemCap_ZMalloc(p->memcap, sizeof(_NAP_ARRAY_HEAD_S));
     if (pstNAPHead == NULL) {
         return NULL;
     }
 
+    pstNAPHead->stCommonHead.memcap = p->memcap;
     pstNAPHead->stCommonHead.pstFuncTbl = &g_stNapStaticFuncTbl;
 
-    pstNAPHead->pucMem = MEM_Malloc(uiNAPSize);
+    pstNAPHead->pucMem = MemCap_Malloc(p->memcap, uiNAPSize);
     if (NULL == pstNAPHead->pucMem) {
-        MEM_Free(pstNAPHead);
+        MemCap_Free(p->memcap, pstNAPHead);
         return NULL;
     }
 
-    pstNAPHead->uiNapNodeSize = uiNapNodeSize;
+    pstNAPHead->uiNapNodeSize = p->uiNodeSize;
 
     return (_NAP_HEAD_COMMON_S*) pstNAPHead;
 }

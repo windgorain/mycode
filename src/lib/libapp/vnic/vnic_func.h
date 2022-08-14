@@ -14,8 +14,6 @@
     extern "C" {
 #endif /* __cplusplus */
 
-VOID VNIC_COMP_Init();
-
 BS_STATUS VnicIns_Init();
 BS_STATUS VnicIns_Start();
 BS_STATUS VnicIns_Stop();

@@ -27,9 +27,6 @@ typedef struct
 BS_STATUS WSAPP_Worker_Init();
 WSAPP_WORKER_S * WSAPP_Worker_GetByWorkerID(IN UINT uiWorkerID);
 BS_STATUS WSAPP_Worker_ConnDispatch(IN UINT uiGwID, IN INT iSocketID);
-UINT WSAPP_Worker_RegListener(IN PF_WSAPP_WORKER_EVENT pfEventFunc);
-BS_STATUS WSAPP_Worker_SetListenerData(IN UINT uiListenerID, IN UINT uiWorkerID, IN VOID *pData);
-VOID * WSAPP_Worker_GetListenerData(IN UINT uiListenerID, IN UINT uiWorkerID);
 
 #ifdef __cplusplus
     }

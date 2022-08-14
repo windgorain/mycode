@@ -4,4 +4,4 @@ aux_source_directory(./ SRC)
 set(NAME ws)
 INCLUDE(../my_libapp.txt)
 
-target_link_libraries(${LIB_NAME} comp-acl)
+target_link_libraries(${LIB_NAME} dynamic-acl dynamic-kfapp)

@@ -340,7 +340,7 @@ BS_STATUS HTTP_Auth_ClientSetAuthContext
 
     pcAuthInfo += 6;   /* 去掉前面的"Digest " */
 
-    hKv = KV_Create(0);
+    hKv = KV_Create(NULL);
     if (NULL == hKv)
     {
         return BS_NO_MEMORY;

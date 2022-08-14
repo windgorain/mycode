@@ -22,8 +22,9 @@ static VOID vnets_rmt_DomainReboot(void *ud)
     MEM_Free(pcDomainName);
 }
 
-BS_STATUS VNETS_RMT_DomainReboot(IN CHAR *pcDomainName)
+int VNETS_RMT_DomainReboot(U64 p1)
 {
+    CHAR *pcDomainName = (void*)p1;
     CHAR *pcMem;
 
     pcMem = TXT_Strdup(pcDomainName);
@@ -41,13 +42,17 @@ BS_STATUS VNETS_RMT_DomainReboot(IN CHAR *pcDomainName)
     return BS_OK;
 }
 
-UINT VNETS_RMT_DomainGetNextNode(IN CHAR *pcDomainName, IN UINT uiCurrentNodeId)
+UINT VNETS_RMT_DomainGetNextNode(U64 p1, U64 p2)
 {
+    CHAR *pcDomainName = (void*)p1;
+    UINT uiCurrentNodeId = p2;
+
     return VNETS_Domain_GetNextNode(pcDomainName, uiCurrentNodeId);
 }
 
-HSTRING VNETS_RMT_GetNodeInfo(IN UINT uiNodeID)
+HSTRING VNETS_RMT_GetNodeInfo(U64 p1)
 {
+    UINT uiNodeID = p1;
     HSTRING hInfo;
     CHAR szInfo[32];
     VNETS_NODE_INFO_S stNodeInfo;

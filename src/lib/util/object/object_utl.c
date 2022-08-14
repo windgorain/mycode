@@ -37,60 +37,45 @@ static inline VOID * _object_Inner2User(IN OBJECT_S *pstInnerObj)
 }
 
 /* 返回Object集合ID . 失败则返回0 */
-HANDLE OBJECT_CreateAggregate
-(
-    IN UINT uiMaxNum/* 0表示不限制 */,
-    IN UINT uiObjSize/* 对象大小 */,
-    IN UINT uiFlag
-)
+HANDLE OBJECT_CreateAggregate(OBJECT_PARAM_S *p)
 {
-    HANDLE hNap;
-    UINT uiNapFlag = 0;
+    NAP_PARAM_S param = {0};
 
-    if (uiFlag & OBJECT_FLAG_ENABLE_RCU)
-    {
-        uiNapFlag = NAP_FLAG_RCU;
-    }
+    param.enType = NAP_TYPE_HASH;
+    param.uiMaxNum = p->uiMaxNum;
+    param.uiNodeSize = sizeof(OBJECT_S) + p->uiObjSize;
+    param.memcap = p->memcap;
 
-    hNap = NAP_Create(NAP_TYPE_HASH, uiMaxNum, sizeof(OBJECT_S) + uiObjSize, uiNapFlag);
-    
-    if (hNap == NULL)
-    {
-        return NULL;
-    }
-    
-    return hNap;
+    return NAP_Create(&param);
 }
 
-VOID OBJECT_DestroyAggregate(IN HANDLE hObjectAggregate)
+VOID OBJECT_DestroyAggregate(IN HANDLE hAggregate)
 {
-    if (hObjectAggregate == 0)
-    {
+    if (hAggregate == 0) {
         return;
     }
 
-    OBJECT_FreeAllObjects(hObjectAggregate);
+    OBJECT_FreeAllObjects(hAggregate);
 
-    NAP_Destory(hObjectAggregate);
+    NAP_Destory(hAggregate);
 
     return;
 }
 
-VOID OBJECT_EnableSeq(IN HANDLE hObjectAggregate, IN UINT64 ulMask, IN UINT uiCount)
+VOID OBJECT_EnableSeq(IN HANDLE hAggregate, IN UINT64 ulMask, IN UINT uiCount)
 {
-    NAP_EnableSeq(hObjectAggregate, ulMask, 1);
+    NAP_EnableSeq(hAggregate, ulMask, 1);
 }
 
-VOID * OBJECT_NewObject(IN HANDLE hObjectAggregate)
+VOID * OBJECT_NewObject(IN HANDLE hAggregate)
 {
     OBJECT_S *pstInnerObj;
 
-    if (hObjectAggregate == 0)
-    {
+    if (hAggregate == 0) {
         return 0;
     }
 
-    pstInnerObj = NAP_ZAlloc(hObjectAggregate);
+    pstInnerObj = NAP_ZAlloc(hAggregate);
     if (pstInnerObj == NULL)
     {
         return 0;
@@ -99,7 +84,7 @@ VOID * OBJECT_NewObject(IN HANDLE hObjectAggregate)
     return _object_Inner2User(pstInnerObj);
 }
 
-VOID OBJECT_FreeObject(IN HANDLE hObjectAggregate, IN VOID *pUserObj)
+VOID OBJECT_FreeObject(IN HANDLE hAggregate, IN VOID *pUserObj)
 {
     OBJECT_S *pstInnerObj;
 
@@ -117,29 +102,29 @@ VOID OBJECT_FreeObject(IN HANDLE hObjectAggregate, IN VOID *pUserObj)
         pstInnerObj->hKv = NULL;
     }
 
-    NAP_Free(hObjectAggregate, pstInnerObj);
+    NAP_Free(hAggregate, pstInnerObj);
 
     return;
 }
 
-VOID OBJECT_FreeObjectByID(IN HANDLE hObjectAggregate, IN UINT64 ulID)
+VOID OBJECT_FreeObjectByID(IN HANDLE hAggregate, IN UINT64 ulID)
 {
     VOID *pUserObj;
 
-    pUserObj = OBJECT_GetObjectByID(hObjectAggregate, ulID);
+    pUserObj = OBJECT_GetObjectByID(hAggregate, ulID);
     if (NULL == pUserObj)
     {
         return;
     }
 
-    OBJECT_FreeObject(hObjectAggregate, pUserObj);
+    OBJECT_FreeObject(hAggregate, pUserObj);
 }
 
-VOID * OBJECT_GetObjectByID(IN HANDLE hObjectAggregate, IN UINT64 ulID)
+VOID * OBJECT_GetObjectByID(IN HANDLE hAggregate, IN UINT64 ulID)
 {
     OBJECT_S *pstInnerObj;
 
-    pstInnerObj = NAP_GetNodeByID(hObjectAggregate, ulID);
+    pstInnerObj = NAP_GetNodeByID(hAggregate, ulID);
     if (NULL == pstInnerObj)
     {
         return NULL;
@@ -148,22 +133,22 @@ VOID * OBJECT_GetObjectByID(IN HANDLE hObjectAggregate, IN UINT64 ulID)
     return _object_Inner2User(pstInnerObj);
 }
 
-UINT64 OBJECT_GetIDByObject(IN HANDLE hObjectAggregate, IN VOID *pUserObj)
+UINT64 OBJECT_GetIDByObject(IN HANDLE hAggregate, IN VOID *pUserObj)
 {
     OBJECT_S *pstInnerObj;
 
     pstInnerObj = _object_User2Inner(pUserObj);
 
-    return NAP_GetIDByNode(hObjectAggregate, pstInnerObj);
+    return NAP_GetIDByNode(hAggregate, pstInnerObj);
 }
 
-VOID OBJECT_FreeAllObjects(IN HANDLE hObjectAggregate)
+VOID OBJECT_FreeAllObjects(IN HANDLE hAggregate)
 {
     UINT64 ulNodeId = 0;
 
-    while ((ulNodeId = NAP_GetNextID(hObjectAggregate, ulNodeId) != 0))
+    while ((ulNodeId = NAP_GetNextID(hAggregate, ulNodeId) != 0))
     {
-        OBJECT_FreeObjectByID(hObjectAggregate, ulNodeId);
+        OBJECT_FreeObjectByID(hAggregate, ulNodeId);
     }
 
     return;
@@ -177,7 +162,7 @@ BS_STATUS OBJECT_SetProperty(IN VOID *pUserObj, IN UINT uiPropertyIndex, IN HAND
 
     if (NULL == pstInnerObj->hPropertys)
     {
-        pstInnerObj->hPropertys = DARRAY_Create(0);
+        pstInnerObj->hPropertys = DARRAY_Create(0, 32);
         if (NULL == pstInnerObj->hPropertys)
         {
             RETURN(BS_NO_MEMORY);
@@ -188,23 +173,17 @@ BS_STATUS OBJECT_SetProperty(IN VOID *pUserObj, IN UINT uiPropertyIndex, IN HAND
 }
 
 
-BS_STATUS OBJECT_SetPropertyByID
-(
-    IN HANDLE hObjectAggregate,
-    IN UINT64 ulObjectId,
-    IN UINT uiPropertyIndex,
-    IN HANDLE hValue
-)
+BS_STATUS OBJECT_SetPropertyByID(HANDLE hAggregate, UINT64 id, UINT property_index, void *value)
 {
     OBJECT_S *pstInnerObj;
 
-    pstInnerObj = NAP_GetNodeByID(hObjectAggregate, ulObjectId);
+    pstInnerObj = NAP_GetNodeByID(hAggregate, id);
     if (NULL == pstInnerObj)
     {
         RETURN(BS_NO_SUCH);
     }
 
-    return OBJECT_SetProperty(_object_Inner2User(pstInnerObj), uiPropertyIndex, hValue);
+    return OBJECT_SetProperty(_object_Inner2User(pstInnerObj), property_index, value);
 }
 
 BS_STATUS OBJECT_GetProperty(IN VOID *pUserObj, IN UINT uiPropertyIndex, OUT HANDLE *phValue)
@@ -232,7 +211,7 @@ BS_STATUS OBJECT_GetProperty(IN VOID *pUserObj, IN UINT uiPropertyIndex, OUT HAN
 
 BS_STATUS OBJECT_GetPropertyByID
 (
-    IN HANDLE hObjectAggregate,
+    IN HANDLE hAggregate,
     IN UINT64 ulObjectId,
     IN UINT uiPropertyIndex,
     OUT HANDLE *phValue
@@ -242,7 +221,7 @@ BS_STATUS OBJECT_GetPropertyByID
 
     *phValue = NULL;
     
-    pstInnerObj = NAP_GetNodeByID(hObjectAggregate, ulObjectId);
+    pstInnerObj = NAP_GetNodeByID(hAggregate, ulObjectId);
     if (NULL == pstInnerObj)
     {
         RETURN(BS_NO_SUCH);
@@ -251,95 +230,75 @@ BS_STATUS OBJECT_GetPropertyByID
     return OBJECT_GetProperty(_object_Inner2User(pstInnerObj), uiPropertyIndex, phValue);
 }
 
-BS_STATUS OBJECT_SetKeyValue
-(
-    IN HANDLE hObjectAggregate,
-    IN VOID *pUserObj,
-    IN CHAR *pcKey,
-    IN CHAR *pcValue
-)
+static HANDLE object_create_kv(HANDLE hAggregate)
+{
+    KV_PARAM_S kv_param = {0};
+    kv_param.memcap = NAP_GetMemCap(hAggregate);
+
+    return KV_Create(&kv_param);
+}
+
+int OBJECT_SetKeyValue(HANDLE hAggregate, void *obj, char *key, char *value)
 {
     OBJECT_S *pstInnerObj;
-    UINT uiKvFlag = 0;
 
-    pstInnerObj = _object_User2Inner(pUserObj);
+    pstInnerObj = _object_User2Inner(obj);
 
-    if (NULL == pstInnerObj->hKv)
-    {
-        if (NAP_GetFlag(hObjectAggregate) & NAP_FLAG_RCU)
-        {
-            uiKvFlag = KV_FLAG_ENABLE_RCU;
-        }
-
-        pstInnerObj->hKv = KV_Create(uiKvFlag);
-        if (NULL == pstInnerObj->hKv)
-        {
+    if (NULL == pstInnerObj->hKv) {
+        pstInnerObj->hKv = object_create_kv(hAggregate);
+        if (NULL == pstInnerObj->hKv) {
             RETURN(BS_NO_MEMORY);
         }
     }
 
-    return KV_SetKeyValue(pstInnerObj->hKv, pcKey, pcValue);
+    return KV_SetKeyValue(pstInnerObj->hKv, key, value);
 }
 
-BS_STATUS OBJECT_SetKeyValueByID
-(
-    IN HANDLE hObjectAggregate,
-    IN UINT64 ulObjectId,
-    IN CHAR *pcKey,
-    IN CHAR *pcValue
-)
+int OBJECT_SetKeyValueByID(HANDLE hAggregate, UINT64 id, char *key, char *value)
 {
     OBJECT_S *pstInnerObj;
 
-    pstInnerObj = NAP_GetNodeByID(hObjectAggregate, ulObjectId);
-    if (NULL == pstInnerObj)
-    {
+    pstInnerObj = NAP_GetNodeByID(hAggregate, id);
+    if (NULL == pstInnerObj) {
         RETURN(BS_NO_SUCH);
     }
 
-    return OBJECT_SetKeyValue(hObjectAggregate, _object_Inner2User(pstInnerObj), pcKey, pcValue);
+    return OBJECT_SetKeyValue(hAggregate, _object_Inner2User(pstInnerObj), key, value);
 }
 
-CHAR * OBJECT_GetKeyValue(IN VOID *pUserObj, IN CHAR *pcKey)
+char * OBJECT_GetKeyValue(void *obj, char *key)
 {
     OBJECT_S *pstInnerObj;
 
-    pstInnerObj = _object_User2Inner(pUserObj);
+    pstInnerObj = _object_User2Inner(obj);
 
-    if (NULL == pstInnerObj->hKv)
-    {
+    if (NULL == pstInnerObj->hKv) {
         return NULL;
     }
 
-    return KV_GetKeyValue(pstInnerObj->hKv, pcKey);
+    return KV_GetKeyValue(pstInnerObj->hKv, key);
 }
 
-CHAR * OBJECT_GetKeyValueByID
-(
-    IN HANDLE hObjectAggregate,
-    IN UINT64 ulObjectId,
-    IN CHAR *pcKey
-)
+char * OBJECT_GetKeyValueByID(HANDLE hAggregate, UINT64 id, char *key)
 {
     OBJECT_S *pstInnerObj;
 
-    pstInnerObj = NAP_GetNodeByID(hObjectAggregate, ulObjectId);
-    if (NULL == pstInnerObj)
-    {
+    pstInnerObj = NAP_GetNodeByID(hAggregate, id);
+    if (NULL == pstInnerObj) {
         return NULL;
     }
 
-    return OBJECT_GetKeyValue(_object_Inner2User(pstInnerObj), pcKey);
+    return OBJECT_GetKeyValue(_object_Inner2User(pstInnerObj), key);
 }
 
-VOID OBJECT_Walk(IN HANDLE hObjectAggregate, IN OBJECT_WALK_FUNC pfFunc, IN USER_HANDLE_S *pstUserHandle)
+VOID OBJECT_Walk(IN HANDLE hAggregate, IN OBJECT_WALK_FUNC pfFunc, IN USER_HANDLE_S *pstUserHandle)
 {
     UINT64 ulID = 0;
     BS_WALK_RET_E eRet;
 
-    while ((ulID = NAP_GetNextID(hObjectAggregate, ulID)) != 0)
+    while ((ulID = NAP_GetNextID(hAggregate, ulID)) != 0)
     {
-        eRet = pfFunc (hObjectAggregate, ulID, pstUserHandle);
+        eRet = pfFunc (hAggregate, ulID, pstUserHandle);
         if (eRet != BS_WALK_CONTINUE)
         {
             return;
@@ -347,13 +306,13 @@ VOID OBJECT_Walk(IN HANDLE hObjectAggregate, IN OBJECT_WALK_FUNC pfFunc, IN USER
     }
 }
 
-UINT64 OBJECT_GetNextID(IN HANDLE hObjectAggregate, IN UINT64 uiCurrentID)
+UINT64 OBJECT_GetNextID(IN HANDLE hAggregate, IN UINT64 uiCurrentID)
 {
-    return NAP_GetNextID(hObjectAggregate, uiCurrentID);
+    return NAP_GetNextID(hAggregate, uiCurrentID);
 }
 
-UINT OBJECT_GetCount(IN HANDLE hObjectAggregate)
+UINT OBJECT_GetCount(IN HANDLE hAggregate)
 {
-    return NAP_GetCount(hObjectAggregate);
+    return NAP_GetCount(hAggregate);
 }
 

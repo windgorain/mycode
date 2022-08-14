@@ -7,16 +7,6 @@
 #include "utl/subcmd_utl.h"
 #include "utl/cmd_agent.h"
 
-static int cmd_agent_help(CMD_AGENT_S *cmd_agent, int argc, char **argv, void *ud)
-{
-    char buf[1024];
-
-    SUBCMD_BuildHelpinfo(cmd_agent->sub_cmds, buf, sizeof(buf));
-    cmd_agent->print_func(buf, ud);
-
-    return 0;
-}
-
 static int cmd_agent_cmd_show(CMD_AGENT_S *cmd_agent, int argc, char **argv, void *ud)
 {
     char buf[256];
@@ -24,9 +14,9 @@ static int cmd_agent_cmd_show(CMD_AGENT_S *cmd_agent, int argc, char **argv, voi
 
     DLL_SCAN(&cmd_agent->ob_list, ob) {
         if (ob->enabled) {
-            snprintf(buf, sizeof(buf), " %-16s Enabled\r\n", ob->ob_name);
+            scnprintf(buf, sizeof(buf), " %-16s Enabled\r\n", ob->ob_name);
         } else {
-            snprintf(buf, sizeof(buf), " %-16s \r\n", ob->ob_name);
+            scnprintf(buf, sizeof(buf), " %-16s \r\n", ob->ob_name);
         }
         cmd_agent->print_func(buf, ud);
     }
@@ -126,7 +116,6 @@ int CmdAgent_Init(CMD_AGENT_S *cmd_agent)
     cmd_agent->print_func = cmd_agent_default_print;
 
     /* cmd agent的内置管理命令 */
-    cmd_agent_add_cmd(cmd_agent, "help", "Help", cmd_agent_help);
     cmd_agent_add_cmd(cmd_agent, "show", "Show OB list", cmd_agent_cmd_show);
     cmd_agent_add_cmd(cmd_agent, "enable", "Enable OB", cmd_agent_cmd_enable);
     cmd_agent_add_cmd(cmd_agent, "disable", "DisableOB", cmd_agent_cmd_disable);
@@ -180,17 +169,7 @@ void CmdAgent_UnRegOB(CMD_AGENT_S *cmd_agent, CMD_AGENT_OB_S *ob)
 
 int CmdAgent_Cmd(CMD_AGENT_S *cmd_agent, int argc, char **argv, void *ud)
 {
-    SUB_CMD_NODE_S  *subcmd;
-    PF_CMD_AGENT_SUBCMD func;
-
-    subcmd = SUBCMD_Search(cmd_agent->sub_cmds, argv[1]);
-    if (subcmd == NULL) {
-        cmd_agent_help(cmd_agent, argc, argv, ud);
-        RETURN(BS_NOT_FOUND);
-    }
-
-    func = subcmd->func;
-    return func(cmd_agent, argc-1, argv+1, ud);
+    return SUBCMD_Do(cmd_agent->sub_cmds, argc, argv);
 }
 
 CMD_AGENT_OB_S * CmdAgent_GetNext(CMD_AGENT_S *cmd_agent, CMD_AGENT_OB_S *curr/* NULL获取第一个 */)
@@ -209,7 +188,7 @@ int CmdAgent_AllDoAction(CMD_AGENT_S *cmd_agent, char *action, void *ud)
 
     while((ob = CmdAgent_GetNext(cmd_agent, ob))) {
         if (0 != ob->action_func(action, 0, 0, ud)) {
-            snprintf(buf, sizeof(buf), "ob %s %s failed\r\n", ob->ob_name, action);
+            scnprintf(buf, sizeof(buf), "ob %s %s failed\r\n", ob->ob_name, action);
             cmd_agent->print_func(buf, ud);
         }
     }

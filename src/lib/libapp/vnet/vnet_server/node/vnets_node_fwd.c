@@ -39,7 +39,7 @@ static BS_STATUS vnets_nodefwd_SendTo(IN UINT uiNodeID, IN MBUF_S *pstMbuf)
 
     VNETS_Context_SetSendSesID(pstMbuf, pstNode->uiSesID);
 
-    return CompIf_LinkOutput(VNETS_SES_GetIfIndex(pstNode->uiSesID), pstMbuf, 0);
+    return IFNET_LinkOutput(VNETS_SES_GetIfIndex(pstNode->uiSesID), pstMbuf, 0);
 }
 
 static BS_WALK_RET_E vnets_nodefwd_SendToEach(IN UINT uiNodeID, IN HANDLE hUserHandle)
@@ -159,7 +159,7 @@ BS_STATUS VNETS_NodeFwd_OutputBySes(IN UINT uiSesID, IN MBUF_S *pstMBuf, IN USHO
 
     VNETS_Context_SetSendSesID(pstMBuf, uiSesID);
 
-    return CompIf_LinkOutput(VNETS_SES_GetIfIndex(uiSesID), pstMBuf, 0);
+    return IFNET_LinkOutput(VNETS_SES_GetIfIndex(uiSesID), pstMBuf, 0);
 }
 
 /* debug node packet fwd */

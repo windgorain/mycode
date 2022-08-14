@@ -23,7 +23,7 @@ PLUG_API BS_STATUS WebProxyApp_Cmd_BindWsService(IN UINT ulArgc, IN CHAR **argv)
     CHAR *pcWsService = argv[2];
     CHAR szFullPath[FILE_MAX_PATH_LEN + 1];
 
-    if (BS_OK != COMP_WSAPP_BindService(pcWsService))
+    if (BS_OK != WSAPP_BindService(pcWsService))
     {
         EXEC_OutString("bind ws service failed.\r\n");
         return BS_ERR;
@@ -34,8 +34,8 @@ PLUG_API BS_STATUS WebProxyApp_Cmd_BindWsService(IN UINT ulArgc, IN CHAR **argv)
     WebProxyApp_Deliver_BindService(pcWsService);
 
     LOCAL_INFO_ExpandToConfPath("web/", szFullPath);
-    COMP_WSAPP_SetDocRoot(pcWsService, szFullPath);
-    COMP_WSAPP_SetIndex(pcWsService, "/index.htm");
+    WSAPP_SetDocRoot(pcWsService, szFullPath);
+    WSAPP_SetIndex(pcWsService, "/index.htm");
 
     return BS_OK;
 }

@@ -23,13 +23,39 @@ static VOID _CMD_MNG_NoExecOut(HANDLE hExec, CHAR *pszInfo)
     return;
 }
 
+static void cmd_mng_RestoreByFp(HANDLE hCmdRunner, FILE *fp)
+{
+    char *line;
+    char buf[2048];
+    int ret = 0;
+    int last_failed_level = 100000;
+
+    while ((line = fgets(buf, sizeof(buf), fp)) != NULL) {
+        char * find = (void*) TXT_FindFirstNonBlank((void*)line, strlen(line));
+        if (find == NULL) {
+            continue;
+        }
+        int cmd_tree_level = (find - line); /* 计算当前命令的缩进情况 */
+        if (cmd_tree_level > last_failed_level) { /* 是上次执行失败命令的子命令 */
+            continue;
+        }
+        last_failed_level = 100000;
+        ret = CmdExp_RunLine(hCmdRunner, line);
+        if (ret != 0) {
+            last_failed_level = cmd_tree_level;
+        }
+    }
+
+    /* 加上一个换行,使配置文件最后一条命令没有换行的情况也能执行 */
+    CmdExp_Run(hCmdRunner, '\n');
+}
+
 /* 配置恢复 */
-BS_STATUS CMD_MNG_CmdRestoreByFile(IN CHAR *pszFileName)
+BS_STATUS CMD_MNG_CmdRestoreByFile(int muc_id, IN CHAR *pszFileName)
 {
     FILE *fp = NULL;
     HANDLE hExecId, hExecIdSaved;
     HANDLE hCmdRunner;
-    UCHAR c;
 
     fp = FOPEN(pszFileName, "rb");
     if (NULL == fp)
@@ -44,31 +70,26 @@ BS_STATUS CMD_MNG_CmdRestoreByFile(IN CHAR *pszFileName)
 
     /* 配置恢复，无需显示信息，将现在任务的EXEC ID覆盖掉, 
             配置恢复完成后，再恢复原来的EXEC ID */
-    hExecIdSaved = THREAD_GetExec();
+    hExecIdSaved = EXEC_GetExec();
     hExecId = EXEC_Create(_CMD_MNG_NoExecOut, NULL);
     if (NULL == hExecId)
     {
         fclose(fp);
         RETURN(BS_ERR);
     }
-    EXEC_AttachToSelfThread(hExecId);
+    EXEC_Attach(hExecId);
 
-    hCmdRunner = CMD_EXP_CreateRunner();
-    CMD_EXP_RunnerStart(hCmdRunner);
-
-    c = (UCHAR)fgetc(fp);
-
-    while (!feof(fp)) {
-        CMD_EXP_Run(hCmdRunner, c);
-        c = (UCHAR)fgetc(fp);
+    hCmdRunner = CMD_EXP_CreateRunner(CMD_EXP_RUNNER_TYPE_NONE);
+    if (muc_id > 0) {
+        CmdExp_SetRunnerMucID(hCmdRunner, muc_id);
+        CmdExp_SetRunnerLevel(hCmdRunner, CMD_EXP_LEVEL_MUC);
     }
 
-    /* 加上一个换行,使配置文件最后一条命令没有换行的情况也能执行 */
-    CMD_EXP_Run(hCmdRunner, '\n');
+    cmd_mng_RestoreByFp(hCmdRunner, fp);
 
     CMD_EXP_DestroyRunner(hCmdRunner);
     EXEC_Delete(hExecId);
-    THREAD_SetExec(hExecIdSaved);
+    EXEC_Attach(hExecIdSaved);
 
     fclose(fp);
 
@@ -86,7 +107,7 @@ static VOID _CMD_MNG_ExitHandler(IN INT lExitNum, IN USER_HANDLE_S *pstUserHandl
 BS_STATUS CMD_MNG_CmdRestoreSysCmd()
 {
     /* 恢复配置 */
-    CMD_MNG_CmdRestoreByFile(_CMD_SAVE_FILE);
+    CMD_MNG_CmdRestoreByFile(0, _CMD_SAVE_FILE);
 
     /* 注册关闭触发保存函数 */
 /*    SYSRUN_RegExitNotifyFunc(_CMD_MNG_ExitHandler, NULL);  */

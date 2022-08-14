@@ -37,8 +37,10 @@ void HoleData_Final(HOLE_DATA_S *hole_data)
 
 void HoleData_Reset(HOLE_DATA_S *hole_data)
 {
-    hole_data->filled_size = 0;
-    BITMAP_ClrAll(&hole_data->bitmap);
+    if (hole_data->filled_size > 0) {
+        hole_data->filled_size = 0;
+        BITMAP_ClrAll(&hole_data->bitmap);
+    }
 }
 
 /* 初始化方法二 */
@@ -46,20 +48,20 @@ HOLE_DATA_S * HoleData_Create(int max_size, MEM_CAP_S *mem_cap/* 允许NULL */)
 {
     HOLE_DATA_INSTANCE_S *ins;
 
-    ins = MemCap_ZAlloc(mem_cap, sizeof(HOLE_DATA_INSTANCE_S));
+    ins = MemCap_ZMalloc(mem_cap, sizeof(HOLE_DATA_INSTANCE_S));
     if (! ins) {
         return NULL;
     }
 
     ins->mem_cap = mem_cap;
 
-    ins->data = MemCap_Alloc(mem_cap, max_size);
+    ins->data = MemCap_Malloc(mem_cap, max_size);
     if (! ins->data) {
         HoleData_Destroy(&ins->hole_data);
         return NULL;
     }
 
-    ins->bitmap_data = MemCap_Alloc(mem_cap, (max_size + 7)/8);
+    ins->bitmap_data = MemCap_Malloc(mem_cap, (max_size + 7)/8);
     if (! ins->bitmap_data) {
         HoleData_Destroy(&ins->hole_data);
         return NULL;
@@ -121,10 +123,10 @@ int HoleData_GetFilledSize(HOLE_DATA_S *hole_data)
 /* 获取从起始位置连续的内存长度 */
 int HoleData_GetContineLen(HOLE_DATA_S *hole_data)
 {
-    UINT index;
+    int index;
 
-    index = BITMAP_GetAUnsettedBitIndex(&hole_data->bitmap);
-    if (index == BITMAP_INVALID_INDEX) {
+    index = BITMAP_GetFree(&hole_data->bitmap);
+    if (index < 0) {
         return hole_data->max_size;
     }
 

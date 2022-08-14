@@ -148,13 +148,7 @@ BS_STATUS PW_HexDecrypt(IN CHAR *szCipher, OUT CHAR *szClearText, IN ULONG ulCle
         return BS_NO_MEMORY;
     }
 
-    uiLen = DH_Hex2Data(szCipher, uiLen, pucCipher);
-    if (BASE64_INVALD == uiLen)
-    {
-        LVM_Free(&stLvmCipher);
-        LVM_Free(&stLvmClear);
-        return BS_ERR;
-    }
+    DH_Hex2Data(szCipher, uiLen*2, pucCipher);
 
     DES_Ede3CbcEncrypt(pucCipher, pucClear, uiLen,
         DES_GetSysKey1(), DES_GetSysKey2(), DES_GetSysKey3(), &stPwIov, FALSE);
@@ -171,7 +165,7 @@ BS_STATUS PW_HexDecrypt(IN CHAR *szCipher, OUT CHAR *szClearText, IN ULONG ulCle
 BS_STATUS PW_Md5Encrypt(IN CHAR *szClearText, OUT CHAR szCipherText[PW_MD5_ENCRYPT_LEN + 1])
 {
     UCHAR aucMd5[MD5_LEN];
-    UCHAR aucCipher[MD5_LEN];
+    UCHAR aucCipher[MD5_LEN] = {0};
     DES_cblock stPwIov = {1,2,3,4,5,6,7,8};
 
     MD5_Create((UCHAR*)szClearText, strlen(szClearText), aucMd5);

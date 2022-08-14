@@ -26,7 +26,7 @@ BS_STATUS webcenter_kf_Run(IN WS_TRANS_HANDLE hWsTrans, IN KFAPP_PARAM_S *pstPar
         return BS_OK;
     }
 
-    return COMP_KFAPP_RunMime(hMime, pstParam);
+    return KFAPP_RunMime(hMime, pstParam);
 }
 
 static BS_STATUS webcenter_RecvBodyOK(IN WS_TRANS_HANDLE hWsTrans)
@@ -44,7 +44,7 @@ static BS_STATUS webcenter_RecvBodyOK(IN WS_TRANS_HANDLE hWsTrans)
         return BS_OK;
     }
 
-    if (BS_OK != COMP_KFAPP_ParamInit(&stKfappParam))
+    if (BS_OK != KFAPP_ParamInit(&stKfappParam))
     {
         return BS_NO_MEMORY;
     }
@@ -52,13 +52,13 @@ static BS_STATUS webcenter_RecvBodyOK(IN WS_TRANS_HANDLE hWsTrans)
     eRet = webcenter_kf_Run(hWsTrans, &stKfappParam);
     if (eRet != BS_OK)
     {
-        COMP_KFAPP_ParamFini(&stKfappParam);
+        KFAPP_ParamFini(&stKfappParam);
         return BS_ERR;
     }
 
-    if (NULL == COMP_KFAPP_BuildParamString(&stKfappParam))
+    if (NULL == KFAPP_BuildParamString(&stKfappParam))
     {
-        COMP_KFAPP_ParamFini(&stKfappParam);
+        KFAPP_ParamFini(&stKfappParam);
         return BS_NO_MEMORY;
     }
 
@@ -70,7 +70,7 @@ static BS_STATUS webcenter_RecvBodyOK(IN WS_TRANS_HANDLE hWsTrans)
     WS_Trans_AddReplyBodyByBuf(hWsTrans, stKfappParam.pcString, stKfappParam.uiStringLen);
     WS_Trans_ReplyBodyFinish(hWsTrans);
 
-    COMP_KFAPP_ParamFini(&stKfappParam);
+    KFAPP_ParamFini(&stKfappParam);
 
     return BS_OK;
 }

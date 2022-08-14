@@ -201,7 +201,7 @@ Err:
 static void _vtimer_Init()
 {
     static ATOM_ONCE_S once = ATOM_ONCE_INIT_VALUE;
-    AtomOnce_Do(&once, _vtimer_InitOnce, NULL);
+    AtomOnce_WaitDo(&once, _vtimer_InitOnce, NULL);
 }
 
 BS_STATUS VTimer_Create

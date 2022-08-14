@@ -23,8 +23,23 @@ void ErrCode_Set(int err_code, char *info, char *file_name, const char *func_nam
     }
 }
 
+void ErrCode_Clear()
+{
+    ERR_CODE_S *err_code_ctrl = &g_err_code;
+
+    err_code_ctrl->file_name = NULL;
+    err_code_ctrl->func_name = NULL;
+    err_code_ctrl->line = 0;
+    err_code_ctrl->err_code = 0;
+    err_code_ctrl->info[0] = '\0';
+}
+
 char * ErrCode_GetFileName()
 {
+    if (g_err_code.file_name == NULL) {
+        return "null";
+    }
+
     return g_err_code.file_name;
 }
 
@@ -52,12 +67,12 @@ char * ErrCode_Build(OUT char *buf, int buf_size)
     int len = 0;
 
     if (file) {
-        len = snprintf(buf, buf_size,
-                "Err: file:%s(%d):%d\r\n", file, line, code);
+        len = scnprintf(buf, buf_size,
+                "Err: file:%s(%d):%d \r\n", file, line, code);
     }
 
     if (errinfo && errinfo[0]) {
-        len += snprintf(buf + len, buf_size-len, "ErrInfo: %s\r\n", errinfo);
+        len += scnprintf(buf + len, buf_size-len, "ErrInfo: %s \r\n", errinfo);
     }
 
     return buf;
@@ -71,11 +86,29 @@ void ErrCode_Print()
     char *errinfo = ErrCode_GetInfo();
 
     if (file) {
-        fprintf(stderr, "ErrInfo: file:%s(%d):%d\r\n", file, line, code);
+        fprintf(stderr, "Err: file:%s(%d):%d \r\n", file, line, code);
     }
 
     if (errinfo && errinfo[0]) {
-        fprintf(stderr, "ErrInfo: %s\r\n", errinfo);
+        fprintf(stderr, "ErrInfo: %s \r\n", errinfo);
     }
+}
+
+void ErrCode_FatalError(char *format, ...)
+{
+#define STD_BUF 1024
+    char buf[STD_BUF+1];
+    va_list ap;
+
+    va_start(ap, format);
+    vsnprintf(buf, STD_BUF, format, ap);
+    va_end(ap);
+
+    buf[STD_BUF] = '\0';
+
+    fprintf(stderr, "ERROR: %s", buf);
+    fprintf(stderr,"Fatal Error, Quitting..\n");
+
+    exit(1);
 }
 

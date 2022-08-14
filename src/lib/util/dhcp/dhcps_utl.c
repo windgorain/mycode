@@ -10,6 +10,7 @@
 #include "utl/mac_table.h"
 #include "utl/ippool_utl.h"
 #include "utl/mbuf_utl.h"
+#include "utl/udp_utl.h"
 #include "utl/dhcp_utl.h"
 #include "utl/dhcps_utl.h"
 
@@ -24,8 +25,8 @@ typedef struct
     IPPOOL_HANDLE hIpPool;
     UINT uiMask;        /* 主机序 */
     UINT uiGateWayIP;   /* 主机序 */
-    HANDLE hMacTbl;         /* 上线的MAC表 */
-    HANDLE hSignedMacTbl;   /* 预订了Ip的MAC表 */
+    MACTBL_HANDLE hMacTbl;         /* 上线的MAC表 */
+    MACTBL_HANDLE hSignedMacTbl;   /* 预订了Ip的MAC表 */
     PF_DHCPS_SEND_FUNC pfSendFunc;
     USER_HANDLE_S stUserHandle;
     UINT uiDeclineTick;
@@ -288,7 +289,7 @@ static BS_STATUS dhcps_DealDecline
 
 static VOID dhcps_MacDel
 (
-    IN HANDLE hMacTbl,
+    IN MACTBL_HANDLE hMacTbl,
     IN UINT uiEvent,
     IN MAC_NODE_S *pstNode,
     IN VOID *pData,
@@ -343,14 +344,14 @@ DHCPS_HANDLE DHCPS_CreateInstance
     pstInstance->uiMask = pstIpConf->uiMask;
     pstInstance->uiGateWayIP = pstIpConf->uiGateway;
 
-    pstInstance->hMacTbl = MACTBL_CreateInstance(sizeof(_DHCPS_DATA_S), _DHCPS_MAC_OLD_TIME);
-    if (NULL == pstInstance->hMacTbl)
-    {
+    pstInstance->hMacTbl = MACTBL_CreateInstance(sizeof(_DHCPS_DATA_S));
+    if (NULL == pstInstance->hMacTbl) {
         DHCPS_DestoryInstance(pstInstance);
         return NULL;
     }
+    MACTBL_SetOldTick(pstInstance->hMacTbl, _DHCPS_MAC_OLD_TIME);    
 
-    pstInstance->hSignedMacTbl = MACTBL_CreateInstance(sizeof(_DHCPS_DATA_S), 0);
+    pstInstance->hSignedMacTbl = MACTBL_CreateInstance(sizeof(_DHCPS_DATA_S));
     if (NULL == pstInstance->hSignedMacTbl)
     {
         DHCPS_DestoryInstance(pstInstance);
@@ -560,7 +561,7 @@ UINT DHCPS_GetMask(IN DHCPS_HANDLE hDhcpInstance)
 
 static VOID dhcps_WalkClients
 (
-    IN HANDLE hMacTblId,
+    IN MACTBL_HANDLE hMacTblId,
     IN MAC_NODE_S *pstNode,
     IN VOID *pData,
     IN VOID *pUserHandle

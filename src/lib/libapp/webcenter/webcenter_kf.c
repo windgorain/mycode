@@ -73,7 +73,7 @@ BS_STATUS WebCenter_BindWsService(IN CHAR *pcWsService, IN BOOL_T bInner)
 
     if (! TXT_IS_EMPTY(pcWsService))
     {
-        if (BS_OK != COMP_WSAPP_BindService(pcWsService))
+        if (BS_OK != WSAPP_BindService(pcWsService))
         {
             return BS_ERR;
         }
@@ -81,7 +81,7 @@ BS_STATUS WebCenter_BindWsService(IN CHAR *pcWsService, IN BOOL_T bInner)
 
     if (pcString[0] != '\0')
     {
-        COMP_WSAPP_UnBindService(pcString);
+        WSAPP_UnBindService(pcString);
     }
 
     strlcpy(pcString, pcWsService, WSAPP_SERVICE_NAME_LEN + 1);
@@ -90,8 +90,8 @@ BS_STATUS WebCenter_BindWsService(IN CHAR *pcWsService, IN BOOL_T bInner)
     {
         WebCenter_Deliver_BindService(pcWsService);
         LOCAL_INFO_ExpandToConfPath("web/", szFullPath);
-        COMP_WSAPP_SetDocRoot(pcWsService, szFullPath);
-        COMP_WSAPP_SetIndex(pcWsService, "/index.htm");
+        WSAPP_SetDocRoot(pcWsService, szFullPath);
+        WSAPP_SetIndex(pcWsService, "/index.htm");
     }
 
     return BS_OK;
@@ -109,9 +109,9 @@ CHAR * WebCenter_GetBindedWsService()
 
 BS_STATUS WebCenter_KF_Init()
 {
-    COMP_KFAPP_RegFunc("webcenter.SaveConfig", _webcenter_kf_SaveConfig, NULL);
-    COMP_KFAPP_RegFunc("webcenter.SetConfig", _webcenter_kf_SetConfig, NULL);
-    COMP_KFAPP_RegFunc("webcenter.GetConfig", _webcenter_kf_GetConfig, NULL);
+    KFAPP_RegFunc("webcenter.SaveConfig", _webcenter_kf_SaveConfig, NULL);
+    KFAPP_RegFunc("webcenter.SetConfig", _webcenter_kf_SetConfig, NULL);
+    KFAPP_RegFunc("webcenter.GetConfig", _webcenter_kf_GetConfig, NULL);
 
 	return BS_OK;
 }

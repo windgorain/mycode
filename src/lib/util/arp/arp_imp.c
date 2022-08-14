@@ -179,7 +179,7 @@ static MBUF_S * _arp_BuildPacket
     MAC_ADDR_S *pstSrcMac;
 
     /* 优先使用接口mac, 如果接口mac不存在,则使用全局mac */
-    CompIf_Ioctl(uiIfIndex, IFNET_CMD_GET_MAC, (HANDLE)&stSrcMac);
+    IFNET_Ioctl(uiIfIndex, IFNET_CMD_GET_MAC, (HANDLE)&stSrcMac);
     pstSrcMac = &stSrcMac;
     if (MAC_ADDR_IS_ZERO(pstSrcMac->aucMac))
     {
@@ -502,7 +502,7 @@ ARP_HANDLE ARP_CreateInstance
         }
     }
 
-    pstArpInstance->hHashId = HASH_CreateInstance(_ARP_HASH_BUCKET_NUM, (PF_HASH_INDEX_FUNC)_arp_GetHashIndex);
+    pstArpInstance->hHashId = HASH_CreateInstance(NULL, _ARP_HASH_BUCKET_NUM, (PF_HASH_INDEX_FUNC)_arp_GetHashIndex);
     if (0 == pstArpInstance->hHashId)
     {
         if (bIsCreateSem == TRUE)

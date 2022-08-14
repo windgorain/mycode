@@ -176,14 +176,19 @@ static USER_TREE_S * usertree_Create()
         return NULL;
     }
 
-    pstUserTree->hOrgNap = NAP_Create(NAP_TYPE_HASH, 0, sizeof(USER_TREE_ORG_S), 0);
+    NAP_PARAM_S param = {0};
+    param.enType = NAP_TYPE_HASH;
+    param.uiNodeSize = sizeof(USER_TREE_ORG_S);
+
+    pstUserTree->hOrgNap = NAP_Create(&param);
     if (NULL == pstUserTree->hOrgNap)
     {
         UserTree_Destroy(pstUserTree);
         return NULL;
     }
 
-    pstUserTree->hUserNap = NAP_Create(NAP_TYPE_HASH, 0, sizeof(USER_TREE_USER_S), 0);
+    param.uiNodeSize = sizeof(USER_TREE_USER_S);
+    pstUserTree->hUserNap = NAP_Create(&param);
     if (NULL == pstUserTree->hUserNap)
     {
         UserTree_Destroy(pstUserTree);

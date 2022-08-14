@@ -97,7 +97,7 @@ static void _wan_inloop_Clean()
     }
 
     if (g_stWanInLoop.uiIfIndex) {
-        CompIf_DeleteIf(g_stWanInLoop.uiIfIndex);
+        IFNET_DeleteIf(g_stWanInLoop.uiIfIndex);
         g_stWanInLoop.uiIfIndex = 0;
     }
 
@@ -116,7 +116,7 @@ BS_STATUS _wan_inloop_Init()
         RETURN(BS_ERR);
     }
 
-    g_stWanInLoop.uiIfIndex = CompIf_CreateIf(IF_INLOOP_IF_TYPE_MAME);
+    g_stWanInLoop.uiIfIndex = IFNET_CreateIf(IF_INLOOP_IF_TYPE_MAME);
     if (0 == g_stWanInLoop.uiIfIndex) {
         _wan_inloop_Clean();
         RETURN(BS_ERR);

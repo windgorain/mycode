@@ -1,77 +1,89 @@
 /*================================================================
-*   Created by LiXingang: 2018.12.02
+*   Created：LiXingang All rights reserved.
 *   Description: 
 *
 ================================================================*/
 #include "bs.h"
 
 #include "utl/net.h"
+#include "utl/free_list.h"
 #include "utl/lpm_utl.h"
 #include "utl/num_utl.h"
 
-int LPM_Init(IN LPM_S *lpm, IN UINT array_size, IN LPM_ENTRY_S *array)
+static void lpm_reset(void *lpm);
+static void lpm_final(void *lpm);
+static int lpm_set_level(void *lpm, int level, int first_bit_num);
+static int lpm_add(void *lpm, UINT ip/*host order*/, UCHAR depth, UINT64 nexthop);
+static int lpm_del(void *lpm, UINT ip/*host order*/, UCHAR depth, UCHAR new_depth, UINT64 new_nexthop);
+static int lpm_lookup(void *lpm, UINT ip/*host order*/, OUT UINT64 *next_hop);
+static void lpm_walk(void *lpm, PF_LPM_WALK_CB walk_func, void *ud);
+
+static LPM_FUNC_S g_lpm_funcs = {
+    .reset_func = lpm_reset,
+    .final_func = lpm_final,
+    .set_level_func = lpm_set_level,
+    .add_func = lpm_add,
+    .del_func = lpm_del,
+    .lookup_func = lpm_lookup,
+    .walk_func = lpm_walk
+};
+
+/* 计算index所在的block */
+static inline int lpm_index_2_block(LPM_S *lpm, int index)
 {
-    memset(lpm, 0, sizeof(LPM_S));
-
-    lpm->array_size = array_size;
-    lpm->array = array;
-
-    return 0;
+    int start = (1 << lpm->bit_num[0]);
+    BS_DBGASSERT(index >= start);
+    return (index - start) >> lpm->bit_num[1];
 }
 
-/* 
- 设置每级的位数,除了第一级,要求其他级别都相同,以免形成碎片
- 如: 16-8-8, 24-8, 24-4-4, 16-4-4-4-4
- 比如16-8-8则设置为:
- LPM_SetLevel(lpm, 0, 16);
- LPM_SetLevel(lpm, 1, 8);
- LPM_SetLevel(lpm, 2, 8);
- */
-int LPM_SetLevel(IN LPM_S *lpm, IN int level, IN int bit_num)
+/* 计算block的起始index */
+static inline int lpm_block_2_index(LPM_S *lpm, int block)
 {
-    if (level >= 32) {
-        return -1;
-    }
-    if ((bit_num < 1) || (bit_num > 32)) {
-        return -1;
-    }
+    int start = (1 << lpm->bit_num[0]);
+    return start + (block << lpm->bit_num[1]);
+}
 
-    lpm->bit_num[level] = bit_num;
+static inline void * lpm_block_2_entry(LPM_S *lpm, int block)
+{
+    return (LPM_ENTRY_S *)lpm->array + lpm_block_2_index(lpm, block);
+}
 
-    return 0;
+static inline int lpm_entry_2_index(LPM_S *lpm, void *entry)
+{
+    LPM_ENTRY_S *start = lpm->array;
+    LPM_ENTRY_S *this = entry;
+
+    return this - start;
 }
 
 static int lpm_alloc_entry(IN LPM_S *lpm, IN int level)
 {
-    int start;
-    int i;
-    int num;
+    LPM_ENTRY_S *entry;
+    int num = (1 << lpm->bit_num[1]);
 
-    /* 跳过第一级的所有表项 */
-    start = (1 << lpm->bit_num[0]);
-
-    /* 开始查找空闲块 */
-    num = (1 << lpm->bit_num[level]);
-    for (i=start; i<lpm->array_size; i+=num) {
-        if (lpm->array[i].state == LPM_ENTRY_STATE_FREE) {
-            lpm->array[i].state = LPM_ENTRY_STATE_INVALID;
-            break;
-        }
-    }
-
-    if (i >= lpm->array_size) {
+    entry = FreeList_Get(&lpm->free_list);
+    if (! entry) {
         return -1;
     }
 
-    return i;
+    memset(entry, 0, sizeof(LPM_ENTRY_S) * num);
+
+    int index = lpm_entry_2_index(lpm, entry);
+    entry->state = LPM_ENTRY_STATE_INVALID;
+
+    return index;
 }
 
 static void lpm_free_entrys(LPM_S *lpm, int index)
 {
-    lpm->array[index].state = LPM_ENTRY_STATE_FREE;
+    LPM_ENTRY_S *array = lpm->array;
+    LPM_ENTRY_S *this = &array[index];
+
+    this->state = LPM_ENTRY_STATE_FREE;
+    FreeList_Put(&lpm->free_list, this);
 }
 
-static int lpm_Add(LPM_S *lpm, int level, LPM_ENTRY_S *entrys,
+static int lpm_add_inner(LPM_S *lpm, int level, LPM_ENTRY_S *entrys,
         UINT ip, UCHAR depth, UINT nexthop)
 {
     int level_depth = 0;
@@ -83,6 +95,7 @@ static int lpm_Add(LPM_S *lpm, int level, LPM_ENTRY_S *entrys,
     int ret;
     int next_level_index;
     LPM_ENTRY_S *entry;
+    LPM_ENTRY_S *array = lpm->array;
 
     for (i=0; i<=level; i++) {
         level_depth += lpm->bit_num[i];
@@ -104,17 +117,17 @@ static int lpm_Add(LPM_S *lpm, int level, LPM_ENTRY_S *entrys,
             if (entry->state == LPM_ENTRY_STATE_VALID) {
                 num = 1 << lpm->bit_num[level + 1];
                 for (i=next_level_index; i<next_level_index + num; i++) {
-                    lpm->array[i].state = LPM_ENTRY_STATE_VALID;
-                    lpm->array[i].depth = entrys[index].depth;
-                    lpm->array[i].nexthop = entrys[index].nexthop;
+                    array[i].state = LPM_ENTRY_STATE_VALID;
+                    array[i].depth = entrys[index].depth;
+                    array[i].nexthop = entrys[index].nexthop;
                 }
             }
             entry->state = LPM_ENTRY_STATE_GROUP;
             entry->depth= 0;
-            entry->nexthop = next_level_index;
+            entry->nexthop = lpm_index_2_block(lpm, next_level_index);
         } 
 
-        return lpm_Add(lpm, level + 1, lpm->array + entry->nexthop,
+        return lpm_add_inner(lpm, level + 1, lpm_block_2_entry(lpm, entry->nexthop),
                 ip, depth, nexthop);
     } else {
         num =  (1 << (level_depth - depth));
@@ -128,7 +141,7 @@ static int lpm_Add(LPM_S *lpm, int level, LPM_ENTRY_S *entrys,
                     entrys[i].state = LPM_ENTRY_STATE_VALID;
                 }
             } else {
-                ret = lpm_Add(lpm, level + 1, lpm->array + entrys[i].nexthop, 
+                ret = lpm_add_inner(lpm, level + 1, lpm_block_2_entry(lpm, entrys[i].nexthop), 
                         ip, depth, nexthop);
                 if (ret < 0) {
                     return ret;
@@ -143,7 +156,7 @@ static int lpm_Add(LPM_S *lpm, int level, LPM_ENTRY_S *entrys,
    如果下级全部invalid了，则可以回收它
    如果当前级别没有下一级且所有depth小于当前level,则可以释放
  */
-static int lpm_CanRecycle(LPM_S *lpm, int level, LPM_ENTRY_S *entrys)
+static int lpm_can_recycle(LPM_S *lpm, int level, LPM_ENTRY_S *entrys, int to_state)
 {
     int num;
     int i;
@@ -165,12 +178,16 @@ static int lpm_CanRecycle(LPM_S *lpm, int level, LPM_ENTRY_S *entrys)
         if (entrys[i].depth > up_depth) {
             return 0;
         }
+        /* 目的state为invalid,但存在valid子项,则挖洞 */
+        if ((to_state == LPM_ENTRY_STATE_INVALID) && (entrys[i].state == LPM_ENTRY_STATE_VALID)) {
+            return 0;
+        }
     }
 
     return 1;
 }
 
-static int lpm_Del(LPM_S *lpm, int level, LPM_ENTRY_S *entrys,
+static int lpm_del_inner(LPM_S *lpm, int level, LPM_ENTRY_S *entrys,
         UINT ip, UCHAR depth, UCHAR new_depth, UINT new_nexthop)
 {
     int level_depth = 0;
@@ -181,6 +198,11 @@ static int lpm_Del(LPM_S *lpm, int level, LPM_ENTRY_S *entrys,
     int i;
     LPM_ENTRY_S *entry;
     UINT state;
+
+    if (! entrys) {
+        BS_DBGASSERT(0);
+        return BS_ERR;
+    }
 
     if ((new_depth == 0) && (new_nexthop == 0)) {
         state = LPM_ENTRY_STATE_INVALID;
@@ -204,14 +226,14 @@ static int lpm_Del(LPM_S *lpm, int level, LPM_ENTRY_S *entrys,
             return 0;
         }
 
-        lpm_Del(lpm, level + 1, lpm->array + entry->nexthop,
+        lpm_del_inner(lpm, level + 1, lpm_block_2_entry(lpm, entry->nexthop),
                 ip, depth, new_depth, new_nexthop);
 
-        if (lpm_CanRecycle(lpm, level+1, lpm->array + entry->nexthop)) {
-            lpm_free_entrys(lpm, entry->nexthop);
-            entrys[i].nexthop = new_nexthop;
-            entrys[i].depth = new_depth;
-            entrys[i].state = state;
+        if (lpm_can_recycle(lpm, level+1, lpm_block_2_entry(lpm, entry->nexthop), state)) {
+            lpm_free_entrys(lpm, lpm_block_2_index(lpm, entry->nexthop));
+            entry->nexthop = new_nexthop;
+            entry->depth = new_depth;
+            entry->state = state;
         }
     } else {
         num =  (1 << (level_depth - depth));
@@ -219,7 +241,7 @@ static int lpm_Del(LPM_S *lpm, int level, LPM_ENTRY_S *entrys,
 
         for (i = index; i < (index + num); i++) {
             if (entrys[i].state == LPM_ENTRY_STATE_GROUP) {
-                lpm_Del(lpm, level + 1, lpm->array + entry->nexthop,
+                lpm_del_inner(lpm, level + 1, lpm_block_2_entry(lpm, entrys[i].nexthop),
                         ip, depth, new_depth, new_nexthop);
             } else {
                 if (entrys[i].depth <= depth) {
@@ -234,10 +256,141 @@ static int lpm_Del(LPM_S *lpm, int level, LPM_ENTRY_S *entrys,
     return 0;
 }
 
-int LPM_Add(IN LPM_S *lpm, UINT ip/*host order*/, UCHAR depth, UINT nexthop)
+static int lpm_lookup_inner(LPM_S *lpm, UINT ip, OUT UINT64 *next_hop)
 {
+    LPM_ENTRY_S *entrys = lpm->array;
+    LPM_ENTRY_S *entry;
+    int start_bit = 0;
+    int stop_bit;
+    UINT mask;
+    int i;
+    UINT index;
+
+    for (i=0; i<lpm->level; i++) {
+        stop_bit = start_bit + lpm->bit_num[i];
+        mask = PREFIX_2_MASK(start_bit); /* 获取上级mask */
+        index = ip & (~mask);  /* 抹去上级对应bits */
+        index = index >> (32 - stop_bit);  /* 移动到stop位 */
+        entry = &entrys[index];
+        if (entry->state == LPM_ENTRY_STATE_VALID) {
+            *next_hop = entry->nexthop;
+            return 0;
+        } else if (entry->state == LPM_ENTRY_STATE_GROUP) {
+            entrys = lpm_block_2_entry(lpm, entry->nexthop);
+        } else {
+            break;
+        }
+        start_bit = stop_bit;
+    }
+
+    return BS_NOT_FOUND;
+}
+
+static int lpm_walk_inner(LPM_S *lpm, int level, LPM_ENTRY_S *entrys,
+        UINT ip, PF_LPM_WALK_CB walk_func, void *ud)
+{
+    int num = 1<<lpm->bit_num[level];
+    int i;
+    int level_depth = 0;
+    int up_depth = 0; /* 此级之前的bit_num之和 */
+    int down_depth;
+    UINT up_mask;
+
+    for (i=0; i<=level; i++) {
+        level_depth += lpm->bit_num[i];
+    }
+
+    up_depth = level_depth - lpm->bit_num[level];
+    down_depth = 32 - level_depth;
+    up_mask = PREFIX_2_MASK(up_depth);
+
+    for (i=0; i<num; i++) {
+        ip = ip & up_mask;
+        ip |= (i << down_depth);
+        if (entrys[i].state == LPM_ENTRY_STATE_GROUP) {
+            if (BS_WALK_STOP == lpm_walk_inner(lpm, level + 1,
+                        lpm_block_2_entry(lpm, entrys[i].nexthop), ip, walk_func, ud)) {
+                return BS_WALK_STOP;
+            }
+        } else if (entrys[i].state == LPM_ENTRY_STATE_VALID) {
+            if (BS_WALK_STOP == walk_func(ip, entrys[i].depth, entrys[i].nexthop, ud)) {
+                return BS_WALK_STOP;
+            }
+        }
+    }
+
+    return BS_WALK_CONTINUE;
+}
+
+static void lpm_final(void *plpm)
+{
+    LPM_S *lpm = plpm;
+
+    if (lpm->array_alloced) {
+        MEM_Free(lpm->array);
+    }
+
+    memset(lpm, 0, sizeof(LPM_S));
+}
+
+static int lpm_init_freelist(LPM_S *lpm)
+{
+    int start = (1 << lpm->bit_num[0]);
+    int num = (1 << lpm->bit_num[1]);
+    int left = lpm->array_size - start;
+    int block_count = left / num;
+    int i;
+
+    for (i=0; i<block_count; i++) {
+        void *entry = lpm_block_2_entry(lpm, i);
+        FreeList_Put(&lpm->free_list, entry);
+    }
+
+    return 0;
+}
+
+
+/* 
+ 设置每级的位数,除了第一级,要求其他级别都相同
+ 如: 16-8-8, 24-8, 24-4-4, 16-4-4-4-4
+ 比如16-8-8则设置为:
+ LPM_SetLevel(lpm, 3, 16);
+ */
+static int lpm_set_level(void *plpm, int level, int first_bit_num)
+{
+    LPM_S *lpm = plpm;
+
+    BS_DBGASSERT(level>= 2);
+    BS_DBGASSERT(level<= 8);
+    BS_DBGASSERT(first_bit_num >= 8);
+    BS_DBGASSERT(first_bit_num <= 24);
+    BS_DBGASSERT(lpm->bit_num[0] == 0);
+
+    int other_bit_num = (32 - first_bit_num) / (level - 1);
+
+    BS_DBGASSERT(other_bit_num * (level - 1) + first_bit_num == 32);
+    BS_DBGASSERT(lpm->array_size > (1<<first_bit_num));
+
+    int i;
+    lpm->bit_num[0] = first_bit_num;
+    for (i=1; i<level; i++) {
+        lpm->bit_num[i] = other_bit_num;
+    }
+
+    lpm->level = level;
+
+    lpm_init_freelist(lpm);
+
+    return 0;
+}
+
+static int lpm_add(void *plpm, UINT ip/*host order*/, UCHAR depth, UINT64 nexthop)
+{
+    LPM_S *lpm = plpm;
     UINT ip_masked;
     UINT mask;
+
+    BS_DBGASSERT(nexthop <= 0xffffff);
 
     if ((depth < 1) || (depth > 32)) {
         return -1;
@@ -247,10 +400,61 @@ int LPM_Add(IN LPM_S *lpm, UINT ip/*host order*/, UCHAR depth, UINT nexthop)
 
     ip_masked = ip & mask;
 
-    return lpm_Add(lpm, 0, lpm->array, ip_masked, depth, nexthop);
+    return lpm_add_inner(lpm, 0, lpm->array, ip_masked, depth, nexthop);
 }
 
-int LPM_Del(IN LPM_S *lpm, UINT ip/*host order*/, UCHAR depth, UCHAR new_depth, UINT nexthop)
+static int lpm_del(void *plpm, UINT ip/*host order*/, UCHAR depth, UCHAR new_depth, UINT64 new_nexthop)
 {
-    return lpm_Del(lpm, 0, lpm->array, ip, depth, new_depth, nexthop);
+    LPM_S *lpm = plpm;
+    return lpm_del_inner(lpm, 0, lpm->array, ip, depth, new_depth, new_nexthop);
 }
+
+static int lpm_lookup(void *lpm, UINT ip/*host order*/, OUT UINT64 *next_hop)
+{
+    return lpm_lookup_inner(lpm, ip, next_hop);
+}
+
+static void lpm_walk(void *plpm, PF_LPM_WALK_CB walk_func, void *ud)
+{
+    LPM_S *lpm = plpm;
+    lpm_walk_inner(lpm, 0, lpm->array, 0, walk_func, ud);
+}
+
+static void lpm_reset(void *plpm)
+{
+    LPM_S *lpm = plpm;
+    LPM_ENTRY_S *array = lpm->array;
+    UINT array_size = lpm->array_size;
+    UINT array_alloced = lpm->array_alloced;
+
+    memset(lpm, 0, sizeof(LPM_S));
+    FreeList_Init(&lpm->free_list);
+
+    lpm->array_alloced = array_alloced;
+    lpm->array_size = array_size;
+    lpm->array = array;
+    lpm->funcs = &g_lpm_funcs;
+}
+
+int LPM_Init(IN LPM_S *lpm, IN UINT array_size, IN LPM_ENTRY_S *array/* 可以为NULL */)
+{
+    memset(lpm, 0, sizeof(LPM_S));
+
+    /* 如果外面没有传入内存,则自动申请 */
+    if (! array) {
+        array = MEM_ZMalloc(array_size * sizeof(LPM_ENTRY_S));
+        if (! array) {
+            RETURN(BS_NO_MEMORY);
+        }
+        lpm->array_alloced = 1;
+    }
+
+    FreeList_Init(&lpm->free_list);
+
+    lpm->array_size = array_size;
+    lpm->array = array;
+    lpm->funcs = &g_lpm_funcs;
+
+    return 0;
+}
+

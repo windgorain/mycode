@@ -29,7 +29,7 @@ BS_STATUS WAN_BlackHole_Init()
         return BS_OK;
     }
 
-    g_uiWanBlackHoleIfIndex = CompIf_CreateIf(COMP_IF_BLACK_HOLE_TYPE);
+    g_uiWanBlackHoleIfIndex = IFNET_CreateIf(COMP_IF_BLACK_HOLE_TYPE);
     if (0 == g_uiWanBlackHoleIfIndex)
     {
         return (BS_ERR);

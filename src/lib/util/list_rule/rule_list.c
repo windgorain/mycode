@@ -26,10 +26,29 @@ void RuleList_Finit(RULE_LIST_S *pstList, PF_RULE_FREE pfFunc, IN VOID *pUserHan
     }
 }
 
+void RuleList_ScanRule(RULE_LIST_S *pstList, PF_RULE_SCAN pfFunc, IN VOID *pUserHandle)
+{
+    RULE_NODE_S *pstRule;
+    BOOL_T bIsContinue;
+
+    if (NULL != pfFunc)
+    {
+        DLL_SCAN(&pstList->stRuleList, pstRule) {
+            bIsContinue = pfFunc(pstRule, pUserHandle);
+            if (!bIsContinue)
+            {
+                break;
+            }
+        }
+    }
+    return;
+}
+
 void RuleList_Add(RULE_LIST_S * pstList, UINT uiRuleID, RULE_NODE_S *pstRule)
 {
     DLL_HEAD_S *listhead;
     RULE_NODE_S *pstCur;
+    RULE_NODE_S *pstLast;
     RULE_NODE_S *pstTemp = NULL;
 
     listhead = &pstList->stRuleList;
@@ -39,7 +58,14 @@ void RuleList_Add(RULE_LIST_S * pstList, UINT uiRuleID, RULE_NODE_S *pstRule)
     if (DLL_COUNT(listhead) == 0) {
         /* 没有rule,则加在队列头 */
         DLL_ADD(listhead, &(pstRule->stLinkNode));
-        return ;
+        return;
+    }
+
+    /* 大于最大id插在最后 */
+    pstLast = DLL_LAST(&pstList->stRuleList);
+    if (NULL == pstLast || uiRuleID > pstLast->uiRuleID) {
+        DLL_ADD(listhead, &(pstRule->stLinkNode));
+        return;
     }
 
     /* 遍历链表 */
@@ -125,18 +151,60 @@ RULE_NODE_S * RuleList_GetRule(RULE_LIST_S *pstList, IN UINT uiRuleID)
     return NULL;
 }
 
+RULE_NODE_S * RuleList_GetLastRule(RULE_LIST_S *pstList)
+{
+    return DLL_LAST(&pstList->stRuleList);
+}
+
+BS_STATUS RuleList_IncreaseID(RULE_LIST_S *pstList, IN UINT uiStart, IN UINT uiEnd, IN UINT uiStep)
+{
+    UINT uiRuleID;
+    RULE_NODE_S *pstRule;
+    RULE_NODE_S *pstTmp;
+
+    DLL_SAFE_SCAN_REVERSE(&pstList->stRuleList, pstRule, pstTmp)
+    {
+        uiRuleID = pstRule->uiRuleID;
+        if (uiRuleID >= uiStart && uiRuleID <= uiEnd)
+        {
+            pstRule->uiRuleID = uiRuleID + uiStep;
+        }
+        
+        if (uiRuleID <= uiStart)
+        {
+            break;
+        }
+    }
+
+    return BS_OK;
+}
+
 /* 移动rule */
 BS_STATUS RuleList_MoveRule(RULE_LIST_S *pstList, UINT uiOldRuleID, UINT uiNewRuleID)
 {
     RULE_NODE_S *pstNode;
-
-    pstNode = RuleList_Del(pstList, uiOldRuleID);
-    if (NULL == pstNode) {
+    RULE_NODE_S* pstNodeTmp;
+    RULE_NODE_S* pstOldNode;
+    
+    pstOldNode = RuleList_Del(pstList, uiOldRuleID);
+    if (NULL == pstOldNode) {
         return BS_NOT_FOUND;
     }
+    pstNode = DLL_LAST(&pstList->stRuleList);
+    if (NULL == pstNode || pstNode->uiRuleID < uiNewRuleID) {
+        pstOldNode->uiRuleID = uiNewRuleID;
+        DLL_ADD(&pstList->stRuleList, &pstOldNode->stLinkNode);
+        return BS_OK;
+    }
 
-    RuleList_Add(pstList, uiNewRuleID, pstNode);
-
+    DLL_SAFE_SCAN(&pstList->stRuleList, pstNode, pstNodeTmp) {
+        if (pstNode->uiRuleID > uiNewRuleID) {
+            DLL_INSERT_BEFORE(&pstList->stRuleList, &pstOldNode->stLinkNode, &pstNode->stLinkNode);
+            pstOldNode->uiRuleID = uiNewRuleID;
+            break;
+        }
+    }
+    
     return BS_OK;
 }
 
@@ -169,4 +237,16 @@ RULE_NODE_S * RuleList_GetNextByID(RULE_LIST_S *pstList, UINT uiCurrentRuleID /*
 UINT RuleList_Count(RULE_LIST_S *pstList)
 {
     return DLL_COUNT(&pstList->stRuleList);
+}
+
+UINT RuleList_ResetID(RULE_LIST_S* pstList, UINT uiStep)
+{
+    RULE_NODE_S *pstNode;
+    RULE_NODE_S* pstNodeTmp;
+
+    DLL_SAFE_SCAN_REVERSE(&pstList->stRuleList, pstNode, pstNodeTmp) {
+        pstNode->uiRuleID += uiStep;
+    }
+
+    return BS_OK;
 }

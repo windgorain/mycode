@@ -12,6 +12,7 @@
 #include "utl/socket_utl.h"
 #include "utl/bitmap1_utl.h"
 #include "utl/txt_utl.h"
+#include "utl/file_utl.h"
 #include "utl/exec_utl.h"
 
 #define _SSHOW_DFT_MAX_SOCKET_ID 8192
@@ -20,6 +21,13 @@ typedef struct
 {
     BITMAP_S stBitMap;
 }_SSHOW_CTRL_S;
+
+typedef struct {
+    char *filename;
+    int line;
+}_SSHOW_FL_S;
+
+static _SSHOW_FL_S g_sshow_fls[_SSHOW_DFT_MAX_SOCKET_ID];
 
 #define _SSHOW_TYPE_TCP 0x1
 #define _SSHOW_TYPE_UDP 0x2
@@ -30,35 +38,40 @@ typedef struct
 
 STATIC _SSHOW_CTRL_S g_stSocketShowCtrl;
 
-BS_STATUS SSHOW_Init()
+static void sshow_init()
 {
     Mem_Zero(&g_stSocketShowCtrl, sizeof(_SSHOW_CTRL_S));
-
     BITMAP_Create(&g_stSocketShowCtrl.stBitMap, _SSHOW_DFT_MAX_SOCKET_ID);
-
-    return BS_OK;
 }
 
-BS_STATUS _sshow_Add(IN INT iSocketId)
+CONSTRUCTOR(init) {
+    sshow_init();
+}
+
+PLUG_API BS_STATUS _sshow_Add(IN INT iSocketId, char *file, int line)
 {
     if (iSocketId >= _SSHOW_DFT_MAX_SOCKET_ID)
     {
         RETURN(BS_OUT_OF_RANGE);
     }
 
+    BS_DBGASSERT(NULL != file);
+
     BITMAP_SET(&g_stSocketShowCtrl.stBitMap, iSocketId);
+    g_sshow_fls[iSocketId].filename = file;
+    g_sshow_fls[iSocketId].line = line;
 
     return BS_OK;
 }
 
-VOID _sshow_Del(IN INT iSocketId)
+PLUG_API VOID _sshow_Del(IN INT iSocketId)
 {
     if (iSocketId >= _SSHOW_DFT_MAX_SOCKET_ID)
     {
         return;
     }
 
-    BITMAP1_CLR(&g_stSocketShowCtrl.stBitMap, iSocketId);
+    BITMAP_CLR(&g_stSocketShowCtrl.stBitMap, iSocketId);
 
     return;
 }
@@ -137,19 +150,20 @@ static VOID _sshow_Show (IN UINT uiTypeBit)
     USHORT usPeerPort;
     UINT uiPeerIp;
     int iType;
-//    struct tcp_info tcpinfo;
+    char *filename = "";
 
-    EXEC_OutString(" ID    Type  Family  IsBlock  HPort  RIP              RPort\r\n"
+    EXEC_OutString(" ID    Type  Family  LPort  RIP              RPort  File\r\n"
         "------------------------------------------------------------------------------\r\n");
 
     for (i=1; i< _SSHOW_DFT_MAX_SOCKET_ID; i++)
     {
-        if (BITMAP1_ISSET(&g_stSocketShowCtrl.stBitMap, i))
+        if (BITMAP_ISSET(&g_stSocketShowCtrl.stBitMap, i))
         {
             iAddrLen = sizeof(int);
-            getsockopt(i, SOL_SOCKET, SO_TYPE, (CHAR*)&iType, &iAddrLen);
-            if ((uiTypeBit & sshow_GetTypeBitBySocketType(iType)) == 0)
-            {
+            if (0 != getsockopt(i, SOL_SOCKET, SO_TYPE, (CHAR*)&iType, &iAddrLen)) {
+//                continue;
+            }
+            if ((uiTypeBit & sshow_GetTypeBitBySocketType(iType)) == 0) {
                 continue;
             }
 
@@ -198,14 +212,15 @@ static VOID _sshow_Show (IN UINT uiTypeBit)
             usPeerPort = ntohs(usPeerPort);
             uiPeerIp = ntohl(uiPeerIp);
 
-            EXEC_OutInfo(" %-4d  %-4s  %-6s  %-7s  %-5d  %-15s  %-5d\r\n",
-                i,
-                sshow_GetTypeNameByType(iType),
-                pcFamily,
-                "True",
-                usLocalPort,
-                Socket_IpToName(uiPeerIp),
-                usPeerPort);
+            filename = "";
+            if (g_sshow_fls[i].filename) {
+                filename = FILE_GetFileNameFromPath(g_sshow_fls[i].filename);
+            }
+
+            EXEC_OutInfo(" %-4d  %-4s  %-6s  %-5d  %-15s  %-5d  %s:%d \r\n",
+                i, sshow_GetTypeNameByType(iType), pcFamily, 
+                usLocalPort, Socket_IpToName(uiPeerIp), usPeerPort,
+                filename, g_sshow_fls[i].line);
         }
     }
     EXEC_OutString("\r\n");

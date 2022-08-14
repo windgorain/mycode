@@ -130,7 +130,8 @@ static BS_STATUS _svpnc_tr_DownHandshake(IN FSM_S *pstFsm, IN UINT uiEvent)
         return BS_OK;
     }
 
-    hKvHandle = KV_Create(0);
+    KV_PARAM_S kv_param = {0};
+    hKvHandle = KV_Create(&kv_param);
     if (hKvHandle == NULL) {
         FSM_PushEvent(pstFsm, E_UP_ERR);
         return BS_OK;

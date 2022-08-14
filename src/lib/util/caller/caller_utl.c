@@ -6,7 +6,6 @@
 ******************************************************************************/
 #include "bs.h"
 
-#include "utl/ic_utl.h"
 #include "utl/caller_utl.h"
 
 #define _CALLER_DBG_FLAG 0x1

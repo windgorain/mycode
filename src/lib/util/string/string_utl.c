@@ -23,10 +23,12 @@ HSTRING STRING_Create()
     }
 
     VBUF_Init(pstVBuf);
+    VBUF_SetMemDouble(pstVBuf, 1);
 
     /* 初始化成"\0"空字符串 */
     if (BS_OK != VBUF_CpyFromBuf(pstVBuf, "", 1)) {
         VBUF_Finit(pstVBuf);
+        MEM_Free(pstVBuf);
         return NULL;
     }
 
@@ -98,12 +100,17 @@ INT STRING_CmpByString(IN HSTRING hHandle1, IN HSTRING hHandle2)
 
 CHAR * STRING_GetBuf(IN HSTRING hHandle)
 {
-    if (VBUF_GetDataLength(hHandle) == 0)
-    {
-        return "";
-    }
-
     return VBUF_GetData(hHandle);
+}
+
+void STRING_Clear(HSTRING hHandle)
+{
+    VBUF_CutAll(hHandle);
+}
+
+void STRING_CutHead(HSTRING hHandle, int len)
+{
+    VBUF_CutHead(hHandle, len);
 }
 
 

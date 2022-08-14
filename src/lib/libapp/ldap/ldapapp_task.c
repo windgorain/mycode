@@ -14,6 +14,8 @@
 
 #define LDAPAPP_EVENT_AUTH_MSG 0x1
 
+typedef void (*PF_LDAPAPP_Notify_Func)(int code, UINT id);
+
 typedef struct
 {
     LDAPUTL_HANDLE hLdap;
@@ -97,7 +99,7 @@ static BS_WALK_RET_E _ldapapp_task_UserEvent(IN UINT uiTriggerEvent, IN USER_HAN
     return BS_WALK_CONTINUE;
 }
 
-static BS_STATUS _ldapapp_task_main(IN USER_HANDLE_S *pstUserHandle)
+static void _ldapapp_task_main(IN USER_HANDLE_S *pstUserHandle)
 {
     while(1)
     {

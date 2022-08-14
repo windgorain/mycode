@@ -21,14 +21,17 @@ static PLUG_MGR_S g_stPlugctMgr;
 
 BS_STATUS PLUGCT_Init()
 {
+    char buf[256];
+
     PlugMgr_Init(&g_stPlugctMgr);
 
-    return PlugMgr_LoadByCfgFile(&g_stPlugctMgr, "plug_config.ini");
+    return PlugMgr_LoadByCfgFile(&g_stPlugctMgr, SYSINFO_ExpandConfPath(buf, sizeof(buf), "plug_config.ini"));
 }
 
 static int _plugct_LoadManual(char *plug_name)
 {
-    return PlugMgr_LoadManual(&g_stPlugctMgr, "plug_config.ini", plug_name);
+    char buf[256];
+    return PlugMgr_LoadManual(&g_stPlugctMgr, SYSINFO_ExpandConfPath(buf, sizeof(buf), "plug_config.ini"), plug_name);
 }
 
 /* load plugin _STRING_ */
@@ -63,7 +66,7 @@ PLUG_API int PLUGCT_ShowPlug(UINT argc, char **argv)
     return 0;
 }
 
-UINT PLUGCT_GetLoadStage()
+PLUG_API UINT PLUGCT_GetLoadStage()
 {
     return PlugMgr_GetStage(&g_stPlugctMgr);
 }

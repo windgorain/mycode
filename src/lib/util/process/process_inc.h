@@ -26,6 +26,7 @@ BOOL_T _OS_PROCESS_IsPidExist(IN UINT pid);
 BOOL_T _OS_PROCESS_IsProcessNameExist(IN char *process);
 int _OS_PROCESS_RenameSelf(IN char *new_name);
 UINT _OS_PROCESS_GetPid();
+UINT64 _OS_PROCESS_GetTid();
 
 #ifdef __cplusplus
     }

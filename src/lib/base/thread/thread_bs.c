@@ -12,13 +12,13 @@ BS_STATUS THREAD_Display()
     THREAD_NAMED_ITER_S iter;
     THREAD_NAMED_INFO_S *info;
 
-    EXEC_OutString(" ThreadName\r\n"
+    EXEC_OutString(" ThreadID ThreadName\r\n"
         "--------------------------------------------------------------------------\r\n");
 
     ThreadNamed_InitIter(&iter);
 
     while (NULL != (info = ThreadNamed_GetNext(&iter))) {
-        EXEC_OutInfo(" %-16s\r\n", info->name);
+        EXEC_OutInfo(" %-8u %-16s\r\n", info->thread_id, info->name);
     }
 
     EXEC_OutString("\r\n");

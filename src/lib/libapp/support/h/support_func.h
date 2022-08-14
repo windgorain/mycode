@@ -12,7 +12,6 @@
     extern "C" {
 #endif /* __cplusplus */
 
-VOID SupportComp_Init();
 
 #ifdef __cplusplus
     }

@@ -2,25 +2,24 @@
 
 #include "utl/bitmap_utl.h"
 #include "utl/time_utl.h"
+#include "utl/rdtsc_utl.h"
 #include "utl/jhash_utl.h"
 #include "utl/bloomfilter_utl.h"
 
-static unsigned long HZ;
-
 static void _bloomfilter_TimeProcess(BLOOM_FILTER_S *pstBloomFilter)
 {
-    unsigned long now_tick;
     int i;
-    int count;
+    UINT64 count;
+    UINT64 ts;
 
     if (! (pstBloomFilter->uiFlag & BLOOMFILTER_AUTO_STEP_ENABLE)) {
         return;
     }
 
-    now_tick = TM_GetTick();
+    ts = RDTSC_Get();
 
-    count = (now_tick - pstBloomFilter->uiOldTick) / HZ;
-    pstBloomFilter->uiOldTick = pstBloomFilter->uiOldTick + count * HZ;
+    count = (ts - pstBloomFilter->uiOldTs) / RDTSC_HZ;
+    pstBloomFilter->uiOldTs = pstBloomFilter->uiOldTs + count * RDTSC_HZ;
 
     if (count >= pstBloomFilter->uiSettdSteps) {
         BITMAP_Zero(&pstBloomFilter->stBitMap);
@@ -33,13 +32,17 @@ static void _bloomfilter_TimeProcess(BLOOM_FILTER_S *pstBloomFilter)
 
 int BloomFilter_Init(IN BLOOM_FILTER_S *pstBloomFilter, IN UINT uiBitCount)
 {
-    HZ = TM_HZ;
     return BITMAP_Create(&pstBloomFilter->stBitMap, uiBitCount);
 }
 
 void BloomFilter_Final(BLOOM_FILTER_S *pstBloomFilter)
 {
     BITMAP_Destory(&pstBloomFilter->stBitMap);
+}
+
+void BloomFilter_Reset(BLOOM_FILTER_S *pstBloomFilter)
+{
+    BITMAP_ClrAll(&pstBloomFilter->stBitMap);
 }
 
 void BloomFilter_SetStepsToClearAll(BLOOM_FILTER_S *pstBloomFilter, UINT uiSteps)
@@ -65,7 +68,7 @@ void BloomFilter_SetAutoStep(BLOOM_FILTER_S *pstBloomFilter, int enable)
     }
 }
 
-int BloomFilter_IsSet(IN BLOOM_FILTER_S *pstBloomFilter, IN VOID *pData, IN UINT uiDataLen)
+UINT BloomFilter_IsSet(IN BLOOM_FILTER_S *pstBloomFilter, IN VOID *pData, IN UINT uiDataLen)
 {
     UINT uiHash;
 
@@ -75,7 +78,19 @@ int BloomFilter_IsSet(IN BLOOM_FILTER_S *pstBloomFilter, IN VOID *pData, IN UINT
     return BITMAP_ISSET(&pstBloomFilter->stBitMap, uiHash);
 }
 
-/* 成功返回0,失败返回-1 */
+void BloomFilter_Set(BLOOM_FILTER_S *pstBloomFilter, void *pData, UINT uiDataLen)
+{
+    UINT uiHash;
+
+    _bloomfilter_TimeProcess(pstBloomFilter);
+
+    uiHash = JHASH_GeneralBuffer(pData, uiDataLen, 0);
+    uiHash = (uiHash % pstBloomFilter->stBitMap.ulBitNum);
+
+    BITMAP_SET(&pstBloomFilter->stBitMap, uiHash);
+}
+
+/* 成功返回0,如果已经存在则返回ALREADY_EXIST */
 int BloomFilter_TrySet(IN BLOOM_FILTER_S *pstBloomFilter, IN VOID *pData, IN UINT uiDataLen)
 {
     UINT uiHash;
@@ -86,12 +101,29 @@ int BloomFilter_TrySet(IN BLOOM_FILTER_S *pstBloomFilter, IN VOID *pData, IN UIN
     uiHash = (uiHash % pstBloomFilter->stBitMap.ulBitNum);
 
     if (BITMAP_ISSET(&pstBloomFilter->stBitMap, uiHash)) {
-        return -1;
+        return BS_ALREADY_EXIST;
     }
 
     BITMAP_SET(&pstBloomFilter->stBitMap, uiHash);
 
     return 0;
+}
+
+void BloomFilter_Copy(BLOOM_FILTER_S *src, BLOOM_FILTER_S *dst)
+{
+    BS_DBGASSERT(NULL != src);
+    BS_DBGASSERT(NULL != dst);
+
+    BITMAP_Copy(&src->stBitMap, &dst->stBitMap);
+}
+
+void BloomFilter_Or(BLOOM_FILTER_S *src1, BLOOM_FILTER_S *src2, BLOOM_FILTER_S *dst)
+{
+    BS_DBGASSERT(NULL != src1);
+    BS_DBGASSERT(NULL != src2);
+    BS_DBGASSERT(NULL != dst);
+
+    BITMAP_Or(&src1->stBitMap, &src2->stBitMap, &dst->stBitMap);
 }
 
 void BloomFilter_Step(IN BLOOM_FILTER_S *pstBloomFilter)

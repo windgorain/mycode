@@ -59,7 +59,7 @@ static IPFWD_SERVICE_RET_E _wan_nat_DownPktInput
 
     ifIndex = MBUF_GET_SEND_IF_INDEX(pstMbuf);
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
 
     pstIfData = MAP_Get(g_hWanNatAgg, &ifIndex, sizeof(IF_INDEX));
 
@@ -69,7 +69,7 @@ static IPFWD_SERVICE_RET_E _wan_nat_DownPktInput
         eRet = NAT_PacketTranslateByMbuf(pstIfData->hNatHandle, pstMbuf, FALSE, &uiVFID);
     }
 
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     if (NULL == pstIfData)
     {
@@ -103,7 +103,7 @@ static IPFWD_SERVICE_RET_E _wan_nat_UpPktInput
 
     ifIndex = MBUF_GET_RECV_IF_INDEX(pstMbuf);
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
 
     pstIfData = MAP_Get(g_hWanNatAgg, &ifIndex, sizeof(IF_INDEX));
 
@@ -113,7 +113,7 @@ static IPFWD_SERVICE_RET_E _wan_nat_UpPktInput
         eRet = NAT_PacketTranslateByMbuf(pstIfData->hNatHandle, pstMbuf, TRUE, &uiVFID);
     }
 
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     if (BS_OK != eRet)
     {
@@ -148,11 +148,11 @@ static VOID _wan_nat_TimeOut(IN HANDLE hTimerHandle, IN USER_HANDLE_S *pstUserHa
 {
     UINT uiPhase;
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
 
     MAP_Walk(g_hWanNatAgg, _wan_nat_TimeOutEach, NULL);
 
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 }
 
 static VOID _wan_nat_IPAddrEventNotify
@@ -169,7 +169,7 @@ static VOID _wan_nat_IPAddrEventNotify
     _WAN_NAT_IF_CTRL_S *pstIfData;
     UINT iPhase;
 
-    iPhase = RcuBs_Lock();
+    iPhase = RcuEngine_Lock();
 
     pstIfData = MAP_Get(g_hWanNatAgg, &ifIndex, sizeof(IF_INDEX));
     if (NULL != pstIfData)
@@ -183,7 +183,7 @@ static VOID _wan_nat_IPAddrEventNotify
         NAT_SetPubIp(pstIfData->hNatHandle, auiPubIp);
     }
 
-    RcuBs_UnLock(iPhase);
+    RcuEngine_UnLock(iPhase);
 
     return;
 }
@@ -220,7 +220,7 @@ static BS_STATUS _wan_nat_SetOutBound(IN IF_INDEX ifIndex)
 
     NAT_SetPubIp(pstIfData->hNatHandle, auiPubIp);
 
-    MAP_Add(g_hWanNatAgg, &ifIndex, sizeof(IF_INDEX), pstIfData);
+    MAP_Add(g_hWanNatAgg, &pstIfData->ifIndex, sizeof(IF_INDEX), pstIfData, 0);
     
     return BS_OK;
 }
@@ -241,7 +241,7 @@ static BS_STATUS _wan_nat_DelOutBound(IN IF_INDEX ifIndex)
 
     if (NULL != pstIfData)
     {
-        RcuBs_Free(&pstIfData->stRuc, _wan_nat_RcuFree);
+        RcuEngine_Call(&pstIfData->stRuc, _wan_nat_RcuFree);
     }
     
     return BS_OK;
@@ -252,9 +252,9 @@ VOID _wan_nat_Save(IN IF_INDEX ifIndex, IN HANDLE hFile)
     _WAN_NAT_IF_CTRL_S *pstIfData;
     UINT uiPhase;
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     pstIfData = MAP_Get(g_hWanNatAgg, &ifIndex, sizeof(IF_INDEX));
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     if (NULL == pstIfData)
     {
@@ -320,7 +320,7 @@ static BS_STATUS _wan_nat_kf_Add(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, IN
         return BS_OK;
     }
 
-    ifIndex = CompIf_GetIfIndex(pcInterface);
+    ifIndex = IFNET_GetIfIndex(pcInterface);
     if (ifIndex == IF_INVALID_INDEX)
     {
         JSON_SetFailed(pstParam->pstJson, "Interface not exist");
@@ -353,7 +353,7 @@ static BS_STATUS _wan_nat_kf_Del(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, IN
         if ((stName.uiLen != 0) && (stName.uiLen < sizeof(szName)))
         {
             TXT_Strlcpy(szName, stName.pcData, stName.uiLen + 1);
-            ifIndex = CompIf_GetIfIndex(szName);
+            ifIndex = IFNET_GetIfIndex(szName);
             if (ifIndex != IF_INVALID_INDEX)
             {
                 WAN_NAT_DelOutBound(ifIndex);
@@ -383,7 +383,7 @@ static BS_STATUS _wan_nat_kf_List(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, I
         return BS_OK;
     }
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
 
     while (NULL != (pstEle = MAP_GetNext(g_hWanNatAgg, pstEle)))
     {
@@ -395,7 +395,7 @@ static BS_STATUS _wan_nat_kf_List(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, I
             continue;
         }
 
-        if (BS_OK != CompIf_Ioctl(pstNatIfCtrl->ifIndex, IFNET_CMD_GET_IFNAME, szIfName))
+        if (BS_OK != IFNET_Ioctl(pstNatIfCtrl->ifIndex, IFNET_CMD_GET_IFNAME, szIfName))
         {
             continue;
         }
@@ -406,7 +406,7 @@ static BS_STATUS _wan_nat_kf_List(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, I
         cJSON_AddItemToArray(pstArray, pstResJson);
     }
 
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     cJSON_AddItemToObject(pstParam->pstJson, "data", pstArray);
 
@@ -437,12 +437,12 @@ BS_STATUS WAN_NAT_Init()
 {
     int ret;
 
-    CompIf_RegEvent(_wan_nat_IfEvent, NULL);
-    CompIf_RegSave(_wan_nat_Save);
+    IFNET_RegEvent(_wan_nat_IfEvent, NULL);
+    IFNET_RegSave(_wan_nat_Save);
 
     MUTEX_Init(&g_stWanNatMutex);
 
-    g_hWanNatAgg = MAP_Create();
+    g_hWanNatAgg = MAP_Create(0);
     if (NULL == g_hWanNatAgg)
     {
         return BS_NO_MEMORY;
@@ -472,9 +472,9 @@ BS_STATUS WAN_NAT_Init()
 
 BS_STATUS WAN_NAT_KfInit()
 {
-    COMP_KFAPP_RegFunc("wan.nat.Add", _wan_nat_kf_Add, NULL);
-    COMP_KFAPP_RegFunc("wan.nat.Delete", _wan_nat_kf_Del, NULL);
-    COMP_KFAPP_RegFunc("wan.nat.List", _wan_nat_kf_List, NULL);
+    KFAPP_RegFunc("wan.nat.Add", _wan_nat_kf_Add, NULL);
+    KFAPP_RegFunc("wan.nat.Delete", _wan_nat_kf_Del, NULL);
+    KFAPP_RegFunc("wan.nat.List", _wan_nat_kf_List, NULL);
 
 	return BS_OK;
 }
@@ -515,9 +515,9 @@ PLUG_API BS_STATUS WAN_NAT_DebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     UINT uiPhase;
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     MAP_Walk(g_hWanNatAgg, _wan_nat_SetDbgFlag, UINT_HANDLE(NAT_DBG_PACKET));
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
 	return BS_OK;
 }
@@ -526,9 +526,9 @@ PLUG_API BS_STATUS WAN_NAT_NoDebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     UINT uiPhase;
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     MAP_Walk(g_hWanNatAgg, _wan_nat_ClrDbgFlag, UINT_HANDLE(NAT_DBG_PACKET));
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     return BS_OK;
 }

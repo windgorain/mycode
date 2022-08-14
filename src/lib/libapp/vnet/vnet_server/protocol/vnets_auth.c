@@ -59,7 +59,6 @@ static BS_STATUS vnets_auth_RecvAuthRequest(IN MIME_HANDLE hMime, IN VNETS_PROTO
 {
     CHAR *pszUserName;
     CHAR *pszPasswd;
-    BOOL_T bAuthSuccess = TRUE;
     BOOL_T bSuccess;
     VNET_USER_REASON_E eReason = VNET_USER_REASON_NONE;
     UINT uiNodeID = VNETS_NODE_INVALID_ID;

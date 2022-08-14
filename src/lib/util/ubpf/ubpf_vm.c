@@ -15,6 +15,7 @@
  */
 
 #define _GNU_SOURCE
+#include <bs.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -57,7 +58,9 @@ void
 ubpf_destroy(struct ubpf_vm *vm)
 {
     if (vm->jitted) {
+#ifndef __COVERITY__ 
         munmap(vm->jitted, vm->jitted_size);
+#endif
     }
     free(vm->insts);
     free(vm->ext_funcs);
@@ -122,7 +125,7 @@ ubpf_load(struct ubpf_vm *vm, const void *code, uint32_t code_len, char **errmsg
 }
 
 static uint32_t
-u32(uint64_t x)
+u32_func(uint64_t x)
 {
     return x;
 }
@@ -173,7 +176,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_DIV_IMM:
-            reg[inst.dst] = u32(reg[inst.dst]) / u32(inst.imm);
+            reg[inst.dst] = u32_func(reg[inst.dst]) / u32_func(inst.imm);
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_DIV_REG:
@@ -181,7 +184,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
                 fprintf(stderr, "uBPF error: division by zero at PC %u\n", cur_pc);
                 return UINT64_MAX;
             }
-            reg[inst.dst] = u32(reg[inst.dst]) / u32(reg[inst.src]);
+            reg[inst.dst] = u32_func(reg[inst.dst]) / u32_func(reg[inst.src]);
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_OR_IMM:
@@ -209,11 +212,11 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_RSH_IMM:
-            reg[inst.dst] = u32(reg[inst.dst]) >> inst.imm;
+            reg[inst.dst] = u32_func(reg[inst.dst]) >> inst.imm;
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_RSH_REG:
-            reg[inst.dst] = u32(reg[inst.dst]) >> reg[inst.src];
+            reg[inst.dst] = u32_func(reg[inst.dst]) >> reg[inst.src];
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_NEG:
@@ -221,7 +224,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_MOD_IMM:
-            reg[inst.dst] = u32(reg[inst.dst]) % u32(inst.imm);
+            reg[inst.dst] = u32_func(reg[inst.dst]) % u32_func(inst.imm);
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_MOD_REG:
@@ -229,7 +232,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
                 fprintf(stderr, "uBPF error: division by zero at PC %u\n", cur_pc);
                 return UINT64_MAX;
             }
-            reg[inst.dst] = u32(reg[inst.dst]) % u32(reg[inst.src]);
+            reg[inst.dst] = u32_func(reg[inst.dst]) % u32_func(reg[inst.src]);
             break;
         case EBPF_OP_XOR_IMM:
             reg[inst.dst] ^= inst.imm;
@@ -252,7 +255,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_ARSH_REG:
-            reg[inst.dst] = (int32_t)reg[inst.dst] >> u32(reg[inst.src]);
+            reg[inst.dst] = (int32_t)reg[inst.dst] >> u32_func(reg[inst.src]);
             reg[inst.dst] &= UINT32_MAX;
             break;
 
@@ -367,13 +370,13 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
          */
 #define BOUNDS_CHECK_LOAD(size) \
     do { \
-        if (!bounds_check((void *)reg[inst.src] + inst.offset, size, "load", cur_pc, mem, mem_len, stack)) { \
+        if (!bounds_check((void *)(ULONG)reg[inst.src] + inst.offset, size, "load", cur_pc, mem, mem_len, stack)) { \
             return UINT64_MAX; \
         } \
     } while (0)
 #define BOUNDS_CHECK_STORE(size) \
     do { \
-        if (!bounds_check((void *)reg[inst.dst] + inst.offset, size, "store", cur_pc, mem, mem_len, stack)) { \
+        if (!bounds_check((void *)(ULONG)reg[inst.dst] + inst.offset, size, "store", cur_pc, mem, mem_len, stack)) { \
             return UINT64_MAX; \
         } \
     } while (0)

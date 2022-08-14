@@ -7,6 +7,7 @@
 /* retcode所需要的宏 */
     
 #include "bs.h"
+#include "utl/plug_utl.h"
 
 #ifdef IN_UNIXLIKE
 
@@ -18,7 +19,7 @@
 /* Linux 上加载动态链接库 */
 PLUG_ID PLUG_LoadLib(IN CHAR *pszFilePath)
 {
-    BOOL_FUNC pfDllMainFunc = NULL;
+    PF_PLUG_Entry pfDllMainFunc = NULL;
     PLUG_ID hPlugId;
 
     hPlugId = dlopen(pszFilePath, RTLD_NOW);
@@ -27,9 +28,9 @@ PLUG_ID PLUG_LoadLib(IN CHAR *pszFilePath)
     }
 
     /* 为了和windows保持一致, 加载动态链接库成功后, 调用windows默认链接库函数 */
-    pfDllMainFunc = (BOOL_FUNC)PLUG_GET_FUNC_BY_NAME(hPlugId, "PLUG_Entry");
+    pfDllMainFunc = PLUG_GET_FUNC_BY_NAME(hPlugId, "PLUG_Entry");
     if (NULL != pfDllMainFunc) {
-        pfDllMainFunc(hPlugId, DLL_PROCESS_ATTACH, 0);
+        pfDllMainFunc(hPlugId, DLL_PROCESS_ATTACH, NULL);
     }
 
     return hPlugId;
@@ -38,12 +39,12 @@ PLUG_ID PLUG_LoadLib(IN CHAR *pszFilePath)
 /* Linux 上卸载动态链接库 */
 void PLUG_UnloadLib(PLUG_ID plug)
 {
-    BOOL_FUNC pfDllMainFunc = NULL;
+    PF_PLUG_Entry pfDllMainFunc = NULL;
 
     /* 为了和windows保持一致, 加载动态链接库成功后, 调用windows默认链接库函数 */
-    pfDllMainFunc = (BOOL_FUNC)PLUG_GET_FUNC_BY_NAME(plug, "DllMain");
+    pfDllMainFunc = PLUG_GET_FUNC_BY_NAME(plug, "PLUG_Entry");
     if (NULL != pfDllMainFunc) {
-        pfDllMainFunc(plug, DLL_PROCESS_DETACH, 0);
+        pfDllMainFunc(plug, DLL_PROCESS_DETACH, NULL);
     }
 
     dlclose(plug);

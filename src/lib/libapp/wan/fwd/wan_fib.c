@@ -19,6 +19,7 @@
 #include "utl/lstr_utl.h"
 #include "comp/comp_if.h"
 #include "comp/comp_kfapp.h"
+#include "comp/comp_wan.h"
 
 #include "../h/wan_vrf.h"
 #include "../h/wan_ifnet.h"
@@ -84,7 +85,7 @@ static VOID wan_fib_VFEventDestory(IN UINT uiVrfID)
 
     if (NULL != pstFib)
     {
-        RcuBs_Free(&pstFib->stRcu, _wan_fib_RcuFree);
+        RcuEngine_Call(&pstFib->stRcu, _wan_fib_RcuFree);
     }
 
     return;
@@ -343,7 +344,7 @@ static BS_WALK_RET_E _wanfib_SaveEach(IN FIB_NODE_S *pstFibNode, IN HANDLE hUser
     }
     else
     {
-        CompIf_Ioctl(pstFibNode->uiOutIfIndex, IFNET_CMD_GET_IFNAME, szIfName);
+        IFNET_Ioctl(pstFibNode->uiOutIfIndex, IFNET_CMD_GET_IFNAME, szIfName);
 
         CMD_EXP_OutputCmd(hUserHandle, "route static %pI4 %d %pI4 interface %s",
             &pstFibNode->stFibKey.uiDstOrStartIp, uiPrefix, &pstFibNode->uiNextHop, szIfName);
@@ -358,7 +359,7 @@ BS_STATUS WanFib_PrefixMatch(IN UINT uiVrfID, IN UINT uiDstIp /* 网络序 */, O
     UINT uiPhase;
     _WAN_FIB_S *pstFib;
 
-    uiPhase = RcuBs_Lock();    
+    uiPhase = RcuEngine_Lock();    
     pstFib = WanVrf_GetData(uiVrfID, WAN_VRF_PROPERTY_INDEX_FIB);
     if (NULL != pstFib)
     {
@@ -368,73 +369,73 @@ BS_STATUS WanFib_PrefixMatch(IN UINT uiVrfID, IN UINT uiDstIp /* 网络序 */, O
             eRet = FIB_PrefixMatch(pstFib->hFib, uiDstIp, pstFibNode);
         }
     }
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
     
     return eRet;
 }
 
-BS_STATUS WanFib_AddRangeFib(IN UINT uiVrfID, IN FIB_NODE_S *pstFibNode)
+PLUG_API BS_STATUS WanFib_AddRange(IN UINT uiVrfID, IN FIB_NODE_S *pstFibNode)
 {
     RANGE_FIB_HANDLE hFib;
     BS_STATUS eRet = BS_ERR;
     UINT uiPhase;
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     hFib = _wan_fib_GetRangeFibHandle(uiVrfID);
     if (hFib != NULL)
     {
         eRet = RangeFib_Add(hFib, pstFibNode);
     }
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
     
     return eRet;
 }
 
-VOID WanFib_DelRangeFib(IN UINT uiVrfID, IN FIB_KEY_S *pstFibKey)
+PLUG_API VOID WanFib_DelRange(IN UINT uiVrfID, IN FIB_KEY_S *pstFibKey)
 {
     RANGE_FIB_HANDLE hFib;
     UINT uiPhase;
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     hFib = _wan_fib_GetRangeFibHandle(uiVrfID);
     if (hFib != NULL)
     {
         RangeFib_Del(hFib, pstFibKey);
     }
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
     
     return;
 }
 
-BS_STATUS WanFib_Add(IN UINT uiVrfID, IN FIB_NODE_S *pstFibNode)
+PLUG_API BS_STATUS WanFib_Add(IN UINT uiVrfID, IN FIB_NODE_S *pstFibNode)
 {
     FIB_HANDLE hFib;
     BS_STATUS eRet = BS_ERR;
     UINT uiPhase;
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     hFib = _wan_fib_GetFibHandle(uiVrfID);
     if (hFib != NULL)
     {
         eRet = FIB_Add(hFib, pstFibNode);
     }
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
     
     return eRet;
 }
 
-VOID WanFib_Del(IN UINT uiVrfID, IN FIB_NODE_S *pstFibNode)
+PLUG_API VOID WanFib_Del(IN UINT uiVrfID, IN FIB_NODE_S *pstFibNode)
 {
     FIB_HANDLE hFib;
     UINT uiPhase;
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     hFib = _wan_fib_GetFibHandle(uiVrfID);
     if (hFib != NULL)
     {
         FIB_Del(hFib, pstFibNode);
     }
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
     
     return;
 }
@@ -445,13 +446,13 @@ BS_STATUS WanFib_Walk(IN UINT uiVrfID, IN PF_FIB_WALK_FUNC pfWalkFunc, IN HANDLE
     BS_STATUS eRet = BS_ERR;
     UINT uiPhase;
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     hFib = _wan_fib_GetFibHandle(uiVrfID);
     if (hFib != NULL)
     {
         FIB_Walk(hFib, pfWalkFunc, hUserHandle);
     }
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
     
     return eRet;
 }
@@ -468,9 +469,9 @@ BS_STATUS WanFib_Init()
 
 BS_STATUS WanFib_KfInit()
 {
-    COMP_KFAPP_RegFunc("wan.route.Add", _wanfib_kf_Add, NULL);
-    COMP_KFAPP_RegFunc("wan.route.Delete", _wanfib_kf_Del, NULL);
-    COMP_KFAPP_RegFunc("wan.route.List", _wanfib_kf_List, NULL);
+    KFAPP_RegFunc("wan.route.Add", _wanfib_kf_Add, NULL);
+    KFAPP_RegFunc("wan.route.Delete", _wanfib_kf_Del, NULL);
+    KFAPP_RegFunc("wan.route.List", _wanfib_kf_List, NULL);
 
 	return BS_OK;
 }
@@ -493,7 +494,7 @@ PLUG_API BS_STATUS WAN_FIB_ShowFib
 
     uiVrfID = WAN_VrfCmd_GetVrfByEnv(pEnv);
 
-    uiPhase = RcuBs_Lock();
+    uiPhase = RcuEngine_Lock();
     hRangeFib = _wan_fib_GetRangeFibHandle(uiVrfID);
     if (NULL != hRangeFib)
     {
@@ -505,7 +506,7 @@ PLUG_API BS_STATUS WAN_FIB_ShowFib
     {
         FIB_Show(hFib);
     }
-    RcuBs_UnLock(uiPhase);
+    RcuEngine_UnLock(uiPhase);
 
     return BS_OK;
 }
@@ -535,7 +536,7 @@ PLUG_API BS_STATUS WAN_FIB_RouteStatic
 
     if (ulArgc >= 8)
     {
-        ifIndex = CompIf_GetIfIndex(argv[6]);
+        ifIndex = IFNET_GetIfIndex(argv[6]);
         if (IF_INVALID_INDEX == ifIndex)
         {
             EXEC_OutString("Invalid interface name.\r\n");

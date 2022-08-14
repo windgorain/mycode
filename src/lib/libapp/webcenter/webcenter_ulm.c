@@ -104,29 +104,29 @@ static BS_STATUS _webcenter_Login(IN WS_TRANS_HANDLE hWsTrans)
 
     hEncap = WS_Trans_GetHttpEncap(hWsTrans);
 
-    eLoginRet = COMP_LocalUser_Login(pcUserName, pcPassword);
+    eLoginRet = LocalUser_Login(CMD_EXP_RUNNER_TYPE_WEB, pcUserName, pcPassword);
     if (eLoginRet == LOCALUSER_OK)
     {
         uiUserID = _webcenter_ulm_AddUser(pcUserName);
         if (0 == uiUserID)
         {
-            pcRet = "{\"result\":\"Fail\", \"reason\":\"Reach the max user number\"}";
+            pcRet = "{\"error\":\"Fail\", \"reason\":\"Reach the max user number\"}";
         }
         else
         {
             pcCookie = ULM_GetUserCookie(g_hWebCenterUlm, uiUserID);
             snprintf(szCookie, sizeof(szCookie), "userid=%s; path=/", pcCookie);
             HTTP_SetHeadField(hEncap, HTTP_FIELD_SET_COOKIE, szCookie);
-            pcRet = "{\"result\":\"Success\"}";
+            pcRet = "{\"error\":\"Success\"}";
         }
     }
     else if (eLoginRet == LOCALUSER_COMP_NOT_INIT)
     {
-        pcRet = "{\"result\":\"Fail\", \"reason\":\"Not init\"}";
+        pcRet = "{\"error\":\"Fail\", \"reason\":\"Not init\"}";
     }
     else
     {
-        pcRet = "{\"result\":\"Fail\", \"reason\":\"Auth failed\"}";
+        pcRet = "{\"error\":\"Fail\", \"reason\":\"Auth failed\"}";
     }
 
     HTTP_SetStatusCode(hEncap, HTTP_STATUS_OK);
@@ -281,7 +281,7 @@ static BS_STATUS _webcenter_CheckOnline(IN WS_TRANS_HANDLE hWsTrans)
     }
     else
     {
-        pcRet = "{\"result\":\"Failed\"}";
+        pcRet = "{\"error\":\"Failed\"}";
     }
 
     hEncap = WS_Trans_GetHttpEncap(hWsTrans);

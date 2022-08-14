@@ -10,6 +10,7 @@
 #include "bs.h"
 
 #include "utl/local_info.h"
+#include "utl/exec_utl.h"
 #include "comp/comp_dc.h"
 #include "comp/comp_wsapp.h"
 
@@ -49,8 +50,6 @@ typedef BS_STATUS (*PF_VNETS_INIT_FUNC)();
 /* 第一阶段初始化, 放置不需要依赖于任何其他模块初始化的函数 */
 static PF_VNETS_INIT_FUNC g_apfVnetsInit1[] =
 {
-    COMP_DC_Init,
-    COMP_WSAPP_Init,
     VNETS_NODE_Init,
     VNETS_RCU_Init,
     VNETS_Web_Init,

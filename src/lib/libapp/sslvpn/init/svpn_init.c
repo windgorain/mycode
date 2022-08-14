@@ -29,11 +29,6 @@
 
 BS_STATUS SVPN_Init()
 {
-	CompIf_Init();
-    COMP_KFAPP_Init();
-    COMP_WSAPP_Init();
-    CompWan_Init();
-
     SVPN_ContextKf_Init();
     SVPN_Deliver_Init();
     SVPN_CfgLock_Init();

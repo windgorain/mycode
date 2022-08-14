@@ -8,7 +8,6 @@
 
 #include "utl/txt_utl.h"
 #include "utl/exec_utl.h"
-#include "utl/ic_utl.h"
 #include "utl/bit_opt.h"
 #include "utl/mutex_utl.h"
 #include "utl/str_list.h"
@@ -93,7 +92,7 @@ static BS_STATUS _hcall_kf_Run(IN WS_TRANS_HANDLE hWsTrans, IN KFAPP_PARAM_S *ps
         return BS_NO_PERMIT;
     }
 
-    return COMP_KFAPP_RunMime(hMime, pstParam);
+    return KFAPP_RunMime(hMime, pstParam);
 }
 
 static BS_STATUS _hcall_RecvBodyOK(IN WS_TRANS_HANDLE hWsTrans)
@@ -115,7 +114,7 @@ static BS_STATUS _hcall_RecvBodyOK(IN WS_TRANS_HANDLE hWsTrans)
         BS_DBG_OUTPUT(g_uiHCallDbgFlag, HCALL_DBG_PACKET, ("HCall: request query:%s\r\n", pcQuery));
     }
 
-    if (BS_OK != COMP_KFAPP_ParamInit(&stKfappParam))
+    if (BS_OK != KFAPP_ParamInit(&stKfappParam))
     {
         return BS_NO_MEMORY;
     }
@@ -123,13 +122,13 @@ static BS_STATUS _hcall_RecvBodyOK(IN WS_TRANS_HANDLE hWsTrans)
     eRet = _hcall_kf_Run(hWsTrans, &stKfappParam);
     if (eRet != BS_OK)
     {
-        COMP_KFAPP_ParamFini(&stKfappParam);
+        KFAPP_ParamFini(&stKfappParam);
         return BS_ERR;
     }
 
-    if (NULL == COMP_KFAPP_BuildParamString(&stKfappParam))
+    if (NULL == KFAPP_BuildParamString(&stKfappParam))
     {
-        COMP_KFAPP_ParamFini(&stKfappParam);
+        KFAPP_ParamFini(&stKfappParam);
         return BS_NO_MEMORY;
     }
 
@@ -145,7 +144,7 @@ static BS_STATUS _hcall_RecvBodyOK(IN WS_TRANS_HANDLE hWsTrans)
     WS_Trans_AddReplyBodyByBuf(hWsTrans, (void*)stKfappParam.pcString, stKfappParam.uiStringLen);
     WS_Trans_ReplyBodyFinish(hWsTrans);
 
-    COMP_KFAPP_ParamFini(&stKfappParam);
+    KFAPP_ParamFini(&stKfappParam);
 
     return BS_OK;
 }
@@ -200,18 +199,6 @@ BS_STATUS HCall_Init()
     g_stHCallNoDbgNode.pfNoDbgFunc = _hcall_NoDbgAll;
     CMD_EXP_RegNoDbgFunc(&g_stHCallNoDbgNode);
 
-    if (BS_OK != COMP_KFAPP_Init())
-    {
-        BS_WARNNING(("Can't get kf comp."));
-        return BS_ERR;
-    }
-
-    if (BS_OK != COMP_WSAPP_Init())
-    {
-        BS_WARNNING(("Can't get ws comp."));
-        return BS_ERR;
-    }
-
     g_hHCallModuleList = StrList_Create(STRLIST_FLAG_CASE_SENSITIVE | STRLIST_FLAG_CHECK_REPEAT);
     if (NULL == g_hHCallModuleList)
     {
@@ -228,17 +215,17 @@ BS_STATUS HCall_Init()
 /* bind ws-service xxx */
 PLUG_API BS_STATUS HCall_BindService(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
-    if (BS_OK != COMP_WSAPP_BindService(argv[2]))
+    if (BS_OK != WSAPP_BindService(argv[2]))
     {
         EXEC_OutString("Bind failed");
         return BS_ERR;
     }
 
-    COMP_WSAPP_SetDeliverTbl(argv[2], g_hHCallDeliverTbl);
+    WSAPP_SetDeliverTbl(argv[2], g_hHCallDeliverTbl);
 
     if (g_szHcallWsService[0] != '\0')
     {
-        COMP_WSAPP_UnBindService(g_szHcallWsService);
+        WSAPP_UnBindService(g_szHcallWsService);
     }
 
     TXT_Strlcpy(g_szHcallWsService, argv[2], sizeof(g_szHcallWsService));
@@ -266,7 +253,7 @@ PLUG_API BS_STATUS HCall_UnBindService(IN UINT ulArgc, IN CHAR **argv, IN VOID *
 {
     if (g_szHcallWsService[0] != '\0')
     {
-        COMP_WSAPP_UnBindService(g_szHcallWsService);
+        WSAPP_UnBindService(g_szHcallWsService);
     }
 
     g_szHcallWsService[0] = '\0';

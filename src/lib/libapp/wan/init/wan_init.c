@@ -38,16 +38,8 @@
 #include "../h/wan_ifnet.h"
 #include "../h/wan_ipfwd_service.h"
 
-extern VOID WAN_COMP_Init();
-
 BS_STATUS WAN_Init()
 {
-    CompIf_Init();
-    CompSupport_Init();
-    COMP_PCAP_Init();
-    COMP_KFAPP_Init();
-    COMP_ACL_Init();
-
     WAN_KF_Init();
     WAN_Bridge_Init();
     WAN_IF_Init();
@@ -68,8 +60,6 @@ BS_STATUS WAN_Init()
     WAN_CMD_Init();
     WAN_VFCmd_Init();
     
-    WAN_COMP_Init();
-
     WanVrf_Init2();
 
     return BS_OK;

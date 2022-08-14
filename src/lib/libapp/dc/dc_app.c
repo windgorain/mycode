@@ -27,7 +27,6 @@ typedef struct
 
 static DLL_HEAD_S g_stDcAppXmlList = DLL_HEAD_INIT_VALUE(&g_stDcAppXmlList);
 static MUTEX_S g_stDcAppLock;
-static COMP_DC_S g_stDcComp;
 
 static inline VOID dcapp_LockNode(IN DC_APP_NODE_S *pstNode)
 {
@@ -220,7 +219,7 @@ VOID DC_APP_Close(IN DC_APP_HANDLE hDcApp)
     return;
 }
 
-BS_STATUS  DC_APP_AddTbl
+PLUG_API BS_STATUS  DC_APP_AddTbl
 (
     IN DC_APP_HANDLE hDcApp,
     IN CHAR *pcTableName
@@ -439,33 +438,9 @@ BS_STATUS DC_APP_Save(IN DC_APP_HANDLE hDcApp)
     return eRet;
 }
 
-static VOID dcapp_InitComp()
-{
-    g_stDcComp.pfDcOpen = DC_APP_Open;
-    g_stDcComp.pfDcClose = DC_APP_Close;
-    g_stDcComp.pfDcAddTbl = DC_APP_AddTbl;
-    g_stDcComp.pfDcDelTbl = DC_APP_DelTbl;
-    g_stDcComp.pfDcAddObject = DC_APP_AddObject;
-    g_stDcComp.pfDcIsObjectExist = DC_APP_IsObjectExist;
-    g_stDcComp.pfDcDelObject = DC_APP_DelObject;
-    g_stDcComp.pfDcGetFieldValueAsUint = DC_APP_GetFieldValueAsUint;
-    g_stDcComp.pfDcCpyFieldValueAsString = DC_APP_CpyFieldValueAsString;
-    g_stDcComp.pfDcSetFieldValueAsUint = DC_APP_SetFieldValueAsUint;
-    g_stDcComp.pfDcSetFieldValueAsString = DC_APP_SetFieldValueAsString;
-    g_stDcComp.pfDcGetObjectNum = DC_APP_GetObjectNum;
-    g_stDcComp.pfDcWalkTable = DC_APP_WalkTable;
-    g_stDcComp.pfDcWalkObject = DC_APP_WalkObject;
-    g_stDcComp.pfDcSave = DC_APP_Save;
-    g_stDcComp.comp.comp_name = COMP_DC_NAME;
-    
-    COMP_Reg(&g_stDcComp.comp);
-}
-
 BS_STATUS DC_APP_Init()
 {
     MUTEX_Init(&g_stDcAppLock);
-
-    dcapp_InitComp();
 
     return BS_OK;
 }

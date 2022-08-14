@@ -26,4 +26,4 @@ aux_source_directory(./web SRC)
 set(NAME vnets)
 INCLUDE(../../my_libapp.txt)
 
-target_link_libraries(${LIB_NAME} comp-dc comp-wsapp comp-if comp-wan mysqlclient)
+target_link_libraries(${LIB_NAME} dynamic-dc dynamic-ws dynamic-ifnet dynamic-wan mysqlclient)

@@ -257,14 +257,15 @@ static void* pktpolicy_engine_HostnameTrieSetUserData(void *user_data, void *use
     return user_data;
 }
 
-static int pktpolicy_engine_AddHostnameTrie(DNSNAME_TRIE_CTRL_S *trie, char *hostname, UINT rule_id)
+static int pktpolicy_engine_AddHostnameTrie(TRIE_HANDLE trie, char *hostname, UINT rule_id)
 {
     USER_HANDLE_S stUserHandle;
 
     stUserHandle.ahUserHandle[0] = UINT_HANDLE(rule_id);
     stUserHandle.ahUserHandle[1] = 0;
 
-    if (0 != DnsNameTrie_InsertExt(trie, hostname, pktpolicy_engine_HostnameTrieSetUserData, &stUserHandle)) {
+    if (0 != DnsNameTrie_InsertExt(trie, hostname, strlen(hostname),
+                pktpolicy_engine_HostnameTrieSetUserData, &stUserHandle)) {
         RETURN(BS_ERR);
     }
 
@@ -286,16 +287,6 @@ static int pktpolicy_ParseAction(char *action)
     }
 
     return -1;
-}
-
-static void* pktpolicy_engine_TrieMergeSubTree(void *user_data_to, void *user_data_from)
-{
-    STQ_HEAD_S *to = user_data_to;
-    STQ_HEAD_S *from = user_data_from;
-
-    pktpolicy_engine_MergeList(to, from);
-
-    return to;
 }
 
 static STQ_HEAD_S* pktpolicy_engine_MatchProtocol(PKT_POLICY_PROTOCOL_DIM_S *protocol_dim, UCHAR protocol)
@@ -321,9 +312,9 @@ static STQ_HEAD_S* pktpolicy_engine_MatchIP(PKT_POLICY_IP_DIM_S *ip_dim, UINT ip
     return &pstNode->rule_id_list;
 }
 
-static STQ_HEAD_S* pktpolicy_engine_MatchHost(DNSNAME_TRIE_CTRL_S *trie, LSTR_S *host)
+static STQ_HEAD_S* pktpolicy_engine_MatchHost(TRIE_HANDLE trie, LSTR_S *host)
 {
-    return DnsNameTrie_Match(trie, host->pcData, host->uiLen);
+    return DnsNameTrie_Match(trie, host->pcData, host->uiLen, TRIE_MATCH_WILDCARD);
 }
 
 typedef struct {
@@ -395,7 +386,10 @@ int PKTPolicy_EngineInit(PKT_POLICY_ENGINE_S *engine)
     IPMASKTBL_Init(&engine->dip_dim.ipmasktbl);
     IPMASKTBL_BfInit(&engine->sip_dim.bf);
     IPMASKTBL_BfInit(&engine->dip_dim.bf);
-    DnsNameTrie_Init(&engine->trie, 0);
+    engine->trie = Trie_Create(TRIE_TYPE_4BITS);
+    if (! engine->trie) {
+        RETURN(BS_NO_MEMORY);
+    }
 
     return 0;
 }
@@ -419,10 +413,9 @@ int PKTPolicy_EngineCompile(PKT_POLICY_ENGINE_S *engine, PKT_POLICY_S *pkt_polic
         pktpolicy_engine_AddPortList(&engine->dport_dim, pstRuleNode->policy_rule.dport, rule_id);
         pktpolicy_engine_AddIPList(&engine->sip_dim, pstRuleNode->policy_rule.sip, rule_id);
         pktpolicy_engine_AddIPList(&engine->dip_dim, pstRuleNode->policy_rule.dip, rule_id);
-        pktpolicy_engine_AddHostnameTrie(&engine->trie, pstRuleNode->policy_rule.host, rule_id);
+        pktpolicy_engine_AddHostnameTrie(engine->trie, pstRuleNode->policy_rule.host, rule_id);
     }
 
-    DnsNameTrie_MergeSubTreeUserData(&engine->trie, pktpolicy_engine_TrieMergeSubTree);
     IPMASKTBL_MergeUserData(&engine->sip_dim.ipmasktbl, pktpolicy_engine_MergeIPTblUserData);
     IPMASKTBL_MergeUserData(&engine->dip_dim.ipmasktbl, pktpolicy_engine_MergeIPTblUserData);
 
@@ -448,7 +441,7 @@ int PKTPolicy_EngineMatch(PKT_POLICY_ENGINE_S *engine, PKT_POLICY_PKTINFO_S *pkt
     dport_match_list = pktpolicy_engine_MatchPort(&engine->dport_dim, pktinfo->dport);
     sip_match_list = pktpolicy_engine_MatchIP(&engine->sip_dim, pktinfo->sip);
     dip_match_list = pktpolicy_engine_MatchIP(&engine->dip_dim, pktinfo->dip);
-    host_match_list = pktpolicy_engine_MatchHost(&engine->trie, &pktinfo->host);
+    host_match_list = pktpolicy_engine_MatchHost(engine->trie, &pktinfo->host);
 
     pktpolicy_engine_MergeMatched(engine, protocol_match_list, PKT_POLICY_DIM_MASK_PROTOCOL, &matched);
     pktpolicy_engine_MergeMatched(engine, sport_match_list, PKT_POLICY_DIM_MASK_SPORT, &matched);

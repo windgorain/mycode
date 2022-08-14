@@ -66,7 +66,7 @@ int get_cert_fingerprint(X509 *cert, unsigned char *finger_value, int finger_siz
     }
 
     for (j = 0; j < md_value_size; ++j) {
-        offset += snprintf((char*)finger_value + offset, finger_size - offset, "%02x", md_value[j]);
+        offset += scnprintf((char*)finger_value + offset, finger_size - offset, "%02x", md_value[j]);
 
     }
     finger_value[offset] = 0;
@@ -106,7 +106,7 @@ int certs_dereplication(char *src_file, char *dst_file, int *total, int *unique)
 
         struct dirent *ent;
         while ((ent = readdir(dir))) {
-            sz = snprintf(buf, sizeof(buf), "%s/%s", src_file, ent->d_name);
+            sz = scnprintf(buf, sizeof(buf), "%s/%s", src_file, ent->d_name);
             buf[sz] = 0;
             if ((stat(buf, &st) == 0) && S_ISREG(st.st_mode)) {
                 load_pem_files_in_one(buf, &certs);
@@ -132,6 +132,7 @@ int certs_dereplication(char *src_file, char *dst_file, int *total, int *unique)
         psavefile = fopen(dst_file, "wa+");
         if (!psavefile) {
             printf("dest file can't open\n");
+            free(pub_sha_info_arr);
             return 0;
         }
 #if 0

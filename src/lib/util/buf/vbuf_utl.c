@@ -4,15 +4,39 @@
 * Description: 动态扩展空间的buf
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
-#define RETCODE_FILE_NUM RETCODE_FILE_NUM_VBUF
-
 #include "bs.h"
 
 #include "utl/vbuf_utl.h"
 
+static int _vbuf_resize_double_up_to(VBUF_S *pstVBuf, ULONG min/* 最少扩展到的长度 */)
+{
+    ULONG new_size = pstVBuf->ulTotleLen;
 
-VOID VBUF_Init(IN VBUF_S *pstVBuf)
+    if (new_size == 0) {
+        new_size = 1;
+    }
+
+    while (new_size < min) {
+        new_size  = new_size * 2;
+    }
+
+    return VBUF_ExpandTo(pstVBuf, new_size);
+}
+
+static int _vbuf_resize_up_to(VBUF_S *pstVBuf, ULONG len/* 扩展到的长度 */)
+{
+    if (pstVBuf->double_mem) {
+        return _vbuf_resize_double_up_to(pstVBuf, len);
+    }
+    return VBUF_ExpandTo(pstVBuf, len);
+}
+
+static int _vbuf_resize_up(VBUF_S *pstVBuf, ULONG len/* 增加这么多 */)
+{
+    return _vbuf_resize_up_to(pstVBuf, pstVBuf->ulTotleLen + len);
+}
+
+VOID VBUF_Init(OUT VBUF_S *pstVBuf)
 {
     Mem_Zero(pstVBuf, sizeof(VBUF_S));
 }
@@ -23,6 +47,11 @@ VOID VBUF_Finit(IN VBUF_S *pstVBuf)
     {
         MEM_Free(pstVBuf->pucData);
     }
+}
+
+VOID VBUF_SetMemDouble(OUT VBUF_S *pstVBuf, BOOL_T enable)
+{
+    pstVBuf->double_mem = enable;
 }
 
 /* 清空数据并释放对应内存 */
@@ -121,22 +150,18 @@ BS_STATUS VBUF_Expand(IN VBUF_S *pstVBuf, IN ULONG ulLen)
 /* 将数据移动到Offset位置 */
 BS_STATUS VBUF_MoveData(IN VBUF_S *pstVBuf, IN ULONG ulOffset)
 {
-    if (pstVBuf->ulOffset == ulOffset)
-    {
+    if (pstVBuf->ulOffset == ulOffset) {
         return BS_OK;
     }
 
-    if (pstVBuf->ulUsedLen + ulOffset > pstVBuf->ulTotleLen)
-    {
-        if (BS_OK != VBUF_Expand(pstVBuf, pstVBuf->ulUsedLen + ulOffset - pstVBuf->ulTotleLen))
-        {
+    if (pstVBuf->ulUsedLen + ulOffset > pstVBuf->ulTotleLen) {
+        if (BS_OK != _vbuf_resize_up(pstVBuf, pstVBuf->ulUsedLen + ulOffset - pstVBuf->ulTotleLen)) {
             return BS_NO_MEMORY;
         }
     }
 
-    if (pstVBuf->ulUsedLen > 0)
-    {
-        MEM_Move(pstVBuf->pucData, pstVBuf->ulOffset, pstVBuf->ulUsedLen, ulOffset);
+    if (pstVBuf->ulUsedLen > 0) {
+        memmove(pstVBuf->pucData + ulOffset, pstVBuf->pucData + pstVBuf->ulOffset, pstVBuf->ulUsedLen);
     }
 
     pstVBuf->ulOffset = ulOffset;
@@ -150,7 +175,7 @@ BS_STATUS VBUF_CutHead(IN VBUF_S *pstVBuf, IN ULONG ulCutLen)
     if (ulCutLen < pstVBuf->ulUsedLen)
     {
         pstVBuf->ulUsedLen -= ulCutLen;
-        MEM_Copy(pstVBuf->pucData, pstVBuf->pucData + pstVBuf->ulOffset + ulCutLen, pstVBuf->ulUsedLen);
+        memmove(pstVBuf->pucData, pstVBuf->pucData + pstVBuf->ulOffset + ulCutLen, pstVBuf->ulUsedLen);
     }
     else
     {
@@ -206,33 +231,37 @@ BS_STATUS VBUF_CutTail(IN VBUF_S *pstVBuf, IN ULONG ulCutLen)
     return BS_OK;
 }
 
-BS_STATUS VBUF_CatFromBuf(IN VBUF_S *pstVBuf, IN VOID *buf, IN ULONG ulLen)
+static int _vbuf_pre_cat(IN VBUF_S *pstVBuf, IN ULONG ulLen)
 {
     ULONG ulTailLen;
+
+    ulTailLen = (pstVBuf->ulTotleLen - pstVBuf->ulOffset) - pstVBuf->ulUsedLen;
+
+    if (ulTailLen >= ulLen) {
+        return 0;
+    }
+
+    if (pstVBuf->ulUsedLen + ulLen <= pstVBuf->ulTotleLen) {
+        return VBUF_MoveData(pstVBuf, 0);
+    }
+
+    return _vbuf_resize_up_to(pstVBuf, pstVBuf->ulUsedLen + ulLen);
+}
+
+BS_STATUS VBUF_CatFromBuf(IN VBUF_S *pstVBuf, IN VOID *buf, IN ULONG ulLen)
+{
+    int ret;
 
     BS_DBGASSERT(0 != pstVBuf);
     BS_DBGASSERT(NULL != buf);
 
-    if (pstVBuf->ulUsedLen == 0)
-    {
+    if (pstVBuf->ulUsedLen == 0) {
         return VBUF_CpyFromBuf(pstVBuf, buf, ulLen);
     }
 
-    ulTailLen = (pstVBuf->ulTotleLen - pstVBuf->ulOffset) - pstVBuf->ulUsedLen;
-
-    if (ulTailLen < ulLen)
-    {
-        UCHAR *pucTmp = MEM_MallocAndCopy(pstVBuf->pucData + pstVBuf->ulOffset,
-                pstVBuf->ulUsedLen, ulLen + pstVBuf->ulUsedLen);
-        if (NULL == pucTmp)
-        {
-            RETURN(BS_NO_MEMORY);
-        }
-
-        MEM_Free(pstVBuf->pucData);
-        pstVBuf->ulTotleLen = ulLen + pstVBuf->ulUsedLen;
-        pstVBuf->pucData = pucTmp;
-        pstVBuf->ulOffset = 0;
+    ret = _vbuf_pre_cat(pstVBuf, ulLen);
+    if (ret < 0) {
+        return ret;
     }
 
     MEM_Copy(pstVBuf->pucData + pstVBuf->ulOffset + pstVBuf->ulUsedLen, buf, ulLen);
@@ -253,8 +282,7 @@ BS_STATUS VBUF_CpyFromBuf(IN VBUF_S *pstVBuf, IN void *buf, IN ULONG ulLen)
 {
     BS_DBGASSERT(0 != pstVBuf);
 
-    if (pstVBuf->ulTotleLen < ulLen)
-    {
+    if (pstVBuf->ulTotleLen < ulLen) {
         UCHAR *pucTmp = MEM_Malloc(ulLen);
         if (NULL == pucTmp)
         {

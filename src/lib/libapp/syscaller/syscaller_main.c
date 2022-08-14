@@ -38,8 +38,6 @@ static BS_STATUS _sysmdl_run(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, IN KFA
 
 BS_STATUS SysMdl_Init()
 {
-    COMP_KFAPP_Init();
-
     return COMP_KFAPP_RegFunc("syscaller.run", _sysmdl_run, NULL);
 }
 

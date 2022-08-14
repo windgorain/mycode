@@ -77,7 +77,7 @@ static BS_STATUS _VNETC_UDP_PHY_CreateIf ()
         return BS_OK;
     }
 
-    g_ulVnetcUdpPhyIfIndex = CompIf_CreateIf("vnetc.l2.udp");
+    g_ulVnetcUdpPhyIfIndex = IFNET_CreateIf("vnetc.l2.udp");
     if (0 == g_ulVnetcUdpPhyIfIndex)
     {
         RETURN(BS_ERR);
@@ -102,7 +102,7 @@ static BS_STATUS _VNETC_UDP_PHY_Input (IN UINT ulFromIp, IN USHORT usFromPort, I
 
     MBUF_SET_RECV_IF_INDEX(pstMbuf,g_ulVnetcUdpPhyIfIndex);
     
-    return CompIf_LinkInput(g_ulVnetcUdpPhyIfIndex, pstMbuf);
+    return IFNET_LinkInput(g_ulVnetcUdpPhyIfIndex, pstMbuf);
 }
 
 static BS_STATUS _VNETC_UDP_PHY_RecvMbuf(OUT MBUF_S **ppstMbuf, OUT UINT *pulFromIp, OUT USHORT *pusFromPort)
@@ -269,17 +269,17 @@ static BS_STATUS _VNETC_UDP_PHY_Start()
     }
 
     stPhyParam.pfPhyOutput = _VNETC_UDP_PHY_OutPut;
-    CompIf_SetPhyType("vnetc.l2.udp", &stPhyParam);
+    IFNET_SetPhyType("vnetc.l2.udp", &stPhyParam);
 
     stLinkParam.pfLinkInput = VNETC_SES_PktInput;
     stLinkParam.pfLinkOutput = VNETC_VPN_LINK_Output;
-    CompIf_SetLinkType("vnetc.vpn.link", &stLinkParam);
+    IFNET_SetLinkType("vnetc.vpn.link", &stLinkParam);
 
     stTypeParam.pcLinkType = "vnets.vpn.link";
     stTypeParam.pcPhyType = "vnets.l2.udp";
     stTypeParam.uiFlag = IF_TYPE_FLAG_HIDE;
 
-    CompIf_AddIfType("vnets.l2.udp", &stTypeParam);
+    IFNET_AddIfType("vnets.l2.udp", &stTypeParam);
 
     /* 创建UDP接口 */
     if (BS_OK != _VNETC_UDP_PHY_CreateIf ())

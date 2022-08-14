@@ -8,6 +8,7 @@
 
 #include "utl/txt_utl.h"
 #include "utl/exec_utl.h"
+#include "comp/comp_wan.h"
 
 #include "../h/wan_vrf.h"
 
@@ -71,8 +72,9 @@ VOID WAN_VrfCmd_Save(IN HANDLE hFile)
             || (isalpha(szName[0]))
             || (isdigit(szName[0])))
         {
-            CMD_EXP_OutputMode(hFile, "vrf %s", szName);
-            CMD_EXP_OutputModeQuit(hFile);
+            if (0 == CMD_EXP_OutputMode(hFile, "vrf %s", szName)) {
+                CMD_EXP_OutputModeQuit(hFile);
+            }
         }
     }
 }

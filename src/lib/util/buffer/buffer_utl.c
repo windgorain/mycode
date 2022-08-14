@@ -8,126 +8,149 @@
 #include "bs.h"
 
 #include "utl/txt_utl.h"
+#include "utl/data2hex_utl.h"
 #include "utl/buffer_utl.h"
-
-typedef struct
-{
-    PF_BUFFER_OUT_FUNC pfFunc;
-    USER_HANDLE_S stUserHandle;
-    UINT uiBufferSize;
-    UINT uiDataLen;
-    UCHAR aucData[0];
-}BUFFER_S;
 
 static inline VOID buffer_FlushBuffer(IN BUFFER_S *pstBuffer)
 {
     UINT uiDataLen;
 
-    pstBuffer->aucData[pstBuffer->uiDataLen] = '\0';
     uiDataLen = pstBuffer->uiDataLen;
     pstBuffer->uiDataLen = 0;
-    if (NULL != pstBuffer->pfFunc)
-    {
-        pstBuffer->pfFunc(pstBuffer->aucData, uiDataLen, &pstBuffer->stUserHandle);
+    if (NULL != pstBuffer->pfFunc) {
+        pstBuffer->pfFunc(pstBuffer->buf, uiDataLen, &pstBuffer->ud);
     }
 }
 
-BUFFER_HANDLE BUFFER_Create(IN UINT uiBufferSize,
-        IN PF_BUFFER_OUT_FUNC pfFunc, IN USER_HANDLE_S *pstUserHandle)
+void BUFFER_Init(BUFFER_S *pstBuffer)
 {
-    BUFFER_S *pstBuffer;
-
-    pstBuffer = MEM_Malloc(sizeof(BUFFER_S) + uiBufferSize + 1);  /* +1是给\0留一个位置 */
-    if (NULL == pstBuffer)
-    {
-        return NULL;
-    }
-
-    Mem_Zero(pstBuffer, sizeof(BUFFER_S));
-
-    pstBuffer->pfFunc = pfFunc;
-    pstBuffer->stUserHandle = *pstUserHandle;
-    pstBuffer->uiBufferSize = uiBufferSize;
-
-    return (BUFFER_HANDLE)pstBuffer;
+    memset(pstBuffer, 0, sizeof(BUFFER_S));
 }
 
-VOID BUFFER_Destory(IN BUFFER_HANDLE hBuffer)
+void BUFFER_Fini(BUFFER_S *pstBuffer)
 {
-    if (NULL != hBuffer)
-    {
-        MEM_Free(hBuffer);
+    if (NULL == pstBuffer) {
+        return;
+    }
+
+    if (pstBuffer->buf_alloced) {
+        MEM_Free(pstBuffer->buf);
+        pstBuffer->buf = NULL;
+        pstBuffer->buf_alloced = 0;
     }
 }
 
-BS_STATUS BUFFER_Write(IN BUFFER_HANDLE hBuffer, IN VOID *pData, IN UINT uiDataLen)
+void BUFFER_AttachBuf(BUFFER_S *pstBuffer, void *buf, UINT buf_size)
 {
-    BUFFER_S *pstBuffer = hBuffer;
+    if (pstBuffer->buf_alloced) {
+        MEM_Free(pstBuffer->buf);
+    }
 
-    if (hBuffer == NULL)
-    {
+    pstBuffer->buf = buf;
+    pstBuffer->uiBufferSize = buf_size;
+}
+
+int BUFFER_AllocBuf(BUFFER_S *pstBuffer, UINT buf_size)
+{
+    pstBuffer->buf = MEM_Malloc(buf_size + 1);  /* +1是给\0留一个位置 */
+    if (! pstBuffer->buf) {
+        RETURN(BS_NO_MEMORY);
+    }
+
+    pstBuffer->uiBufferSize = buf_size;
+    pstBuffer->buf_alloced = 1;
+
+    return 0;
+}
+
+void BUFFER_SetOutputFunc(BUFFER_S *pstBuffer, PF_BUFFER_OUT_FUNC func, USER_HANDLE_S *ud)
+{
+    pstBuffer->pfFunc = func;
+    if (ud) {
+        pstBuffer->ud = *ud;
+    }
+}
+
+int BUFFER_Write(BUFFER_S *pstBuffer, void *pData, UINT uiDataLen)
+{
+    if (! pstBuffer) {
         return BS_ERR;
     }
 
-    if (pstBuffer->uiDataLen > 0)
-    {
-        if (uiDataLen + pstBuffer->uiDataLen >= pstBuffer->uiBufferSize)
-        {
+    if (pstBuffer->uiDataLen > 0) {
+        if (uiDataLen + pstBuffer->uiDataLen >= pstBuffer->uiBufferSize) {
             buffer_FlushBuffer(pstBuffer);
         }
     }
 
-    if (uiDataLen >= pstBuffer->uiBufferSize)
-    {
-        pstBuffer->pfFunc(pData, uiDataLen, &pstBuffer->stUserHandle);
-    }
-    else
-    {
-        memcpy(pstBuffer->aucData + pstBuffer->uiDataLen, pData, uiDataLen);
+    if (uiDataLen >= pstBuffer->uiBufferSize) {
+        pstBuffer->pfFunc(pData, uiDataLen, &pstBuffer->ud);
+    } else {
+        memcpy(pstBuffer->buf + pstBuffer->uiDataLen, pData, uiDataLen);
         pstBuffer->uiDataLen += uiDataLen;
     }
 
     return BS_OK;
 }
 
-BS_STATUS BUFFER_WriteString(IN BUFFER_HANDLE hBuffer, IN CHAR *pcData)
+void BUFFER_WriteLn(BUFFER_S *pstBuffer, char *data, int len)
 {
-    if (hBuffer == NULL)
-    {
+    if (len > 0) {
+        BUFFER_Write(pstBuffer, data, len);
+    }
+    BUFFER_Write(pstBuffer, "\n", 1);
+}
+
+int BUFFER_WriteString(BUFFER_S *pstBuffer, char *pcData)
+{
+    BS_DBGASSERT(NULL != pcData);
+    return BUFFER_Write(pstBuffer, pcData, strlen(pcData));
+}
+
+void BUFFER_WriteStringLn(BUFFER_S *pstBuffer, char *str)
+{
+    BUFFER_WriteLn(pstBuffer, str, strlen(str));
+}
+
+void BUFFER_WriteByHex(BUFFER_S *pstBuffer, void *data, int len)
+{
+    char hex[1024 + 1];
+    UCHAR *tmp = data;
+    int left_len = len;
+    int hex_data_len;
+
+    while (left_len > 0) {
+        hex_data_len = MIN(left_len, sizeof(hex)/2);
+        DH_Data2HexString(tmp, hex_data_len, hex);
+        BUFFER_Write(pstBuffer, hex, hex_data_len *2);
+        left_len -= hex_data_len;
+        tmp += hex_data_len;
+    }
+}
+
+static VOID _buffer_Print(char *pcMsg, BUFFER_S *pstBuffer)
+{
+     BUFFER_Write(pstBuffer, pcMsg, strlen(pcMsg));
+}
+
+int BUFFER_Print(BUFFER_S *pstBuffer, char *pcFmt, ...)
+{
+    if (! pstBuffer) {
         return BS_ERR;
     }
 
-    return BUFFER_Write(hBuffer, pcData, strlen(pcData));
-}
-
-static VOID _buffer_Print(IN CHAR *pcMsg, BUFFER_HANDLE hBuffer)
-{
-     BUFFER_Write(hBuffer, pcMsg, strlen(pcMsg));
-}
-
-BS_STATUS BUFFER_Print(IN BUFFER_HANDLE hBuffer, IN CHAR *pcFmt, ...)
-{
-    if (hBuffer == NULL)
-    {
-        return BS_ERR;
-    }
-
-    TXT_ARGS_PRINT(_buffer_Print, hBuffer);
+    TXT_ARGS_PRINT(_buffer_Print, pstBuffer);
 
     return BS_OK;
 }
 
-BS_STATUS BUFFER_Flush(IN BUFFER_HANDLE hBuffer)
+BS_STATUS BUFFER_Flush(BUFFER_S *pstBuffer)
 {
-    BUFFER_S *pstBuffer = hBuffer;
-
-    if (hBuffer == NULL)
-    {
+    if (! pstBuffer) {
         return BS_ERR;
     }
 
-    if (pstBuffer->uiDataLen > 0)
-    {
+    if (pstBuffer->uiDataLen > 0) {
         buffer_FlushBuffer(pstBuffer);
     }
 

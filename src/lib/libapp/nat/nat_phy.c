@@ -86,13 +86,13 @@ static BS_STATUS nat_phy_CreatePcap(IN UINT uiPcapIndex)
 
     if (g_astNatPrivatePhy[uiPcapIndex].uiIfIndex == 0)
     {
-        uiIfIndex = CompIf_CreateIf("nat.pcap");
+        uiIfIndex = IFNET_CreateIf("nat.pcap");
         if (uiIfIndex == 0)
         {
             return BS_ERR;
         }
 
-        COMP_PCAP_Ioctl(uiPcapIndex, PCAP_IOCTL_CMD_GET_NET_INFO, &stInfo);
+        PCAP_Ioctl(uiPcapIndex, PCAP_IOCTL_CMD_GET_NET_INFO, &stInfo);
 
         g_astNatPrivatePhy[uiPcapIndex].uiIfIndex = uiIfIndex;
         g_astNatPrivatePhy[uiPcapIndex].uiPcapIndex = uiPcapIndex;
@@ -101,7 +101,7 @@ static BS_STATUS nat_phy_CreatePcap(IN UINT uiPcapIndex)
         g_astNatPrivatePhy[uiPcapIndex].uiGateWayIP = stInfo.uiGateWay;
         MAC_ADDR_COPY(g_astNatPrivatePhy[uiPcapIndex].stMacAddr.aucMac, stInfo.stMacAddr.aucMac);
 
-        CompIf_Ioctl(uiIfIndex, IFNET_CMD_SET_MAC, &stInfo.stMacAddr);
+        IFNET_Ioctl(uiIfIndex, IFNET_CMD_SET_MAC, &stInfo.stMacAddr);
     }
 
     return BS_OK;
@@ -119,7 +119,7 @@ static BS_STATUS nat_phy_Output(IN UINT uiIfIndex, IN MBUF_S *pstMbuf)
         return BS_ERR;
     }
     
-    return COMP_PCAP_SendPkt(uiPcapIndex, pstMbuf);
+    return PCAP_SendPkt(uiPcapIndex, pstMbuf);
 }
 
 UINT nat_phy_GetIndexByIfIndex(IN UINT uiIfIndex)
@@ -194,17 +194,17 @@ BS_STATUS NAT_Phy_Init()
 
     stLinkParam.pfLinkInput = NAT_Link_Input;
     stLinkParam.pfLinkOutput = NAT_Link_OutPut;
-    CompIf_SetLinkType("nat.eth", &stLinkParam);
+    IFNET_SetLinkType("nat.eth", &stLinkParam);
 
     stPhyParam.pfPhyOutput = nat_phy_Output;
-    CompIf_SetPhyType("nat.pcap", &stPhyParam);
+    IFNET_SetPhyType("nat.pcap", &stPhyParam);
 
     stTypeParam.pcProtoType = NULL;
     stTypeParam.pcLinkType = "nat.eth";
     stTypeParam.pcPhyType = "nat.pcap";
     stTypeParam.uiFlag = IF_TYPE_FLAG_HIDE;
 
-    CompIf_AddIfType("nat.pcap", &stTypeParam);
+    IFNET_AddIfType("nat.pcap", &stTypeParam);
 
     if (NULL == (g_hNatPhyEventId = Event_Create()))
     {
@@ -409,8 +409,8 @@ BS_STATUS NAT_Phy_Start()
 
         stUserHandle.ahUserHandle[0] = &g_astNatPrivatePhy[i];
 
-        COMP_PCAP_RegService(g_astNatPrivatePhy[i].uiPcapIndex, ETH_P_ARP, nat_phy_PktIn, &stUserHandle);
-        COMP_PCAP_RegService(g_astNatPrivatePhy[i].uiPcapIndex, ETH_P_IP, nat_phy_PktIn, &stUserHandle);
+        PCAP_RegService(g_astNatPrivatePhy[i].uiPcapIndex, ETH_P_ARP, nat_phy_PktIn, &stUserHandle);
+        PCAP_RegService(g_astNatPrivatePhy[i].uiPcapIndex, ETH_P_IP, nat_phy_PktIn, &stUserHandle);
     }
 
     return BS_OK;

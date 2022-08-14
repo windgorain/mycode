@@ -106,7 +106,9 @@ BS_STATUS SVPN_WebResCmd_Save(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN HANDLE hFi
         
     while (BS_OK == SVPN_CtxData_GetNextObject(hSvpnContext, SVPN_CTXDATA_WEB_RES, szName, szName, SVPN_MAX_RES_NAME_LEN + 1))
     {
-        CMD_EXP_OutputMode(hFile, "web-resource %s", szName);
+        if (0 != CMD_EXP_OutputMode(hFile, "web-resource %s", szName)) {
+            continue;
+        }
 
         SVPN_CD_SaveProp(hSvpnContext, SVPN_CTXDATA_WEB_RES, szName, "Description", "description", hFile);
         SVPN_CD_SaveProp(hSvpnContext, SVPN_CTXDATA_WEB_RES, szName, "URL", "url", hFile);

@@ -111,7 +111,7 @@ BS_STATUS WSAPP_Worker_ConnDispatch(IN UINT uiGwID, IN INT iSocketID)
     return eRet;
 }
 
-UINT WSAPP_Worker_RegListener(IN PF_WSAPP_WORKER_EVENT pfEventFunc)
+UINT WSAPP_RegListener(IN PF_WSAPP_WORKER_EVENT pfEventFunc)
 {
     UINT i;
     UINT uiListenerID = WSAPP_WORKER_LISTENER_ID_INVALID;
@@ -134,7 +134,7 @@ UINT WSAPP_Worker_RegListener(IN PF_WSAPP_WORKER_EVENT pfEventFunc)
     return uiListenerID;
 }
 
-BS_STATUS WSAPP_Worker_SetListenerData(IN UINT uiListenerID, IN UINT uiWorkerID, IN VOID *pData)
+BS_STATUS WSAPP_SetListenerData(IN UINT uiListenerID, IN UINT uiWorkerID, IN VOID *pData)
 {
     if (uiListenerID >= WSAPP_WORKER_MAX_LISTENER)
     {
@@ -153,7 +153,7 @@ BS_STATUS WSAPP_Worker_SetListenerData(IN UINT uiListenerID, IN UINT uiWorkerID,
     return BS_OK;
 }
 
-VOID * WSAPP_Worker_GetListenerData(IN UINT uiListenerID, IN UINT uiWorkerID)
+VOID * WSAPP_GetListenerData(IN UINT uiListenerID, IN UINT uiWorkerID)
 {
     if (uiListenerID >= WSAPP_WORKER_MAX_LISTENER)
     {

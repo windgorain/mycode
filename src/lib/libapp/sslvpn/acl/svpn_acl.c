@@ -59,7 +59,7 @@ static BS_STATUS svpn_acl_SetAclContent(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN 
             cSaved = stString.pcData[stString.uiLen];
             stString.pcData[stString.uiLen] = '\0';
             uiRuleID ++;
-            URI_ACL_AddRule(pstAclCtx->hUriAcl, uiListID, uiRuleID, stString.pcData);
+            URI_ACL_AddRuleToListID(pstAclCtx->hUriAcl, uiListID, uiRuleID, stString.pcData, NULL);
             stString.pcData[stString.uiLen] = cSaved;
         }
     }LSTR_SCAN_ELEMENT_END();
@@ -230,7 +230,7 @@ BS_STATUS SVPN_ACL_Match
 {
     SVPN_ACL_CTX_S *pstAclCtx;
     UINT64 uiListID;
-    URI_ACL_ACTION_E enAction;
+    BS_ACTION_E enAction;
 
     *pbPermit = FALSE;
 
@@ -251,7 +251,7 @@ BS_STATUS SVPN_ACL_Match
         return BS_NOT_FOUND;
     }
 
-    if(enAction == URI_ACL_ACTION_PERMIT)
+    if(enAction == BS_ACTION_PERMIT)
     {
         *pbPermit = TRUE;
     }
@@ -403,7 +403,9 @@ BS_STATUS SVPN_AclCmd_Save(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN HANDLE hFile)
         
     while (BS_OK == SVPN_CtxData_GetNextObject(hSvpnContext, SVPN_CTXDATA_ACL, szName, szName, SVPN_MAX_RES_NAME_LEN + 1))
     {
-        CMD_EXP_OutputMode(hFile, "acl %s", szName);
+        if (0 != CMD_EXP_OutputMode(hFile, "acl %s", szName)) {
+            continue;
+        }
 
         SVPN_CD_SaveProp(hSvpnContext, SVPN_CTXDATA_ACL, szName, "Description", "description", hFile);
         SVPN_CD_SaveElements(hSvpnContext, SVPN_CTXDATA_ACL, szName, "Rules", "rule", SVPN_PROPERTY_LINE_SPLIT, hFile);

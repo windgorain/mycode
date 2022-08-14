@@ -62,7 +62,7 @@ static _VNETS_DOMAIN_NIM_S * vnets_domainnim_Find(IN CHAR *pcDomainName)
 
 BS_STATUS _VNETS_DomainNIM_Init()
 {
-    g_hVnetsDomainNIMHashHandle = HASH_CreateInstance(_VNETS_DOMAIN_NIM_HASH_BUCKET_NUM, vnets_domainnim_HashIndex);
+    g_hVnetsDomainNIMHashHandle = HASH_CreateInstance(NULL, _VNETS_DOMAIN_NIM_HASH_BUCKET_NUM, vnets_domainnim_HashIndex);
     if (NULL == g_hVnetsDomainNIMHashHandle)
     {
         return BS_NO_MEMORY;

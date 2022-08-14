@@ -1,0 +1,120 @@
+;-------------------------------------------------------------------------------
+; vndis.inf
+
+
+[version]
+Signature   = "$Windows NT$"
+Class       = Net
+ClassGUID   = {4d36e972-e325-11ce-bfc1-08002be10318}
+Provider    = %EZVNET%
+DriverVer   =10/01/2002,6.0.5019.0
+
+[ControlFlags]
+ExcludeFromSelect={b85b7c50-6a01-11d2-b841-00c04fad5171}\vndis
+
+[Manufacturer]
+%EZVNET% = ezvnet,NTx86,NTia64,NTamd64
+
+;For Win2k
+
+[ezvnet]
+%EZVNET.DeviceDesc%    = vndis.ndi, root\vndis ; Root enumerated 
+%EZVNET.DeviceDesc%    = vndis.ndi, {b85b7c50-6a01-11d2-b841-00c04fad5171}\vndis ; Toaster Bus enumerated 
+
+;For WinXP and later
+
+[ezvnet.NTx86]
+%EZVNET.DeviceDesc%    = vndis.ndi, root\vndis ; Root enumerated 
+%EZVNET.DeviceDesc%    = vndis.ndi, {b85b7c50-6a01-11d2-b841-00c04fad5171}\vndis ; Toaster Bus enumerated 
+
+[ezvnet.NTia64]
+%EZVNET.DeviceDesc%    = vndis.ndi, root\vndis ; Root enumerated 
+%EZVNET.DeviceDesc%    = vndis.ndi, {b85b7c50-6a01-11d2-b841-00c04fad5171}\vndis ; Toaster Bus enumerated 
+
+[ezvnet.NTamd64]
+%EZVNET.DeviceDesc%    = vndis.ndi, root\vndis ; Root enumerated 
+%EZVNET.DeviceDesc%    = vndis.ndi, {b85b7c50-6a01-11d2-b841-00c04fad5171}\vndis ; Toaster Bus enumerated 
+
+;-------------------------------------------------------------------------------
+
+[vndis.ndi]
+Characteristics = 0x1 ; NCF_VIRTUAL. if want to hide it, use 0x9
+AddReg          = vndis.Reg
+AddReg		= vndis.params.reg
+CopyFiles       = vndis.CopyFiles
+
+[vndis.ndi.Services]
+AddService      = vndis, 2, vndis.Service, vndis.EventLog
+
+;-----------------------------------------------------------------------------
+
+[vndis.Reg]
+HKR,    ,                         BusNumber,           0, "0" 
+HKR, Ndi,                         Service,             0, "vndis"
+HKR, Ndi\Interfaces,              UpperRange,          0, "ndis5"
+HKR, Ndi\Interfaces,              LowerRange,          0, "ethernet"
+
+[vndis.params.reg]
+   HKR, Ndi\params\MTU,                  ParamDesc, 0, "MTU"
+   HKR, Ndi\params\MTU,                  Type,      0, "int"
+   HKR, Ndi\params\MTU,                  Default,   0, "1300"
+   HKR, Ndi\params\MTU,                  Optional,  0, "0"
+   HKR, Ndi\params\MTU,                  Min,       0, "100"
+   HKR, Ndi\params\MTU,                  Max,       0, "1300"
+   HKR, Ndi\params\MTU,                  Step,      0, "1"
+   HKR, Ndi\params\MAC,                  ParamDesc, 0, "MAC Address"
+   HKR, Ndi\params\MAC,                  Type,      0, "edit"
+   HKR, Ndi\params\MAC,                  Optional,  0, "1"
+   HKR, Ndi\params\AllowNonAdmin,        ParamDesc, 0, "Non-Admin Access"
+   HKR, Ndi\params\AllowNonAdmin,        Type,      0, "enum"
+   HKR, Ndi\params\AllowNonAdmin,        Default,   0, "1"
+   HKR, Ndi\params\AllowNonAdmin,        Optional,  0, "0"
+   HKR, Ndi\params\AllowNonAdmin\enum,   "0",       0, "Not Allowed"
+   HKR, Ndi\params\AllowNonAdmin\enum,   "1",       0, "Allowed"
+
+;-----------------------------------------------------------------------------
+; Driver and Service Section
+;
+[vndis.CopyFiles]
+vndis.sys,,,2
+
+[vndis.Service]
+DisplayName     = %EZVNET.Service.DispName%
+ServiceType     = 1 ;%SERVICE_KERNEL_DRIVER%
+StartType       = 3 ;%SERVICE_DEMAND_START%
+ErrorControl    = 1 ;%SERVICE_ERROR_NORMAL%
+ServiceBinary   = %12%\vndis.sys
+LoadOrderGroup  = NDIS
+AddReg          = TextModeFlags.Reg
+
+[vndis.EventLog]
+AddReg = vndis.AddEventLog.Reg
+
+[vndis.AddEventLog.Reg]
+HKR, , EventMessageFile, 0x00020000, "%%SystemRoot%%\System32\netevent.dll"
+HKR, , TypesSupported,   0x00010001, 7
+
+[TextModeFlags.Reg]
+HKR, , TextModeFlags,    0x00010001, 0x0001
+
+[SourceDisksNames]
+1 = %DiskId1%,,,""
+
+[SourceDisksFiles]
+vndis.sys  = 1,,
+
+;-----------------------------------------------------------------------------
+; DestinationDirs
+;
+[DestinationDirs]
+vndis.CopyFiles = 12
+
+;-----------------------------------------------------------------------------
+; Localizable Strings
+;
+[Strings]
+EZVNET                   = "EZVnet"
+EZVNET.DeviceDesc        = "EZVnet 1.1"
+EZVNET.Service.DispName  = "EZVnet Virtual Miniport 1.1.0"
+DiskId1 = "EZVnet Device Installation Disk #1"
+

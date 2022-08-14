@@ -4,9 +4,6 @@
 * Description:  HANDLE Stack. Stack中存放的是Handle
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
-#define RETCODE_FILE_NUM RETCODE_FILE_NUM_HSTACK
-
 #include "bs.h"
 
 #define _HSTACK_DFT_STEP_SIZE 128

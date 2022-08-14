@@ -37,7 +37,7 @@ BS_STATUS WebProxyApp_Deliver_Init()
 
 VOID WebProxyApp_Deliver_BindService(IN CHAR *pcWsService)
 {
-    COMP_WSAPP_SetDeliverTbl(pcWsService, g_hWebProxyAppDeliverTbl);
+    WSAPP_SetDeliverTbl(pcWsService, g_hWebProxyAppDeliverTbl);
 }
 
 

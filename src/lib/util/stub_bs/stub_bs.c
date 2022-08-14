@@ -6,11 +6,12 @@
 ******************************************************************************/
 #include "bs.h"
 #include "utl/rcu_utl.h"
+#include "utl/mem_utl.h"
 
 VOID * mem_Malloc(IN UINT uiSize, IN CHAR *pcFileName, IN UINT uiLine)
 {
 #ifdef SUPPORT_MEM_MANAGED
-    return PrivateMEMX_MallocMem(uiSize, pcFileName, uiLine);
+    return MEM_MallocMem(uiSize, pcFileName, uiLine);
 #else
     return malloc(uiSize);
 #endif
@@ -19,38 +20,22 @@ VOID * mem_Malloc(IN UINT uiSize, IN CHAR *pcFileName, IN UINT uiLine)
 VOID mem_Free(IN VOID *pMem, IN CHAR *pcFileName, IN UINT uiLine)
 {
 #ifdef SUPPORT_MEM_MANAGED
-    PrivateMEMX_FreeMem(pMem, pcFileName, uiLine);
+    MEM_FreeMem(pMem, pcFileName, uiLine);
 #else
     free(pMem);
 #endif
 }
 
-static RCU_S g_stub_bs_rcu;
-static int g_stub_bs_rcu_inited = 0;
-
-static inline void stubrcubs_init()
+void * _mem_Realloc(void *old_mem, UINT old_size, UINT new_size, char *filename, UINT line)
 {
-    if (g_stub_bs_rcu_inited == 0) {
-        g_stub_bs_rcu_inited = 1;
-        RCU_Init(&g_stub_bs_rcu);
+#ifdef SUPPORT_MEM_MANAGED
+    void *mem;
+    mem = _mem_MallocAndCopy(old_mem, old_size, new_size, filename, line);
+    if (mem) {
+        MEM_FreeMem(old_mem, filename, line);
     }
+    return mem;
+#else
+    return realloc(old_mem, new_size);
+#endif
 }
-
-VOID StubRcuBs_Free(IN RCU_NODE_S *pstRcuNode, IN PF_RCU_FREE_FUNC pfFreeFunc)
-{
-    stubrcubs_init();
-    RCU_Call(&g_stub_bs_rcu, pstRcuNode, pfFreeFunc);
-}
-
-UINT StubRcuBs_Lock()
-{
-    stubrcubs_init();
-    return RCU_Lock(&g_stub_bs_rcu);
-}
-
-VOID StubRcuBs_UnLock(IN UINT uiPhase)
-{
-    stubrcubs_init();
-    RCU_UnLock(&g_stub_bs_rcu, uiPhase);
-}
-

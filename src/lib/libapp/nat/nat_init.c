@@ -17,8 +17,6 @@
 
 BS_STATUS NAT_Init()
 {
-    COMP_PCAP_Init();
-    CompIf_Init();
 	NAT_Phy_Init();
     NAT_ARP_Init();
     NAT_CMD_Init();

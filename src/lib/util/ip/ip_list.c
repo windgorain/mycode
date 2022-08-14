@@ -424,7 +424,7 @@ BS_STATUS IPLIst_ToString(IN IPLIST_S *pstList, OUT CHAR *pcString, IN UINT uiSi
 
         if (DLL_NEXT(&pstList->stList, pstNode) != NULL)
         {
-            iLen = snprintf(pcTmp, uiSizeTmp, ",");
+            iLen = scnprintf(pcTmp, uiSizeTmp, ",");
             if ((UINT)iLen >= uiSizeTmp)
             {
                 break;

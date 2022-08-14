@@ -462,7 +462,7 @@ static BS_WALK_RET_E vnetc_node_ShowEach(IN HASH_HANDLE hHashId, IN VOID *pNode,
             VNET_NID_INDEX(pstNode->uiNID),
             pstNode->uiSesID,
             vnetc_node_GetDirectString(pstNode->ucDirectStatus),
-            CompIf_GetIfName(pstNode->uiIfIndex, szIfName));
+            IFNET_GetIfName(pstNode->uiIfIndex, szIfName));
 
     return BS_WALK_CONTINUE;
 }

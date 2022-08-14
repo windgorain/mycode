@@ -7,18 +7,18 @@
 #include "utl/exec_utl.h"
 #include "utl/txt_utl.h"
 #include "comp/comp_precver.h"
-#include "comp/comp_pissuer.h"
+#include "comp/comp_event_hub.h"
 #include "../h/precver_def.h"
 #include "../h/precver_conf.h"
 #include "../h/precver_worker.h"
 
 #define PRECVER_WORKER_MAX 32
 
-static PRECVER_WORKER_S g_precver_workers[PRECVER_WORKER_MAX];
+PRECVER_WORKER_S g_precver_workers[PRECVER_WORKER_MAX];
 
 static inline void precver_worker_BindCpu(PRECVER_WORKER_S *wrk)
 {
-#ifdef IN_LINUX
+#if defined IN_LINUX && defined __X86__ && defined _GNU_SOURCE
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(wrk->cpu_index, &mask);
@@ -29,12 +29,12 @@ static inline void precver_worker_BindCpu(PRECVER_WORKER_S *wrk)
 static void precver_worker_Main(USER_HANDLE_S *user_data)
 {
     PRECVER_WORKER_S *wrk = user_data->ahUserHandle[0];
-
+   
     if (wrk->affinity) {
         precver_worker_BindCpu(wrk);
     }
 
-    if (BS_OK != PRecver_Run(&wrk->runner)) {
+    if (BS_OK != PRecver_Run(wrk->index)) {
         return;
     }
 
@@ -42,29 +42,56 @@ static void precver_worker_Main(USER_HANDLE_S *user_data)
     wrk->runner.need_stop = 0;
 }
 
-static void precver_worker_PktInput(void *runner, PRECVER_PKT_S *pkt)
-{
-    PISSUER_PKT_S issuer_pkt;
-
-    issuer_pkt.recver_pkt = pkt;
-    PIssuer_Publish(PISSUER_EV_PHY_INPUT, &issuer_pkt);
-}
-
 int PRecver_Worker_Init()
 {
     int i;
 
-    for (i=0; i<PRECVER_WORKER_MAX; i++) {
+    for (i=0; i<PRECVER_WORKER_MAX && g_precver_workers[i].used == 0; i++) {
         g_precver_workers[i].index = i;
         g_precver_workers[i].runner.source = g_precver_workers[i].source;
         g_precver_workers[i].runner.param = g_precver_workers[i].param;
-        g_precver_workers[i].runner.recv_pkt = precver_worker_PktInput;
     }
 
     return 0;
 }
 
-PLUG_API void * PRecver_Worker_Use(int index)
+int PRecver_OneWorker_Init(int index, char *source, char *param)
+{
+    g_precver_workers[index].index = index;
+    g_precver_workers[index].used = 1;
+    
+    if (source && source[0]) {
+        strlcpy(g_precver_workers[index].source, source, strlen(source) + 1);
+    }
+    if (param && param[0]) {
+        strlcpy(g_precver_workers[index].param, param, strlen(param) + 1);
+    }
+    g_precver_workers[index].runner.source = source;
+    g_precver_workers[index].runner.param = param;
+
+    return 0;
+}
+
+int PRecver_Worker_Sample(int index, uint8_t rate, uint8_t type)
+{
+    g_precver_workers[index].runner.sample_type = type;
+    g_precver_workers[index].runner.sample_rate = rate;
+
+    return 0;
+}
+
+int PRecver_Worker_NoSample(int index, uint8_t rate, uint8_t type)
+{
+    if (g_precver_workers[index].runner.sample_rate == rate &&
+            g_precver_workers[index].runner.sample_type == type) {
+        g_precver_workers[index].runner.sample_rate = 0;
+        g_precver_workers[index].runner.sample_type = 0;
+    }
+    return 0;
+
+}
+
+void * PRecver_Worker_Use(int index)
 {
     if (index >= PRECVER_WORKER_MAX) {
         return NULL;
@@ -87,7 +114,8 @@ void PRecver_Worker_NoUse(int index)
     PRecver_Worker_Stop(index);
 }
 
-PLUG_API int PRecver_Worker_SetSource(int index, char *source)
+
+int PRecver_Worker_SetSource(int index, char *source)
 {
     if (index >= PRECVER_WORKER_MAX) {
         RETURN(BS_OUT_OF_RANGE);
@@ -97,7 +125,7 @@ PLUG_API int PRecver_Worker_SetSource(int index, char *source)
     return 0;
 }
 
-PLUG_API int PRecver_Worker_SetParam(int index, char *param)
+int PRecver_Worker_SetParam(int index, char *param)
 {
     if (index >= PRECVER_WORKER_MAX) {
         RETURN(BS_OUT_OF_RANGE);
@@ -110,7 +138,7 @@ PLUG_API int PRecver_Worker_SetParam(int index, char *param)
     return 0;
 }
 
-PLUG_API int PRecver_Worker_SetAffinity(int index, int cpu_index)
+int PRecver_Worker_SetAffinity(int index, int cpu_index)
 {
     if (index >= PRECVER_WORKER_MAX) {
         RETURN(BS_OUT_OF_RANGE);
@@ -132,7 +160,7 @@ int PRecver_Worker_ClrAffinity(int index)
     return 0;
 }
 
-PLUG_API int PRecver_Worker_Start(int index)
+int PRecver_Worker_Start(int index)
 {
     if (index >= PRECVER_WORKER_MAX) {
         RETURN(BS_OUT_OF_RANGE);
@@ -184,5 +212,14 @@ void PRecver_Worker_Walk(PF_PRECVER_WORK_WALK walk, void *ud)
     for (i=0; i<PRECVER_WORKER_MAX; i++) {
         walk(&g_precver_workers[i], ud);
     }
+}
+
+PRECVER_RUNNER_S* PRecver_Worker_GetRunner(int index)
+{
+    if (index < 0 || index >= PRECVER_WORKER_MAX) {
+        return NULL;
+    }
+
+    return &(g_precver_workers[index].runner);
 }
 

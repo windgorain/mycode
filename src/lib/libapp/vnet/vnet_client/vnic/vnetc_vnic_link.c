@@ -49,6 +49,6 @@ BS_STATUS VNET_VNIC_LinkOutput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT
 {
     VNETC_ArpMonitor_PacketMonitor(pstMbuf);
     
-    return CompIf_PhyOutput (ulIfIndex, pstMbuf);
+    return IFNET_PhyOutput (ulIfIndex, pstMbuf);
 }
 

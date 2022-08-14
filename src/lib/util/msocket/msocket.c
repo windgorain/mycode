@@ -29,9 +29,15 @@ static MUTEX_S g_stMSocketMutex;
 
 BS_STATUS MSocket_Init()
 {
+    NAP_PARAM_S param = {0};
+
     if (NULL == g_hMSocketNap)
     {
-        g_hMSocketNap = NAP_Create(NAP_TYPE_PTR_ARRAY, SSLTCP_MAX_SSLTCP_NUM, sizeof(_MSOCKET_CTRL_S), 0);
+        param.enType = NAP_TYPE_PTR_ARRAY;
+        param.uiMaxNum = SSLTCP_MAX_SSLTCP_NUM;
+        param.uiNodeSize = sizeof(_MSOCKET_CTRL_S);
+
+        g_hMSocketNap = NAP_Create(&param);
 
         if (g_hMSocketNap == NULL)
         {

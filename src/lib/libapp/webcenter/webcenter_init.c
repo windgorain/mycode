@@ -17,9 +17,6 @@
 
 BS_STATUS WebCenter_Init()
 {
-    COMP_WSAPP_Init();
-    COMP_KFAPP_Init();
-    COMP_LocalUser_Init();
     WebCenter_Deliver_Init();
     WebCenter_ULM_Init();
     WebCenter_KF_Init();

@@ -124,7 +124,7 @@ VOID SVPN_IpTunNode_Free(IN SVPN_IPTUN_NODE_S *pstNode)
     HASH_Del(g_stSvpnIpTunNodeCtrl.hHashInstance, pstNode);
     MUTEX_V(&g_stSvpnIpTunNodeCtrl.stMutex);
 
-    RcuBs_Free(&pstNode->stRcu, _svpn_iptunnode_RcuFree);
+    RcuEngine_Call(&pstNode->stRcu, _svpn_iptunnode_RcuFree);
 }
 
 static INT _svpn_iptunnode_Cmp(IN VOID * pstHashNode, IN VOID * pstNodeToFind)
@@ -151,7 +151,7 @@ SVPN_IPTUN_NODE_S * SVPN_IpTunNode_Find(IN UINT uiVirtualIP/* net order */)
 
 BS_STATUS SVPN_IpTunNode_Init()
 {
-    g_stSvpnIpTunNodeCtrl.hHashInstance = HASH_CreateInstance(1024, _svpn_iptunnode_HashIndex);
+    g_stSvpnIpTunNodeCtrl.hHashInstance = HASH_CreateInstance(NULL, 1024, _svpn_iptunnode_HashIndex);
     MUTEX_Init(&g_stSvpnIpTunNodeCtrl.stMutex);
 
 	return BS_OK;

@@ -56,7 +56,7 @@ static BOOL_T _wan_ipfwd_IsPermitDbgOutput(IN IP_HEAD_S *pstIpHead)
     stMatchInfo.uiSIP = ntohl(pstIpHead->unSrcIp.uiIp);
     stMatchInfo.uiKeyMask = IPACL_KEY_SIP|IPACL_KEY_DIP;
     
-    if (BS_ACTION_PERMIT == COMP_IPACL_Match(g_ulWanIpFwdDbgAcl, &stMatchInfo))
+    if (BS_ACTION_PERMIT == ACL_Match(0, ACL_TYPE_IP, g_ulWanIpFwdDbgAcl, &stMatchInfo))
     {
         return TRUE;
     }
@@ -155,9 +155,9 @@ BS_STATUS WAN_IpFwd_Input (IN MBUF_S *pstMbuf)
     }
 
     _WAN_IPFWD_DBG_WITH_ACL(g_uiWanIpFwdDbgFlag, WAN_IP_FWD_DBG_PACKET, pstIpHead,
-        ("IPFWD: Forward packet to %s.\r\n", CompIf_GetIfName(stFibNode.uiOutIfIndex, szIfName)));
+        ("IPFWD: Forward packet to %s.\r\n", IFNET_GetIfName(stFibNode.uiOutIfIndex, szIfName)));
 
-    return CompIf_LinkOutput(stFibNode.uiOutIfIndex, pstMbuf, htons(ETH_P_IP));
+    return IFNET_LinkOutput(stFibNode.uiOutIfIndex, pstMbuf, htons(ETH_P_IP));
 }
 
 /* 相比于OutPut, 不再填写IP头的东西,认为上面已经填写好了 */
@@ -229,9 +229,9 @@ BS_STATUS WAN_IpFwd_Send(IN MBUF_S *pstMbuf)
 
     _WAN_IPFWD_DBG_WITH_ACL(g_uiWanIpFwdDbgFlag, WAN_IP_FWD_DBG_PACKET, pstIpHead,
         ("IPFWD: Forward packet to %s, sip=%pI4, dip=%pI4.\r\n",
-        CompIf_GetIfName(uiIfIndex, szIfName), &pstIpHead->unSrcIp.uiIp, &pstIpHead->unDstIp.uiIp));
+        IFNET_GetIfName(uiIfIndex, szIfName), &pstIpHead->unSrcIp.uiIp, &pstIpHead->unDstIp.uiIp));
 
-    return CompIf_LinkOutput(uiIfIndex, pstMbuf, htons(ETH_P_IP));
+    return IFNET_LinkOutput(uiIfIndex, pstMbuf, htons(ETH_P_IP));
 }
 
 BS_STATUS WAN_IpFwd_Output
@@ -272,18 +272,18 @@ PLUG_API BS_STATUS WAN_IpFwd_DebugPacket
     
     if (ulArgc >= 5)
     {
-        if (BS_OK != COMP_ACL_Ioctl(COMP_ACL_IOCTL_ADD_LIST_REF, argv[4]))
+        if (BS_OK != ACL_Ioctl(0, ACL_TYPE_IP, COMP_ACL_IOCTL_ADD_LIST_REF, argv[4]))
         {
             EXEC_OutString("Acl not exist.\r\n");
             return BS_ERR;
         }
 
         stAclNameID.pcAclListName = argv[4];
-        COMP_ACL_Ioctl(COMP_ACL_IOCTL_GET_LIST_ID, &stAclNameID);
+        ACL_Ioctl(0, ACL_TYPE_IP, COMP_ACL_IOCTL_GET_LIST_ID, &stAclNameID);
 
         if (g_ulWanIpFwdDbgAcl != ACL_INVALID_LIST_ID)
         {
-            COMP_ACL_Ioctl(COMP_ACL_IOCTL_DEL_LIST_REF_BY_ID, &g_ulWanIpFwdDbgAcl);
+            ACL_Ioctl(0, ACL_TYPE_IP, COMP_ACL_IOCTL_DEL_LIST_REF_BY_ID, &g_ulWanIpFwdDbgAcl);
             g_ulWanIpFwdDbgAcl = ACL_INVALID_LIST_ID;
         }
 
@@ -308,7 +308,7 @@ PLUG_API BS_STATUS WAN_IpFwd_NoDebugPacket
 
     if (g_ulWanIpFwdDbgAcl != ACL_INVALID_LIST_ID)
     {
-        COMP_ACL_Ioctl(COMP_ACL_IOCTL_DEL_LIST_REF_BY_ID, &g_ulWanIpFwdDbgAcl);
+        ACL_Ioctl(0, ACL_TYPE_IP, COMP_ACL_IOCTL_DEL_LIST_REF_BY_ID, &g_ulWanIpFwdDbgAcl);
         g_ulWanIpFwdDbgAcl = ACL_INVALID_LIST_ID;
     }
 

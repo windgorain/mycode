@@ -24,7 +24,7 @@
 #define UTUN_CONTROL_NAME "com.apple.net.utun_control"
 #define UTUN_OPT_IFNAME 2
 
-static int _tunos_Open(char *dev, int dev_name_size)
+static int _tunos_Open(char *dev, int dev_name_size, int type)
 {
     struct sockaddr_ctl addr;
     struct ctl_info info;
@@ -129,9 +129,8 @@ static int _tunos_SetNonblock(int fd)
 #include <sys/stat.h>
 #include <fcntl.h>
 
-static int _tunos_Open(char *dev, int dev_name_size)
+static int _tunos_Open(char *dev, int dev_name_size, int type)
 {
-    int flags = IFF_TUN | IFF_NO_PI;
     struct ifreq ifr;
     int fd, err;
     char *clonedev = "/dev/net/tun";
@@ -141,9 +140,15 @@ static int _tunos_Open(char *dev, int dev_name_size)
     }
 
     memset(&ifr, 0, sizeof(ifr));
-    ifr.ifr_flags = flags;
+
+    if (type == TUN_TYPE_TUN) {
+        ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
+    } else {
+        ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+    }
+
     if ((dev != NULL) && (*dev != '\0')) {  
-        strncpy(ifr.ifr_name, dev, IFNAMSIZ);  
+        strlcpy(ifr.ifr_name, dev, IFNAMSIZ);  
     } 
 
     if ((err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0) {
@@ -169,7 +174,7 @@ static int _tunos_mque_Open(INOUT char *dev, int dev_name_size, IN int que_num, 
 
     ifr.ifr_flags = IFF_TAP | IFF_NO_PI | IFF_MULTI_QUEUE;
     if ((dev != NULL) && (*dev != '\0')) {  
-        strncpy(ifr.ifr_name, dev, IFNAMSIZ);  
+        strlcpy(ifr.ifr_name, dev, IFNAMSIZ);  
     } 
 
     for (i = 0; i < que_num; i++) {
@@ -211,7 +216,7 @@ static int _tunos_SetNonblock(int fd)
 #ifdef IN_WINDOWS
 
 
-VNIC_HANDLE _tunos_Open(OUT char * dev_name, int dev_name_size)
+VNIC_HANDLE _tunos_Open(OUT char * dev_name, int dev_name_size, int type)
 {
     VNIC_HANDLE hVnic;
     char *ifname;
@@ -268,7 +273,12 @@ static int _tunos_Write(VNIC_HANDLE hVnic, IN void *buf, IN int len)
  */
 TUN_FD TUN_Open(char *dev_name, int dev_name_size)
 {
-    return _tunos_Open(dev_name, dev_name_size);
+    return _tunos_Open(dev_name, dev_name_size, TUN_TYPE_TUN);
+}
+
+TUN_FD TAP_Open(char *dev_name, int dev_name_size)
+{
+    return _tunos_Open(dev_name, dev_name_size, TUN_TYPE_TAP);
 }
 
 int TUN_SetNonblock(TUN_FD fd)

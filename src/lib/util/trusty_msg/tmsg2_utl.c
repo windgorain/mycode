@@ -28,8 +28,9 @@ typedef struct
     USER_HANDLE_S stUserHandle;
 }TMSG2_CTRL_S;;
 
-static VOID tmsg2_TmsgCallBacks(IN UINT uiEvent, IN TMSG_OPT_S *pstOpt, IN USER_HANDLE_S *pstUserHandle)
+static VOID tmsg2_TmsgCallBacks(IN int uiEvent, IN TMSG_OPT_S *pstOpt, IN void *ud)
 {
+    USER_HANDLE_S *pstUserHandle = ud;
     TMSG2_CTRL_S *pstCtrl = pstUserHandle->ahUserHandle[0];
     MBUF_S *pstMbuf = pstUserHandle->ahUserHandle[1];
     TMSG_S *pstTmsg;
@@ -139,7 +140,7 @@ BS_STATUS TMSG2_Send(IN TMSG2_HANDLE hTmsg2, IN MBUF_S *pstMbuf)
     stOpt.uiTicks = 1;
     stOpt.uiRetryTimes = TMSG2_DFT_RETRY_TIMES;
     stOpt.stTmsg.uiFlag = TMSG_FLAG_NEED_ACK;
-    stOpt.pfEventFunc = tmsg2_TmsgCallBacks;
+    stOpt.pfEventFunc = (void*)tmsg2_TmsgCallBacks;
 
     stUserHandle.ahUserHandle[0] = pstCtrl;
     stUserHandle.ahUserHandle[1] = pstMbuf;

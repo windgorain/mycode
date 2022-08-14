@@ -45,15 +45,17 @@ static _CMD_CFG_NODE_S g_stCmdCfg[] =
     _DEF_NAME_AND_ELEMENT(SSHOW_ShowTcp),
     _DEF_NAME_AND_ELEMENT(SSHOW_ShowUdp),
     _DEF_NAME_AND_ELEMENT(SSHOW_Shutdown),
+    _DEF_NAME_AND_ELEMENT(MemDebug_Check),
+    _DEF_NAME_AND_ELEMENT(MemDebug_ShowSizeOfMem),
+    _DEF_NAME_AND_ELEMENT(MemDebug_ShowLineConflict),
     _DEF_NAME_AND_ELEMENT(MEM_ShowStat),
     _DEF_NAME_AND_ELEMENT(MEM_ShowSizeOfMemStat),
-    _DEF_NAME_AND_ELEMENT(MEM_ShowAllSizeOfMem),
-    _DEF_NAME_AND_ELEMENT(MEM_ShowRawMem),
     _DEF_NAME_AND_ELEMENT(SPLX_Display),
     _DEF_NAME_AND_ELEMENT(CMD_EXP_CmdShow),
     _DEF_NAME_AND_ELEMENT(CMD_EXP_CmdNoDebugAll),
     _DEF_NAME_AND_ELEMENT(CMD_EXP_CmdSave),
     _DEF_NAME_AND_ELEMENT(CMD_EXP_ExitApp),
+    _DEF_NAME_AND_ELEMENT(CMD_EXP_EnterSupper),
     _DEF_NAME_AND_ELEMENT(EXEC_TM),
     _DEF_NAME_AND_ELEMENT(EXEC_NoTM),
     _DEF_NAME_AND_ELEMENT(SYSINFO_Show),
@@ -98,19 +100,19 @@ static PF_CMD_EXP_RUN cmd_cfg_GetFunc(IN PLUG_ID ulPlugId, IN CHAR *pszFuncName)
     return pfFunc;
 }
 
-static int cmd_cfg_RegSave(char *save_path, char *pcView,
-        char *func_name, void *pfFunc)
+static int cmd_cfg_RegSave(char *save_path, CMD_EXP_REG_CMD_PARAM_S *param)
 {
-    char name[FILE_MAX_PATH_LEN + 1];
-    snprintf(name, sizeof(name), "%s/config.cfg", save_path);
-    return CMD_EXP_RegSave(name, pcView, (PF_CMD_EXP_SAVE)pfFunc);
+    return CMD_EXP_RegSave(save_path, param);
+}
+
+static int cmd_cfg_RegEnter(CMD_EXP_REG_CMD_PARAM_S *param)
+{
+    return CMD_EXP_RegEnter(param);
 }
 
 static int cmd_cfg_UnRegSave(char *save_path, char *pcView)
 {
-    char name[FILE_MAX_PATH_LEN + 1];
-    snprintf(name, sizeof(name), "%s/config.cfg", save_path);
-    return CMD_EXP_UnRegSave(name, pcView);
+    return CMD_EXP_UnRegSave(save_path, pcView);
 }
 
 BS_STATUS CMD_CFG_RegFunc(char *func_name, PF_CMD_EXP_RUN func)
@@ -148,22 +150,25 @@ static int cmd_cfg_RegLine(void *cmdlst, CMDLST_ELE_S *ele)
         }
     }
 
-    if (CMD_EXP_IS_SAVE(ele->type)) {
-        return cmd_cfg_RegSave(cfg->save_path, ele->view, ele->func_name, func);
-    } else {
-        CMD_EXP_REG_CMD_PARAM_S stCmdParam = {0};
-        stCmdParam.uiType = ele->type;
-        stCmdParam.uiProperty = ele->property;
-        stCmdParam.pcViews = ele->view;
-        stCmdParam.pcCmd = ele->cmd;
-        stCmdParam.pcViewName = ele->view_name;
-        stCmdParam.pfFunc = func;
-        if (ele->param) {
-            INT64 var;
-            TXT_Atoll(ele->param, &var);
-            stCmdParam.hParam = (HANDLE)var;
-        }
+    CMD_EXP_REG_CMD_PARAM_S stCmdParam = {0};
+    stCmdParam.uiType = ele->type;
+    stCmdParam.uiProperty = ele->property;
+    stCmdParam.level= ele->level;
+    stCmdParam.pcViews = ele->view;
+    stCmdParam.pcCmd = ele->cmd;
+    stCmdParam.pcViewName = ele->view_name;
+    stCmdParam.pfFunc = func;
+    if (ele->param) {
+        INT64 var;
+        TXT_Atoll(ele->param, &var);
+        stCmdParam.hParam = (HANDLE)(ULONG)var;
+    }
 
+    if (CMD_EXP_IS_SAVE(ele->type)) {
+        return cmd_cfg_RegSave(cfg->save_path, &stCmdParam);
+    } else if (ele->type == DEF_CMD_EXP_TYPE_ENTER) {
+        return cmd_cfg_RegEnter(&stCmdParam);
+    } else {
         return CMD_EXP_RegCmd(&stCmdParam);
     }
 }
@@ -207,8 +212,13 @@ BS_STATUS CMD_CFG_UnRegCmd(CHAR *pszFileName, char *save_path)
 /* 注册base命令 */
 BS_STATUS CMD_CFG_Init()
 {
+    char buf1[128];
+    char buf2[128];
+
     cmd_cfg_RegLocalCfg();
-    return CMD_CFG_RegCmd(_DEF_CMD_CFG_FILE_PATH, 0, "./save");
+
+    return CMD_CFG_RegCmd(SYSINFO_ExpandConfPath(buf1, sizeof(buf1), _DEF_CMD_CFG_FILE_PATH), 0,
+            SYSINFO_ExpandConfPath(buf2, sizeof(buf2), "save"));
 }
 
 

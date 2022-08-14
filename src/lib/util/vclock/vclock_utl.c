@@ -392,6 +392,11 @@ BS_STATUS VCLOCK_Refresh(IN VCLOCK_INSTANCE_HANDLE hVClockInstance,
 
     pstNode = (VCLOCK_NODE_S*)hTimer;
 
+    /* 意味着不需刷新 */
+    if (pstNode->ulTick == _VCLOCK_GetTickLeft(hVClockInstance, hTimer)) {
+        return BS_OK;
+    }
+
     return VCLOCK_RestartWithTick(hVClockInstance, hTimer,
             pstNode->ulTick, pstNode->ulTick);
 }

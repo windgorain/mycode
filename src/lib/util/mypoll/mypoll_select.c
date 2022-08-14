@@ -150,7 +150,7 @@ static BS_WALK_RET_E mypoll_select_Run(IN _MYPOLL_CTRL_S *pstMyPoll)
     while (1)
     {
         BIT_CLR(pstCtrl->pstMyPollCtrl->uiFlag, _MYPOLL_FLAG_RESTART | _MYPOLL_FLAG_PROCESSING_EVENT);
-        mb();
+        ATOM_BARRIER();
         stReadFds = pstCtrl->socketReadFds;
         stWriteFds = pstCtrl->socketWriteFds;
         stExecptFds = pstCtrl->socketExpFds;

@@ -11,6 +11,8 @@
     
 #include "utl/mbuf_utl.h"
 #include "utl/msgque_utl.h"
+#include "utl/socket_utl.h"
+#include "utl/exec_utl.h"
 #include "comp/comp_if.h"
 
 #include "../../../inc/vnet_conf.h"
@@ -37,12 +39,11 @@
 /* var */
 static INT g_iVnetsUdpPhySocketId = 0;
 static UINT g_ulVnetsUdpPhyIfIndex = 0;     /* UDP PHY的接口IfIndex */
-static UINT g_ulVnetsUdpPhyRecvTid = 0;     /* 接收数据的线程 */
-static UINT g_ulVnetsUdpPhySendTid = 0;     /* 发送数据的线程 */
+static THREAD_ID g_ulVnetsUdpPhyRecvTid = 0;     /* 接收数据的线程 */
+static THREAD_ID g_ulVnetsUdpPhySendTid = 0;     /* 发送数据的线程 */
 static MSGQUE_HANDLE g_hVnetsUdpPhySendQid = NULL;     /* 发送报文队列 */
 static EVENT_HANDLE g_hVnetsUdpPhySendEventid = 0;
 static UINT g_ulVnetsUdpPhyDbgFlag = 0;
-static BOOL_T g_bVnetsUdpPhyInited = FALSE;
 
 /* 每个pstMbuf中都包含一个且仅一个完整的 报文 */
 static BS_STATUS _VNETS_UDP_PHY_OutPut
@@ -75,7 +76,7 @@ static BS_STATUS _VNETS_UDP_PHY_CreateIf ()
         return BS_OK;
     }
 
-    g_ulVnetsUdpPhyIfIndex = CompIf_CreateIf("vnets.l2.udp");
+    g_ulVnetsUdpPhyIfIndex = IFNET_CreateIf("vnets.l2.udp");
     if (0 == g_ulVnetsUdpPhyIfIndex)
     {
         RETURN(BS_ERR);
@@ -100,7 +101,7 @@ static BS_STATUS _VNETS_UDP_PHY_Input (IN UINT ulFromIp, IN USHORT usFromPort, I
 
     MBUF_SET_RECV_IF_INDEX(pstMbuf, g_ulVnetsUdpPhyIfIndex);
 
-    return CompIf_LinkInput(g_ulVnetsUdpPhyIfIndex, pstMbuf);
+    return IFNET_LinkInput(g_ulVnetsUdpPhyIfIndex, pstMbuf);
 }
 
 static BS_STATUS _VNETS_UDP_PHY_RecvMbuf(OUT MBUF_S **ppstMbuf, OUT UINT *pulFromIp, OUT USHORT *pusFromPort)
@@ -145,7 +146,7 @@ static BS_STATUS _VNETS_UDP_PHY_RecvMbuf(OUT MBUF_S **ppstMbuf, OUT UINT *pulFro
     return BS_OK;
 }
 
-static BS_STATUS _VNETS_UDP_PHY_RecvMain (IN USER_HANDLE_S *pstUserHandle)
+static void _VNETS_UDP_PHY_RecvMain (USER_HANDLE_S *pstUserHandle)
 {
     BS_STATUS eRet;
     MBUF_S *pstMbuf;
@@ -167,7 +168,7 @@ static BS_STATUS _VNETS_UDP_PHY_RecvMain (IN USER_HANDLE_S *pstUserHandle)
         (VOID) _VNETS_UDP_PHY_Input (ulFromIp, usFromPort, pstMbuf);
     }
 
-    return BS_OK;
+    return;
 }
 
 static BS_STATUS _VNETS_UDP_PHY_DealSendDataMsg (IN MSGQUE_MSG_S *pstMsg)
@@ -204,7 +205,7 @@ static BS_STATUS _VNETS_UDP_PHY_DealSendDataMsg (IN MSGQUE_MSG_S *pstMsg)
 static BS_STATUS _VNETS_UDP_PHY_DealMsg (IN MSGQUE_MSG_S *pstMsg)
 {
     UINT ulMsgType;
-    BS_STATUS eRet;
+    BS_STATUS eRet = 0;
 
     ulMsgType = HANDLE_UINT(pstMsg->ahMsg[0]);
 
@@ -222,9 +223,9 @@ static BS_STATUS _VNETS_UDP_PHY_DealMsg (IN MSGQUE_MSG_S *pstMsg)
     return eRet;
 }
 
-static BS_STATUS _VNETS_UDP_PHY_SendMain (IN USER_HANDLE_S *pstUserHandle)
+static void _VNETS_UDP_PHY_SendMain (IN USER_HANDLE_S *pstUserHandle)
 {
-    UINT uiEvent;
+    UINT64 uiEvent;
     MSGQUE_MSG_S stMsg;
 
     for (;;)
@@ -243,7 +244,7 @@ static BS_STATUS _VNETS_UDP_PHY_SendMain (IN USER_HANDLE_S *pstUserHandle)
     MSGQUE_Delete (g_hVnetsUdpPhySendQid);
     g_hVnetsUdpPhySendQid = 0;
 
-    return BS_OK;
+    return;
 }
 
 static BS_STATUS _VNETS_UDP_PHY_CreateUdpSocket(IN UINT ulIp, IN USHORT usPort)
@@ -283,17 +284,17 @@ static BS_STATUS _VNETS_UDP_PHY_Init
     }
 
     stPhyParam.pfPhyOutput = _VNETS_UDP_PHY_OutPut;
-    CompIf_SetPhyType("vnets.l2.udp", &stPhyParam);
+    IFNET_SetPhyType("vnets.l2.udp", &stPhyParam);
 
     stLinkParam.pfLinkInput = VNETS_SES_PktInput;
     stLinkParam.pfLinkOutput = VNETS_VPN_LINK_Output;
-    CompIf_SetLinkType("vnets.vpn.link", &stLinkParam);
+    IFNET_SetLinkType("vnets.vpn.link", &stLinkParam);
 
     stTypeParam.pcLinkType = "vnets.vpn.link";
     stTypeParam.pcPhyType = "vnets.l2.udp";
     stTypeParam.uiFlag = IF_TYPE_FLAG_HIDE;
 
-    CompIf_AddIfType("vnets.l2.udp", &stTypeParam);
+    IFNET_AddIfType("vnets.l2.udp", &stTypeParam);
 
     /* 创建UDP接口 */
     if (BS_OK != _VNETS_UDP_PHY_CreateIf ())
@@ -351,7 +352,7 @@ BS_STATUS VNETS_UDP_PHY_Init
 
     if (BS_OK != (eRet = _VNETS_UDP_PHY_Init(htonl(ulServerIp), htons(usServerPort))))
     {
-        EXEC_OutString(0, " Can't open vnet udp phy.\r\n");
+        EXEC_OutString(" Can't open vnet udp phy.\r\n");
         return eRet;
     }
 

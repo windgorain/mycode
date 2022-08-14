@@ -25,12 +25,12 @@ typedef struct
     CHAR *pszFuncName;
     CHAR *pszFmt;
     UINT ulRetType;   /*0 - VOID, 1 - string, 2 - UINT, 3 - BOOL*/
-    HANDLE_FUNC_X pfFunc;
+    void *pfFunc;
 }_FUNCTBL_NODE_S;
 
 /* vars */
 static DLL_HEAD_S g_astFuncHashTbl[_FUNCTBL_HASH_SIZE];
-static SEM_HANDLE g_hSem = 0;
+static MUTEX_S g_functbl_lock;
 
 UINT _FUNCTBL_GetHashIndex(IN CHAR *pszFuncName)
 {
@@ -50,7 +50,7 @@ UINT _FUNCTBL_GetHashIndex(IN CHAR *pszFuncName)
     return (ulHashIndex % _FUNCTBL_HASH_SIZE);
 }
 
-BS_STATUS FUNCTBL_Add(IN CHAR *pszFuncName, IN HANDLE_FUNC_X pfFunc, IN UINT ulRetType, IN CHAR *pszFmt)
+BS_STATUS FUNCTBL_Add(CHAR *pszFuncName, void *pfFunc, UINT ulRetType, CHAR *pszFmt)
 {
     UINT ulHashIndex;
     _FUNCTBL_NODE_S *pstNode;
@@ -70,9 +70,9 @@ BS_STATUS FUNCTBL_Add(IN CHAR *pszFuncName, IN HANDLE_FUNC_X pfFunc, IN UINT ulR
 
     ulHashIndex = _FUNCTBL_GetHashIndex(pszFuncName);
 
-    SEM_P(g_hSem, BS_WAIT, BS_WAIT_FOREVER);
+    MUTEX_P(&g_functbl_lock);
     DLL_ADD(&g_astFuncHashTbl[ulHashIndex], pstNode);
-    SEM_V(g_hSem);
+    MUTEX_V(&g_functbl_lock);
 
     return BS_OK;
 }
@@ -86,7 +86,7 @@ BS_STATUS FUNCTBL_Del(IN CHAR *pszFuncName)
 
     ulHashIndex = _FUNCTBL_GetHashIndex(pszFuncName);
 
-    SEM_P(g_hSem, BS_WAIT, BS_WAIT_FOREVER);
+    MUTEX_P(&g_functbl_lock);
     DLL_SCAN(&g_astFuncHashTbl[ulHashIndex], pstNode)
     {
         if (strcmp(pstNode->pszFuncName, pszFuncName) == 0)
@@ -95,22 +95,22 @@ BS_STATUS FUNCTBL_Del(IN CHAR *pszFuncName)
             break;
         }
     }
-    SEM_V(g_hSem);
+    MUTEX_V(&g_functbl_lock);
 
     return BS_OK;
 }
 
-HANDLE_FUNC_X FUNCTBL_GetFunc(IN CHAR *pszFuncName, OUT UINT *pulRetType, OUT CHAR *pszFmt)
+void * FUNCTBL_GetFunc(IN CHAR *pszFuncName, OUT UINT *pulRetType, OUT CHAR *pszFmt)
 {
     UINT ulHashIndex;
     _FUNCTBL_NODE_S *pstNode;
-    HANDLE_FUNC_X pfFunc = NULL;
+    void *pfFunc = NULL;
     
     BS_DBGASSERT(NULL != pszFuncName);
 
     ulHashIndex = _FUNCTBL_GetHashIndex(pszFuncName);
 
-    SEM_P(g_hSem, BS_WAIT, BS_WAIT_FOREVER);
+    MUTEX_P(&g_functbl_lock);
     DLL_SCAN(&g_astFuncHashTbl[ulHashIndex], pstNode)
     {
         if (strcmp(pstNode->pszFuncName, pszFuncName) == 0)
@@ -127,7 +127,7 @@ HANDLE_FUNC_X FUNCTBL_GetFunc(IN CHAR *pszFuncName, OUT UINT *pulRetType, OUT CH
             break;
         }
     }
-    SEM_V(g_hSem);
+    MUTEX_V(&g_functbl_lock);
 
     return pfFunc;
 }
@@ -135,9 +135,10 @@ HANDLE_FUNC_X FUNCTBL_GetFunc(IN CHAR *pszFuncName, OUT UINT *pulRetType, OUT CH
 
 HANDLE FUNCTBL_Call(IN CHAR *pszFuncName, IN UINT ulArgsCount, ...)
 {
-    VOID * pArgs[_FUNCTBL_MAX_ARGS_NUM];
+    U64 args[_FUNCTBL_MAX_ARGS_NUM];
     UINT i;
-    HANDLE_FUNC_X pfFunc;
+    U64 ret;
+    PF_FUNCTBL_FUNC_X pfFunc;
 	va_list list;
 
     if (ulArgsCount > _FUNCTBL_MAX_ARGS_NUM)
@@ -148,87 +149,33 @@ HANDLE FUNCTBL_Call(IN CHAR *pszFuncName, IN UINT ulArgsCount, ...)
 
     pfFunc = FUNCTBL_GetFunc(pszFuncName, NULL, NULL);
 
-	if (NULL == pfFunc)
-	{
+	if (NULL == pfFunc) {
 		return UINT_HANDLE(BS_NO_SUCH);
 	}
 
 	va_start(list, ulArgsCount);
-    
-    for (i=0; i<ulArgsCount; i++)
-    {
-        pArgs[i] = va_arg(list, VOID*);
+    for (i=0; i<ulArgsCount; i++) {
+        args[i] = (ULONG)va_arg(list, VOID*);
     }
-    
 	va_end(list);
 
-    switch (ulArgsCount)
-    {
-        case 0:
-            return ((HANDLE_FUNC)(pfFunc))();
-            break;
-
-        case 1:
-            return pfFunc(pArgs[0]);
-            break;
-
-        case 2:
-            return pfFunc(pArgs[0], pArgs[1]);
-            break;
-
-        case 3:
-            return pfFunc(pArgs[0], pArgs[1], pArgs[2]);
-            break;
-
-        case 4:
-            return pfFunc(pArgs[0], pArgs[1], pArgs[2], pArgs[3]);
-            break;
-
-        case 5:
-            return pfFunc(pArgs[0], pArgs[1], pArgs[2], pArgs[3], pArgs[4]);
-            break;
-
-        case 6:
-            return pfFunc(pArgs[0], pArgs[1], pArgs[2], pArgs[3], pArgs[4], pArgs[5]);
-            break;
-
-        case 7:
-            return pfFunc(pArgs[0], pArgs[1], pArgs[2], pArgs[3], pArgs[4], pArgs[5], pArgs[6]);
-            break;
-
-        case 8:
-            return pfFunc(pArgs[0], pArgs[1], pArgs[2], pArgs[3], pArgs[4], pArgs[5], pArgs[6], pArgs[7]);
-            break;
-
-        case 9:
-            return pfFunc(pArgs[0], pArgs[1], pArgs[2], pArgs[3], pArgs[4], pArgs[5], pArgs[6], pArgs[7], pArgs[8]);
-            break;
-
-        case 10:
-            return pfFunc(pArgs[0], pArgs[1], pArgs[2], pArgs[3], pArgs[4], pArgs[5], pArgs[6], pArgs[7], pArgs[8], pArgs[9]);
-            break;
-
-        default:
-            BS_WARNNING(("Can't support args num: %d args!", ulArgsCount));
-            return UINT_HANDLE(BS_ERR);
-    }
+    ret = pfFunc(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]);
+    return (void*)(ULONG)ret;
 }
 
-BS_STATUS FUNCTBL_Init()
+static void functbl_init()
 {
     UINT i;
+
+    MUTEX_Init(&g_functbl_lock);
 
     for (i=0; i<_FUNCTBL_HASH_SIZE; i++)
     {
         DLL_INIT(&g_astFuncHashTbl[i]);
     }
+}
 
-    if (0 == (g_hSem = SEM_CCreate("FuncTblSem", 1)))
-    {
-        BS_WARNNING(("Can't create sem for funcTbl!"));
-        RETURN(BS_NO_RESOURCE);
-    }
-
-    return BS_OK;
+CONSTRUCTOR(init) {
+    functbl_init();
 }
 

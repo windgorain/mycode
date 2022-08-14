@@ -2,19 +2,22 @@
 #ifndef _BITS_BYTESWAP_H
 #define _BITS_BYTESWAP_H 1
 
+#ifndef __WORDSIZE 
 #if defined __x86_64__
 # define __WORDSIZE 64
 # define __WORDSIZE_COMPAT32    1
 #else
 # define __WORDSIZE 32
 #endif 
+#endif
 
 
 /* Swap bytes in 16 bit value.  */
 #define __bswap_constant_16(x) \
      ((unsigned short int) ((((x) >> 8) & 0xff) | (((x) & 0xff) << 8)))
 
-#if defined __GNUC__ && __GNUC__ >= 2
+
+#if defined __GNUC__ && __GNUC__ >= 2 && defined __X86__
 # define __bswap_16(x) \
      (__extension__							      \
       ({ register unsigned short int __v, __x = (unsigned short int) (x);     \
@@ -40,7 +43,7 @@
      ((((x) & 0xff000000) >> 24) | (((x) & 0x00ff0000) >>  8) |		      \
       (((x) & 0x0000ff00) <<  8) | (((x) & 0x000000ff) << 24))
 
-#if defined __GNUC__ && __GNUC__ >= 2
+#if defined __GNUC__ && __GNUC__ >= 2 && defined __X86__
 # if __WORDSIZE == 64 || (defined __i486__ || defined __pentium__	      \
 			  || defined __pentiumpro__ || defined __pentium4__   \
 			  || defined __k8__ || defined __athlon__	      \
@@ -91,7 +94,7 @@
       | (((x) & 0x000000000000ff00ull) << 40)				      \
       | (((x) & 0x00000000000000ffull) << 56))
 
-# if __WORDSIZE == 64
+# if __WORDSIZE == 64 && defined __X86__
 #  define __bswap_64(x) \
      (__extension__							      \
       ({ register unsigned long __v, __x = (x);				      \

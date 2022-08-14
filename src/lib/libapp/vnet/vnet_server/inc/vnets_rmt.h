@@ -15,9 +15,9 @@
 #endif /* __cplusplus */
 
 
-BS_STATUS VNETS_RMT_DomainReboot(IN CHAR *pcDomainName);
-UINT VNETS_RMT_DomainGetNextNode(IN CHAR *pcDomainName, IN UINT uiCurrentNodeId);
-HSTRING VNETS_RMT_GetNodeInfo(IN UINT uiNodeID);
+int VNETS_RMT_DomainReboot(U64 p1);
+UINT VNETS_RMT_DomainGetNextNode(U64 p1, U64 p2);
+HSTRING VNETS_RMT_GetNodeInfo(U64 p1);
 
 #ifdef __cplusplus
     }

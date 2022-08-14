@@ -10,6 +10,7 @@
 
 #include "utl/sys_utl.h"
 #include "utl/exec_utl.h"
+#include "utl/backtrace_utl.h"
 
 #ifdef IN_UNIXLIKE
 
@@ -24,7 +25,7 @@ static UINT g_uiLoadcmdShouldRunningCmd; /* 是否应该运行命令行 */
 
 
 /* 下面三个函数主要用户Linux下的立即输出 */
-BS_STATUS loadcmd_lnx_curses_Init()
+static BS_STATUS loadcmd_lnx_curses_Init()
 {
     if (g_bLoadCmdIsCursesInit == FALSE)
     {
@@ -71,28 +72,23 @@ static VOID loadcmd_lnx_Sigtstp(IN int iSigno)
     sigset_t mask;
     int iStatus;
 
-    if (g_uiLoadcmdShouldRunningCmd == 1)
-    {
+    if (g_uiLoadcmdShouldRunningCmd == 1) {
         g_uiLoadcmdIsRunningCmd = 0;
         g_uiLoadcmdShouldRunningCmd = 0;
         sigemptyset(&mask);
         sigaddset(&mask, SIGTSTP);
         sigprocmask(SIG_UNBLOCK, &mask, NULL);
         signal(SIGTSTP, SIG_DFL);
-        if (fork() == 0)
-        {
+
+        if (fork() == 0) {
             kill(getppid(), SIGCONT);
             exit(0);
-        }
-        else
-        {
+        } else {
             kill(getpid(), SIGTSTP);
             wait(&iStatus);
             SIGNAL_Set(SIGTSTP, 0, (VOID *)loadcmd_lnx_Sigtstp);
         }
-    }
-    else
-    {
+    } else {
         g_uiLoadcmdShouldRunningCmd = 1;
     }
 }
@@ -113,17 +109,17 @@ static UCHAR loadcmd_lnx_Getch(HANDLE hExec)
     return getch();
 }
 
-VOID Load_Cmd(IN UINT uiRunForLinux /* 0 - 只准备好但不加载命令行. 1 - 加载命令行*/)
+VOID Load_Cmd(IN UINT uiRunCmd/* 0 - 只准备好但不加载命令行. 1 - 加载命令行*/)
 {
     UCHAR ucCmdChar;
     HANDLE hHandle;
     CMD_EXP_RUNNER hCmdRunner;
 
-    if (uiRunForLinux == 1) {
+    if (uiRunCmd) {
         loadcmd_lnx_curses_Init();
     }
 
-    hCmdRunner = CMD_EXP_CreateRunner();
+    hCmdRunner = CMD_EXP_CreateRunner(CMD_EXP_RUNNER_TYPE_CMD);
     if (! hCmdRunner) {
         BS_WARNNING(("Can't create cmd exp handle!"));
         return;
@@ -135,8 +131,9 @@ VOID Load_Cmd(IN UINT uiRunForLinux /* 0 - 只准备好但不加载命令行. 1 
         CMD_EXP_DestroyRunner(hCmdRunner);
         return;
     }
-    EXEC_AttachToSelfThread(hHandle);
-    CMD_EXP_RunnerStart(hCmdRunner);
+    EXEC_Attach(hHandle);
+
+    CmdExp_RunnerOutputPrefix(hCmdRunner);
 
     SYSRUN_RegExitNotifyFunc(loadcmd_lnx_ExitNotify, NULL);
 
@@ -144,8 +141,8 @@ VOID Load_Cmd(IN UINT uiRunForLinux /* 0 - 只准备好但不加载命令行. 1 
     SIGNAL_Set(SIGTTOU, 0, (VOID *)loadcmd_lnx_Sigioerr);
     SIGNAL_Set(SIGTSTP, 0, (VOID *)loadcmd_lnx_Sigtstp);
 
-    g_uiLoadcmdShouldRunningCmd = uiRunForLinux;
-    g_uiLoadcmdIsRunningCmd = uiRunForLinux;
+    g_uiLoadcmdShouldRunningCmd = uiRunCmd;
+    g_uiLoadcmdIsRunningCmd = uiRunCmd;
 
     for (;;)
     {
@@ -157,7 +154,7 @@ VOID Load_Cmd(IN UINT uiRunForLinux /* 0 - 只准备好但不加载命令行. 1 
         {
             g_uiLoadcmdIsRunningCmd = 1;
             loadcmd_lnx_curses_Init();
-            CMD_EXP_RunnerStart(hCmdRunner);
+            CmdExp_RunnerOutputPrefix(hCmdRunner);
         }
         ucCmdChar = (UCHAR)getch();
         if (g_uiLoadcmdShouldRunningCmd == 0)
@@ -166,7 +163,7 @@ VOID Load_Cmd(IN UINT uiRunForLinux /* 0 - 只准备好但不加载命令行. 1 
             continue;
         }
 
-        if (BS_STOP == CMD_EXP_Run(hCmdRunner, ucCmdChar)) {
+        if (BS_STOP == CmdExp_Run(hCmdRunner, ucCmdChar)) {
             break;
         }
 

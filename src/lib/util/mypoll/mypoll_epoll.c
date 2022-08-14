@@ -30,7 +30,8 @@ static BS_STATUS mypoll_epoll_Init(IN _MYPOLL_CTRL_S *pstMyPoll)
         return BS_NO_MEMORY;
     }
 
-    pstCtrl->epoll_id = epoll_create(1024);
+    //pstCtrl->epoll_id = epoll_create(1024);
+    pstCtrl->epoll_id = epoll_create(65535);
     if (pstCtrl->epoll_id < 0) {
         MEM_Free(pstCtrl);
         return BS_CAN_NOT_OPEN;
@@ -68,7 +69,7 @@ static BS_STATUS mypoll_epoll_Add
 )
 {
     _MYPOLL_EPOLL_CTRL_S *pstCtrl = pstMyPoll->pProtoHandle;
-    struct epoll_event ev;
+    struct epoll_event ev = {0};
 
     if (NULL == pstCtrl) {
         BS_DBGASSERT(0);
@@ -100,7 +101,7 @@ static BS_STATUS mypoll_epoll_Set
 )
 {
     _MYPOLL_EPOLL_CTRL_S *pstCtrl = pstMyPoll->pProtoHandle;
-    struct epoll_event ev;
+    struct epoll_event ev = {0};
 
     if (NULL == pstCtrl) {
         BS_DBGASSERT(0);
@@ -130,7 +131,7 @@ static VOID mypoll_epoll_Del
 )
 {
     _MYPOLL_EPOLL_CTRL_S *pstCtrl = pstMyPoll->pProtoHandle;
-    struct epoll_event ev;
+    struct epoll_event ev = {0};
 
     if (NULL == pstCtrl) {
         BS_DBGASSERT(0);
@@ -169,7 +170,7 @@ static BS_WALK_RET_E mypoll_epoll_Run(IN _MYPOLL_CTRL_S *pstMyPoll)
     INT i;
     MYPOLL_FDINFO_S *pstFdInfo;
     BS_WALK_RET_E eRet = BS_WALK_STOP;
-    struct epoll_event events[1024];
+    struct epoll_event events[64];
     int count;
     int fd;
     int odd;
@@ -177,7 +178,7 @@ static BS_WALK_RET_E mypoll_epoll_Run(IN _MYPOLL_CTRL_S *pstMyPoll)
     while (1)
     {
         BIT_CLR(pstMyPoll->uiFlag, _MYPOLL_FLAG_RESTART | _MYPOLL_FLAG_PROCESSING_EVENT);
-        count = epoll_wait(pstCtrl->epoll_id, events, 1024, -1);
+        count = epoll_wait(pstCtrl->epoll_id, events, 64, -1);
         BIT_SET(pstCtrl->pstMyPollCtrl->uiFlag, _MYPOLL_FLAG_PROCESSING_EVENT);
 
         if (count < 0) {

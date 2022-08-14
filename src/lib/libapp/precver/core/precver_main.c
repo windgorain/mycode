@@ -8,116 +8,80 @@
 #include "utl/txt_utl.h"
 #include "utl/ubpf_utl.h"
 #include "utl/time_utl.h"
-#include "comp/comp_pissuer.h"
+#include "comp/comp_event_hub.h"
 
 #include "../h/precver_def.h"
 #include "../h/precver_conf.h"
+#include "../h/precver_plug.h"
+#include "../h/precver_ev.h"
+#include "../h/precver_worker.h"
 
-typedef struct {
-    char *name;
-    PF_PRECVER_RUN pfRun;
-}PRECVER_S;
-
-extern int PRecver_Pcap_Run(void *runner, int argc, char **argv);
-extern int PRecver_Null_Run(void *runner, int argc, char **argv);
-extern int PRecver_Rand_Run(void *runner, int argc, char **argv);
-extern int PRecver_Ring_Run(void *runner, int argc, char **argv);
-extern int PRecver_Http_Run(void *runner, int argc, char **argv);
-
-static DLL_HEAD_S g_precver_obs = DLL_HEAD_INIT_VALUE(&g_precver_obs);
-
-static PRECVER_S g_precvers[] = {
-    {"null", PRecver_Null_Run},
-    {"rand", PRecver_Rand_Run},
-    {"pcap", PRecver_Pcap_Run},
-    {"http", PRecver_Http_Run},
-#ifdef USE_DPDK
-    {"ring", PRecver_Ring_Run},
-#endif
-    {NULL, NULL},
-};
-
-static void precver_Run(PRECVER_RUNNER_S *runner, PRECVER_S *rcver, char *param)
+int PRecver_Run(int index)
 {
     char *argv[32];
     int argc = 0;
+    PLUG_ID hplug;
+    PF_PRecverImpl_Init pfinit;
+    PF_PRecverImpl_Run pfrun;
 
-    if (param != NULL) {
-        argc = TXT_StrToToken(param, " \t", argv, 32);
+    PRECVER_RUNNER_S *runner = PRecver_Worker_GetRunner(index);
+    if (!runner) {
+        fprintf(stderr, "Can't load %d \r\n", index);
+        RETURN(BS_ERR);
     }
 
+    if (0 != PRecverPlug_LoadPlug(runner->source)) {
+        fprintf(stderr, "Can't load %s \r\n", runner->source);
+        RETURN(BS_ERR);
+    }
+
+    hplug = PRecverPlug_GetPlug(runner->source);
+    if (! hplug) {
+        fprintf(stderr, "Can't load %s \r\n", runner->source);
+        RETURN(BS_ERR);
+    }
+
+    pfinit = PLUG_GET_FUNC_BY_NAME(hplug, "PRecverImpl_Init");
+    pfrun = PLUG_GET_FUNC_BY_NAME(hplug, "PRecverImpl_Run");
+    if ((!pfinit) || (!pfrun)) {
+        fprintf(stderr, "Can't load %s \r\n", runner->source);
+        RETURN(BS_ERR);
+    }
+
+    if (runner->param != NULL) {
+        argc = TXT_StrToToken(runner->param, " \t", argv, 32);
+    }
+
+    int ret = pfinit(runner, argc, argv);
+    if (0 != ret) {
+        fprintf(stderr, "Can't init recver \r\n");
+        return ret;
+    }
+
+    /* 循环调用runner, 至少每隔一秒调用一次timer_step, 所以在ruuner收不到报文情况下,需要1秒或1秒内返回 */
     while (1) {
-        if (0 != rcver->pfRun(runner, argc, argv)) {
+        if (0 != pfrun(runner)) {
             IC_WrnInfo("recver run err.\r\n");
             break;
         }
-
         if (runner->need_stop) {
-            IC_Info("recver need stop.\r\n");
+            IC_Info("recver stop.\r\n");
             break;
         }
+        PRecver_Ev_TimeStep(runner);
     }
-}
-
-int PRecver_PktInput(PRECVER_RUNNER_S *runner, PRECVER_PKT_S *pkt)
-{
-    runner->recv_pkt(runner, pkt);
-
-    if (runner->need_stop) {
-        return BS_STOP;
-    }
-
-    return 0;
-}
-
-int PRecver_Run(PRECVER_RUNNER_S *runner)
-{
-    PRECVER_S *recver = NULL;
-
-    for (recver=g_precvers; recver->name!=NULL; recver++) {
-        if (strcmp(recver->name, runner->source) == 0) {
-            break;
-        }
-    }
-
-    if (! recver->name) {
-        RETURN(BS_NOT_FOUND);
-    }
-
-    precver_Run(runner, recver, runner->param);
 
     return 0;
 }
 
 char * PRecver_GetNext(char *curr/* NULL表示获取第一个 */)
 {
-    PRECVER_S *recver = NULL;
-
-    if (! curr) {
-        return g_precvers[0].name;
-    }
-
-    for (recver=g_precvers; recver->name!=NULL; recver++) {
-        if (strcmp(recver->name, curr) == 0) {
-            recver ++;
-            break;
-        }
-    }
-
-    return recver->name;
+    return PRecverPlug_CfgGetNext(curr);
 }
 
 BOOL_T PRecver_IsExit(char *name)
 {
-    PRECVER_S *recver = NULL;
-
-    for (recver=g_precvers; recver->name!=NULL; recver++) {
-        if (strcmp(recver->name, name) == 0) {
-            return TRUE;
-        }
-    }
-
-    return FALSE;
+    return PRecverPlug_CfgIsExist(name);
 }
 
 int PRecver_Main_Init()

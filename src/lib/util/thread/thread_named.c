@@ -10,6 +10,10 @@
 #include "utl/thread_utl.h"
 #include "utl/thread_named.h"
 
+#ifdef IN_LINUX
+#include <sys/prctl.h>
+#endif
+
 typedef struct {
     DLL_NODE_S link_node;
 
@@ -82,6 +86,10 @@ static THREAD_NAMED_NODE_S * _threadnamed_Find(char *name)
 static void _threadnamed_cb(void *user_data)
 {
     THREAD_NAMED_NODE_S *node = user_data;
+
+#ifdef IN_LINUX
+    prctl(PR_SET_NAME, node->name);
+#endif
 
     node->func(&node->user_data);
 
@@ -239,17 +247,5 @@ THREAD_NAMED_INFO_S * ThreadNamed_GetNext(THREAD_NAMED_ITER_S *iter)
     MUTEX_V(&g_named_thread_lock);
 
     return ret;
-}
-
-static THREAD_LOCAL HANDLE g_thread_exec = 0;
-
-void THREAD_SetExec(IN HANDLE hExec)
-{
-    g_thread_exec = hExec;
-}
-
-HANDLE THREAD_GetExec()
-{
-    return g_thread_exec;
 }
 

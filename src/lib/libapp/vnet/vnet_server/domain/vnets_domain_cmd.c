@@ -2,6 +2,7 @@
 #include "bs.h"
 
 #include "utl/txt_utl.h"
+#include "utl/exec_utl.h"
 
 #include "../inc/vnets_domain.h"
 
@@ -35,12 +36,7 @@ PLUG_API BS_STATUS VNETS_DomainCmd_ShowDomain(IN UINT ulArgc, IN CHAR ** argv)
 }
 
 /* domain %STRING<1-63> */
-PLUG_API BS_STATUS VNETS_DomainCmd_CreateDomainView
-(
-    IN UINT ulArgc,
-    IN UCHAR **argv,
-    IN VOID *pEnv
-)
+PLUG_API BS_STATUS VNETS_DomainCmd_CreateDomainView(int argc, char **argv, void *pEnv)
 {
     UINT uiDomainId;
 

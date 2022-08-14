@@ -16,6 +16,7 @@
 #define POLLER_INS_EVENT_TRIGGER  0x2
 
 static POLLER_INS_S g_poller_ins[POLLER_INS_MAX];
+static POLLER_INS_S g_poller_base;
 
 static void pollerins_Main(IN USER_HANDLE_S *ud)
 {
@@ -31,13 +32,18 @@ static void pollerins_Main(IN USER_HANDLE_S *ud)
 
 static void pollerins_TriggerOb(POLLER_INS_S *ins)
 {
-    OB_S *ob;
+    OB_S *ob, *tmp;
     PF_POLLER_TriggerCB func;
 
-    DLL_SCAN(&ins->ob_list, ob) {
+    DLL_SAFE_SCAN(&ins->ob_list, ob, tmp) {
         func = ob->func;
-        func();
+        func(ob);
     }
+}
+
+static void pollerins_base_ob()
+{
+    pollerins_TriggerOb(&g_poller_base);
 }
 
 static BS_WALK_RET_E pollerins_PollerEvent(UINT uiEvent, USER_HANDLE_S *ud)
@@ -53,7 +59,7 @@ static BS_WALK_RET_E pollerins_PollerEvent(UINT uiEvent, USER_HANDLE_S *ud)
     return BS_WALK_CONTINUE;
 }
 
-int POLLER_INS_Add(char *ins_name)
+POLLER_INS_S * POLLER_INS_Add(char *ins_name)
 {
     int i;
     USER_HANDLE_S ud;
@@ -68,13 +74,13 @@ int POLLER_INS_Add(char *ins_name)
     }
 
     if (i >= POLLER_INS_MAX) {
-        return -1;
+        return NULL;
     }
 
     g_poller_ins[i].mypoller = MyPoll_Create();
     if (! g_poller_ins[i].mypoller) {
         g_poller_ins[i].name[0] = '\0';
-        return -1;
+        return NULL;
     }
 
     DLL_INIT(&g_poller_ins[i].ob_list);
@@ -83,35 +89,39 @@ int POLLER_INS_Add(char *ins_name)
     MyPoll_SetUserEventProcessor(g_poller_ins[i].mypoller,
             pollerins_PollerEvent, &ud);
 
-    snprintf(tname, sizeof(tname), "poller-%s", ins_name);
+    scnprintf(tname, sizeof(tname), "poller-%s", ins_name);
     tid = THREAD_Create(tname, NULL, pollerins_Main, &ud);
     if (tid == THREAD_ID_INVALID) {
         MyPoll_Destory(g_poller_ins[i].mypoller);
         g_poller_ins[i].mypoller = NULL;
         g_poller_ins[i].name[0] = '\0';
-        return -1;
+        return NULL;
     }
 
     g_poller_ins[i].tid = tid;
 
-    return i;
+    return &g_poller_ins[i];
 }
 
-int POLLER_INS_Del(int id)
+int POLLER_INS_Del(POLLER_INS_S *ins)
 {
-    if (g_poller_ins[id].ref > 0) {
+    if (ins == &g_poller_base) {
+        RETURN(BS_NO_PERMIT);
+    }
+
+    if (ins->ref > 0) {
         EXEC_OutString("Someone use the poller\r\n");
         RETURN(BS_NO_PERMIT);
     }
 
-    if (g_poller_ins[id].tid) {
-        MyPoll_PostUserEvent(g_poller_ins[id].mypoller, POLLER_INS_EVENT_QUIT);
+    if (ins->tid) {
+        MyPoll_PostUserEvent(ins->mypoller, POLLER_INS_EVENT_QUIT);
     } else {
-        if (g_poller_ins[id].mypoller) {
-            MyPoll_Destory(g_poller_ins[id].mypoller);
-            g_poller_ins[id].mypoller = NULL;
+        if (ins->mypoller) {
+            MyPoll_Destory(ins->mypoller);
+            ins->mypoller = NULL;
         }
-        g_poller_ins[id].name[0] = '\0';
+        ins->name[0] = '\0';
     }
 
     return 0;
@@ -119,13 +129,16 @@ int POLLER_INS_Del(int id)
 
 int POLLER_INS_DelByName(char *name)
 {
-    int id = POLLER_INS_GetByName(name);
-
-    if (id < 0) {
+    if (! name) {
         RETURN(BS_NO_SUCH);
     }
 
-    POLLER_INS_Del(id);
+    POLLER_INS_S *ins = POLLER_INS_GetByName(name);
+    if (!ins) {
+        RETURN(BS_NO_SUCH);
+    }
+
+    POLLER_INS_Del(ins);
 
     return 0;
 }
@@ -135,26 +148,34 @@ char * POLLER_INS_GetName(int id)
     return g_poller_ins[id].name;
 }
 
-POLLER_INS_S * POLLER_INS_GetPoller(int id)
-{
-    return &g_poller_ins[id];
-}
-
-int POLLER_INS_GetByName(char *name)
+POLLER_INS_S * POLLER_INS_GetByName(char *name)
 {
     int i;
 
+    if (NULL == name) {
+        return &g_poller_base;
+    }
+
     for (i=0; i<POLLER_INS_MAX; i++) {
         if (0 == strcmp(name, g_poller_ins[i].name)) {
-            return i;
+            return &g_poller_ins[i];
         }
     }
 
-    return -1;
+    return NULL;
 }
 
 void POLLER_INS_Trigger(POLLER_INS_S *ins)
 {
     MyPoll_PostUserEvent(ins->mypoller, POLLER_INS_EVENT_TRIGGER); 
+}
+
+static OB_S g_poller_base_Ob = {.func = pollerins_base_ob};
+
+void POLLER_INS_Init()
+{
+    DLL_INIT(&g_poller_base.ob_list);
+    g_poller_base.mypoller = PollerBS_GetPoller();
+    PollerBS_RegOb(&g_poller_base_Ob);
 }
 

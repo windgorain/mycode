@@ -160,7 +160,7 @@ static char *put_dec_full(char *buf, unsigned q)
 	return buf;
 }
 
-static char *put_dec(char *buf, unsigned long num)
+static inline char *put_dec(char *buf, unsigned long num)
 {
 	while (1) {
 		unsigned rem;
@@ -402,7 +402,7 @@ static char *string(char *buf, char *end, const char *s, struct printf_spec spec
 	return buf;
 }
 
-char *number(char *buf, char *end, unsigned long long num, struct printf_spec spec)
+static char *number(char *buf, char *end, unsigned long long num, struct printf_spec spec)
 {
 	/* we are called with base 8, 10 or 16, only, thus don't need "G..."  */
 	static const char digits[16] = "0123456789ABCDEF"; /* "GHIJKLMNOPQRSTUVWXYZ"; */
@@ -520,20 +520,6 @@ char *number(char *buf, char *end, unsigned long long num, struct printf_spec sp
 
 	return buf;
 }
-
-#if 0 /* 真真真真真真真 */
-static char *symbol_string(char *buf, char *end, void *ptr,
-		    struct printf_spec spec, char ext)
-{
-	unsigned long value = (unsigned long) ptr;
-
-	spec.field_width = 2 * sizeof(void *);
-	spec.flags |= SPECIAL | SMALL | ZEROPAD;
-	spec.base = 16;
-
-	return number(buf, end, value, spec);
-}
-#endif
 
 static char *mac_address_string(char *buf, char *end, UCHAR *addr,
 			 struct printf_spec spec, const char *fmt)
@@ -828,12 +814,17 @@ int BS_FormatCompile(FormatCompile_S *fc, char *fmt)
     int i = 0;
     int read;
 
-	while (*fmt) {
+	while ((*fmt) && (i < SPRINTF_COMPILE_ELE_NUM)){
         fc->ele[i].fmt = fmt;
 		read = format_decode(fmt, &fc->ele[i].spec);
         fc->ele[i].read = read;
         fmt += read;
         i ++;
+    }
+
+    if (i >= SPRINTF_COMPILE_ELE_NUM) {
+        BS_DBGASSERT(0);
+        RETURN(BS_OUT_OF_RANGE);
     }
 
     return 0;
@@ -1021,6 +1012,17 @@ int BS_Format(FormatCompile_S *fc, char * buf, ...)
 	return iLen;
 }
 
+int BS_FormatN(FormatCompile_S *fc, char *buf, int size, ...)
+{
+    va_list args;
+	INT iLen;
+
+	va_start(args, size);
+	iLen = BS_VFormat(fc, buf, size, args);
+	va_end(args);
+
+	return iLen;
+}
 
 /**
  * This function follows C99 vsnprintf, but has some extensions:

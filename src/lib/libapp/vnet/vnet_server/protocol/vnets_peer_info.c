@@ -16,7 +16,6 @@ BS_STATUS VNETS_PeerInfo_Input(IN MIME_HANDLE hMime, IN VNETS_PROTOCOL_PACKET_IN
 {
     UINT uiDomainId;
     UINT uiSrcNodeID;
-    UINT ulSesId;
     VNETS_NODE_S *pstNode;
     UINT uiPeerNodeID;
     CHAR *pcNodeID;
@@ -36,8 +35,6 @@ BS_STATUS VNETS_PeerInfo_Input(IN MIME_HANDLE hMime, IN VNETS_PROTOCOL_PACKET_IN
         return BS_ERR;
     }
     
-    ulSesId = VNETS_Context_GetRecvSesID(pstPacketInfo->pstMBuf);
-
     pcNodeID = MIME_GetKeyValue(hMime, "NodeID");
     if (NULL == pcNodeID)
     {

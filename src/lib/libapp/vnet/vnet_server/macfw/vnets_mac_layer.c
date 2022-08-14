@@ -40,8 +40,9 @@ static inline BS_STATUS vnets_maclayer_DeliveUp(IN MBUF_S *pstMbuf)
 
 static VOID vnets_maclayer_LearnMAC(IN UINT uiDomainID, IN UINT uiNodeID, IN MAC_ADDR_S *pstMAC)
 {
-    VNETS_MAC_NODE_S stMacNode = {0};
+    VNETS_MAC_NODE_S stMacNode;
 
+    memset(&stMacNode, 0, sizeof(VNETS_MAC_NODE_S));
     stMacNode.stMacNode.stMac = *pstMAC;
     stMacNode.stUserData.uiNodeID = uiNodeID;
 

@@ -144,7 +144,7 @@ int IPMASKTBL_Init(IN IPMASKTBL_S *ipmasktbl)
 {
     HASH_HANDLE hHash;
 
-    hHash = HASH_CreateInstance(IPMASKTBL_HASH_BUCKET_NUM, ipmasktbl_HashIndex);
+    hHash = HASH_CreateInstance(NULL, IPMASKTBL_HASH_BUCKET_NUM, ipmasktbl_HashIndex);
     if (NULL == hHash) {
         RETURN(BS_NO_MEMORY);
     }
