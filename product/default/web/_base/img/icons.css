@@ -1,0 +1,119 @@
+/* ICONS */
+.x-icons{ background-image: url(/_base/img/icons.gif) !important; background-repeat: no-repeat !important;}
+.accept { background-position: 0 0 !important;} 
+.add { background-position: 0 -26px !important;}
+.addm { background-position: -170px -349px !important;}
+.alert { background-position: 0 -52px !important;} 
+.bricks { background-position: 0 -104px !important;} 
+.bug { background-position: 0 -130px !important;} 
+.certficate { background-position: 0 -156px !important;} 
+.computer { background-position: 0 -180px !important;}
+.colls{ background-position: -170px -226px !important;}
+.delete { background-position: 0 -206px !important;} 
+.disable { background-position: 0 -232px !important; cursor: pointer;} 
+.disconnect { background-position: 0 -258px !important;} 
+.edit { background-position: 0 -284px !important;} 
+.email { background-position: 0 -310px !important;} 
+.enable { background-position: 0 -336px !important; cursor: pointer;} 
+.error { background-position: 0 -362px !important;} 
+.export { background-position: 0 -388px !important;} 
+.hardid { background-position: 0 -492px !important;} 
+.import { background-position: 0 -518px !important;} 
+.infor { background-position: 0 -544px !important;} 
+.ldap{ background-position: 0 -622px !important;} 
+.master { background-position: 0 -648px !important;} 
+.move { background-position: 0 -674px !important;} 
+.other { background-position: 0 -700px !important;} 
+.refresh { background-position: 0 -726px !important;} 
+.relations { background-position: 0 -752px !important;} 
+.remote { background-position: 0 -778px !important;} 
+.repass { background-position: 0 -804px !important;} 
+.report { background-position: 0 -830px !important;} 
+.role { background-position: 0 -856px !important;} 
+.rule { background-position: -170px -499px !important;} 
+.rules { background-position: -170px -433px !important;}
+.policies{ background-position: -170px -465px !important;}
+.search { background-position: 0 -934px !important;} 
+.select{ background-position: 0 -958px !important; }
+.signout{ background-position: -170px -270px !important;}
+.sort_btm { background-position: 0 -983px !important;}
+.sort_down { background-position: 0 -1009px !important;} 
+.sort_top { background-position: 0 -1035px !important;} 
+.sort_up { background-position: 0 -1061px !important;} 
+.svr_chart { background-position: 0 -1087px !important;} 
+.svr_import { background-position: 0 -1113px !important;}
+.unlock { background-position: 0 -1139px !important;} 
+.user { background-position: 0 -1165px !important;} 
+.view { background-position: 0 -1191px !important;}
+.group { background-position: 0 -466px !important;}
+.user-group { background-position: 0 -440px !important;}
+.return { background-position: -170px -390px !important;}
+.rc-group { background-position: 0 -414px !important;} 
+.rc-remote { background-position: 0 -596px !important;} 
+.rc-l3vpn { background-position: 0 -570px !important;} 
+.rc-web{ background-position: -170 -778px !important;}
+.rc-easylink{ background-position: -170 -804px !important;}
+.rc-apps{ background-position: 0 -78px !important;}
+.rc-remote{ background-position:-170px -350px !important;}
+.blank{ background: none !important;}
+.svr-remote { background-position: 0 -1481px !important;}
+.svr-group{ background-position: 0 -414px !important;}
+
+.shutEqu{ background-position: -170px -152px !important; }
+.restartEqu{background-position:0 -1402px !important;}
+.restartSvr{ background-position: -170px -115px !important;}
+.stopSvr{ background-position: -170px -188px !important;}
+.backfile{ background-position: 0 -1431px !important;}
+
+.rcGrp {background-position:-170px -27px !important;}
+.svr_update { background-position: -170px -750px !important;}
+
+.rc {background-position:-170px -57px;}
+/*M5.3Add*/
+.remoteService{background-position:0px -1481px !important;}
+.batAddApp{background-position:-171px -539px !important;}
+.appWhiteList{background-position:-171px -575px !important;}
+.srvState{background-position:-171px -611px !important;}
+.srvDownLoad{background-position:-171px -683px !important;}
+.remoteDirService{background-position:-171px -647px !important;}
+.sfChart{background-position:-171px -719px !important;}
+
+/*M5.65add*/
+.importCrl{background-position:-170px -827px !important;}
+.autoset{background-position:-170px -854px !important;}
+
+/*EMM add*/
+.release{background-position:-168px -1152px !important;}
+.grid_icon_emm{width:16px !important; height:16px !important; margin-right: 5px !important;}
+.signToolCls{background-position:-170px -910px !important;}
+.appCls{background-position:-168px -968px !important;}
+.reasonCls{height:14px; width:14px; margin-left:8px; cursor:pointer}
+.x-grid3-td-numberer{ background: none !important;}
+.x-grid3-body .x-grid3-td-numberer .x-grid3-cell-inner{ padding: 3px 5px 0 5px !important; text-align: left;}
+/*设备表格中菜单栏图标*/
+.heightSet{background-position:-168px -1119px !important;}
+.signCls{background-position:-168px -1024px !important;}
+/*设备表格中设备名称栏图标*/
+.android_cls{background-position:-168px -935px !important;}
+.ios_cls{background-position:-168px -883px !important;}
+/*设备表格中状态栏图标*/
+.dev_wait{background-position:-168px -1056px !important;}
+/*列表中带箭头的悬浮框*/
+.word_bk{word-break:break-all; line-height: 14px;}
+div.word_bk{padding: 3px 3px; line-height: 16px;}
+div.word_bk a{text-decoration:none}
+div.word_bk a:hover{text-decoration:underline}
+
+/* big icons */
+.alert32{ background-position: -860px 0;}
+.psw32{ background-position: -356px 0;}
+.ldap32{ background-position: -608px 0;}
+.radius32{ background-position: -441px 0;}
+.cert32{ background-position:-265px -70px;}
+.domaian32{ background-position:-1023px -70px;}
+.sms32{ background-position: -441px -72px;}
+.hardid32{ background-position:-356px -72px;}
+.tag32{ background-position: -265px -1px;}
+.sortsvr32{ background-position:-521px 0;}
+.pswopt32{ background-position:-690px -1px;}
+.amsopt32{ background-position:-942px -70px;}

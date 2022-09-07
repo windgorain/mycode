@@ -1,0 +1,52 @@
+
+.SideBar {
+	display: block;
+	color: #000;
+}
+
+.SideBar li {
+	display: block;
+}
+
+.SideBar span.TreeBuilderDirFlag,
+.SideBar span.TreeBuilderLeafFlag {
+	color: #7700ff;
+}
+
+.SideBar div {
+	border-bottom: #DDDDDD 1px solid;
+	height: 20px;
+	line-height: 20px;
+}
+
+.SideBar div.Selected {
+	color: red;
+	background-color: #75c1ff;
+}
+
+.SideBar div:hover {
+	background-color:#75c1ff;
+}
+
+/* 使各级递进,并且字体递减 */
+.SideBar div {
+	font-size: 15px;
+	font-weight:bold;
+}
+.SideBar ul div {
+	padding : 0px 0px 0px 20px;
+	font-size: 14px;
+	font-weight:normal;
+}
+.SideBar ul ul div {
+	padding : 0px 0px 0px 40px;
+	font-size: 13px;
+}
+.SideBar ul ul ul div {
+	padding : 0px 0px 0px 60px;
+	font-size: 12px;
+}
+
+
+
+

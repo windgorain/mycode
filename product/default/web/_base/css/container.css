@@ -1,0 +1,151 @@
+
+.Container {
+	position: relative;
+	width:100%;
+	clear:both;
+}
+
+.Container .Container-ColSideBar {
+	float: left;
+	width: 20%;
+	margin-bottom: 20px;
+	margin-right: 20px;
+	margin-left: 20px;
+	border: 1px solid #a3b8cb;
+}
+
+.Container .Container-ColMain {
+	float: left;
+	width: 75%;
+	margin-bottom: 20px;
+}
+
+.Container .Container-Row {
+	float: left;
+	width: 100%;
+	margin-bottom: 20px;
+	clear:both;
+}
+
+.Container .Container-Colum {
+	float: left;
+	width: 300px;
+	margin-bottom: 20px;
+	margin-right: 20px;
+	_margin-right: 5px;
+	margin-left: 5px;
+	_margin-left: 2px;
+}
+
+.Container .Container-Block {
+	float: left;
+	width: 300px;
+	height: 300px;
+	margin-bottom: 20px;
+	margin-right: 20px;
+	_margin-right: 5px;
+	margin-left: 2px;
+	_margin-left: 1px;
+}
+
+/*
+.Container .Container-Block:hover {
+	background-color:#fff;
+}
+*/
+
+.Container .Container-Row .Title,
+.Container .Container-Colum .Title,
+.Container .Container-ColSideBar .Title,
+.Container .Container-ColMain .Title,
+.Container .Container-Block .Title {
+	padding-left: 10px;
+	padding-right: 10px;
+	text-align: left;
+	line-height: 30px;
+	font-size: 16px;
+	font-weight: bold;
+	color: #aa00aa;
+	background-image:url(/_base/img/indexbg.gif);
+}
+
+.Container .Container-Row .Context,
+.Container .Container-Colum .Context,
+.Container .Container-ColSideBar .Context,
+.Container .Container-ColMain .Context,
+.Container .Container-Block .Context {
+	padding-left: 10px;
+	padding-right: 10px;
+	border: #DDDDDD 1px solid;
+}
+
+.Container .Container-Block .Context {
+	height: 249px;
+}
+
+.Container .Container-Block .Context .Area,
+.Container .Container-Row .Context .Area {
+	width: 100%;
+}
+
+.Container .Container-Block .Context li,
+.Container .Container-Row .Context li,
+.Container .Container-Colum .Context li {
+	border-bottom: #DDDDDD 1px solid;
+	display: block;
+	line-height: 25px;
+	height: 25px;
+}
+
+.Container li.Right {
+	text-align: right;
+}
+
+.Container li.Center {
+	text-align: center;
+}
+
+.Container .Row {
+	padding:2px;
+	min-height: 25px;
+	clear: both;
+}
+
+.Container .Row .RowLable {
+	width: 100px;
+	text-align: left;
+	float:left;
+}
+
+.Container .Row .RowContext {
+	text-align: left;
+	float:left;
+}
+
+.Container fieldset {
+	padding:10px;
+	margin-top: 10px;
+	border:1px solid #1E7ACE;
+}
+
+.Container fieldset legend {
+	color:#1E7ACE;
+	font-weight:bold;
+	padding:3px 20px 3px 20px;
+	border:1px solid #1E7ACE;
+	background:#fff;
+	background-image:url(/_base/img/indexbg.gif);
+}
+
+.Container fieldset .fieldset-row {
+	margin-left: 100px;
+}
+
+.Container table tr td {
+	height: 25px;
+	border-bottom:1px solid #DDDDDD;
+}
+
+
+
+
