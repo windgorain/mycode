@@ -57,7 +57,7 @@ static inline u64 klcko_xenginerun(int start_id, KLC_XENGINE_STATE_S *state, u64
 
     } while(engine.next >= 0);
 
-    if (state != NULL) {
+    if (NULL != state) {
         memset(state, 0, sizeof(KLC_XENGINE_STATE_S));
         state->iter_count = count;
         state->iter_limit = engine.iter_limit;

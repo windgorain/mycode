@@ -108,7 +108,7 @@ static struct genl_family g_klcko_nl_family = {
 int KlcKoNl_Init(void)
 {
     if (KO_NL_Reg(&g_klcko_nl_family, g_klcko_nl_ops, 1) < 0) {
-        KO_Print("nl init failed!\n");
+        KO_Print("NL init failed \n");
         return -1;
     }  
     

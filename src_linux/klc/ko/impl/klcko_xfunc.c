@@ -24,7 +24,7 @@ static inline u64 klcko_xfuncrun(unsigned int func_id, u64 p1, u64 p2)
     KLC_XFUNC_S state = {0};
 
     if (unlikely(func_id >= ARRAY_SIZE(g_klcko_xfuncs))) {
-        KO_Print("xfunc id %u is invalid\n", func_id);
+        KO_Print("xfunc id %u error \n", func_id);
         return KLC_RET_ERR;
     }
 

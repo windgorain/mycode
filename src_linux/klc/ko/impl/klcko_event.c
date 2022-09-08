@@ -18,16 +18,18 @@ static int _klcko_evob_get(INOUT KLC_EVENT_OB_S *ob)
 {
     KLC_EVENT_OB_S * found;
 
-    if (unlikely(ob == NULL)) {
-        KO_PrintString("param ob is null");
+    if (unlikely(NULL == ob)) {
+        KO_PrintString("Param Null");
         return KO_ERR_BAD_PARAM;
     }
 
     rcu_read_lock();
+
     found = KUtlArrayList_Get(&g_klcko_arraylist, ob->event, ob->hdr.name);
-    if (found != NULL) {
+    if (NULL != found) {
         memcpy(ob, found, sizeof(KLC_EVENT_OB_S));
     }
+
     rcu_read_unlock();
 
     return found ? 0 : KO_ERR_NO_SUCH;
@@ -36,7 +38,7 @@ static int _klcko_evob_get(INOUT KLC_EVENT_OB_S *ob)
 static int _klcko_evob_del(KLC_EVENT_OB_S *ob)
 {
     if (unlikely(ob == NULL))  {
-        KO_PrintString("param ob is null");
+        KO_PrintString("Param Null");
         return KO_ERR_BAD_PARAM;
     }
 
@@ -104,20 +106,19 @@ static int _klcko_evob_ctl(int cmd, void *data, unsigned int data_len)
 
 static void _klcko_event_publish(KLC_EVENT_S *ev, u64 p1, u64 p2)
 {
-    KLC_EVENT_OB_S *ob = NULL;
     KLC_EVENT_CTX_S ctx = {0};
+    KLC_EVENT_OB_S *ob = NULL;
 
     ctx.event = ev;
 
     rcu_read_lock();
 
     while ((ob = (void*)KUtlList_GetNext(&g_klcko_events[ev->event], (void*)ob))) {
-        if (ev->sub_event != ob->sub_event) {
-            continue;
-        }
-        ctx.evob = ob;
-        if (KLC_EVOB_RET_BREAK == KlcKo_NameLoadRun(ob->func, (long)&ctx, p1, p2)) {
-            break;
+        if (ev->sub_event == ob->sub_event) {
+            ctx.evob = ob;
+            if (KLC_EVOB_RET_BREAK == KlcKo_NameLoadRun(ob->func, (long)&ctx, p1, p2)) {
+                break;
+            }
         }
     }
 
@@ -128,7 +129,7 @@ static void _klcko_event_publish(KLC_EVENT_S *ev, u64 p1, u64 p2)
 static int _klcko_event_system_publish(KLC_EVENT_S *ev, u64 p1, u64 p2)
 {
     if (unlikely((ev == NULL) || (ev->event >= KLC_EVENT_USER_BASE))) {
-        KO_PrintString("sys event exceed");
+        KO_PrintString("System event error");
         return -1;
     }
 
@@ -147,13 +148,13 @@ void KlcKoEvent_DelModule(char *module_prefix)
     KUtlArrayList_DelModule(&g_klcko_arraylist, module_prefix);
 }
 
-/* 用户事件发布函数. 系统事件不走这个函数 */
+/* 用户事件发布. 系统事件不是这个函数 */
 u64 KlcKoEvent_Publish(KLC_EVENT_S *ev, u64 p1, u64 p2)
 {
     if (unlikely((ev == NULL) 
             || (ev->event < KLC_EVENT_USER_BASE)
             || (ev->event >= KLC_EVENT_ID_MAX))) {
-        KO_PrintString("user event error");
+        KO_PrintString("User event error");
         return KLC_RET_ERR;
     }
 

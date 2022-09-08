@@ -11,6 +11,23 @@ typedef u64  (*PF_KLCHLP_CALL_FUNC)(u64 p, ...);
 
 static void * g_klcko_syms[KLCKO_SYM_MAX];
 
+static inline u64 klcko_run_map_prog(struct bpf_map *progmap, unsigned int index, void *ctx)
+{
+    struct bpf_array *array = container_of(progmap, struct bpf_array, map);
+    struct bpf_prog *prog;
+
+    if (unlikely(index >= array->map.max_entries)) {
+        return KLC_RET_ERR;
+    }
+
+    prog = READ_ONCE(array->ptrs[index]);
+    if (! prog) {
+        return KLC_RET_ERR;
+    }
+
+    return BPF_PROG_RUN(prog, ctx);
+}
+
 static int _klcko_set_sym(unsigned int id, void *sym)
 {
     if (unlikely(id >= KLCKO_SYM_MAX)) {
@@ -139,7 +156,7 @@ static bool _klcko_hook_check_license(struct bpf_prog *prog)
                 && (insn[i].dst_reg == 1)
                 && (insn[i].src_reg == 0)
                 && (insn[i].off == 0)
-                && (insn[i].imm == 0x4B4C4320)) {
+                && (insn[i].imm == KLCHELP_LICENSE_NUM)) {
             return 1;
         }
     }
@@ -332,7 +349,7 @@ static inline u64 _klcko_do_run(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)
         case KLCHELP_XENGINE_RUN:
             return KlcKo_XEngineRun(p2, (void*)(long)p3, p4, p5);
         case KLCHELP_RUN_MAP_PROG:
-            return KlcKo_RunMapProg((void*)p2, p3, (void*)p4);
+            return klcko_run_map_prog((void*)p2, p3, (void*)p4);
         case KLCHELP_NAME_LOAD_RUN_BPF_FAST:
             return KlcKo_NameLoadRunFast((void*)p2, p3, p4, p5);
         default:
