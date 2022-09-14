@@ -15,7 +15,7 @@
  */
 
 #define _GNU_SOURCE
-#include <bs.h>
+#include "bs.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -23,13 +23,33 @@
 #include <stdarg.h>
 #include <inttypes.h>
 #include <sys/mman.h>
+#include "utl/endian_utl.h"
 #include "ubpf_int.h"
-#include "byteswap.h"
+#include <unistd.h>
 
 #define MAX_EXT_FUNCS 64
 
+const char* ubpf_string_table[1] = {
+    "uBPF error: division by zero at PC %u\n",
+};
+
 static bool validate(const struct ubpf_vm *vm, const struct ebpf_inst *insts, uint32_t num_insts, char **errmsg);
-static bool bounds_check(void *addr, int size, const char *type, uint16_t cur_pc, void *mem, size_t mem_len, void *stack);
+static bool bounds_check(const struct ubpf_vm *vm, void *addr, int size, const char *type, uint16_t cur_pc, void *mem, size_t mem_len, void *stack);
+
+bool ubpf_toggle_bounds_check(struct ubpf_vm *vm, bool enable)
+{
+    bool old = vm->bounds_check_enabled;
+    vm->bounds_check_enabled = enable;
+    return old;
+}
+
+void ubpf_set_error_print(struct ubpf_vm *vm, int (*error_printf)(FILE* stream, const char* format, ...))
+{
+    if (error_printf)
+        vm->error_printf = error_printf;
+    else
+        vm->error_printf = fprintf;
+}
 
 struct ubpf_vm *
 ubpf_create(void)
@@ -51,18 +71,24 @@ ubpf_create(void)
         return NULL;
     }
 
+    vm->bounds_check_enabled = true;
+    vm->error_printf = fprintf;
+
+#if __x86_64__
+    vm->translate = ubpf_translate_x86_64;
+#elif __aarch64__
+    vm->translate = ubpf_translate_arm64;
+#else
+    vm->translate = ubpf_translate_null;
+#endif
+    vm->unwind_stack_extension_index = -1;
     return vm;
 }
 
 void
 ubpf_destroy(struct ubpf_vm *vm)
 {
-    if (vm->jitted) {
-#ifndef __COVERITY__ 
-        munmap(vm->jitted, vm->jitted_size);
-#endif
-    }
-    free(vm->insts);
+    ubpf_unload_code(vm);
     free(vm->ext_funcs);
     free(vm->ext_func_names);
     free(vm);
@@ -77,6 +103,17 @@ ubpf_register(struct ubpf_vm *vm, unsigned int idx, const char *name, void *fn)
 
     vm->ext_funcs[idx] = (ext_func)fn;
     vm->ext_func_names[idx] = name;
+
+    return 0;
+}
+
+int ubpf_set_unwind_function_index(struct ubpf_vm *vm, unsigned int idx)
+{
+    if (vm->unwind_stack_extension_index != -1) {
+        return -1;
+    }
+
+    vm->unwind_stack_extension_index = idx;
     return 0;
 }
 
@@ -99,7 +136,7 @@ ubpf_load(struct ubpf_vm *vm, const void *code, uint32_t code_len, char **errmsg
     *errmsg = NULL;
 
     if (vm->insts) {
-        *errmsg = ubpf_error("code has already been loaded into this VM");
+        *errmsg = ubpf_error("code has already been loaded into this VM. Use ubpf_unload_code() if you need to reuse this VM");
         return -1;
     }
 
@@ -124,26 +161,52 @@ ubpf_load(struct ubpf_vm *vm, const void *code, uint32_t code_len, char **errmsg
     return 0;
 }
 
+void
+ubpf_unload_code(struct ubpf_vm *vm)
+{
+    if (vm->jitted) {
+        munmap(vm->jitted, vm->jitted_size);
+        vm->jitted = NULL;
+        vm->jitted_size = 0;
+    }
+    if (vm->insts) {
+        free(vm->insts);
+        vm->insts = NULL;
+        vm->num_insts = 0;
+    }
+}
+
 static uint32_t
-u32_func(uint64_t x)
+u32(uint64_t x)
 {
     return x;
 }
 
-uint64_t
-ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
+int 
+ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len, uint64_t* bpf_return_value)
 {
     uint16_t pc = 0;
     const struct ebpf_inst *insts = vm->insts;
-    uint64_t reg[16];
-    uint64_t stack[(STACK_SIZE+7)/8];
+    uint64_t *reg;
+    uint64_t _reg[16];
+    uint64_t stack[(UBPF_STACK_SIZE+7)/8];
 
     if (!insts) {
         /* Code must be loaded before we can execute */
-        return UINT64_MAX;
+        return -1;
     }
 
+#ifdef DEBUG
+    if (vm->regs)
+        reg = vm->regs;
+    else
+        reg = _reg;
+#else
+    reg = _reg;
+#endif
+
     reg[1] = (uintptr_t)mem;
+    reg[2] = (uint64_t)mem_len;
     reg[10] = (uintptr_t)stack + sizeof(stack);
 
     while (1) {
@@ -176,15 +239,15 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_DIV_IMM:
-            reg[inst.dst] = u32_func(reg[inst.dst]) / u32_func(inst.imm);
+            reg[inst.dst] = u32(reg[inst.dst]) / u32(inst.imm);
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_DIV_REG:
             if (reg[inst.src] == 0) {
-                fprintf(stderr, "uBPF error: division by zero at PC %u\n", cur_pc);
-                return UINT64_MAX;
+                vm->error_printf(stderr, ubpf_string_table[UBPF_STRING_ID_DIVIDE_BY_ZERO], cur_pc);
+                return -1;
             }
-            reg[inst.dst] = u32_func(reg[inst.dst]) / u32_func(reg[inst.src]);
+            reg[inst.dst] = u32(reg[inst.dst]) / u32(reg[inst.src]);
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_OR_IMM:
@@ -212,27 +275,27 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_RSH_IMM:
-            reg[inst.dst] = u32_func(reg[inst.dst]) >> inst.imm;
+            reg[inst.dst] = u32(reg[inst.dst]) >> inst.imm;
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_RSH_REG:
-            reg[inst.dst] = u32_func(reg[inst.dst]) >> reg[inst.src];
+            reg[inst.dst] = u32(reg[inst.dst]) >> reg[inst.src];
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_NEG:
-            reg[inst.dst] = -reg[inst.dst];
+            reg[inst.dst] = -(int64_t)reg[inst.dst];
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_MOD_IMM:
-            reg[inst.dst] = u32_func(reg[inst.dst]) % u32_func(inst.imm);
+            reg[inst.dst] = u32(reg[inst.dst]) % u32(inst.imm);
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_MOD_REG:
             if (reg[inst.src] == 0) {
-                fprintf(stderr, "uBPF error: division by zero at PC %u\n", cur_pc);
-                return UINT64_MAX;
+                vm->error_printf(stderr, ubpf_string_table[UBPF_STRING_ID_DIVIDE_BY_ZERO], cur_pc);
+                return -1;
             }
-            reg[inst.dst] = u32_func(reg[inst.dst]) % u32_func(reg[inst.src]);
+            reg[inst.dst] = u32(reg[inst.dst]) % u32(reg[inst.src]);
             break;
         case EBPF_OP_XOR_IMM:
             reg[inst.dst] ^= inst.imm;
@@ -255,7 +318,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_ARSH_REG:
-            reg[inst.dst] = (int32_t)reg[inst.dst] >> u32_func(reg[inst.src]);
+            reg[inst.dst] = (int32_t)reg[inst.dst] >> u32(reg[inst.src]);
             reg[inst.dst] &= UINT32_MAX;
             break;
 
@@ -302,8 +365,8 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
             break;
         case EBPF_OP_DIV64_REG:
             if (reg[inst.src] == 0) {
-                fprintf(stderr, "uBPF error: division by zero at PC %u\n", cur_pc);
-                return UINT64_MAX;
+                vm->error_printf(stderr, ubpf_string_table[UBPF_STRING_ID_DIVIDE_BY_ZERO], cur_pc);
+                return -1;
             }
             reg[inst.dst] /= reg[inst.src];
             break;
@@ -339,8 +402,8 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
             break;
         case EBPF_OP_MOD64_REG:
             if (reg[inst.src] == 0) {
-                fprintf(stderr, "uBPF error: division by zero at PC %u\n", cur_pc);
-                return UINT64_MAX;
+                vm->error_printf(stderr, ubpf_string_table[UBPF_STRING_ID_DIVIDE_BY_ZERO], cur_pc);
+                return -1;
             }
             reg[inst.dst] %= reg[inst.src];
             break;
@@ -370,14 +433,14 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
          */
 #define BOUNDS_CHECK_LOAD(size) \
     do { \
-        if (!bounds_check((void *)(ULONG)reg[inst.src] + inst.offset, size, "load", cur_pc, mem, mem_len, stack)) { \
-            return UINT64_MAX; \
+        if (!bounds_check(vm, (char *)reg[inst.src] + inst.offset, size, "load", cur_pc, mem, mem_len, stack)) { \
+            return -1; \
         } \
     } while (0)
 #define BOUNDS_CHECK_STORE(size) \
     do { \
-        if (!bounds_check((void *)(ULONG)reg[inst.dst] + inst.offset, size, "store", cur_pc, mem, mem_len, stack)) { \
-            return UINT64_MAX; \
+        if (!bounds_check(vm, (char *)reg[inst.dst] + inst.offset, size, "store", cur_pc, mem, mem_len, stack)) { \
+            return -1; \
         } \
     } while (0)
 
@@ -550,9 +613,15 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
             }
             break;
         case EBPF_OP_EXIT:
-            return reg[0];
+            *bpf_return_value = reg[0];
+            return 0;
         case EBPF_OP_CALL:
             reg[0] = vm->ext_funcs[inst.imm](reg[1], reg[2], reg[3], reg[4], reg[5]);
+            // Unwind the stack if unwind extension returns success.
+            if (inst.imm == vm->unwind_stack_extension_index && reg[0] == 0) {
+                *bpf_return_value = reg[0];
+                return 0;
+            }
             break;
         }
     }
@@ -561,8 +630,8 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
 static bool
 validate(const struct ubpf_vm *vm, const struct ebpf_inst *insts, uint32_t num_insts, char **errmsg)
 {
-    if (num_insts >= MAX_INSTS) {
-        *errmsg = ubpf_error("too many instructions (max %u)", MAX_INSTS);
+    if (num_insts >= UBPF_MAX_INSTS) {
+        *errmsg = ubpf_error("too many instructions (max %u)", UBPF_MAX_INSTS);
         return false;
     }
 
@@ -736,17 +805,18 @@ validate(const struct ubpf_vm *vm, const struct ebpf_inst *insts, uint32_t num_i
 }
 
 static bool
-bounds_check(void *addr, int size, const char *type, uint16_t cur_pc, void *mem, size_t mem_len, void *stack)
+bounds_check(const struct ubpf_vm *vm, void *addr, int size, const char *type, uint16_t cur_pc, void *mem, size_t mem_len, void *stack)
 {
-    if (mem && (addr >= mem && (addr + size) <= (mem + mem_len))) {
+    if (!vm->bounds_check_enabled)
+        return true;
+    if (mem && (addr >= mem && ((char*)addr + size) <= ((char*)mem + mem_len))) {
         /* Context access */
         return true;
-    } else if (addr >= stack && (addr + size) <= (stack + STACK_SIZE)) {
+    } else if (addr >= stack && ((char*)addr + size) <= ((char*)stack + UBPF_STACK_SIZE)) {
         /* Stack access */
         return true;
     } else {
-        fprintf(stderr, "uBPF error: out of bounds memory %s at PC %u, addr %p, size %d\n", type, cur_pc, addr, size);
-        fprintf(stderr, "mem %p/%zd stack %p/%d\n", mem, mem_len, stack, STACK_SIZE);
+        vm->error_printf(stderr, "uBPF error: out of bounds memory %s at PC %u, addr %p, size %d\nmem %p/%zd stack %p/%d\n", type, cur_pc, addr, size, mem, mem_len, stack, UBPF_STACK_SIZE);
         return false;
     }
 }
@@ -763,3 +833,34 @@ ubpf_error(const char *fmt, ...)
     va_end(ap);
     return msg;
 }
+
+#ifdef DEBUG
+void
+ubpf_set_registers(struct ubpf_vm *vm, uint64_t *regs)
+{
+    vm->regs = regs;
+}
+
+uint64_t *
+ubpf_get_registers(const struct ubpf_vm *vm)
+{
+    return vm->regs;
+}
+#else
+void
+ubpf_set_registers(struct ubpf_vm *vm, uint64_t *regs)
+{
+    (void) vm;
+    (void) regs;
+    fprintf(stderr, "uBPF warning: registers are not exposed in release mode. Please recompile in debug mode\n");
+}
+
+uint64_t *
+ubpf_get_registers(const struct ubpf_vm *vm)
+{
+    (void) vm;
+    fprintf(stderr, "uBPF warning: registers are not exposed in release mode. Please recompile in debug mode\n");
+    return NULL;
+}
+
+#endif

@@ -41,11 +41,6 @@ static inline BOOL_T getopt2_is_param_type(char type)
 static inline BOOL_T getopt2_is_must(GETOPT2_NODE_S *node)
 {
     /* 检查是否设置了必选参数 */
-    if ((node->opt_type == 'p') && (node->opt_short_name)) {
-        return TRUE;
-    }
-
-    /* 检查是否设置了必选参数 */
     if (node->opt_type == 'P') {
         return TRUE;
     }

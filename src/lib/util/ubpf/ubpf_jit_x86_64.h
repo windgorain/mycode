@@ -31,6 +31,7 @@
 #define RBX 3
 #define RSP 4
 #define RBP 5
+#define RIP 5
 #define RSI 6
 #define RDI 7
 #define R8  8
@@ -54,6 +55,11 @@ struct jump {
     uint32_t target_pc;
 };
 
+struct string_reference {
+    uint32_t offset_loc;
+    uint32_t string_id;
+};
+
 struct jit_state {
     uint8_t *buf;
     uint32_t offset;
@@ -61,14 +67,22 @@ struct jit_state {
     uint32_t *pc_locs;
     uint32_t exit_loc;
     uint32_t div_by_zero_loc;
+    uint32_t unwind_loc;
     struct jump *jumps;
     int num_jumps;
+    struct string_reference* strings;
+    int num_strings;
+    uint32_t string_table_loc;
 };
 
 static inline void
 emit_bytes(struct jit_state *state, void *data, uint32_t len)
 {
     assert(state->offset <= state->size - len);
+    if ((state->offset + len) > state->size) {
+        state->offset = state->size;
+        return;
+    }
     memcpy(state->buf + state->offset, data, len);
     state->offset += len;
 }
@@ -100,6 +114,9 @@ emit8(struct jit_state *state, uint64_t x)
 static inline void
 emit_jump_offset(struct jit_state *state, int32_t target_pc)
 {
+    if (state->num_jumps == UBPF_MAX_INSTS) {
+        return;
+    }
     struct jump *jump = &state->jumps[state->num_jumps++];
     jump->offset_loc = state->offset;
     jump->target_pc = target_pc;
@@ -319,11 +336,25 @@ emit_store_imm32(struct jit_state *state, enum operand_size size, int dst, int32
 static inline void
 emit_call(struct jit_state *state, void *target)
 {
+#if defined(_WIN32)
+    /* Windows x64 ABI spills 5th parameter to stack */
+    emit_push(state, map_register(5));
+
+    /* Windows x64 ABI requires home register space */
+    /* Allocate home register space - 4 registers */
+    emit_alu64_imm32(state, 0x81, 5, RSP, 4 * sizeof(uint64_t));
+#endif
+
     /* TODO use direct call when possible */
     emit_load_imm(state, RAX, (uintptr_t)target);
     /* callq *%rax */
     emit1(state, 0xff);
     emit1(state, 0xd0);
+
+#if defined(_WIN32)
+    /* Deallocate home register space + spilled register - 5 registers */
+    emit_alu64_imm32(state, 0x81, 0, RSP, 5 * sizeof(uint64_t));
+#endif
 }
 
 static inline void
@@ -331,6 +362,23 @@ emit_jmp(struct jit_state *state, uint32_t target_pc)
 {
     emit1(state, 0xe9);
     emit_jump_offset(state, target_pc);
+}
+
+/* emit "lea    dst,[rip+0x0]" and store offset + string id */
+static inline void
+emit_string_load(struct jit_state *state, int dst, int string_id)
+{
+    if (state->num_strings == UBPF_MAX_INSTS) {
+        return;
+    }
+
+    emit_basic_rex(state, 1, RIP, dst);
+    emit1(state, 0x8d);
+    emit_modrm(state, 0, dst, RIP);
+    emit4(state, 0);
+    state->strings[state->num_strings].offset_loc = state->offset;
+    state->strings[state->num_strings].string_id = string_id;
+    state->num_strings++;
 }
 
 #endif
