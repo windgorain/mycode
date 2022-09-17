@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "ubpf_config.h"
+#include "utl/ubpf/ubpf_config.h"
 
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -23,7 +23,7 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include <inttypes.h>
-#include "ubpf_int.h"
+#include "utl/ubpf/ubpf_int.h"
 
 #if defined(UBPF_HAS_ELF_H)
 #include "elf.h"

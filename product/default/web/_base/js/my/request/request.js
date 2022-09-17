@@ -1,9 +1,9 @@
 /* 公开部分 */
 function RQ_IsOK(oJson) {
-    if (oJson.error == undefined) {
-        return true;
+    if (oJson.result == "Failed") {
+        return false;
     }
-    return false;
+    return true;
 }
 
 function RQ_Get(sUrl)
@@ -37,9 +37,9 @@ function RQ_Post(sUrl, sData)
 			dataType: "json",
 			success: function(oJson) {
 				if(RQ_IsOK(oJson)) {
-					alert("结果: 失败\r\n原因: " + oJson.reason);
-				} else {
 					bResult = true;
+				} else {
+					alert("结果: 失败\r\n原因: " + oJson.reason);
 				}
 			}
 		});

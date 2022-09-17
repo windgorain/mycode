@@ -136,7 +136,11 @@ u64 KlcKo_NameLoadRun(char *name, u64 r1, u64 r2, u64 r3)
     func = klcko_func_find_name(name);
     if (likely(func)) {
         ctx.func = func;
-        ret = KlcKo_RunKlcCode(func->insn, r1, r2, r3, &ctx);
+        if (func->hdr.exe) {
+            ret = KlcKo_RunKlcJitted(func->insn, r1, r2, r3, &ctx);
+        } else {
+            ret = KlcKo_RunKlcCode(func->insn, r1, r2, r3, &ctx);
+        }
     }
     rcu_read_unlock();
 
@@ -158,7 +162,11 @@ u64 KlcKo_NameLoadRunFast(KUTL_HASH_VAL_S *hash_name, u64 r1, u64 r2, u64 r3)
     func = klcko_func_find_name_fast(hash_name);
     if (likely(func)) {
         ctx.func = func;
-        ret = KlcKo_RunKlcCode(func->insn, r1, r2, r3, &ctx);
+        if (func->hdr.exe) {
+            ret = KlcKo_RunKlcJitted(func->insn, r1, r2, r3, &ctx);
+        } else {
+            ret = KlcKo_RunKlcCode(func->insn, r1, r2, r3, &ctx);
+        }
     }
     rcu_read_unlock();
 

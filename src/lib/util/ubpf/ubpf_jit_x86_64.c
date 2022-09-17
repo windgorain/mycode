@@ -24,7 +24,7 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <assert.h>
-#include "ubpf_int.h"
+#include "utl/ubpf/ubpf_int.h"
 #include "ubpf_jit_x86_64.h"
 
 #if !defined(_countof)

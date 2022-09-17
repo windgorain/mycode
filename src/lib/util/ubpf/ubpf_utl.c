@@ -5,8 +5,8 @@
 ================================================================*/
 #include "bs.h"
 #include "utl/ubpf_utl.h"
-#include "pcap.h"
-#include "ebpf.h"
+#include "utl/ubpf/ubpf_int.h"
+#include "utl/ubpf/ebpf.h"
 
 enum reg {
 	R0 = 0, // return value
@@ -339,79 +339,19 @@ static int ubpf_c2e(void *in, uint32_t in_len, void *out, uint32_t *out_len)
 	return 0;
 }
 
-/* cbpf string to cbpf code */
-int UBPF_S2c(int linktype, char *cbpf_string, OUT struct bpf_program *bpf_prog)
+/* 根据ebpf指令构造vm结构 */
+UBPF_VM_HANDLE UBPF_Load(void *ebpf_code, int ebpf_len)
 {
-    pcap_t *pcap = NULL;
-    int ret;
-
-	pcap = pcap_open_dead(linktype, 65535);
-    if(NULL == pcap) {
-        RETURN(BS_CAN_NOT_OPEN);
-    }
- 
-    ret = pcap_compile(pcap, bpf_prog, cbpf_string, 0, PCAP_NETMASK_UNKNOWN);
-    pcap_close(pcap);
-
-    if (ret < 0) {
-        RETURN(BS_ERR);
-    }
-
-    return 0;
-}
-
-/* cbpf string to ebpf vm */
-UBPF_VM_HANDLE UBPF_S2e(int linktype, char *cbpf_string)
-{
-	struct bpf_program bpf_prog;
-
-    if (0 != UBPF_S2c(linktype, cbpf_string, &bpf_prog)) {
-        return NULL;
-    }
-
-    return UBPF_C2e(&bpf_prog);
-}
-
-int UBPF_S2j(int linktype, char *cbpf_string, OUT UBPF_JIT_S *jit)
-{
-    UBPF_VM_HANDLE vm = UBPF_S2e(linktype, cbpf_string);
-
-    if (NULL == vm) {
-        RETURN(BS_ERR);
-    }
-
-    ubpf_jit_fn fn = UBPF_E2j(vm);
-    if (NULL == fn) {
-        UBPF_Destroy(vm);
-        RETURN(BS_ERR);
-    }
-
-    jit->vm = vm;
-    jit->jit_func = fn;
-
-    return BS_OK;
-}
-
-/* cbpf to ebpf */
-UBPF_VM_HANDLE UBPF_C2e(struct bpf_program *bpf_prog)
-{
-    void *vm;
 	char* errmsg = NULL;
-	unsigned ebpf_buffer[UBPF_INST];
-	uint32_t ebpf_len;
     int ret;
+    void *vm;
 
-    if(ubpf_c2e(bpf_prog->bf_insns, bpf_prog->bf_len * sizeof(struct bpf_insn),
-                ebpf_buffer, &ebpf_len) < 0) {
-        return NULL;
-	}	
-    
     vm=ubpf_create();
 	if(NULL == vm) {
         return NULL;
 	}
 
-	ret = ubpf_load(vm, ebpf_buffer, ebpf_len, &errmsg);
+	ret = ubpf_load(vm, ebpf_code, ebpf_len, &errmsg);
     if (errmsg) {
         free(errmsg);
     }
@@ -422,6 +362,20 @@ UBPF_VM_HANDLE UBPF_C2e(struct bpf_program *bpf_prog)
     }
 
     return vm;
+}
+
+/* cbpf to ebpf */
+UBPF_VM_HANDLE UBPF_C2e(struct bpf_program *bpf_prog)
+{
+	unsigned ebpf_buffer[UBPF_INST];
+	uint32_t ebpf_len;
+
+    if(ubpf_c2e(bpf_prog->bf_insns, bpf_prog->bf_len * sizeof(struct bpf_insn),
+                ebpf_buffer, &ebpf_len) < 0) {
+        return NULL;
+	}	
+
+    return UBPF_Load(ebpf_buffer, ebpf_len);
 }
 
 /* cbpf to ebpf */
@@ -455,6 +409,18 @@ ubpf_jit_fn UBPF_E2j(UBPF_VM_HANDLE vm)
     }
 
     return fn;
+}
+
+ubpf_jit_fn UBPF_GetJittedFunc(UBPF_VM_HANDLE vm)
+{
+    struct ubpf_vm *uvm = vm;
+    return uvm->jitted;
+}
+
+int UBPF_GetJittedSize(UBPF_VM_HANDLE vm)
+{
+    struct ubpf_vm *uvm = vm;
+    return uvm->jitted_size;
 }
 
 void UBPF_Destroy(UBPF_VM_HANDLE vm)

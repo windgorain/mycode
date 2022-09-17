@@ -25,8 +25,6 @@ void * KlcKoComp_GetProgInsn(struct bpf_prog *prog);
 int KlcKoComp_GetProgLen(struct bpf_prog *prog);
 void * KlcKoComp_GetOps(void *env);
 int KlcKoComp_GetOpsSize(void);
-void * KlcKoComp_GetSkbInfo(struct sk_buff *skb, OUT KLC_SKBUFF_INFO_S *skb_info);
-int KlcKoComp_GetXdpStructInfo(OUT KLC_XDP_STRUCT_INFO_S *info);
 u64 KlcKoComp_TaskGetClassID(void *skb);
 int KlcKoComp_MapInc(void *map);
 void KlcKoComp_MapDec(void *map);

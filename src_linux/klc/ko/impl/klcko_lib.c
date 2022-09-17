@@ -298,8 +298,6 @@ static inline u64 _klcko_do_base(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)
             return KlcKoEvent_Ctl((int)p2, (void*)p3, p4);
         case KLCHELP_GET_NAME_MAP:
             return (unsigned long)(long)KlcKoNameMap_Get((void*)p2);
-        case KLCHELP_GET_XDP_STRUCT_INFO:
-            return KlcKoComp_GetXdpStructInfo((void*)p2);
         default:
             return KLC_RET_ERR;
     }
@@ -404,8 +402,6 @@ static inline u64 _klcko_do_skb(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)
     switch(cmd) {
         case KLCHELP_SKB_CONTINUE:
             return pskb_may_pull((void*)p2, p3);
-        case KLCHELP_SKB_INFO:
-            return (unsigned long)KlcKoComp_GetSkbInfo((void*)p2, (void*)p3);
         case KLCHELP_SKB_PUT:
     	    return (unsigned long)skb_put((void*)p2, p3);   
         case KLCHELP_SKB_RESERVE:

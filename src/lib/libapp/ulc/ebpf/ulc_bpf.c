@@ -588,11 +588,6 @@ U64 ULC_RunKlcCode(KLC_BPF_HEADER_S *klc_code, U64 r1, U64 r2, U64 r3, void *ctx
         return KLC_RET_ERR;
     }
 
-    /* 需要后续实现jit */
-    if (header->flag & KLC_BPF_FLAG_JIT) {
-        return KLC_RET_ERR;
-    }
-
     return ULC_RunBpfCode(code, r1, r2, r3, (long)ctx, 0);
 }
 

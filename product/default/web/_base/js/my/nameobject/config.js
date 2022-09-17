@@ -52,9 +52,9 @@ function js_no_submit(sAction)
 			dataType: "json",
 			success: function(oJson) {
 				if(RQ_IsOK(oJson)) {
-					alert("结果: 失败\r\n原因: " + oJson.reason);
-				} else {
 					bResult = true;
+				} else {
+					alert("结果: 失败\r\n原因: " + oJson.reason);
 				}
 			}
 		});

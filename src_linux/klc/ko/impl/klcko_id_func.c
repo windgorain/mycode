@@ -110,7 +110,11 @@ U64 KlcKo_IDLoadRun(U64 key, U64 r1, U64 r2, U64 r3)
     func = KlcKoIDFunc_Get(key);
     if (likely(func != NULL)) {
         ctx.func = func;
-        ret = KlcKo_RunKlcCode(func->insn, r1, r2, r3, &ctx);
+        if (func->hdr.exe) {
+            ret = KlcKo_RunKlcJitted(func->insn, r1, r2, r3, &ctx);
+        } else {
+            ret = KlcKo_RunKlcCode(func->insn, r1, r2, r3, &ctx);
+        }
     }
 
     rcu_read_unlock();
