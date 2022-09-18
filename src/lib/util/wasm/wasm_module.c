@@ -322,8 +322,8 @@ static int _wasm_load_table_id(UCHAR *bytes, UINT cur_pos, OUT WASM_MODULE_S *m)
 static int _wasm_load_mem_id(UCHAR *bytes, UINT cur_pos, OUT WASM_MODULE_S *m)
 {
     UINT pos = cur_pos;
-
     UINT memory_count = LEB_Read(bytes, &pos);
+    (void)memory_count;
     BS_DBGASSERT(memory_count == 1);
     _wasm_parse_memory_type(m, &pos);
     m->memory.bytes = MEM_ZMalloc(m->memory.cur_size * WASM_PAGE_SIZE * sizeof(UINT));
@@ -411,6 +411,7 @@ static int _wasm_load_elem_id(UCHAR *bytes, UINT cur_pos, OUT WASM_MODULE_S *m)
     for (c = 0; c < elem_count; c++) {
         UINT index = LEB_Read(bytes, &pos);
         BS_DBGASSERT(index == 0);
+        (void)index;
         _wasm_run_init_expr(m, WASM_I32, &pos);
         UINT offset = m->stack[m->sp--].value.uint32;
         if (m->options.mangle_table_index) {
@@ -486,6 +487,7 @@ static int _wasm_load_data_id(UCHAR *bytes, UINT curpos, OUT WASM_MODULE_S *m)
     for (s = 0; s < mem_count; s++) {
         UINT index = LEB_Read(bytes, &pos);
         BS_DBGASSERT(index == 0);
+        (void)index;
         _wasm_run_init_expr(m, WASM_I32, &pos);
         ULONG offset = m->stack[m->sp--].value.uint32;
         UINT size = LEB_Read(bytes, &pos);

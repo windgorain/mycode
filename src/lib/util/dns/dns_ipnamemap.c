@@ -10,7 +10,6 @@
 #include "utl/ip_utl.h"
 #include "utl/udp_utl.h"
 #include "utl/socket_utl.h"
-#include "../../libapp/psee/h/psee_worker.h"
 #include "comp/comp_logcenter.h"
 
 static void _dns_parse_domain_ip(DNS_WALK_QR_S *qr, void *ud)

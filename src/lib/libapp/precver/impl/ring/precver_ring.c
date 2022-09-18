@@ -47,7 +47,7 @@ struct precver_corelist_cfg
     char * prefix;
 };
 
-struct rte_ring * psee_ring[RTE_MAX_LCORE];
+struct rte_ring * g_precver_ring[RTE_MAX_LCORE];
 int g_ring_num = 0;
 int g_ring_index = 0;
 
@@ -57,7 +57,7 @@ static char* argv[32] = {NULL};
 struct precver_corelist_cfg g_precver_corelist = {0};
 struct precver_dpdk_eal_arg g_eal_arg;
 
-int psee_nf_checkdelim(char *string, char delim1, char delim2)
+int precver_ring_checkdelimt(char *string, char delim1, char delim2)
 {
     int i;
 
@@ -76,7 +76,7 @@ int psee_nf_checkdelim(char *string, char delim1, char delim2)
     return 0;
 }
 
-int psee_num_parselist(const char *bp, int list[], int max_len)
+int precver_num_parselist(const char *bp, int list[], int max_len)
 {
     unsigned int a, b;
     int len=0;
@@ -131,12 +131,12 @@ int precver_dpdk_parse_ring(char* ring_str, int* index_array)
     }
     buffer_noblank[j] = '\0';
 
-    ret = psee_nf_checkdelim(buffer_noblank, ',', '-');
+    ret = precver_ring_checkdelimt(buffer_noblank, ',', '-');
     if(ret < 0) {
         return -2;
     }
 
-    ring_num = psee_num_parselist(buffer_noblank, index_array, 128);
+    ring_num = precver_num_parselist(buffer_noblank, index_array, 128);
 
     return ring_num;
 }
@@ -151,7 +151,7 @@ static int precver_dpdk_init(void)
     BS_STATUS ret;
 
     memset(&g_eal_arg, 0, sizeof(struct precver_dpdk_eal_arg));
-    memset(psee_ring, 0, sizeof(psee_ring));
+    memset(g_precver_ring, 0, sizeof(g_precver_ring));
 
     hCff = PRecver_Conf_Open("precver_dpdk.ini");
     if (!hCff) {
@@ -189,7 +189,7 @@ static int precver_ring_init(int argc, char **argv)
     cpu_set_t mask;
     static int inited = 0;
     int ring_num;
-    int psee_ring_index[RTE_MAX_LCORE];
+    int ring_index[RTE_MAX_LCORE];
     char ring_name[128];
     struct rte_ring* ring;
     int i;
@@ -215,18 +215,18 @@ static int precver_ring_init(int argc, char **argv)
     RTE_PER_LCORE(_lcore_id) = -1;
 
 
-    memset(psee_ring_index, 0, sizeof(psee_ring_index));
-    ring_num = precver_dpdk_parse_ring(argv[0], psee_ring_index);
+    memset(ring_index, 0, sizeof(ring_index));
+    ring_num = precver_dpdk_parse_ring(argv[0], ring_index);
     if (ring_num <= 0) {
         printf("ring index error \r\n");
         return -1;
     }
 
     for (i=0; i<ring_num; i++) {
-        scnprintf(ring_name, sizeof(ring_name), "psee_ring_%d", psee_ring_index[i]);
+        scnprintf(ring_name, sizeof(ring_name), "precver_ring_%d", ring_index[i]);
         ring = rte_ring_lookup(ring_name);
         if (ring) {
-            psee_ring[i] = ring;
+            g_precver_ring[i] = ring;
             printf("get ring %s success \r\n", ring_name);
         } else {
             printf("get ring %s failed \r\n", ring_name);
@@ -281,7 +281,7 @@ static int precver_ring_run(PRECVER_RUNNER_S *runner)
     do {
         cur_time = RDTSC_Get();
 
-        if(precver_ring_get_mbuf(psee_ring, &m)==0) {
+        if(precver_ring_get_mbuf(g_precver_ring, &m)==0) {
             unsigned long diff_time = cur_time - tick_base;
             unsigned long diff_us = diff_time/RDTSC_US_HZ;
             unsigned long total_usec = linux_base_time.tv_usec + diff_us;
@@ -317,7 +317,7 @@ PLUG_API int PRecverImpl_Init(PRECVER_RUNNER_S *runner, int argc, char **argv)
         RETURN(BS_CAN_NOT_OPEN);
     }
 
-    runner->recver_handle = &psee_ring;
+    runner->recver_handle = &g_precver_ring;
 
     return 0;
 }

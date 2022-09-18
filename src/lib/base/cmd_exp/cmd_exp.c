@@ -38,7 +38,7 @@ static int _cmd_exp_PasswdCmdHook(int event, void *data, void *ud, void *env)
 
     line = TXT_Strim(line);
 
-    if (0 != strcmp(line, "psee-passwd")) {
+    if (0 != strcmp(line, "passwd")) {
         CmdExp_QuitMode(runner);
     }
 

@@ -326,18 +326,18 @@ static inline u64 _klcko_do_sys(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)
             return _klcko_printk_string((void*)p2, p3, p4, p5);
         case KLCHELP_BPF_GET_NEXT_KEY: 
             return ((struct bpf_map*)p2)->ops->map_get_next_key((void*)p2, (void*)p3, (void*)p4);
+        case KLCHELP_LOAD:
+            return _klcko_load((void*)p2, p3);
         default:
             return KLC_RET_ERR;
     }
 }
 
-static inline u64 _klcko_do_run(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)
+static inline u64 _klcko_do_run_counted(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)
 {
     switch (cmd) {
         case KLCHELP_BPF_RUN:
             return KlcKo_RunKlcCode((void*)p2, p3, p4, p5, NULL);
-        case KLCHELP_LOAD:
-            return _klcko_load((void*)p2, p3);
         case KLCHELP_ID_LOAD_RUN_BPF:
             return KlcKo_IDLoadRun(p2, p3, p4, p5);
         case KLCHELP_NAME_LOAD_RUN_BPF:
@@ -353,6 +353,23 @@ static inline u64 _klcko_do_run(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)
         default:
             return KLC_RET_ERR;
     }
+}
+
+static inline u64 _klcko_do_run(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)
+{
+    static DEFINE_PER_CPU(int, call_depth);
+    u64 ret;
+
+    /* 调用深度不超过32 */
+    if (unlikely(this_cpu_read(call_depth) >= 32)) {
+        return KLC_RET_ERR;
+    }
+
+    this_cpu_inc(call_depth);
+    ret = _klcko_do_run_counted(cmd, p2, p3, p4, p5);
+    this_cpu_dec(call_depth);
+
+    return ret;
 }
 
 static inline u64 _klcko_do_str(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)
@@ -469,19 +486,7 @@ static inline u64 _klcko_internal_do(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)
 
 u64 KlcKo_Do(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)
 {
-    static DEFINE_PER_CPU(int, call_depth);
-    u64 ret;
-
-    /* 调用深度不超过32 */
-    if (unlikely(this_cpu_read(call_depth) >= 32)) {
-        return KLC_RET_ERR;
-    }
-
-    this_cpu_inc(call_depth);
-    ret = _klcko_do(cmd, p2, p3, p4, p5);
-    this_cpu_dec(call_depth);
-
-    return ret;
+    return _klcko_do(cmd, p2, p3, p4, p5);
 }
 
 u64 KlcKo_InternalDo(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)

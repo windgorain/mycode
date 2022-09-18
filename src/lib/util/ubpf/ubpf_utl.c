@@ -346,7 +346,7 @@ UBPF_VM_HANDLE UBPF_Load(void *ebpf_code, int ebpf_len)
     int ret;
     void *vm;
 
-    vm=ubpf_create();
+    vm = ubpf_create();
 	if(NULL == vm) {
         return NULL;
 	}

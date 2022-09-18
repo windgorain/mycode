@@ -17,7 +17,7 @@
 
 static struct timeval g_precver_http_ts;
 
-static int psee_recver_http_cb(void *eth_pkt, int pkt_len, void *ud)
+static int precver_http_cb(void *eth_pkt, int pkt_len, void *ud)
 {
     PRECVER_PKT_S pkt;
     PRECVER_RUNNER_S *runner = ud;
@@ -106,14 +106,14 @@ PLUG_API int PRecverImpl_Run(PRECVER_RUNNER_S *runner)
     for (i=0; i<count; i++) {
         S2IP_Init(&s2ip_ctrl, RAND_FastGet(&seed), RAND_FastGet(&seed),
                 RAND_FastGet(&seed), htons(80));
-        S2IP_Hsk(&s2ip_ctrl, psee_recver_http_cb, runner);
+        S2IP_Hsk(&s2ip_ctrl, precver_http_cb, runner);
         for (j=0; j<count_data; j++) {
-            S2IP_Data(&s2ip_ctrl, request, request_len, psee_recver_http_cb, runner);
+            S2IP_Data(&s2ip_ctrl, request, request_len, precver_http_cb, runner);
             S2IP_Switch(&s2ip_ctrl);
-            S2IP_Data(&s2ip_ctrl, reply, reply_len, psee_recver_http_cb, runner);
+            S2IP_Data(&s2ip_ctrl, reply, reply_len, precver_http_cb, runner);
             S2IP_Switch(&s2ip_ctrl);
         }
-        S2IP_Bye(&s2ip_ctrl, psee_recver_http_cb, runner);
+        S2IP_Bye(&s2ip_ctrl, precver_http_cb, runner);
     }
 
     if (flag & PRECVER_HTTP_SLOW) {

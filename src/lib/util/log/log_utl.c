@@ -63,7 +63,7 @@ static BOOL_T _log_check_logfile_exceed(LOG_UTL_S *pstLogCtrl)
     return FALSE;
 }
 
-/*sls send fail exceed 10 times, stop send and write log to log_file*/
+/*send fail exceed 10 times, stop send and write log to log_file*/
 /*if file_name not null, then logs that be sent fail will be written into log_file;*/
 /*if file_enable is 1, then all logs will be written into log_file*/
 static void _log_send_fail_write_file(LOG_UTL_S *pstLogCtrl,void* pData, UINT uiLen){
@@ -84,7 +84,7 @@ static void _log_send_fail_write_file(LOG_UTL_S *pstLogCtrl,void* pData, UINT ui
 
 static void _log_Output(LOG_UTL_S *pstLogCtrl, void *pData, UINT uiLen)
 {
-    uint sls_send_cout=0;
+    uint send_cout=0;
 
     if (pstLogCtrl->file) {
         if (! pstLogCtrl->log_file_fp && pstLogCtrl->log_file_name) {
@@ -133,7 +133,7 @@ static void _log_Output(LOG_UTL_S *pstLogCtrl, void *pData, UINT uiLen)
                     snprintf(pstLogCtrl->uds_last_err, sizeof(pstLogCtrl->uds_last_err),
                         "%s:%s", pstLogCtrl->uds_file, strerror(ret));
                     pstLogCtrl->uds_log_fail++;
-                    sls_send_cout++;
+                    send_cout++;
                 
                     if (ret == ECONNREFUSED || ret == ENOTCONN || ret == ESHUTDOWN) {
                         Socket_Close(pstLogCtrl->uds_fd);
@@ -141,11 +141,11 @@ static void _log_Output(LOG_UTL_S *pstLogCtrl, void *pData, UINT uiLen)
                     }
                 }
             } else{ 
-                sls_send_cout++;
+                send_cout++;
             }
-        } while(sls_send_cout >=1 && sls_send_cout < pstLogCtrl->send_fail_max_count);
+        } while(send_cout >=1 && send_cout < pstLogCtrl->send_fail_max_count);
 
-        if(sls_send_cout>=pstLogCtrl->send_fail_max_count){
+        if(send_cout>=pstLogCtrl->send_fail_max_count){
             _log_send_fail_write_file(pstLogCtrl,pData,uiLen);
         }
     }
@@ -175,10 +175,6 @@ static int _log_process_kv(IN LSTR_S *pstKey, IN LSTR_S *pstValue, IN void *pUse
          if (pstValue->pcData[0] == '1') {
             pstLogCtrl->syslog = 1;
         }
-    } else if ((LSTR_StrCmp(pstKey, "sls") == 0) && (pstValue->uiLen > 0)) {
-         if (pstValue->pcData[0] == '1') {
-            pstLogCtrl->sls = 1;
-         }
     } else if ((LSTR_StrCmp(pstKey, "uds_file") == 0) && (pstValue->uiLen > 0)) {
         LSTR_Strlcpy(pstValue, sizeof(buf), buf);
         LOG_SetUDSFile(pstLogCtrl, buf);
