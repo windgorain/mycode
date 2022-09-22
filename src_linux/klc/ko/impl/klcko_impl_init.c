@@ -15,6 +15,7 @@ static KUTL_MODINIT_S g_klcko_impl_init[] = {
     {.name="name_map", .init=KlcKoNameMap_Init, .fini=KlcKoNameMap_Fini},
     {.name="name_data", .init=KlcKoNameData_Init, .fini=KlcKoNameData_Fini},
     {.name="event", .init=KlcKoEvent_Init, .fini=KlcKoEvent_Fini},
+    {.name="sys", .init=KlcKoSys_Init, .fini=KlcKoSys_Fini},
     {.name="impl", .init=KlcKo_Init, .fini=KlcKo_Fini},
     {.name=NULL}
 };

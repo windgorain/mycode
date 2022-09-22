@@ -339,31 +339,6 @@ static int ubpf_c2e(void *in, uint32_t in_len, void *out, uint32_t *out_len)
 	return 0;
 }
 
-/* 根据ebpf指令构造vm结构 */
-UBPF_VM_HANDLE UBPF_Load(void *ebpf_code, int ebpf_len)
-{
-	char* errmsg = NULL;
-    int ret;
-    void *vm;
-
-    vm = ubpf_create();
-	if(NULL == vm) {
-        return NULL;
-	}
-
-	ret = ubpf_load(vm, ebpf_code, ebpf_len, &errmsg);
-    if (errmsg) {
-        free(errmsg);
-    }
-
-    if (ret < 0) {
-        ubpf_destroy(vm);
-        return NULL;
-    }
-
-    return vm;
-}
-
 /* cbpf to ebpf */
 UBPF_VM_HANDLE UBPF_C2e(struct bpf_program *bpf_prog)
 {
@@ -375,7 +350,7 @@ UBPF_VM_HANDLE UBPF_C2e(struct bpf_program *bpf_prog)
         return NULL;
 	}	
 
-    return UBPF_Load(ebpf_buffer, ebpf_len);
+    return UBPF_CreateLoad(ebpf_buffer, ebpf_len, NULL, 0);
 }
 
 /* cbpf to ebpf */
@@ -423,9 +398,80 @@ int UBPF_GetJittedSize(UBPF_VM_HANDLE vm)
     return uvm->jitted_size;
 }
 
+UBPF_VM_HANDLE UBPF_Create()
+{
+    return ubpf_create();
+}
+
 void UBPF_Destroy(UBPF_VM_HANDLE vm)
 {
     ubpf_destroy(vm);
 }
 
+int UBPF_Load(UBPF_VM_HANDLE vm, void *ebpf_code, int ebpf_len)
+{
+	char* errmsg = NULL;
+    int ret;
+
+	ret = ubpf_load(vm, ebpf_code, ebpf_len, &errmsg);
+    if (errmsg) {
+        free(errmsg);
+    }
+
+    return ret;
+}
+
+UBPF_VM_HANDLE UBPF_CreateLoad(void *ebpf_code, int ebpf_len, void **funcs, int funcs_count)
+{
+    UBPF_VM_HANDLE vm;
+    int ret;
+    int i;
+
+    vm = UBPF_Create();
+    if (! vm) {
+        return NULL;
+    }
+
+    for (i=0; i<funcs_count; i++) {
+        if (funcs[i]) {
+            ubpf_register(vm, i, NULL, funcs[i]);
+        }
+    }
+
+    ret = UBPF_Load(vm, ebpf_code, ebpf_len);
+    if (ret < 0) {
+        UBPF_Destroy(vm);
+        return NULL;
+    }
+
+    return vm;
+}
+
+/* check ebpf中是否存在问题 */
+int BPF_Check(void *insts, int num_insts, OUT char * error_msg, int error_msg_size)
+{
+    struct ebpf_inst *insn = insts;
+    int i;
+
+    for (i = 0; i < num_insts; i++) {
+        struct ebpf_inst inst = insn[i];
+        switch (inst.opcode) {
+            case EBPF_OP_LDDW:
+                if (i + 1 >= num_insts || insn[i+1].opcode != 0) {
+                    scnprintf(error_msg, error_msg_size, "incomplete lddw at PC %d", i);
+                    RETURN(BS_ERR);
+                }
+                i++;
+                break;
+            case EBPF_OP_CALL:
+                if (inst.imm < 0) {
+                    scnprintf(error_msg, error_msg_size, "invalid call immediate at PC %d", i);
+                    RETURN(BS_ERR);
+                }
+                break;
+        }
+    }
+
+    return 0;
+}
 

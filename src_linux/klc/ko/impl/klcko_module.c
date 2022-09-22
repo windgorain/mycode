@@ -14,6 +14,12 @@ static KUTL_HASH_S g_klcko_module_hash = {
     .mask = KLCKO_MODULE_HASH_MASK,
     .buckets = g_klcko_module_buckets};
 
+/* 根据module name中获取module指针 */
+static void * klcko_module_get(char *module_name)
+{
+    return KUtlHash_Find(&g_klcko_module_hash, module_name);
+}
+
 static int klcko_module_add(KLC_MODULE_S *mod)
 {
     return KUtlHash_Add(&g_klcko_module_hash, &mod->hdr);
@@ -65,34 +71,13 @@ int KlcKoModule_NLMsg(int cmd, void *msg)
     return klcko_module_do(cmd, msg);
 }
 
-static int klcko_modul_get_name_by_fullname(IN char *full_name, OUT char *name)
+void * KlcKoModule_GetModuleData(char *module_name, int data_size)
 {
-    char *pc;
-    int len;
-
-    pc = strnchr(full_name, KUTL_KNODE_NAME_SIZE, '.');
-    if (! pc) {
-        return -1;
-    }
-
-    len = pc - full_name;
-
-    memcpy(name, full_name, len);
-    name[len] = '\0';
-
-    return 0;
-}
-
-/* 从 module.xxx name中获取module指针 */
-void * KlcKoModule_GetModuleByFullName(char *full_name)
-{
-    char module_name[KUTL_KNODE_NAME_SIZE];
-
-    if (klcko_modul_get_name_by_fullname(full_name, module_name) < 0) {
+    KLC_MODULE_S *mod = klcko_module_get(module_name);
+    if ((! mod) || (mod->data_size < data_size)) {
         return NULL;
     }
-
-    return KUtlHash_Find(&g_klcko_module_hash, module_name);
+    return mod->data;
 }
 
 int KlcKoModule_Init(void)

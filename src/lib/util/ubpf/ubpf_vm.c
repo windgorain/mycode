@@ -27,7 +27,7 @@
 #include "utl/ubpf/ubpf_int.h"
 #include <unistd.h>
 
-#define MAX_EXT_FUNCS 64
+#define MAX_EXT_FUNCS 256
 
 const char* ubpf_string_table[1] = {
     "uBPF error: division by zero at PC %u\n",

@@ -41,7 +41,6 @@ static int _klcko_id_func_dump(NETLINK_MSG_S *msg, KLC_FUNC_S *func)
 
 static int _klcko_id_func_add(KLC_FUNC_S *func)
 {
-    func->module_ptr = KlcKoModule_GetModuleByFullName(func->hdr.name);
     return KUtlArray_Add(&g_klcko_idarray, func->id, (void*)func);
 }
 
@@ -102,18 +101,16 @@ void KlcKoIDFunc_DelModule(char *module_prefix)
 U64 KlcKo_IDLoadRun(U64 key, U64 r1, U64 r2, U64 r3)
 {
     U64 ret = KLC_RET_ERR;
-    KLC_FUNC_CTX_S ctx = {0};
     KLC_FUNC_S *func;
 
     rcu_read_lock();
 
     func = KlcKoIDFunc_Get(key);
     if (likely(func != NULL)) {
-        ctx.func = func;
         if (func->hdr.exe) {
-            ret = KlcKo_RunKlcJitted(func->insn, r1, r2, r3, &ctx);
+            ret = KlcKo_RunKlcJitted(func->insn, r1, r2, r3);
         } else {
-            ret = KlcKo_RunKlcCode(func->insn, r1, r2, r3, &ctx);
+            ret = KlcKo_RunKlcCode(func->insn, r1, r2, r3);
         }
     }
 

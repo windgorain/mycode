@@ -84,7 +84,6 @@ static int klcko_name_func_dump(NETLINK_MSG_S *msg, KLC_FUNC_S *func)
 
 static int klcko_name_func_add(KLC_FUNC_S *func)
 {
-    func->module_ptr = KlcKoModule_GetModuleByFullName(func->hdr.name);
     return klcko_func_add_name(func);
 }
 
@@ -122,10 +121,14 @@ static int klcko_func_nlmsg(int cmd, void *msg)
     return klcko_name_func_do(cmd, msg);
 }
 
+KLC_FUNC_S * KlcKo_GetNameFunc(char *name)
+{
+    return klcko_func_find_name(name);
+}
+
 u64 KlcKo_NameLoadRun(char *name, u64 r1, u64 r2, u64 r3)
 {
     u64 ret = KLC_RET_ERR;
-    KLC_FUNC_CTX_S ctx = {0};
     KLC_FUNC_S *func;
 
     if (unlikely((!name) || (name[0] == '\0'))) {
@@ -135,11 +138,10 @@ u64 KlcKo_NameLoadRun(char *name, u64 r1, u64 r2, u64 r3)
     rcu_read_lock();
     func = klcko_func_find_name(name);
     if (likely(func)) {
-        ctx.func = func;
         if (func->hdr.exe) {
-            ret = KlcKo_RunKlcJitted(func->insn, r1, r2, r3, &ctx);
+            ret = KlcKo_RunKlcJitted(func->insn, r1, r2, r3);
         } else {
-            ret = KlcKo_RunKlcCode(func->insn, r1, r2, r3, &ctx);
+            ret = KlcKo_RunKlcCode(func->insn, r1, r2, r3);
         }
     }
     rcu_read_unlock();
@@ -151,7 +153,6 @@ u64 KlcKo_NameLoadRun(char *name, u64 r1, u64 r2, u64 r3)
 u64 KlcKo_NameLoadRunFast(KUTL_HASH_VAL_S *hash_name, u64 r1, u64 r2, u64 r3)
 {
     u64 ret = KLC_RET_ERR;
-    KLC_FUNC_CTX_S ctx = {0};
     KLC_FUNC_S *func;
 
     if (unlikely(hash_name == NULL)) {
@@ -161,11 +162,10 @@ u64 KlcKo_NameLoadRunFast(KUTL_HASH_VAL_S *hash_name, u64 r1, u64 r2, u64 r3)
     rcu_read_lock();
     func = klcko_func_find_name_fast(hash_name);
     if (likely(func)) {
-        ctx.func = func;
         if (func->hdr.exe) {
-            ret = KlcKo_RunKlcJitted(func->insn, r1, r2, r3, &ctx);
+            ret = KlcKo_RunKlcJitted(func->insn, r1, r2, r3);
         } else {
-            ret = KlcKo_RunKlcCode(func->insn, r1, r2, r3, &ctx);
+            ret = KlcKo_RunKlcCode(func->insn, r1, r2, r3);
         }
     }
     rcu_read_unlock();

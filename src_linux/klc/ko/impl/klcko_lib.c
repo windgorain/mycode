@@ -298,6 +298,8 @@ static inline u64 _klcko_do_base(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)
             return KlcKoEvent_Ctl((int)p2, (void*)p3, p4);
         case KLCHELP_GET_NAME_MAP:
             return (unsigned long)(long)KlcKoNameMap_Get((void*)p2);
+        case KLCHELP_GET_MODULE_DATA:
+            return (unsigned long)(long)KlcKoModule_GetModuleData((void*)p2, p3);
         default:
             return KLC_RET_ERR;
     }
@@ -328,6 +330,8 @@ static inline u64 _klcko_do_sys(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)
             return ((struct bpf_map*)p2)->ops->map_get_next_key((void*)p2, (void*)p3, (void*)p4);
         case KLCHELP_LOAD:
             return _klcko_load((void*)p2, p3);
+        case KLCHELP_GET_NAME_FUNC:
+            return (long)KlcKo_GetNameFunc((void*)p2);
         default:
             return KLC_RET_ERR;
     }
@@ -337,7 +341,7 @@ static inline u64 _klcko_do_run_counted(u64 cmd, u64 p2, u64 p3, u64 p4, u64 p5)
 {
     switch (cmd) {
         case KLCHELP_BPF_RUN:
-            return KlcKo_RunKlcCode((void*)p2, p3, p4, p5, NULL);
+            return KlcKo_RunKlcCode((void*)p2, p3, p4, p5);
         case KLCHELP_ID_LOAD_RUN_BPF:
             return KlcKo_IDLoadRun(p2, p3, p4, p5);
         case KLCHELP_NAME_LOAD_RUN_BPF:
