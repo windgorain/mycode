@@ -1,0 +1,55 @@
+# 以'#'开始的行是注释行
+# 非注释行一开始,逗号之前的字符串描述要注册的命令行类型, 类型有view,cmd,save
+#   view : 视图
+#   cmd : 正常的命令
+#   save : 注册save命令响应函数
+#   enter : 进入某个视图时的notify函数, eg: enter, config-view, XXX_Func
+#   命令行可以注册在view和templet下.
+# 例如, 注册视图的格式为:     view, 注册到哪个视图, 命令行, 视图名, 执行函数
+#       注册普通命令的格式为: cmd,  注册到哪个视图, 命令行, 执行函数
+# 视图和命令都可以隐藏, 只需要在类型后面加上|hide即可. 比如: view|hide, config-view, vlan %INT, vlan-view, NULL 表示注册一个隐藏视图
+# templet属性，表示view是否是动态参数的view.
+# 执行函数名为NULL时，表示不执行
+# 命令行的多个元素以空格隔开. 命令深度最多为10. 每个命令元素长度最大23.
+# 每个命令元素都可以在元素后面的小括号中的信息为帮助信息.
+# 有可选命令式元素时, 将其用[]括起来, 比如: [a] b 就表示a b和b两条命令
+# 有多个可选命令元素(但必须选择其中一个)时, 用{}将多个元素括起来，并用|隔开.
+# {}后面可以跟*号,表示里面的元素是可以多选的
+# %INT<x-y>表示数字,范围在[x,y]区间
+# %STRING<x-y>表示不带空格的字符串,长度在[x,y]区间
+# %IP IP地址
+# %OPTION 选项. 必须是最后一个参数
+# 可保存配置的命令只能注册到config-view或其子view下.
+# 一条命令可以被同时注册到多个view, 每个view用'|'隔开即可,比如 cmd, config-view|user-view, xxx, XXX_FUNC
+# Function后面可以跟着可选参数", xxx", 其中xxx是回传参数,调用function时可从env中获取.
+# 变量以__OPT_X_开头表示带选项的变量, H表示隐藏,S表示不保存
+# 视图/命令属性:level:执行级别,默认0最高,比如: view|level:10, config-view, vlan %INT, vlan-view, NULL 表示注册一个级别为10的view
+# 命令属性:view_pcre:表示后面跟着的view是pcre格式
+
+view|level:10, user-view, config-view(Enter the config view), config-view, NULL
+view|hide, user-view, super-view(Enter the super view), super-view, CMD_EXP_EnterSupper
+
+cmd, user-view|config-view, show(Show information) thread(Show thread information), THREAD_Display
+cmd, user-view|config-view, show splx(Show splx information), SPLX_Display
+cmd|level:10, user-view|config-view, save(Save current configrution), CMD_EXP_CmdSave
+cmd, user-view|config-view, show configrution(Show configrution), CMD_EXP_CmdShow
+cmd, user-view|config-view, show sysinfo(Show system inforation), SYSINFO_Show
+cmd, user-view|config-view|super-view, show socket(Show socket information), SSHOW_ShowAll
+cmd, user-view|config-view|super-view, show socket tcp(Show tcp sockets), SSHOW_ShowTcp
+cmd, user-view|config-view|super-view, show socket udp(Show udp sockets), SSHOW_ShowUdp
+cmd, super-view, socket(Socket opreateion) shutdown(Shutdown the socket) %INT<1-65535>(Socket ID), SSHOW_Shutdown
+cmd, config-view, memory check, MemDebug_Check
+cmd, user-view|config-view, show memory-debug size {32|64|128|256|512|1024|2048|4096|large|all} [file %STRING<1-128>], MemDebug_ShowSizeOfMem
+cmd, user-view|config-view, show memory-debug line conflict, MemDebug_ShowLineConflict
+cmd, user-view|config-view, show memory(Show the memory used), MEM_ShowStat
+cmd, user-view|config-view, show memory size(Spec the size) {32|64|128|256|512|1024|2048|4096|large|all} [file %STRING<1-128>], MEM_ShowSizeOfMemStat
+cmd, config-view, load(load) plugin(load plugin) %STRING<1-512>, PLUGCT_LoadPlug
+cmd, user-view|config-view, show loaded(loaded) plugin(show loaded plugins), PLUGCT_ShowPlug
+cmd, user-view|config-view, show process-key, ProcessKey_ShowStatus
+
+cmd, user-view|config-view, terminal monitor, EXEC_TM
+cmd, user-view|config-view, no terminal monitor, EXEC_NoTM
+
+cmd, user-view|config-view, no debug all, CMD_EXP_CmdNoDebugAll
+
+cmd, super-view, exit(Exit the program) [force],  CMD_EXP_ExitApp
