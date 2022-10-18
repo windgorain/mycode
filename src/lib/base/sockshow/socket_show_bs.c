@@ -244,24 +244,4 @@ BS_STATUS SSHOW_ShowUdp (IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* socket shutdown _ULONG_<1-65535> */
-BS_STATUS SSHOW_Shutdown(IN UINT ulArgc, IN CHAR **argv)
-{
-    UINT uiSocketId;
-
-    if (ulArgc < 3)
-    {
-        RETURN(BS_ERR);
-    }
-
-    if (TXT_Atoui(argv[2], &uiSocketId) != BS_OK)
-    {
-        RETURN(BS_ERR);
-    }
-
-    shutdown(uiSocketId, 2);
-
-    return BS_OK;
-}
-
 

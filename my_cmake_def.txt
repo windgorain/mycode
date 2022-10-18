@@ -57,12 +57,8 @@ endif()
 
 IF (UNIX AND NOT APPLE)
     option (USE_DPDK "Use DPDK" ON)
-    option (USE_SLS "Use SLS" OFF)
     if (USE_DPDK)
         add_definitions(-D USE_DPDK)
-    endif()
-    if (USE_SLS)
-        add_definitions(-D USE_SLS)
     endif()
 ENDIF()
 
