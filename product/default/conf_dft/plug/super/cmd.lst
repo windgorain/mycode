@@ -1,0 +1,9 @@
+#view
+view|hide, config-view, super-view(Enter the super view), super-view, Super_EnterView
+
+#cmd
+cmd, super-view, show socket(Show socket information), SSHOW_ShowAll
+cmd, super-view, show socket tcp(Show tcp sockets), SSHOW_ShowTcp
+cmd, super-view, show socket udp(Show udp sockets), SSHOW_ShowUdp
+cmd, super-view, exit(Exit the program) [force],  Super_ExitApp
+cmd, super-view, shutdown(Shutdown the socket) socket(Socket)  %INT<1-65535>(Socket ID), Super_ShutdownSocket

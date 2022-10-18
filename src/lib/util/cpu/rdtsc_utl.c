@@ -19,12 +19,9 @@ UINT64 RDTSC_MS_HZ = 0;
 #ifdef __ARM__
 uint64_t get_tsc_freq_arch(void)
 {
-#if 0
 	uint64_t freq;
 	asm volatile("mrs %0, cntfrq_el0" : "=r" (freq));
 	return freq;
-#endif
-    return 0;
 }
 #endif
 

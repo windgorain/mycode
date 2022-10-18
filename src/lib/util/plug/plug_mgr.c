@@ -367,6 +367,7 @@ static VOID plugmgr_EachLoadCfg(CFF_HANDLE hCff, char *tag, void *ud)
     if (save_path == NULL) {
         save_path = conf_path;
     }
+
 	SYSINFO_ExpandWorkDir(ext_file, sizeof(ext_file), file);
 	SYSINFO_ExpandWorkDir(ext_conf_path, sizeof(ext_conf_path), conf_path);
 	SYSINFO_ExpandWorkDir(ext_save_path, sizeof(ext_save_path), save_path);

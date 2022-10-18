@@ -1,0 +1,10 @@
+[Unit]
+Description=my scm service
+After=syslog.target network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/scm/scm --without-demon
+
+[Install]
+WantedBy=multi-user.target

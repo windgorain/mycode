@@ -1,0 +1,9 @@
+# ×¢²áview
+view, config-view, arpcheat-view(Enter the nat view), arpcheat-view, NULL
+save, arpcheat-view, ARPCheat_CMD_Save
+
+# ×¢²áÅäÖÃÃüÁî
+cmd, arpcheat-view, pcap %INT<0-15>, ARPCheat_CMD_SetPcapIndex
+cmd, arpcheat-view, cheat ip %STRING<1-15>, ARPCheat_CMD_SetCheatIP
+cmd, arpcheat-view, cheat mac %STRING<1-17>, ARPCheat_CMD_SetCheatMAC
+cmd, arpcheat-view, start, ARPCheat_CMD_Start

@@ -1,0 +1,7 @@
+view, config-view, poller-view(Enter the poller view), poller-view, NULL
+save, poller-view, POLLER_CMD_Save
+
+cmd, poller-view, show poller, POLLER_CMD_Show
+cmd, poller-view, [no] poller %STRING<1-15>, POLLER_CMD_EnterIns
+
+
