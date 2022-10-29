@@ -20,6 +20,7 @@ enum __socket_type
   SOCK_STREAM = 1,
   SOCK_DGRAM = 2,
   SOCK_RAW = 3,
+  // SOCK_SEQPACKET = 4,
 };
 
 #ifdef __cplusplus

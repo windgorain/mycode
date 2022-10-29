@@ -306,6 +306,7 @@ static MAP_ELE_S * map_hash_getnext(MAP_HANDLE map, MAP_ELE_S *pstCurrent)
 
 static MAP_PARAM_S g_hash_map_dft_param = {0};
 
+/* p为NULL则表示使用默认参数 */
 MAP_HANDLE MAP_HashCreate(MAP_PARAM_S *p)
 {
     MAP_CTRL_S *ctrl;

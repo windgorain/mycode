@@ -158,3 +158,33 @@ UINT64 ArrayBit_GetBusyCount(UINT *data, INT64 bit_size)
 
     return count;
 }
+
+/* 做与操作, data3 = data1 & data2 */
+void ArrayBit_And(UINT *data1, UINT *data2, int uint_count, OUT UINT *data3)
+{
+    int i;
+
+    for (i=0; i<uint_count; i++) {
+        data3[i] = data1[i] & data2[i];
+    }
+}
+
+/* 做或操作, data3 = data1 | data2 */
+void ArrayBit_Or(UINT *data1, UINT *data2, int uint_count, OUT UINT *data3)
+{
+    int i;
+
+    for (i=0; i<uint_count; i++) {
+        data3[i] = data1[i] | data2[i];
+    }
+}
+
+/* 做异或操作, data3 = data1 ^ data2 */
+void ArrayBit_Xor(UINT *data1, UINT *data2, int uint_count, OUT UINT *data3)
+{
+    int i;
+
+    for (i=0; i<uint_count; i++) {
+        data3[i] = data1[i] ^ data2[i];
+    }
+}

@@ -6,6 +6,7 @@
 ******************************************************************************/
 #include "bs.h"
 #include "utl/mem_utl.h"
+#include "utl/data2hex_utl.h"
 
 void * MEM_FindOneOf(void *mem, UINT mem_len, void *to_finds, UINT to_finds_len)
 {
@@ -150,18 +151,72 @@ int MEM_CaseCmp(UCHAR *pucMem1, UINT uiMem1Len, UCHAR *pucMem2, UINT uiMem2Len)
     return -1;
 }
 
-VOID MEM_Print(IN UCHAR *pucMem, IN UINT uiLen)
+int MEM_Sprint(IN UCHAR *pucMem, IN UINT uiLen, OUT char *buf, int buf_size)
 {
-    UINT i;
+    int tmp_len1, tmp_len2;
+    UCHAR *d = pucMem;
+    char info[16];
+    int len = 0;
+    int reserved_size = buf_size;
+    int copyed_len = 0;
 
-    for (i=0; i<uiLen; i++)
-    {
-        if (i % 16 == 0)
-        {
-            printf ("\r\n");
+    while (len > 0) {
+        tmp_len1 = MIN(16, len);
+        len -= tmp_len1;
+        while (tmp_len1 > 0) {
+            tmp_len2 = MIN(4, tmp_len1);
+            tmp_len1 -= tmp_len2;
+            DH_Data2Hex(d, tmp_len2, info);
+            info[tmp_len2 * 2] = ' ';
+            info[(tmp_len2 * 2) + 1] = '\0';
+            len = strlcpy(buf + copyed_len, info, reserved_size);
+            if (len >= reserved_size) {
+                RETURN(BS_OUT_OF_RANGE);
+            }
+            reserved_size -= len;
+            copyed_len += len;
+            d += tmp_len2;
         }
+        len = strlcpy(buf + len, "\r\n", reserved_size);
+        if (len >= reserved_size) {
+            RETURN(BS_OUT_OF_RANGE);
+        }
+        reserved_size -= len;
+        copyed_len += len;
+    }
 
-        printf (" %02x", pucMem[i]);
+    return copyed_len;
+}
+
+static void mem_print(char *str)
+{
+    printf("%s", str);
+}
+
+void MEM_Print(UCHAR *pucMem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */)
+{
+    int tmp_len1, tmp_len2;
+    UCHAR *d = pucMem;
+    char info[16];
+    PF_MEM_PRINT_FUNC func = print_func;
+
+    if (! func) {
+        func = mem_print;
+    }
+
+    while (len > 0) {
+        tmp_len1 = MIN(16, len);
+        len -= tmp_len1;
+        while (tmp_len1 > 0) {
+            tmp_len2 = MIN(4, tmp_len1);
+            tmp_len1 -= tmp_len2;
+            DH_Data2Hex(d, tmp_len2, info);
+            info[tmp_len2 * 2] = ' ';
+            info[(tmp_len2 * 2) + 1] = '\0';
+            func(info);
+            d += tmp_len2;
+        }
+        func("\r\n");
     }
 }
 

@@ -176,7 +176,7 @@ static int _stream_server_open_listen(STREAM_SERVER_S *cfg)
         RETURN(BS_BAD_PARA);
     }
 
-    cfg->listen_fd = NPIPE_Listen(pipe_name);
+    cfg->listen_fd = NPIPE_OpenStream(pipe_name);
     if (cfg->listen_fd < 0) {
         RETURN(BS_CAN_NOT_OPEN);
     }

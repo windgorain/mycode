@@ -17,7 +17,7 @@
 
 int NPIPE_OpenDgram(IN CHAR *name)
 {
-	int					fd, len, err, rval;
+	int					fd, len;
 	struct sockaddr_un	un;
 
 	/* create a UNIX domain stream socket */
@@ -34,29 +34,24 @@ int NPIPE_OpenDgram(IN CHAR *name)
 
 	/* bind the name to the descriptor */
 	if (bind(fd, (struct sockaddr *)&un, len) < 0) {
-		rval = -2;
-		goto errout;
+        close(fd);
+        return -2;
 	}
 
 //    chmod(name, S_IRWXO);
 
 	return(fd);
-
-errout:
-	err = errno;
-	close(fd);
-	errno = err;
-	return(rval);
 }
 
-int NPIPE_Listen(IN CHAR *name)
+int NPIPE_OpenSeqpacket(IN CHAR *name)
 {
-	int					fd, len, err, rval;
+	int					fd, len;
 	struct sockaddr_un	un;
 
 	/* create a UNIX domain stream socket */
-	if ((fd = Socket_Create(AF_UNIX, SOCK_STREAM)) < 0)
-		return(-1);
+	if ((fd = Socket_Create(AF_UNIX, SOCK_SEQPACKET)) < 0) {
+        return -1;
+    }
 
 	unlink(name);	/* in case it already exists */
 
@@ -68,36 +63,61 @@ int NPIPE_Listen(IN CHAR *name)
 
 	/* bind the name to the descriptor */
 	if (bind(fd, (struct sockaddr *)&un, len) < 0) {
-		rval = -2;
-		goto errout;
+        close(fd);
+        return -2;
 	}
 
 	if (listen(fd, 10) < 0) {	/* tell kernel we're a server */
-		rval = -3;
-		goto errout;
+        close(fd);
+        return -3;
 	}
 
 //    chmod(name, S_IRWXO);
 
 	return(fd);
-
-errout:
-	err = errno;
-	close(fd);
-	errno = err;
-	return(rval);
 }
 
-int NPIPE_Accept(int listenfd, OUT uid_t *uidptr)
+int NPIPE_OpenStream(IN CHAR *name)
 {
-	int					clifd, len, err, rval;
-	time_t				staletime;
+	int					fd, len;
 	struct sockaddr_un	un;
-	struct stat			statbuf;
+
+	/* create a UNIX domain stream socket */
+	if ((fd = Socket_Create(AF_UNIX, SOCK_STREAM)) < 0) {
+        return -1;
+    }
+
+	unlink(name);	/* in case it already exists */
+
+	/* fill in socket address structure */
+	memset(&un, 0, sizeof(un));
+	un.sun_family = AF_UNIX;
+	TXT_Strlcpy(un.sun_path, name, sizeof(un.sun_path));
+	len = BS_OFFSET(struct sockaddr_un, sun_path) + strlen(name);
+
+	/* bind the name to the descriptor */
+	if (bind(fd, (struct sockaddr *)&un, len) < 0) {
+        close(fd);
+        return -2;
+	}
+
+	if (listen(fd, 10) < 0) {	/* tell kernel we're a server */
+        close(fd);
+        return -3;
+	}
+
+//    chmod(name, S_IRWXO);
+
+	return(fd);
+}
+
+int NPIPE_Accept(int listenfd)
+{
+	int					clifd, len;
+	struct sockaddr_un	un;
 
 	len = sizeof(un);
-	if ((clifd = Socket_Accept(listenfd, (struct sockaddr *)&un, &len)) < 0)
-	{
+	if ((clifd = Socket_Accept(listenfd, (struct sockaddr *)&un, &len)) < 0) {
 		return(-1);		/* often errno=EINTR, if signal caught */
 	}
 
@@ -106,54 +126,18 @@ int NPIPE_Accept(int listenfd, OUT uid_t *uidptr)
         return -1;
     }
 
-	/* obtain the client's uid from its calling address */
-	len -= BS_OFFSET(struct sockaddr_un, sun_path); /* len of pathname */
-	un.sun_path[len] = 0;			/* null terminate */
-
-	if (stat(un.sun_path, &statbuf) < 0) {
-		rval = -2;
-		goto errout;
-	}
-#ifdef	S_ISSOCK	/* not defined for SVR4 */
-	if (S_ISSOCK(statbuf.st_mode) == 0) {
-		rval = -3;		/* not a socket */
-		goto errout;
-	}
-#endif
-	if ((statbuf.st_mode & (S_IRWXG | S_IRWXO)) ||
-		(statbuf.st_mode & S_IRWXU) != S_IRWXU) {
-		  rval = -4;	/* is not rwx------ */
-		  goto errout;
-	}
-
-	staletime = time(NULL) - 30;
-	if (statbuf.st_atime < staletime ||
-		statbuf.st_ctime < staletime ||
-		statbuf.st_mtime < staletime) {
-		  rval = -5;	/* i-node is too old */
-		  goto errout;
-	}
-
-	if (uidptr != NULL)
-		*uidptr = statbuf.st_uid;	/* return uid of caller */
-
 	unlink(un.sun_path);		/* we're done with pathname now */
-	return(clifd);
 
-errout:
-	err = errno;
-	close(clifd);
-	errno = err;
-	return(rval);
+	return(clifd);
 }
 
-INT NPIPE_Connect(const char *name)
+static int _npipe_connect(int type, const char *name)
 {
-	int					fd, len, err, rval;
+	int					fd, len;
 	struct sockaddr_un	un;
 
 	/* create a UNIX domain stream socket */
-	if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
+	if ((fd = socket(AF_UNIX, type, 0)) < 0)
 		return(-1);
 
 	/* fill socket address structure with our address */
@@ -164,30 +148,35 @@ INT NPIPE_Connect(const char *name)
 
 	unlink(un.sun_path);		/* in case it already exists */
 	if (bind(fd, (struct sockaddr *)&un, len) < 0) {
-		rval = -2;
-		goto errout;
+        close(fd);
+        return -2;
 	}
 	if (chmod(un.sun_path, S_IRWXU) < 0) {
-		rval = -3;
-		goto errout;
+        close(fd);
+        return -3;
 	}
 
 	/* fill socket address structure with server's address */
 	memset(&un, 0, sizeof(un));
 	un.sun_family = AF_UNIX;
-	TXT_Strlcpy(un.sun_path, (void *)name, sizeof(un.sun_path));
+	strlcpy(un.sun_path, (void *)name, sizeof(un.sun_path));
 	len = BS_OFFSET(struct sockaddr_un, sun_path) + strlen(name);
 	if (connect(fd, (struct sockaddr *)&un, len) < 0) {
-		rval = -4;
-		goto errout;
+        close(fd);
+        return -4;
 	}
-	return(fd);
 
-errout:
-	err = errno;
-	close(fd);
-	errno = err;
-	return(rval);
+	return(fd);
+}
+
+int NPIPE_ConnectStream(const char *name)
+{
+    return _npipe_connect(SOCK_STREAM, name);
+}
+
+int NPIPE_ConnectSeqpacket(const char *name)
+{
+    return _npipe_connect(SOCK_SEQPACKET, name);
 }
 
 #endif

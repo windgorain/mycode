@@ -862,5 +862,5 @@ ubpf_get_registers(const struct ubpf_vm *vm)
     fprintf(stderr, "uBPF warning: registers are not exposed in release mode. Please recompile in debug mode\n");
     return NULL;
 }
-
 #endif
+

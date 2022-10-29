@@ -222,4 +222,12 @@ BS_STATUS EXEC_NoTM(IN UINT uiArgc, IN CHAR **pcArgv)
     return BS_OK;
 }
 
+static void exec_print_data(char *str)
+{
+    EXEC_OutString(str);
+}
 
+void EXEC_OutHex(UCHAR *pucMem, int len)
+{
+    MEM_Print(pucMem, len, exec_print_data);
+}

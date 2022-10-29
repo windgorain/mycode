@@ -86,6 +86,19 @@ static inline void hash_resize_down(_HASH_CTRL_S *ctrl)
     hash_resize_buckets(ctrl, bucket_num);
 }
 
+static int _hash_cmp_node(PF_HASH_CMP_FUNC pfCmpFunc, HASH_NODE_S *node1, HASH_NODE_S *node2)
+{
+    if (! node1) {
+        return -1;
+    }
+
+    if (! node2) {
+        return 1;
+    }
+
+    return pfCmpFunc(node1, node2);
+}
+
 HASH_HANDLE HASH_CreateInstance(void *memcap, IN UINT ulHashBucketNum, IN PF_HASH_INDEX_FUNC pfFunc)
 {
     _HASH_CTRL_S *pstHashHead;
@@ -141,7 +154,7 @@ void HASH_SetResizeWatter(HASH_HANDLE hHashId, UINT high_watter_percent, UINT lo
     pstHashCtrl->low_watter_count = (low_watter_percent * pstHashCtrl->uiCurrHashBucketNum) / 100;
 }
 
-void HASH_AddWithFactor(IN HASH_HANDLE hHashId, IN VOID *pstNode, UINT hash_factor)
+void HASH_AddWithFactor(IN HASH_HANDLE hHashId, IN VOID *pstNode /* HASH_NODE_S */, UINT hash_factor)
 {
     _HASH_CTRL_S *pstHashCtrl = (_HASH_CTRL_S*)hHashId;
     HASH_NODE_S *node = pstNode;
@@ -158,7 +171,7 @@ void HASH_AddWithFactor(IN HASH_HANDLE hHashId, IN VOID *pstNode, UINT hash_fact
     }
 }
 
-VOID HASH_Add(IN HASH_HANDLE hHashId, IN VOID *pstNode)
+VOID HASH_Add(IN HASH_HANDLE hHashId, IN VOID *pstNode /* HASH_NODE_S */)
 {
     _HASH_CTRL_S *pstHashCtrl = (_HASH_CTRL_S*)hHashId;
 
@@ -286,4 +299,66 @@ VOID HASH_Walk(IN HASH_HANDLE hHashId, IN PF_HASH_WALK_FUNC pfWalkFunc, IN VOID 
 
     return;
 }
+
+/* 最快速度的getnext, 需要两次get期间不能删除curr_node */
+HASH_NODE_S * HASH_GetNext(HASH_HANDLE hHash, HASH_NODE_S *curr_node /* NULL表示获取第一个 */)
+{
+    _HASH_CTRL_S *pstHashCtrl;
+    UINT i;
+    HASH_NODE_S *node = NULL;
+    UINT hash_factor;
+    UINT index = 0;
+
+    BS_DBGASSERT(0 != hHash);
+
+    pstHashCtrl = (_HASH_CTRL_S*)hHash;
+
+    /* 有上一次GetNext的信息,根据信息继续往下查找 */
+    if (curr_node) {
+        hash_factor = pstHashCtrl->pfHashIndexFunc(curr_node);
+        index = hash_factor & pstHashCtrl->uiMask;
+        node = DLL_NEXT(&pstHashCtrl->pstBuckets[index], curr_node);
+        if (node) {
+            return node;
+        }
+        index ++;
+    }
+
+    for (i=index; i<pstHashCtrl->uiCurrHashBucketNum; i++) {
+        node = DLL_FIRST(&pstHashCtrl->pstBuckets[i]);
+        if (node) {
+            break;
+        }
+    }
+
+    return node;
+}
+
+/* 慢速的getnext, 全局字典序getnext, 所以每次getnext都会遍历所有表项 */
+HASH_NODE_S * HASH_GetNextDict(HASH_HANDLE hHash, PF_HASH_CMP_FUNC pfCmpFunc, HASH_NODE_S *curr_node /* NULL表示获取第一个 */)
+{
+    _HASH_CTRL_S *pstHashCtrl;
+    HASH_NODE_S *pstNodeFind;
+    HASH_NODE_S *pstNext = NULL;
+    UINT i;
+
+    BS_DBGASSERT(0 != hHash);
+
+    pstHashCtrl = (_HASH_CTRL_S*)hHash;
+
+    for (i=0; i<pstHashCtrl->uiCurrHashBucketNum; i++) {
+        DLL_SCAN(&pstHashCtrl->pstBuckets[i], pstNodeFind) {
+            if (_hash_cmp_node(pfCmpFunc, pstNodeFind, curr_node) > 0) {
+                if (! pstNext) {
+                    pstNext = pstNodeFind;
+                } else if (_hash_cmp_node(pfCmpFunc, pstNodeFind, pstNext) < 0) {
+                    pstNext = pstNodeFind;
+                }
+            }
+        }
+    }
+
+    return pstNext;
+}
+
 
