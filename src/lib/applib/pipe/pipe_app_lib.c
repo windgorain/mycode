@@ -13,7 +13,6 @@
 static void _pipe_app_clean(PIPE_APP_S *cfg)
 {
     StreamServer_Stop(&cfg->server);
-    cfg->enable = 0;
     cfg->stopping = 0;
 }
 
@@ -64,7 +63,7 @@ int PipeApp_Start(PIPE_APP_S *cfg)
 {
     int ret;
 
-    if (cfg->enable) {
+    if (cfg->server.enable) {
         return 0;
     }
 

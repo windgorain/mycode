@@ -14,7 +14,7 @@ void _tcpfinger_free(void *data, VOID *pUserHandle)
 
 BS_STATUS TcpFinger_Init(TCP_FINGER_S *tcp_finger)
 {
-    tcp_finger->map = MAP_Create(0);
+    tcp_finger->map = MAP_HashCreate(0);
     if (NULL == tcp_finger->map) {
         RETURN(BS_NO_MEMORY);
     }

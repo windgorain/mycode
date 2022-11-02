@@ -133,7 +133,7 @@ BS_STATUS SSLFinger_LoadASNFile(SSL_FINGER_S *ctrl, char *file)
 
 BS_STATUS SSLFinger_Init(SSL_FINGER_S *ctrl)
 {
-    ctrl->map = MAP_Create(0);
+    ctrl->map = MAP_HashCreate(0);
     if (NULL == ctrl->map) {
         RETURN(BS_NO_MEMORY);
     }

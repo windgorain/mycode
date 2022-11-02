@@ -96,7 +96,7 @@ IPIMG_HANDLE IPIMG_Create(int max_property)
 
     ctrl->max_property = max_property;
     ctrl->id_tbl = IDKEY_WrapperIdmgrCreate(IDKEY_BaseCreate(0), IDMGR_BitmapCreate(1024*1024));
-    ctrl->ip_map = MAP_Create(0);
+    ctrl->ip_map = MAP_HashCreate(0);
 
     if ((ctrl->id_tbl == NULL) || (ctrl->ip_map == NULL)) {
         IPIMG_Destroy(ctrl);

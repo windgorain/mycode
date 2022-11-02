@@ -35,10 +35,6 @@ if (USE_ULC)
     add_definitions(-D USE_ULC)
 endif()
 
-if (USE_KFTOOL_MAPFUNC)
-    add_definitions(-D USE_KFTOOL_MAPFUNC)
-endif()
-
 if (USE_HS)
     add_definitions(-D INTEL_HYPERSCAN)
 endif()

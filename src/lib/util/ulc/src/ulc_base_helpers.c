@@ -7,6 +7,7 @@
 #include "utl/rand_utl.h"
 #include "utl/time_utl.h"
 #include "utl/process_utl.h"
+#include "utl/ulc_utl.h"
 #include "../h/ulc_def.h"
 #include "../h/ulc_map.h"
 #include "../h/ulc_prog.h"
@@ -153,7 +154,7 @@ static long _ulc_bpf_skb_vlan_pop(void *skb)
 static ULC_BASE_HELP_S g_ulc_base_helpers[] = {
     {.func = NULL},
     {.func = ULC_MAP_LookupElem},
-    {.func = ULC_MAP_UpdataElem},
+    {.func = ULC_MAP_UpdateElem},
     {.func = ULC_MAP_DeleteElem},
     {.func = _ulc_bpf_probe_read},
     {.func = _ulc_bpf_ktime_get_ns},

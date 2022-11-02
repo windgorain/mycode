@@ -23,7 +23,7 @@ void ErrCode_Set(int err_code, char *info, char *file_name, const char *func_nam
     }
 }
 
-void ErrCode_Clear()
+void ErrCode_Clear(void)
 {
     ERR_CODE_S *err_code_ctrl = &g_err_code;
 
@@ -34,7 +34,7 @@ void ErrCode_Clear()
     err_code_ctrl->info[0] = '\0';
 }
 
-char * ErrCode_GetFileName()
+char * ErrCode_GetFileName(void)
 {
     if (g_err_code.file_name == NULL) {
         return "null";
@@ -43,17 +43,17 @@ char * ErrCode_GetFileName()
     return g_err_code.file_name;
 }
 
-int ErrCode_GetLine()
+int ErrCode_GetLine(void)
 {
     return g_err_code.line;
 }
 
-int ErrCode_GetErrCode()
+int ErrCode_GetErrCode(void)
 {
     return g_err_code.err_code;
 }
 
-char * ErrCode_GetInfo()
+char * ErrCode_GetInfo(void)
 {
     return g_err_code.info;
 }
@@ -78,7 +78,7 @@ char * ErrCode_Build(OUT char *buf, int buf_size)
     return buf;
 }
 
-void ErrCode_Print()
+void ErrCode_Print(void)
 {
     char *file = ErrCode_GetFileName();
     int line = ErrCode_GetLine();

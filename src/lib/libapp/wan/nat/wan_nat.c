@@ -442,7 +442,7 @@ BS_STATUS WAN_NAT_Init()
 
     MUTEX_Init(&g_stWanNatMutex);
 
-    g_hWanNatAgg = MAP_Create(0);
+    g_hWanNatAgg = MAP_HashCreate(0);
     if (NULL == g_hWanNatAgg)
     {
         return BS_NO_MEMORY;

@@ -140,22 +140,6 @@ static int _npipe_connect(int type, const char *name)
 	if ((fd = socket(AF_UNIX, type, 0)) < 0)
 		return(-1);
 
-	/* fill socket address structure with our address */
-	memset(&un, 0, sizeof(un));
-	un.sun_family = AF_UNIX;
-	sprintf(un.sun_path, "/var/tmp/%05d", getpid());
-	len = BS_OFFSET(struct sockaddr_un, sun_path) + strlen(un.sun_path);
-
-	unlink(un.sun_path);		/* in case it already exists */
-	if (bind(fd, (struct sockaddr *)&un, len) < 0) {
-        close(fd);
-        return -2;
-	}
-	if (chmod(un.sun_path, S_IRWXU) < 0) {
-        close(fd);
-        return -3;
-	}
-
 	/* fill socket address structure with server's address */
 	memset(&un, 0, sizeof(un));
 	un.sun_family = AF_UNIX;

@@ -7,6 +7,7 @@
 #include "bs.h"
 #include "bs/loadbs.h"
 #include "bs/loadcmd.h"
+#include "../h/secinit_bs.h"
 
 #include "utl/sys_utl.h"
 #include "utl/file_utl.h"

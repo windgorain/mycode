@@ -175,14 +175,15 @@ static long ulc_map_hash_update_elem(void *map, void *key, void *value, U32 flag
     return 0;
 }
 
-static void * ulc_map_hash_getnext_key(void *map, void *key /* NULL表示Get第一个 */, ULC_MAP_ITER_S *iter)
+/* key: NULL表示Get第一个 */
+static void * ulc_map_hash_getnext_key(void *map, void *key, OUT void **next_key)
 {
     ULC_MAP_HASH_S *ctrl = map;
     ULC_MAP_HASH_NODE_S *found;
     ULC_MAP_HASH_NODE_S *tmp = NULL;
     ULC_MAP_HASH_NODE_S node;
 
-    if ((!map) || (!key)) {
+    if (! map) {
         return NULL;
     }
 
@@ -196,6 +197,8 @@ static void * ulc_map_hash_getnext_key(void *map, void *key /* NULL表示Get第�
     if (! found) {
         return NULL;
     }
+
+    *next_key = found->key;
 
     return found->key;
 }

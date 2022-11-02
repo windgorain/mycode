@@ -8,13 +8,13 @@
 
 #include "utl/local_info.h"
 
-extern int ULC_Init();
+extern int ULCAPP_Init();
 
 PLUG_API int Plug_Stage(int stage)
 {
     switch (stage) {
         case PLUG_STAGE_PLUG_LOAD:
-	        ULC_Init();
+	        ULCAPP_Init();
             break;
         default:
             break;

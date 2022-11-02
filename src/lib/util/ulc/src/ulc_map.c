@@ -129,7 +129,7 @@ long ULC_MAP_DeleteElem(void *map, void *key)
     return g_ulc_map_func_tbl[hdr->type]->delete_elem_func(map, key);
 }
 
-long ULC_MAP_UpdataElem(void *map, void *key, void *value, U32 flag)
+long ULC_MAP_UpdateElem(void *map, void *key, void *value, U32 flag)
 {
     ULC_MAP_HEADER_S *hdr = map;
 
@@ -138,6 +138,42 @@ long ULC_MAP_UpdataElem(void *map, void *key, void *value, U32 flag)
     }
 
     return g_ulc_map_func_tbl[hdr->type]->update_elem_func(map, key, value, flag);
+}
+
+void * ULC_MAP_LookupElemByFd(int fd, void *key)
+{
+    ULC_MAP_HEADER_S *hdr;
+
+    hdr = ULC_MAP_GetByFd(fd);
+    if (! hdr) {
+        return NULL;
+    }
+
+    return ULC_MAP_LookupElem(hdr, key);
+}
+
+long ULC_MAP_DeleteElemByFd(int fd, void *key)
+{
+    ULC_MAP_HEADER_S *hdr;
+
+    hdr = ULC_MAP_GetByFd(fd);
+    if (! hdr) {
+        RETURN(BS_ERR);
+    }
+
+    return ULC_MAP_DeleteElem(hdr, key);
+}
+
+long ULC_MAP_UpdataElemByFd(int fd, void *key, void *value, UINT flag)
+{
+    ULC_MAP_HEADER_S *hdr;
+
+    hdr = ULC_MAP_GetByFd(fd);
+    if (! hdr) {
+        RETURN(BS_ERR);
+    }
+
+    return ULC_MAP_UpdateElem(hdr, key, value, flag);
 }
 
 /* 获取数组map的数组地址 */
@@ -177,27 +213,34 @@ void ULC_MAP_ShowMap()
     RcuEngine_UnLock(state);
 }
 
+/* 注意: 调用者的*next_key和接受返回值不要用同一个变量, 因为在array map中*next_key有存储id的作用 */
+void * ULC_MAP_GetNextKey(void *map, void *curr_key, OUT void **next_key)
+{
+    ULC_MAP_HEADER_S *hdr = map;
+    return g_ulc_map_func_tbl[hdr->type]->get_next_key(hdr, curr_key, next_key);
+}
+
 void ULC_MAP_DumpMap(int map_fd)
 {
     void *key = NULL;
+    void *next_key;
     void *data;
-    ULC_MAP_ITER_S iter = {0};
 
     ULC_MAP_HEADER_S *hdr = ULC_MAP_GetByFd(map_fd);
     if (! hdr) {
         return;
     }
 
-    while ((key = g_ulc_map_func_tbl[hdr->type]->get_next_key(hdr, key, &iter))) {
+    while ((key = ULC_MAP_GetNextKey(hdr, key, &next_key))) {
         data = ULC_MAP_LookupElem(hdr, key);
         if (! data) {
             continue;
         }
 
         EXEC_OutString("Key:\r\n");
-        EXEC_OutHex(key, hdr->size_key);
+        EXEC_OutDataHex(key, hdr->size_key);
         EXEC_OutString("Value:\r\n");
-        EXEC_OutHex(data, hdr->size_value);
+        EXEC_OutDataHex(data, hdr->size_value);
         EXEC_OutString("\r\n");
     }
 }

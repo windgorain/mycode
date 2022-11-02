@@ -294,7 +294,7 @@ IDKEY_S * IDKEY_BaseCreate(IDKEY_PARAM_S *p)
     map_param.memcap = p->memcap;
 
     if (p->flag & IDKEY_FLAG_ID_MAP) {
-        ctrl->id_tbl = MAP_Create(&map_param);
+        ctrl->id_tbl = MAP_HashCreate(&map_param);
         if (! ctrl->id_tbl) {
             idkey_base_destroy(ctrl, NULL, NULL);
             return NULL;
@@ -302,7 +302,7 @@ IDKEY_S * IDKEY_BaseCreate(IDKEY_PARAM_S *p)
     }
 
     if (p->flag & IDKEY_FLAG_KEY_MAP) {
-        ctrl->key_tbl = MAP_Create(&map_param);
+        ctrl->key_tbl = MAP_HashCreate(&map_param);
         if (! ctrl->key_tbl) {
             idkey_base_destroy(ctrl, NULL, NULL);
             return NULL;

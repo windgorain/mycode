@@ -74,7 +74,6 @@ static int _stream_server_recv(STREAM_CONN_S *conn)
 
     ret = Socket_Read2(conn->fd, buf, sizeof(buf), &read_len, 0);
     if (BS_OK != ret) {
-        _stream_server_close_conn(conn);
         return -1;
     }
 

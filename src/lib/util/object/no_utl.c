@@ -66,7 +66,7 @@ NO_HANDLE NO_CreateAggregate(OBJECT_PARAM_S *p)
         return NULL;
     }
 
-    pstInstance->name_map = MAP_Create(NULL);
+    pstInstance->name_map = MAP_HashCreate(NULL);
     if (NULL == pstInstance->name_map) {
         OBJECT_DestroyAggregate(pstInstance->hAggregate);
         MemCap_Free(p->memcap, pstInstance);

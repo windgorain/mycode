@@ -5,6 +5,9 @@
 ================================================================*/
 #ifndef _ULC_MAP_H
 #define _ULC_MAP_H
+
+#include "utl/ulc_utl.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -16,8 +19,6 @@ extern "C"
 #define BPF_EXIST	2 /* update existing element */
 #endif
 
-#define ULC_MAP_NAME_SIZE 128
-
 typedef struct {
 	unsigned int type;
 	unsigned int size_key;
@@ -26,15 +27,11 @@ typedef struct {
 	unsigned int flags;
 }ULC_ELF_MAP_S;
 
-typedef struct {
-    int id;
-}ULC_MAP_ITER_S;
-
 typedef int (*PF_ULC_MAP_OPEN)(ULC_ELF_MAP_S *elfmap);
 typedef void* (*PF_ULC_MAP_LOOKUP_ELEM)(void *map, void *key);
 typedef long (*PF_ULC_MAP_DELETE_ELEM)(void *map, void *key);
 typedef long (*PF_ULC_MAP_UPDATE_ELEM)(void *map, void *key, void *value, U32 flag);
-typedef void* (*PF_ULC_MAP_GETNEXT_KEY)(void *map, void *key /* NULL表示获取第一个 */, INOUT ULC_MAP_ITER_S *iter);
+typedef void* (*PF_ULC_MAP_GETNEXT_KEY)(void *map, void *key, OUT void **next_key);
 typedef long (*PF_ULC_MAP_DIRECT_VALUE)(void *map, OUT U64 *addr, U32 off);
 
 typedef struct {
@@ -45,18 +42,6 @@ typedef struct {
     PF_ULC_MAP_GETNEXT_KEY get_next_key;
     PF_ULC_MAP_DIRECT_VALUE direct_value_func;
 }ULC_MAP_FUNC_TBL_S;
-
-typedef struct {
-    int fd;
-    int map_offset; /* 这个map在maps section中的偏移 */
-    char map_name[ULC_MAP_NAME_SIZE];
-
-	U32 type;
-	U32 size_key;
-	U32 size_value;
-	U32 max_elem;
-	U32 flags;
-}ULC_MAP_HEADER_S;
 
 enum {
 	BPF_MAP_TYPE_UNSPEC,
@@ -71,12 +56,8 @@ int ULC_MAP_RegType(UINT type, ULC_MAP_FUNC_TBL_S *ops);
 int ULC_MAP_Open(ULC_ELF_MAP_S *elfmap, int map_offset, char *map_name);
 void ULC_MAP_Close(int fd);
 int ULC_MAP_GetByName(char *map_name);
-ULC_MAP_HEADER_S * ULC_MAP_GetByFd(int fd);
 ULC_MAP_HEADER_S * ULC_MAP_RefByFd(int fd);
 
-void * ULC_MAP_LookupElem(void *map, void *key);
-long ULC_MAP_DeleteElem(void *map, void *key);
-long ULC_MAP_UpdataElem(void *map, void *key, void *value, U32 flag);
 int ULC_MAP_DirectValue(void *map, OUT UINT64 *addr, UINT off);
 
 int ULC_MapArray_Init();

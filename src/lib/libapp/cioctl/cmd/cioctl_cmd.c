@@ -58,8 +58,8 @@ PLUG_API BS_STATUS CIOCTL_CMD_CmdNoName(IN UINT ulArgc, IN CHAR ** argv)
 PLUG_API int CIOCTL_CMD_PipeServerEnable(IN UINT ulArgc, IN CHAR ** argv)
 {
     if (CIOCTL_SERVER_Enable() < 0) {
-        EXEC_OutInfo(" servier enable failed(%s:%d:%d) \r\n",
-                ErrCode_GetFileName(), ErrCode_GetLine(), ErrCode_GetErrCode());
+        EXEC_OutInfo(" servier enable failed \r\n");
+        EXEC_OutErrCodeInfo();
         return BS_ERR;
     }
 

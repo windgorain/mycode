@@ -581,6 +581,31 @@ BS_STATUS CFF_GetPropAsInt(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag, IN CHAR *pc
     return CFF_X_GetPropAsInt(hCffHandle, &stTreParam, pcProp, piValue);
 }
 
+/* 如果获取失败,则返回dft */
+UINT CFF_GetPropAsUintDft(CFF_HANDLE hCffHandle, char *pcTag, char *pcProp, UINT dft)
+{
+    UINT val;
+    return CFF_GetPropAsUint(hCffHandle, pcTag, pcProp, &val) == 0 ? val : dft;
+}
+
+int CFF_GetPropAsIntDft(CFF_HANDLE hCffHandle, char *pcTag, char *pcProp, int dft)
+{
+    int val;
+    return CFF_GetPropAsInt(hCffHandle, pcTag, pcProp, &val) == 0 ? val : dft;
+}
+
+UINT64 CFF_GetPropAsUint64Dft(CFF_HANDLE hCffHandle, char *pcTag, char *pcProp, UINT64 dft)
+{
+    UINT64 val;
+    return CFF_GetPropAsUint64(hCffHandle, pcTag, pcProp, &val) == 0 ? val : dft;
+}
+
+char * CFF_GetPropAsStringDft(CFF_HANDLE hCffHandle, char *pcTag, char *pcProp, char *dft)
+{
+    char *val;
+    return CFF_GetPropAsString(hCffHandle, pcTag, pcProp, &val) == 0 ? val : dft;
+}
+
 /* 返回Tag的个数 */
 UINT CFF_GetTagNum(IN CFF_HANDLE hCffHandle)
 {

@@ -35,7 +35,7 @@ int MAPS_Add(void *maps, int id, void *key, int key_len, void *value, UINT flag)
     }
 
     if (! ctrl->maps[id]) {
-        ctrl->maps[id] = MAP_Create(NULL);
+        ctrl->maps[id] = MAP_HashCreate(NULL);
         if (! ctrl->maps[id]) {
             RETURN(BS_NO_MEMORY);
         }

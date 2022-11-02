@@ -38,7 +38,7 @@ IDTBL_S * IDTBL_HashCreate(UINT bucket_num)
     MAP_PARAM_S map_param = {0};
     map_param.bucket_num = bucket_num;
 
-    ctrl->hash_map = MAP_Create(&map_param);
+    ctrl->hash_map = MAP_HashCreate(&map_param);
     if (! ctrl->hash_map) {
         MEM_Free(ctrl);
         return NULL;

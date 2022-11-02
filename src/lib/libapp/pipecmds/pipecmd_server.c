@@ -106,7 +106,7 @@ static int _pipecmd_server_recv_msg(void *cfg, STREAM_CONN_S *conn)
     EXEC_Attach(hExec);
     ret = CmdExp_RunString(hRunner, data, data_len);
 
-    if (data[data_len - 1] == '\n') { /* 输入结束 */
+    if ((data[data_len - 1] == '\n') || (data[data_len - 1] == '?')) { /* 输入结束 */
         _pipecmd_process_line_end(cfg, conn, ret);
     }
 
@@ -120,8 +120,15 @@ static int _pipecmd_server_close_conn(void *cfg, STREAM_CONN_S *conn)
     CMD_EXP_RUNNER hRunner = conn->ud[0];
     HANDLE hExec = conn->ud[1];
 
-    EXEC_Delete(hExec);
-    CMD_EXP_DestroyRunner(hRunner);
+    conn->ud[0] = NULL;
+    conn->ud[1] = NULL;
+
+    if (hExec) {
+        EXEC_Delete(hExec);
+    }
+    if (hRunner) {
+        CMD_EXP_DestroyRunner(hRunner);
+    }
 
     return 0;
 }
@@ -168,7 +175,7 @@ PLUG_API BS_STATUS PIPECMDS_CmdNamePKey(int argc, char **argv)
         return BS_ERR;
     }
 
-    if (g_pipecmd_server.enable) {
+    if (g_pipecmd_server.server.enable) {
         EXEC_OutInfo(" The server has enabled, please stop.\r\n");
         return BS_ERR;
     }
@@ -182,7 +189,7 @@ PLUG_API BS_STATUS PIPECMDS_CmdNamePKey(int argc, char **argv)
 /* name string %STRING<1-127> */
 PLUG_API BS_STATUS PIPECMDS_CmdNameString(int argc, char **argv)
 {
-    if (g_pipecmd_server.enable) {
+    if (g_pipecmd_server.server.enable) {
         EXEC_OutInfo(" The server has enabled, please stop.\r\n");
         return BS_ERR;
     }
@@ -196,7 +203,7 @@ PLUG_API BS_STATUS PIPECMDS_CmdNameString(int argc, char **argv)
 /* no name */
 PLUG_API BS_STATUS PIPECMDS_CmdNoName(int argc, char **argv)
 {
-    if (g_pipecmd_server.enable) {
+    if (g_pipecmd_server.server.enable) {
         EXEC_OutInfo(" The server has enabled, please stop.\r\n");
         return BS_ERR;
     }
@@ -238,7 +245,7 @@ PLUG_API BS_STATUS _pipecmds_SaveCmd (IN HANDLE hFileHandle)
         CMD_EXP_OutputCmd(hFileHandle, "name process-key");
     }
 
-    if (g_pipecmd_server.enable) {
+    if (g_pipecmd_server.server.enable) {
         CMD_EXP_OutputCmd(hFileHandle, "server enable");
     }
 

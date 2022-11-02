@@ -13,7 +13,7 @@ CONSTRUCTOR(init) {
     MUTEX_Init(&g_cioctl_lock);
 }
 
-int CCIOCTL_RegOb(CIOCTL_OB_S *ob)
+int CIOCTL_RegOb(CIOCTL_OB_S *ob)
 {
     MUTEX_P(&g_cioctl_lock);
     DLL_ADD_RCU(&g_cioctl_ob_list, &ob->link_node);
@@ -21,7 +21,7 @@ int CCIOCTL_RegOb(CIOCTL_OB_S *ob)
     return 0;
 }
 
-int CCIOCTL_UnRegOb(CIOCTL_OB_S *ob)
+int CIOCTL_UnRegOb(CIOCTL_OB_S *ob)
 {
     MUTEX_P(&g_cioctl_lock);
     DLL_DEL(&g_cioctl_ob_list, &ob->link_node);

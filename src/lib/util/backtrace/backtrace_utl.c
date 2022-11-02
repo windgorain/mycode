@@ -59,7 +59,7 @@ static void _backtrace_write_fd(char *info, void *ud)
     write(fd, info, strlen(info));
 }
 
-void BackTrace_Print()
+void BackTrace_Print(void)
 {
     _backtrace_call(_backtrace_print, NULL);
 }
@@ -86,7 +86,7 @@ void BackTrace_WriteToFd(int fd)
     _backtrace_call(_backtrace_write_fd, UINT_HANDLE(fd));
 }
 
-void CoreDump_Enable()
+void CoreDump_Enable(void)
 {
 #ifdef IN_LINUX
     prctl(PR_SET_DUMPABLE, 1);

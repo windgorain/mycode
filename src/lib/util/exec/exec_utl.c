@@ -227,7 +227,15 @@ static void exec_print_data(char *str)
     EXEC_OutString(str);
 }
 
-void EXEC_OutHex(UCHAR *pucMem, int len)
+void EXEC_OutDataHex(UCHAR *pucMem, int len)
 {
     MEM_Print(pucMem, len, exec_print_data);
 }
+
+/* 输出error code info */
+void EXEC_OutErrCodeInfo()
+{
+    char info[1024];
+    EXEC_OutInfo("%s \r\n", ErrCode_Build(info, sizeof(info)));
+}
+

@@ -7,8 +7,7 @@
 #include "utl/stream_server.h"
 #include "app/pipe_app_lib.h"
 #include "app/cioctl_pub.h"
-
-#define CIOCTL_PIPE_FILE_PATH "/tmp/cioctl_pipe"
+#include "../h/cioctl_core.h"
 
 static PIPE_APP_S g_cioctl_server;
 
@@ -21,6 +20,10 @@ static int _cioctl_server_recv_msg(void *cfg, STREAM_CONN_S *conn)
     CIOCTL_REPLY_S reply = {0};
     CIOCTL_REPLY_S *reply_ptr;
     int ret;
+
+    if (VBUF_GetDataLength(vbuf) < sizeof(CIOCTL_REQUEST_S)) {
+        return 0;
+    }
 
     req = VBUF_GetData(vbuf);
     if (! req) {
@@ -44,10 +47,7 @@ static int _cioctl_server_recv_msg(void *cfg, STREAM_CONN_S *conn)
     reply_ptr->size = htonl(reply_ptr->size);
     reply_ptr->ret = htonl(ret);
 
-    if (ret >= 0) {
-        StreamServer_Send(conn, NULL, 0);
-        StreamServer_SendFinish(conn);
-    }
+    StreamServer_Send(conn, NULL, 0);
 
     VBUF_CutAll(vbuf);
 
@@ -76,9 +76,14 @@ DESTRUCTOR(fini) {
     PipeApp_Clean(&g_cioctl_server);
 }
 
+BOOL_T CIOCTL_SERVER_IsEnabled()
+{
+    return g_cioctl_server.server.enable;
+}
+
 int CIOCTL_SERVER_SetNamePKey(char *pkey_name)
 {
-    if (g_cioctl_server.enable) {
+    if (CIOCTL_SERVER_IsEnabled()) {
         return BS_ERR;
     }
 
@@ -90,7 +95,7 @@ int CIOCTL_SERVER_SetNamePKey(char *pkey_name)
 
 int CIOCTL_SERVER_SetNameString(char *name)
 {
-    if (g_cioctl_server.enable) {
+    if (CIOCTL_SERVER_IsEnabled()) {
         return BS_ERR;
     }
 
@@ -102,7 +107,7 @@ int CIOCTL_SERVER_SetNameString(char *name)
 
 int CIOCTL_SERVER_SetNameDefault()
 {
-    if (g_cioctl_server.enable) {
+    if (CIOCTL_SERVER_IsEnabled()) {
         return BS_ERR;
     }
 
@@ -133,7 +138,3 @@ int CIOCTL_SERVER_Disable()
     return 0;
 }
 
-BOOL_T CIOCTL_SERVER_IsEnabled()
-{
-    return g_cioctl_server.enable;
-}

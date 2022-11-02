@@ -114,21 +114,28 @@ static long ulc_map_array_direct_value(void *map, OUT U64 *value, U32 off)
     return 0;
 }
 
-static void * ulc_map_array_getnext_key(void *map, void *key /* NULL表示获取第一个 */, INOUT ULC_MAP_ITER_S *iter)
+/* key: NULL表示Get第一个 */
+static void * ulc_map_array_getnext_key(void *map, void *key, OUT void **next_key)
 {
     ULC_MAP_ARRAY_S *ctrl = map;
+    int n = 0;
 
-    if (! key) {
-        iter->id = 0;
-    } else {
-        iter->id ++;
-    }
-
-    if (iter->id >= ctrl->hdr.max_elem) {
+    if (! next_key) {
         return NULL;
     }
 
-    return &iter->id;
+    if (key) {
+        n = *(int*)key;
+        n ++;
+    }
+
+    if (n >= ctrl->hdr.max_elem) {
+        return NULL;
+    }
+
+    *(int*)next_key = n;
+
+    return next_key;
 }
 
 static ULC_MAP_FUNC_TBL_S g_ulc_map_array_ops = {
