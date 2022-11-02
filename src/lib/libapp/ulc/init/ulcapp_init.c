@@ -4,18 +4,17 @@
 *
 ================================================================*/
 #include "bs.h"
-#include "../h/ulc_fd.h"
-#include "../h/ulc_map.h"
-#include "../h/ulc_hookpoint.h"
+#include "utl/ulc_utl.h"
+#include "../h/ulcapp_hookpoint.h"
+#include "../h/ulcapp_ioctl.h"
 
-int ULC_Init()
+int ULCAPP_Init()
 {
     int ret = 0;
 
-    ret |= ULC_FD_Init();
-    ret |= ULC_MapArray_Init();
-    ret |= ULC_MapHash_Init();
-    ret |= ULC_HookPoint_Init();
+    ret |= ULC_Init();
+    ret |= ULCAPP_IOCTL_Init();
+    ret |= ULCAPP_HookPointXdp_Init();
 
     return ret;
 }

@@ -1,18 +1,19 @@
 /*================================================================
-*   Created by LiXingang
+*   Created by LiXingang, Copyright LiXingang
 *   Description: 
 *
 ================================================================*/
-#ifndef _ULC_LOADER_H
-#define _ULC_LOADER_H
+#ifndef _ULCAPP_CFG_LOCK_H
+#define _ULCAPP_CFG_LOCK_H
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-int ULC_LOADER_LoadXdp(char *filename, char *sec_name);
+void ULCAPP_CfgLock();
+void ULCAPP_CfgUnlock();
 
 #ifdef __cplusplus
 }
 #endif
-#endif //ULC_LOADER_H_
+#endif //ULCAPP_CFG_LOCK_H_
