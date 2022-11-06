@@ -58,7 +58,7 @@ int kfappkv_load_file(char *file)
 
 int KFAPP_KV_Init()
 {
-    g_kfapp_rule_map = MAP_Create(NULL);
+    g_kfapp_rule_map = MAP_HashCreate(NULL);
     if (! g_kfapp_rule_map) {
         RETURN(BS_NO_MEMORY);
     }

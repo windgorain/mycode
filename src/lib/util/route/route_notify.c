@@ -4,7 +4,6 @@
 *
 ================================================================*/
 #include "bs.h"
-#include "utl/route_notify.h" 
 
 #define RT_BUFFER_LEN       8192    //define for max buffer to store
 

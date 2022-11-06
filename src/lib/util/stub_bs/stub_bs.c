@@ -5,7 +5,6 @@
 * History:     
 ******************************************************************************/
 #include "bs.h"
-#include "utl/rcu_utl.h"
 #include "utl/mem_utl.h"
 
 VOID * mem_Malloc(IN UINT uiSize, IN CHAR *pcFileName, IN UINT uiLine)

@@ -176,8 +176,7 @@ ubpf_unload_code(struct ubpf_vm *vm)
     }
 }
 
-static uint32_t
-u32(uint64_t x)
+static inline uint32_t _ubpf_vm_to_u32(uint64_t x)
 {
     return x;
 }
@@ -239,7 +238,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len, uint64_t* bpf_ret
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_DIV_IMM:
-            reg[inst.dst] = u32(reg[inst.dst]) / u32(inst.imm);
+            reg[inst.dst] = _ubpf_vm_to_u32(reg[inst.dst]) / _ubpf_vm_to_u32(inst.imm);
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_DIV_REG:
@@ -247,7 +246,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len, uint64_t* bpf_ret
                 vm->error_printf(stderr, ubpf_string_table[UBPF_STRING_ID_DIVIDE_BY_ZERO], cur_pc);
                 return -1;
             }
-            reg[inst.dst] = u32(reg[inst.dst]) / u32(reg[inst.src]);
+            reg[inst.dst] = _ubpf_vm_to_u32(reg[inst.dst]) / _ubpf_vm_to_u32(reg[inst.src]);
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_OR_IMM:
@@ -275,11 +274,11 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len, uint64_t* bpf_ret
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_RSH_IMM:
-            reg[inst.dst] = u32(reg[inst.dst]) >> inst.imm;
+            reg[inst.dst] = _ubpf_vm_to_u32(reg[inst.dst]) >> inst.imm;
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_RSH_REG:
-            reg[inst.dst] = u32(reg[inst.dst]) >> reg[inst.src];
+            reg[inst.dst] = _ubpf_vm_to_u32(reg[inst.dst]) >> reg[inst.src];
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_NEG:
@@ -287,7 +286,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len, uint64_t* bpf_ret
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_MOD_IMM:
-            reg[inst.dst] = u32(reg[inst.dst]) % u32(inst.imm);
+            reg[inst.dst] = _ubpf_vm_to_u32(reg[inst.dst]) % _ubpf_vm_to_u32(inst.imm);
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_MOD_REG:
@@ -295,7 +294,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len, uint64_t* bpf_ret
                 vm->error_printf(stderr, ubpf_string_table[UBPF_STRING_ID_DIVIDE_BY_ZERO], cur_pc);
                 return -1;
             }
-            reg[inst.dst] = u32(reg[inst.dst]) % u32(reg[inst.src]);
+            reg[inst.dst] = _ubpf_vm_to_u32(reg[inst.dst]) % _ubpf_vm_to_u32(reg[inst.src]);
             break;
         case EBPF_OP_XOR_IMM:
             reg[inst.dst] ^= inst.imm;
@@ -318,7 +317,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len, uint64_t* bpf_ret
             reg[inst.dst] &= UINT32_MAX;
             break;
         case EBPF_OP_ARSH_REG:
-            reg[inst.dst] = (int32_t)reg[inst.dst] >> u32(reg[inst.src]);
+            reg[inst.dst] = (int32_t)reg[inst.dst] >> _ubpf_vm_to_u32(reg[inst.src]);
             reg[inst.dst] &= UINT32_MAX;
             break;
 

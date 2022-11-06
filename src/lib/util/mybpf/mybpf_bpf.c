@@ -6,11 +6,11 @@
 #include "bs.h"
 #include "utl/asm_utl.h"
 #include "utl/endian_utl.h"
+#include "utl/mybpf_prog.h"
 #include "klc/klc_def.h"
 #include "klc/klc_namefunc.h"
-#include "../h/ulc_def.h"
-#include "../h/ulc_osbase.h"
-#include "../h/ulc_base_helpers.h"
+#include "mybpf_def.h"
+#include "mybpf_osbase.h"
 
 /* Registers */
 #define BPF_R0	regs[BPF_REG_0]
@@ -171,9 +171,9 @@
 	/*   Immediate based. */		\
 	INSN_3(LD, IMM, DW)
 
-#define _ulc_bpf_call_base_args \
+#define _mybpf_bpf_call_base_args \
 	((u64 (*)(u64, u64, u64, u64, u64, const struct bpf_insn *)) \
-	 (void *)ulc_bpf_call_base)
+	 (void *)MYBPF_PROG_HelperBase)
 
 static U64 my_bpf_probe_read_kernel(void *dst, U32 size, const void *unsafe_ptr)
 {
@@ -364,12 +364,12 @@ select_insn:
         } else if (insn->imm == KLC_HELPER_INTERNAL) {
             BPF_R0 = my_helper_bpf_call_internal(BPF_R1, BPF_R2, BPF_R3, BPF_R4, BPF_R5);
         } else {
-            BPF_R0 = (ulc_bpf_call_base + insn->imm)(BPF_R1, BPF_R2, BPF_R3, BPF_R4, BPF_R5);
+            BPF_R0 = (MYBPF_PROG_HelperBase + insn->imm)(BPF_R1, BPF_R2, BPF_R3, BPF_R4, BPF_R5);
         }
 		CONT;
 
 	JMP_CALL_ARGS: 
-		BPF_R0 = (_ulc_bpf_call_base_args + insn->imm)(BPF_R1, BPF_R2,
+		BPF_R0 = (_mybpf_bpf_call_base_args + insn->imm)(BPF_R1, BPF_R2,
 							    BPF_R3, BPF_R4,
 							    BPF_R5,
 							    insn + insn->off + 1);
@@ -558,7 +558,7 @@ select_insn:
 }
 
 /* 运行原始code */
-U64 ULC_RunBpfCode(void *code, U64 r1, U64 r2, U64 r3, U64 r4, U64 r5)
+U64 MYBPF_RunBpfCode(void *code, U64 r1, U64 r2, U64 r3, U64 r4, U64 r5)
 {
     struct bpf_insn *insn = code;
     U64 stack[512 / sizeof(u64)]; 
@@ -575,7 +575,7 @@ U64 ULC_RunBpfCode(void *code, U64 r1, U64 r2, U64 r3, U64 r4, U64 r5)
 }
 
 /* 运行namefunc之类的自定义code */
-U64 ULC_RunKlcCode(KLC_BPF_HEADER_S *klc_code, U64 r1, U64 r2, U64 r3, void *ctx)
+U64 MYBPF_RunKlcCode(KLC_BPF_HEADER_S *klc_code, U64 r1, U64 r2, U64 r3, void *ctx)
 { 
     KLC_BPF_HEADER_S *header = klc_code;
     void *code = (void*)(header + 1);
@@ -588,6 +588,6 @@ U64 ULC_RunKlcCode(KLC_BPF_HEADER_S *klc_code, U64 r1, U64 r2, U64 r3, void *ctx
         return KLC_RET_ERR;
     }
 
-    return ULC_RunBpfCode(code, r1, r2, r3, (long)ctx, 0);
+    return MYBPF_RunBpfCode(code, r1, r2, r3, (long)ctx, 0);
 }
 

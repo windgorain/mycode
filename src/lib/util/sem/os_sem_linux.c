@@ -101,8 +101,9 @@ BS_STATUS _OSSEM_V(OS_SEM *pOsSem)
     }
 
     pOsSem->v ++;
-    pthread_cond_signal(&pOsSem->cond);
     pthread_mutex_unlock(&pOsSem->mutex);
+
+    pthread_cond_signal(&pOsSem->cond);
 
     return BS_OK;
 }

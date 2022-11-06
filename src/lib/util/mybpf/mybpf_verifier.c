@@ -1,19 +1,111 @@
 /*================================================================
-*   Created by LiXingang
+*   Created by LiXingang, Copyright LiXingang
 *   Description: 
 *
 ================================================================*/
 #include "bs.h"
-#include "utl/ulc_utl.h"
-#include "../h/ulc_def.h"
-#include "../h/ulc_map.h"
-#include "../h/ulc_prog.h"
-#include "../h/ulc_fd.h"
-#include "../h/ulc_hookpoint.h"
-#include "../h/ulc_osbase.h"
-#include "../h/ulc_base_helpers.h"
+#include "utl/ufd_utl.h"
+#include "utl/umap_utl.h"
+#include "utl/mybpf_prog.h"
+#include "utl/bpf_helper_utl.h"
+#include "mybpf_osbase.h"
+#include "mybpf_def.h"
 
-static UINT _ulc_verifier_xdp_convert_ctx_access(BOOL_T is_write,
+int MYBPF_PROG_ReplaceMapFdWithMapPtr(MYBPF_PROG_NODE_S *prog)
+{
+    struct bpf_insn *insn = (void*)prog->insn;
+    int insn_cnt = prog->insn_len / sizeof(*insn);
+    int i, j;
+    int fd;
+
+	for (i = 0; i < insn_cnt; i++, insn++) {
+		if (BPF_CLASS(insn->code) == BPF_LDX &&
+		    (BPF_MODE(insn->code) != BPF_MEM || insn->imm != 0)) {
+			return -EINVAL;
+		}
+		if (BPF_CLASS(insn->code) == BPF_STX &&
+		    ((BPF_MODE(insn->code) != BPF_MEM &&
+		      BPF_MODE(insn->code) != BPF_XADD) || insn->imm != 0)) {
+			return -EINVAL;
+		}
+		if (insn[0].code == (BPF_LD | BPF_IMM | BPF_DW)) {
+            UMAP_HEADER_S *map;
+            U64 addr;
+
+			if (i == insn_cnt - 1 || insn[1].code != 0 ||
+			    insn[1].dst_reg != 0 || insn[1].src_reg != 0 ||
+			    insn[1].off != 0) {
+				return -EINVAL;
+			}
+
+			if (insn[0].src_reg == 0)
+				goto next_insn;
+
+			/* In final convert_pseudo_ld_imm64() step, this is
+			 * converted into regular 64-bit imm load insn.
+			 */
+			if ((insn[0].src_reg != BPF_PSEUDO_MAP_FD &&
+			     insn[0].src_reg != BPF_PSEUDO_MAP_VALUE) ||
+			    (insn[0].src_reg == BPF_PSEUDO_MAP_FD &&
+			     insn[1].imm != 0)) {
+				return -EINVAL;
+			}
+
+            fd = insn->imm;
+
+            map = UMAP_RefByFd(fd);
+			if (! map) {
+				return -EINVAL;
+			}
+
+			if (insn->src_reg == BPF_PSEUDO_MAP_FD) {
+				addr = (unsigned long)map;
+			} else {
+				U32 off = insn[1].imm;
+
+				if (off >= BPF_MAX_VAR_OFF) {
+                    UFD_DecRef(fd);
+					return -EINVAL;
+				}
+
+				int err = UMAP_DirectValue(map, &addr, off);
+				if (err) {
+                    UFD_DecRef(fd);
+					return err;
+				}
+
+				addr += off;
+			}
+
+			insn[0].imm = (U32)addr;
+			insn[1].imm = addr >> 32;
+
+			/* check whether we recorded this map already */
+			for (j = 0; j < prog->used_map_cnt; j++) {
+				if (prog->used_maps[j] == fd) {
+                    UFD_DecRef(fd);
+					goto next_insn;
+				}
+			}
+
+			if (prog->used_map_cnt >= MYBPF_PROG_MAX_MAPS) {
+                UFD_DecRef(fd);
+                return -E2BIG;
+			}
+
+			prog->used_maps[prog->used_map_cnt++] = fd;
+
+next_insn:
+			insn++;
+			i++;
+			continue;
+		}
+    }
+
+    return 0;
+}
+
+static UINT _mybpf_prog_xdp_convert_ctx_access(BOOL_T is_write,
 				  IN struct bpf_insn *si,
 				  OUT struct bpf_insn *insn_buf,
 				  OUT UINT *target_size)
@@ -51,102 +143,7 @@ static UINT _ulc_verifier_xdp_convert_ctx_access(BOOL_T is_write,
 	return insn - insn_buf;
 }
 
-
-int ULC_VERIFIER_ReplaceMapFdWithMapPtr(ULC_PROG_NODE_S *prog)
-{
-    struct bpf_insn *insn = (void*)prog->insn;
-    int insn_cnt = prog->insn_len / sizeof(*insn);
-    int i, j;
-    int fd;
-
-	for (i = 0; i < insn_cnt; i++, insn++) {
-		if (BPF_CLASS(insn->code) == BPF_LDX &&
-		    (BPF_MODE(insn->code) != BPF_MEM || insn->imm != 0)) {
-			return -EINVAL;
-		}
-		if (BPF_CLASS(insn->code) == BPF_STX &&
-		    ((BPF_MODE(insn->code) != BPF_MEM &&
-		      BPF_MODE(insn->code) != BPF_XADD) || insn->imm != 0)) {
-			return -EINVAL;
-		}
-		if (insn[0].code == (BPF_LD | BPF_IMM | BPF_DW)) {
-            ULC_MAP_HEADER_S *map;
-            u64 addr;
-
-			if (i == insn_cnt - 1 || insn[1].code != 0 ||
-			    insn[1].dst_reg != 0 || insn[1].src_reg != 0 ||
-			    insn[1].off != 0) {
-				return -EINVAL;
-			}
-
-			if (insn[0].src_reg == 0)
-				goto next_insn;
-
-			/* In final convert_pseudo_ld_imm64() step, this is
-			 * converted into regular 64-bit imm load insn.
-			 */
-			if ((insn[0].src_reg != BPF_PSEUDO_MAP_FD &&
-			     insn[0].src_reg != BPF_PSEUDO_MAP_VALUE) ||
-			    (insn[0].src_reg == BPF_PSEUDO_MAP_FD &&
-			     insn[1].imm != 0)) {
-				return -EINVAL;
-			}
-
-            fd = insn->imm;
-
-            map = ULC_MAP_RefByFd(fd);
-			if (! map) {
-				return -EINVAL;
-			}
-
-			if (insn->src_reg == BPF_PSEUDO_MAP_FD) {
-				addr = (unsigned long)map;
-			} else {
-				u32 off = insn[1].imm;
-
-				if (off >= BPF_MAX_VAR_OFF) {
-                    ULC_FD_DecRef(fd);
-					return -EINVAL;
-				}
-
-				int err = ULC_MAP_DirectValue(map, &addr, off);
-				if (err) {
-                    ULC_FD_DecRef(fd);
-					return err;
-				}
-
-				addr += off;
-			}
-
-			insn[0].imm = (u32)addr;
-			insn[1].imm = addr >> 32;
-
-			/* check whether we recorded this map already */
-			for (j = 0; j < prog->used_map_cnt; j++) {
-				if (prog->used_maps[j] == fd) {
-                    ULC_FD_DecRef(fd);
-					goto next_insn;
-				}
-			}
-
-			if (prog->used_map_cnt >= MAX_USED_MAPS) {
-                ULC_FD_DecRef(fd);
-                return -E2BIG;
-			}
-
-			prog->used_maps[prog->used_map_cnt++] = fd;
-
-next_insn:
-			insn++;
-			i++;
-			continue;
-		}
-    }
-
-    return 0;
-}
-
-static void _ulc_verifier_init_reg_state(struct reg_state *regs)
+static void _mybpf_prog_init_reg_state(struct reg_state *regs)
 {
     int i;
 
@@ -160,7 +157,7 @@ static void _ulc_verifier_init_reg_state(struct reg_state *regs)
     regs[BPF_REG_1].type = PTR_TO_CTX;
 }
 
-static void _ulc_verifier_mark_regs_alu(struct reg_state *regs, struct bpf_insn *insn)
+static void _mybpf_prog_mark_regs_alu(struct reg_state *regs, struct bpf_insn *insn)
 {
     UCHAR op = BPF_OP(insn->code);
     UCHAR src = BPF_SRC(insn->code);
@@ -173,14 +170,14 @@ static void _ulc_verifier_mark_regs_alu(struct reg_state *regs, struct bpf_insn 
 }
 
 /* 标记寄存器type */
-static void _ulc_verifier_mark_regs(struct reg_state *regs, struct bpf_insn *insn)
+static void _mybpf_prog_mark_regs(struct reg_state *regs, struct bpf_insn *insn)
 {
     UCHAR class = BPF_CLASS(insn->code);
 
     switch (class) {
         case BPF_ALU:
         case BPF_ALU64:
-            _ulc_verifier_mark_regs_alu(regs, insn);
+            _mybpf_prog_mark_regs_alu(regs, insn);
             break;
         case BPF_LD:
         case BPF_LDX:
@@ -190,7 +187,7 @@ static void _ulc_verifier_mark_regs(struct reg_state *regs, struct bpf_insn *ins
 }
 
 /* 是否dword指令 */
-static BOOL_T _ulc_verifier_is_dword_insn(struct bpf_insn *insn)
+static BOOL_T _mybpf_prog_is_dword_insn(struct bpf_insn *insn)
 {
     UCHAR class = BPF_CLASS(insn->code);
 
@@ -206,7 +203,7 @@ static BOOL_T _ulc_verifier_is_dword_insn(struct bpf_insn *insn)
     return TRUE;
 }
 
-static void _ulc_verifier_convert_ctx_access(ULC_PROG_NODE_S *prog, struct bpf_insn *insn, struct reg_state *regs)
+static void _mybpf_prog_convert_ctx_access(MYBPF_PROG_NODE_S *prog, struct bpf_insn *insn, struct reg_state *regs)
 {
     BOOL_T is_write;
     UINT target_size;
@@ -229,24 +226,24 @@ static void _ulc_verifier_convert_ctx_access(ULC_PROG_NODE_S *prog, struct bpf_i
         return;
     }
 
-    _ulc_verifier_xdp_convert_ctx_access(is_write, insn, insn, &target_size);
+    _mybpf_prog_xdp_convert_ctx_access(is_write, insn, insn, &target_size);
 }
 
-int ULC_VERIFIER_ConvertCtxAccess(ULC_PROG_NODE_S *prog)
+int MYBPF_PROG_ConvertCtxAccess(MYBPF_PROG_NODE_S *prog)
 {
     struct bpf_insn *insn = (void*)prog->insn;
     int insn_cnt = prog->insn_len / sizeof(*insn);
     int i;
     struct reg_state regs[MAX_BPF_REG];
 
-    _ulc_verifier_init_reg_state(regs);
+    _mybpf_prog_init_reg_state(regs);
 
 	for (i = 0; i < insn_cnt; i++, insn++) {
-        _ulc_verifier_mark_regs(regs, insn);
+        _mybpf_prog_mark_regs(regs, insn);
 
-        _ulc_verifier_convert_ctx_access(prog, insn, regs);
+        _mybpf_prog_convert_ctx_access(prog, insn, regs);
 
-        if (_ulc_verifier_is_dword_insn(insn)) {
+        if (_mybpf_prog_is_dword_insn(insn)) {
             i++; insn++;
             continue;
         }
@@ -255,7 +252,23 @@ int ULC_VERIFIER_ConvertCtxAccess(ULC_PROG_NODE_S *prog)
     return 0;
 }
 
-int ULC_VERIFIER_FixupBpfCalls(ULC_PROG_NODE_S *prog)
+UINT64 MYBPF_PROG_HelperBase(UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+{
+    return 0;
+}
+
+/* 获取helper函数的offset */
+static UINT _mybpf_prog_get_helper_offset(UINT imm)
+{
+    PF_BPF_HELPER_FUNC helper_func = BpfHelper_GetFunc(imm);
+    if (! helper_func) {
+        return 0;
+    }
+
+    return helper_func - MYBPF_PROG_HelperBase;
+}
+
+int MYBPF_PROG_FixupBpfCalls(MYBPF_PROG_NODE_S *prog)
 {
     struct bpf_insn *insn = (void*)prog->insn;
     int insn_cnt = prog->insn_len / sizeof(struct bpf_insn);
@@ -268,7 +281,7 @@ int ULC_VERIFIER_FixupBpfCalls(ULC_PROG_NODE_S *prog)
 		if (insn->src_reg == BPF_PSEUDO_CALL)
 			continue;
 
-		new_imm = ULC_BaseHelp_GetFunc(insn->imm);
+		new_imm = _mybpf_prog_get_helper_offset(insn->imm);
         if (! new_imm) {
             BS_WARNNING(("Not support"));
             RETURN(BS_NOT_SUPPORT); 

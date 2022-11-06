@@ -3,8 +3,8 @@
 *   Description: 
 *
 ================================================================*/
-#ifndef _ULC_DEF_H
-#define _ULC_DEF_H
+#ifndef _MYBPF_DEF_H
+#define _MYBPF_DEF_H
 #ifdef __cplusplus
 extern "C"
 {
@@ -98,17 +98,7 @@ extern "C"
 #define BPF_PSEUDO_MAP_VALUE	2
 #define BPF_MAX_VAR_OFF	(1 << 29)
 
-#define MAX_USED_MAPS	64
-
-typedef struct {
-	UCHAR code;		/* opcode */
-	UCHAR dst_reg:4;	/* dest register */
-	UCHAR src_reg:4;	/* source register */
-	USHORT off;		/* signed offset */
-	UINT imm;		/* signed immediate constant */
-}ULC_INSN_S;
-
 #ifdef __cplusplus
 }
 #endif
-#endif //ULC_DEF_H_
+#endif

@@ -4,7 +4,8 @@
 *
 ================================================================*/
 #include "bs.h"
-#include "utl/ulc_utl.h"
+#include "utl/mybpf_prog.h"
+#include "utl/umap_utl.h"
 #include "app/cioctl_pub.h"
 #include "../h/ulcapp_cfg_lock.h"
 
@@ -30,7 +31,7 @@ static int _ulcapp_ioctl_lookup_ele(void *data, int data_len, VBUF_S *reply)
     int fd;
     int key_len;
     ULC_CIOCTL_S *d = data;
-    ULC_MAP_HEADER_S *hdr;
+    UMAP_HEADER_S *hdr;
 
     if (data_len <= sizeof(ULC_CIOCTL_S)) {
         RETURN(BS_BAD_REQUEST);
@@ -39,7 +40,7 @@ static int _ulcapp_ioctl_lookup_ele(void *data, int data_len, VBUF_S *reply)
     key_len = data_len - sizeof(ULC_CIOCTL_S);
     fd = ntohl(d->fd);
 
-    hdr = ULC_MAP_GetByFd(fd);
+    hdr = UMAP_GetByFd(fd);
     if (! hdr) {
         RETURN(BS_CAN_NOT_OPEN);
     }
@@ -48,7 +49,7 @@ static int _ulcapp_ioctl_lookup_ele(void *data, int data_len, VBUF_S *reply)
         RETURN(BS_BAD_PARA);
     }
 
-    void *value = ULC_MAP_LookupElem(hdr, d->data);
+    void *value = UMAP_LookupElem(hdr, d->data);
     if (! value) {
         return BS_NO_SUCH;
     }
@@ -61,7 +62,7 @@ static int _ulcapp_ioctl_delete_ele(void *data, int data_len, VBUF_S *reply)
     int fd;
     int key_len;
     ULC_CIOCTL_S *d = data;
-    ULC_MAP_HEADER_S *hdr;
+    UMAP_HEADER_S *hdr;
 
     if (data_len <= sizeof(ULC_CIOCTL_S)) {
         RETURN(BS_BAD_REQUEST);
@@ -70,7 +71,7 @@ static int _ulcapp_ioctl_delete_ele(void *data, int data_len, VBUF_S *reply)
     key_len = data_len - sizeof(ULC_CIOCTL_S);
     fd = ntohl(d->fd);
 
-    hdr = ULC_MAP_GetByFd(fd);
+    hdr = UMAP_GetByFd(fd);
     if (! hdr) {
         RETURN(BS_CAN_NOT_OPEN);
     }
@@ -79,13 +80,13 @@ static int _ulcapp_ioctl_delete_ele(void *data, int data_len, VBUF_S *reply)
         RETURN(BS_BAD_PARA);
     }
 
-    return ULC_MAP_DeleteElem(hdr, d->data);
+    return UMAP_DeleteElem(hdr, d->data);
 }
 
 static int _ulcapp_ioctl_update_ele(void *data, int data_len, VBUF_S *reply)
 {
     ULC_CIOCTL_S *d = data;
-    ULC_MAP_HEADER_S *hdr;
+    UMAP_HEADER_S *hdr;
 
     if (data_len <= sizeof(ULC_CIOCTL_S)) {
         RETURN(BS_BAD_REQUEST);
@@ -95,7 +96,7 @@ static int _ulcapp_ioctl_update_ele(void *data, int data_len, VBUF_S *reply)
     int fd = ntohl(d->fd);
     UINT flag = ntohl(d->flag);
 
-    hdr = ULC_MAP_GetByFd(fd);
+    hdr = UMAP_GetByFd(fd);
     if (! hdr) {
         RETURN(BS_CAN_NOT_OPEN);
     }
@@ -107,7 +108,7 @@ static int _ulcapp_ioctl_update_ele(void *data, int data_len, VBUF_S *reply)
     void *key = d->data;
     void *value = (char*)key + hdr->size_key;
 
-    return ULC_MAP_UpdateElem(hdr, key, value, flag);
+    return UMAP_UpdateElem(hdr, key, value, flag);
 }
 
 static int _ulcapp_ioctl_getnext_key(void *data, int data_len, VBUF_S *reply)
@@ -115,7 +116,7 @@ static int _ulcapp_ioctl_getnext_key(void *data, int data_len, VBUF_S *reply)
     int fd;
     int key_len;
     ULC_CIOCTL_S *d = data;
-    ULC_MAP_HEADER_S *hdr;
+    UMAP_HEADER_S *hdr;
     void *next_key;
     void *key;
 
@@ -126,7 +127,7 @@ static int _ulcapp_ioctl_getnext_key(void *data, int data_len, VBUF_S *reply)
     key_len = data_len - sizeof(ULC_CIOCTL_S);
     fd = ntohl(d->fd);
 
-    hdr = ULC_MAP_GetByFd(fd);
+    hdr = UMAP_GetByFd(fd);
     if (! hdr) {
         RETURN(BS_CAN_NOT_OPEN);
     }
@@ -135,7 +136,7 @@ static int _ulcapp_ioctl_getnext_key(void *data, int data_len, VBUF_S *reply)
         RETURN(BS_BAD_PARA);
     }
 
-    key = ULC_MAP_GetNextKey(hdr, d->data, &next_key);
+    key = UMAP_GetNextKey(hdr, d->data, &next_key);
     if (! key) {
         return BS_NO_SUCH;
     }

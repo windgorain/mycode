@@ -9,6 +9,7 @@
 #include "utl/atomic_utl.h"
 #include "utl/txt_utl.h"
 #include "utl/sem_utl.h"
+#include "utl/thread_utl.h"
 
 #include "os_sem.h"
 

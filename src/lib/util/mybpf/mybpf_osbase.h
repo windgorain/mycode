@@ -3,8 +3,8 @@
 *   Description: 
 *
 ================================================================*/
-#ifndef _ULC_OSBASE_H
-#define _ULC_OSBASE_H
+#ifndef _MYBPF_OSBASE_H
+#define _MYBPF_OSBASE_H
 
 #include "os/linux_kernel_pile.h"
 
@@ -55,7 +55,7 @@ enum {
 
 #ifndef __bpf_call_base_args 
 #define __bpf_call_base_args \
-	((u64 (*)(u64, u64, u64, u64, u64, const struct bpf_insn *)) \
+	((U64 (*)(U64, U64, U64, U64, U64, const struct bpf_insn *)) \
 	 __bpf_call_base)
 #endif
 
@@ -96,13 +96,13 @@ enum {
 ({								\
 	int bpf_size = -EINVAL;					\
 								\
-	if (bytes == sizeof(u8))				\
+	if (bytes == sizeof(U8))				\
 		bpf_size = BPF_B;				\
-	else if (bytes == sizeof(u16))				\
+	else if (bytes == sizeof(U16))				\
 		bpf_size = BPF_H;				\
-	else if (bytes == sizeof(u32))				\
+	else if (bytes == sizeof(U32))				\
 		bpf_size = BPF_W;				\
-	else if (bytes == sizeof(u64))				\
+	else if (bytes == sizeof(U64))				\
 		bpf_size = BPF_DW;				\
 								\
 	bpf_size;						\
@@ -125,6 +125,7 @@ enum {
 		.off   = OFF,					\
 		.imm   = 0 })
 
+#if 0
 struct bpf_insn {
 	UCHAR code;		/* opcode */
 	UCHAR dst_reg:4;	/* dest register */
@@ -132,6 +133,7 @@ struct bpf_insn {
 	SHORT off;		/* signed offset */
 	INT imm;		/* signed immediate constant */
 };
+#endif
 
 struct xdp_md {
 	UINT data;
@@ -171,9 +173,7 @@ struct reg_state {
 	};
 };
 
-typedef U64  (*PF_KLCHLP_ARGS_FUNC)(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5, const struct bpf_insn *);
-
 #ifdef __cplusplus
 }
 #endif
-#endif //ULC_OSBASE_H_
+#endif //MYBPF_OSBASE_H_

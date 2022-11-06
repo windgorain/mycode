@@ -37,8 +37,3 @@ THREAD_ID THREAD_Create
     return ThreadNamed_Create(pucName, pstParam, pfFunc, pstUserHandle);
 }
 
-THREAD_ID THREAD_GetSelfID()
-{
-    return ThreadUtl_GetSelfID();
-}
-

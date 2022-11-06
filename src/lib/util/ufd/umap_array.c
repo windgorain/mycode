@@ -1,24 +1,24 @@
 /*================================================================
-*   Created by LiXingang
+*   Created by LiXingang, Copyright LiXingang
 *   Description: 
 *
 ================================================================*/
 #include "bs.h"
-#include "../h/ulc_fd.h"
-#include "../h/ulc_map.h"
+#include "utl/ufd_utl.h"
+#include "utl/umap_utl.h"
 
 typedef struct {
-    ULC_MAP_HEADER_S hdr; /* 必须为第一个成员 */
+    UMAP_HEADER_S hdr; /* 必须为第一个成员 */
     UCHAR data[0];
-}ULC_MAP_ARRAY_S;
+}UMAP_ARRAY_S;
 
-static void _ulc_map_array_destroy_map(void *f)
+static void _umap_array_destroy_map(void *f)
 {
-    ULC_MAP_ARRAY_S *ctrl = f;
+    UMAP_ARRAY_S *ctrl = f;
     RcuEngine_Free(ctrl);
 }
 
-static int ulc_map_array_open(ULC_ELF_MAP_S *elfmap)
+static int _umap_array_open(UMAP_ELF_MAP_S *elfmap)
 {
     int fd;
     int len;
@@ -27,14 +27,14 @@ static int ulc_map_array_open(ULC_ELF_MAP_S *elfmap)
 		return -EINVAL;
     }
 
-    len = sizeof(ULC_MAP_ARRAY_S) + (elfmap->size_value * elfmap->max_elem);
+    len = sizeof(UMAP_ARRAY_S) + (elfmap->size_value * elfmap->max_elem);
 
-    ULC_MAP_ARRAY_S *ctrl = RcuEngine_ZMalloc(len);
+    UMAP_ARRAY_S *ctrl = RcuEngine_ZMalloc(len);
     if (! ctrl) {
         return -ENOMEM;
     }
 
-    fd = ULC_FD_Open(ULC_FD_TYPE_MAP, ctrl, _ulc_map_array_destroy_map);
+    fd = UFD_Open(UFD_FD_TYPE_MAP, ctrl, _umap_array_destroy_map);
     if (fd < 0) {
         RcuEngine_Free(ctrl);
         return fd;
@@ -43,9 +43,9 @@ static int ulc_map_array_open(ULC_ELF_MAP_S *elfmap)
     return fd;
 }
 
-static void * ulc_map_array_lookup_elem(void *map, void *key)
+static void * _umap_array_lookup_elem(void *map, void *key)
 {
-    ULC_MAP_ARRAY_S *ctrl = map;
+    UMAP_ARRAY_S *ctrl = map;
     UCHAR *data;
     UINT index;
 
@@ -66,21 +66,21 @@ static void * ulc_map_array_lookup_elem(void *map, void *key)
     return data;
 }
 
-static long ulc_map_array_delete_elem(void *map, void *key)
+static long _umap_array_delete_elem(void *map, void *key)
 {
 	return -EINVAL;
 }
 
-static long ulc_map_array_update_elem(void *map, void *key, void *value, U32 flag)
+static long _umap_array_update_elem(void *map, void *key, void *value, U32 flag)
 {
-    ULC_MAP_ARRAY_S *ctrl = map;
+    UMAP_ARRAY_S *ctrl = map;
     void *old;
 
     if ((!map) || (!key) || (!value)) {
 		return -EINVAL;
     }
 
-    if (flag == BPF_NOEXIST) {
+    if (flag == UMAP_UPDATE_NOEXIST) {
 		return -EEXIST;
     }
 
@@ -90,16 +90,16 @@ static long ulc_map_array_update_elem(void *map, void *key, void *value, U32 fla
 		return -E2BIG;
     }
 
-    old = ulc_map_array_lookup_elem(map, key);
+    old = _umap_array_lookup_elem(map, key);
 
     memcpy(old, value, ctrl->hdr.size_value);
 
     return 0;
 }
 
-static long ulc_map_array_direct_value(void *map, OUT U64 *value, U32 off)
+static long _umap_array_direct_value(void *map, OUT U64 *value, U32 off)
 {
-    ULC_MAP_ARRAY_S *ctrl = map;
+    UMAP_ARRAY_S *ctrl = map;
 
     if ((!map) || (!value)) {
 		return -EINVAL;
@@ -115,9 +115,9 @@ static long ulc_map_array_direct_value(void *map, OUT U64 *value, U32 off)
 }
 
 /* key: NULL表示Get第一个 */
-static void * ulc_map_array_getnext_key(void *map, void *key, OUT void **next_key)
+static void * _umap_array_getnext_key(void *map, void *key, OUT void **next_key)
 {
-    ULC_MAP_ARRAY_S *ctrl = map;
+    UMAP_ARRAY_S *ctrl = map;
     int n = 0;
 
     if (! next_key) {
@@ -138,17 +138,13 @@ static void * ulc_map_array_getnext_key(void *map, void *key, OUT void **next_ke
     return next_key;
 }
 
-static ULC_MAP_FUNC_TBL_S g_ulc_map_array_ops = {
-    .open_func = ulc_map_array_open,
-    .lookup_elem_func = ulc_map_array_lookup_elem,
-    .delete_elem_func = ulc_map_array_delete_elem,
-    .update_elem_func = ulc_map_array_update_elem,
-    .get_next_key = ulc_map_array_getnext_key,
-    .direct_value_func = ulc_map_array_direct_value,
+UMAP_FUNC_TBL_S g_umap_array_ops = {
+    .open_func = _umap_array_open,
+    .lookup_elem_func = _umap_array_lookup_elem,
+    .delete_elem_func = _umap_array_delete_elem,
+    .update_elem_func = _umap_array_update_elem,
+    .get_next_key = _umap_array_getnext_key,
+    .direct_value_func = _umap_array_direct_value,
 };
 
-int ULC_MapArray_Init()
-{
-    return ULC_MAP_RegType(BPF_MAP_TYPE_ARRAY, &g_ulc_map_array_ops);
-}
 
