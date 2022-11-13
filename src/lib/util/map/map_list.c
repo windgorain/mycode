@@ -16,14 +16,10 @@ typedef struct
     UINT count;
 }_MAP_LIST_S;
 
-typedef struct
-{
-    DLL_NODE_S list_node;
-    MAP_ELE_S stEle;
-}_MAP_LIST_NODE_S;
-
 static void map_list_destroy(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud);
 static void map_list_reset(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud);
+static BS_STATUS map_list_add_node(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen,
+        void *pData, void *node, UINT flag);
 static BS_STATUS map_list_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag);
 static MAP_ELE_S * map_list_get_ele(MAP_HANDLE map, void *key, UINT key_len);
 static void * map_list_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen);
@@ -36,6 +32,7 @@ static MAP_ELE_S * map_list_getnext(MAP_HANDLE map, MAP_ELE_S *pstCurrent);
 static MAP_FUNC_S g_map_list_funcs = {
     .destroy_func = map_list_destroy,
     .reset_func = map_list_reset,
+    .add_node_func = map_list_add_node,
     .add_func = map_list_add,
     .get_ele_func = map_list_get_ele,
     .get_func = map_list_get,
@@ -48,7 +45,7 @@ static MAP_FUNC_S g_map_list_funcs = {
 
 static int _map_list_cmp(MAP_ELE_S *key, void * pstCmpNode)
 {
-    _MAP_LIST_NODE_S *pstNode = pstCmpNode;
+    MAP_LIST_NODE_S *pstNode = pstCmpNode;
 
     if (pstNode->stEle.uiKeyLen == 0) {
         /* keylen==0, 则表示key本身是数字,不是指针 */
@@ -60,8 +57,8 @@ static int _map_list_cmp(MAP_ELE_S *key, void * pstCmpNode)
 
 int _map_list_cmp_list_node(DLL_NODE_S *pstNode1, DLL_NODE_S *pstNode2, HANDLE hUserHandle)
 {
-    _MAP_LIST_NODE_S *node1 = (void*)pstNode1;
-    _MAP_LIST_NODE_S *node2 = (void*)pstNode2;
+    MAP_LIST_NODE_S *node1 = (void*)pstNode1;
+    MAP_LIST_NODE_S *node2 = (void*)pstNode2;
 
     if (node1->stEle.uiKeyLen == 0) {
         /* keylen==0, 则表示key本身是数字,不是指针 */
@@ -72,11 +69,11 @@ int _map_list_cmp_list_node(DLL_NODE_S *pstNode1, DLL_NODE_S *pstNode2, HANDLE h
             node2->stEle.pKey, node2->stEle.uiKeyLen);
 }
 
-static _MAP_LIST_NODE_S * _map_list_find(IN MAP_CTRL_S *map, IN VOID *pKey, IN UINT uiKeyLen)
+static MAP_LIST_NODE_S * _map_list_find(IN MAP_CTRL_S *map, IN VOID *pKey, IN UINT uiKeyLen)
 {
     _MAP_LIST_S *list_map = map->impl_map;
     MAP_ELE_S ele;
-    _MAP_LIST_NODE_S *node;
+    MAP_LIST_NODE_S *node;
     int ret;
 
     ele.pKey = pKey;
@@ -94,10 +91,10 @@ static _MAP_LIST_NODE_S * _map_list_find(IN MAP_CTRL_S *map, IN VOID *pKey, IN U
     return NULL;
 }
 
-static _MAP_LIST_NODE_S * _map_list_next_dict(MAP_CTRL_S *map, MAP_ELE_S *ele)
+static MAP_LIST_NODE_S * _map_list_next_dict(MAP_CTRL_S *map, MAP_ELE_S *ele)
 {
     _MAP_LIST_S *list_map = map->impl_map;
-    _MAP_LIST_NODE_S *node;
+    MAP_LIST_NODE_S *node;
 
     DLL_SCAN(&list_map->list, node) {
         if (_map_list_cmp(ele, node) < 0) {
@@ -122,28 +119,36 @@ static void map_list_destroy(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *u
     MemCap_Free(map->memcap, map);
 }
 
-static BS_STATUS map_list_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag)
+static int _map_list_add_check(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, UINT flag)
 {
     _MAP_LIST_S *list_map = map->impl_map;
-    _MAP_LIST_NODE_S *pstNode;
 
     if ((map->uiCapacity != 0) && (map->uiCapacity <= list_map->count)) {
         RETURN(BS_NO_RESOURCE);
     }
 
-    pstNode = MemCap_ZMalloc(map->memcap, sizeof(_MAP_LIST_NODE_S));
-    if (NULL == pstNode) {
-        RETURN(BS_NO_MEMORY);
+    if (0 == (flag & MAP_FLAG_PERMIT_DUPLICATE)) {
+        if (_map_list_find(map, pKey, uiKeyLen)) {
+            RETURN(BS_ALREADY_EXIST);
+        }
     }
+
+    return 0;
+}
+
+static inline int _map_list_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen,
+        VOID *pData, MAP_LIST_NODE_S *pstNode, UINT flag)
+{
+    _MAP_LIST_S *list_map = map->impl_map;
 
     if ((flag & MAP_FLAG_DUP_KEY) && (uiKeyLen != 0)) {
         pstNode->stEle.pKey = MemCap_Dup(map->memcap, pKey, uiKeyLen);
         if (NULL == pstNode->stEle.pKey) {
-            MemCap_Free(map->memcap, pstNode);
             RETURN(BS_NO_MEMORY);
         }
         pstNode->stEle.dup_key = 1;
     } else {
+        pstNode->stEle.dup_key = 0;
         pstNode->stEle.pKey = pKey;
     }
 
@@ -157,9 +162,50 @@ static BS_STATUS map_list_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *p
     return BS_OK;
 }
 
+static BS_STATUS map_list_add_node(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen,
+        void *pData, void *node, UINT flag)
+{
+    MAP_LIST_NODE_S *pstNode = node;
+    int ret;
+
+    ret = _map_list_add_check(map, pKey, uiKeyLen, flag);
+    if (ret < 0) {
+        return ret;
+    }
+
+    pstNode->stEle.link_alloced = 0;
+
+    return _map_list_add(map, pKey, uiKeyLen, pData, pstNode, flag);
+}
+
+static BS_STATUS map_list_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag)
+{
+    MAP_LIST_NODE_S *pstNode;
+    int ret;
+
+    ret = _map_list_add_check(map, pKey, uiKeyLen, flag);
+    if (ret < 0) {
+        return ret;
+    }
+
+    pstNode = MemCap_ZMalloc(map->memcap, sizeof(MAP_LIST_NODE_S));
+    if (NULL == pstNode) {
+        RETURN(BS_NO_MEMORY);
+    }
+    pstNode->stEle.link_alloced = 1;
+
+    ret = _map_list_add(map, pKey, uiKeyLen, pData, pstNode, flag);
+    if (ret < 0) {
+        MemCap_Free(map->memcap, pstNode);
+        return ret;
+    }
+
+    return 0;
+}
+
 static MAP_ELE_S * map_list_get_ele(MAP_HANDLE map, void *key, UINT key_len)
 {
-    _MAP_LIST_NODE_S *pstFind;
+    MAP_LIST_NODE_S *pstFind;
 
     pstFind = _map_list_find(map, key, key_len);
     if (NULL == pstFind) {
@@ -171,7 +217,7 @@ static MAP_ELE_S * map_list_get_ele(MAP_HANDLE map, void *key, UINT key_len)
 
 static void * map_list_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 {
-    _MAP_LIST_NODE_S *pstFind;
+    MAP_LIST_NODE_S *pstFind;
 
     pstFind = _map_list_find(map, pKey, uiKeyLen);
     if (NULL == pstFind) {
@@ -185,7 +231,7 @@ static void * map_list_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 static void * map_list_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 {
     _MAP_LIST_S *list_map = map->impl_map;
-    _MAP_LIST_NODE_S *pstNode;
+    MAP_LIST_NODE_S *pstNode;
     VOID *pData;
 
     pstNode = _map_list_find(map, pKey, uiKeyLen);
@@ -199,7 +245,10 @@ static void * map_list_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
     if (pstNode->stEle.dup_key) {
         MemCap_Free(map->memcap, pstNode->stEle.pKey);
     }
-    MemCap_Free(map->memcap, pstNode);
+
+    if (pstNode->stEle.link_alloced) {
+        MemCap_Free(map->memcap, pstNode);
+    }
 
     list_map->count --;
 
@@ -209,7 +258,7 @@ static void * map_list_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 static void map_list_del_all(MAP_HANDLE map, PF_MAP_FREE_FUNC func, void * pUserData)
 {
     _MAP_LIST_S *list_map = map->impl_map;
-    _MAP_LIST_NODE_S *node, *next;
+    MAP_LIST_NODE_S *node, *next;
 
     DLL_SAFE_SCAN(&list_map->list, node, next) {
         DLL_DEL(&list_map->list, &node->list_node);
@@ -219,7 +268,9 @@ static void map_list_del_all(MAP_HANDLE map, PF_MAP_FREE_FUNC func, void * pUser
         if (node->stEle.dup_key) {
             MemCap_Free(map->memcap, node->stEle.pKey);
         }
-        MemCap_Free(map->memcap, node);
+        if (node->stEle.link_alloced) {
+            MemCap_Free(map->memcap, node);
+        }
     }
 
     list_map->count = 0;
@@ -234,7 +285,7 @@ static UINT map_list_count(MAP_HANDLE map)
 static void map_list_walk(MAP_HANDLE map, PF_MAP_WALK_FUNC pfWalkFunc, VOID *pUserData)
 {
     _MAP_LIST_S *list_map = map->impl_map;
-    _MAP_LIST_NODE_S *node, *next;
+    MAP_LIST_NODE_S *node, *next;
 
     DLL_SAFE_SCAN(&list_map->list, node, next) {
         if (BS_WALK_STOP == pfWalkFunc(&node->stEle, pUserData)) {
@@ -247,7 +298,7 @@ static void map_list_walk(MAP_HANDLE map, PF_MAP_WALK_FUNC pfWalkFunc, VOID *pUs
 static MAP_ELE_S * map_list_getnext(MAP_HANDLE map, MAP_ELE_S *pstCurrent)
 {
     _MAP_LIST_S *list_map = map->impl_map;
-    _MAP_LIST_NODE_S *node;
+    MAP_LIST_NODE_S *node;
 
     if (NULL == pstCurrent) {
         node = DLL_FIRST(&list_map->list);

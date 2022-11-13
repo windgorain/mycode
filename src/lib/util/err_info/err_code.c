@@ -94,6 +94,22 @@ void ErrCode_Print(void)
     }
 }
 
+void ErrCode_Output(PF_PRINT_FUNC output)
+{
+    char *file = ErrCode_GetFileName();
+    int line = ErrCode_GetLine();
+    int code = ErrCode_GetErrCode();
+    char *errinfo = ErrCode_GetInfo();
+
+    if (file) {
+        output("Err: file:%s(%d):%d \r\n", file, line, code);
+    }
+
+    if (errinfo && errinfo[0]) {
+        output("ErrInfo: %s \r\n", errinfo);
+    }
+}
+
 void ErrCode_FatalError(char *format, ...)
 {
 #define STD_BUF 1024

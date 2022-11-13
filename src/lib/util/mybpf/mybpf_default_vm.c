@@ -1,7 +1,7 @@
 /*================================================================
 *   Created by LiXingang
 *   Description: 大部分情况下, 采用默认内置的vm环境即可
-*                省去了MYBPF_Run中需要自己构建vm环境的过程
+*                这样就省去了自己构建vm环境
 *
 ================================================================*/
 #include "bs.h"
@@ -18,8 +18,11 @@ static int _mybpf_default_vm_print(char *fmt, ...)
 }
 
 static MYBPF_VM_S g_mybpf_default_vm = {
-    .ext_func_max = BPF_HELPER_MAX,
-    .ext_funcs = (void*)g_bpf_helper_tbl,
+    .base_func_max = BPF_BASE_HELPER_MAX,
+    .base_helpers = (void*)g_bpf_base_helpers,
+    .user_func_min = BPF_USER_HELPER_MIN,
+    .user_func_max = BPF_USER_HELPER_MAX,
+    .user_helpers = (void*)g_bpf_user_helpers,
     .print_func = _mybpf_default_vm_print
 };
 

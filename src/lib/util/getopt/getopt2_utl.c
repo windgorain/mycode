@@ -125,9 +125,13 @@ static _GETOPT2_RET_E getopt2_ParseOpt(UINT uiArgc, CHAR **ppcArgv, GETOPT2_NODE
     CHAR cOpt = ppcArgv[uiOptIndex][1];
     GETOPT2_NODE_S *pstNode;
     _GETOPT2_RET_E eRet = _GETOPT2_RET_OK;
-    char *pcOptName = &ppcArgv[uiOptIndex][2];
+    char *pcOptName = &ppcArgv[uiOptIndex][1];
     char *pcSplit;
     char *pcValue = NULL;
+
+    if (*pcOptName == '-') {
+        pcOptName ++;
+    }
 
     if (is_long_opt) {
         pcSplit = strchr(pcOptName, '=');
@@ -212,6 +216,31 @@ static void getopt2_init(GETOPT2_NODE_S *pstNodes)
     }
 }
 
+static BOOL_T _getopt2_is_long_opt(char *opt)
+{
+    if (opt[0] != '-') {
+        return FALSE;
+    }
+
+    opt ++;
+
+    if (*opt == '\0') {
+        return FALSE;
+    }
+
+    if (*opt == '-') {
+        return TRUE;
+    }
+
+    opt ++;
+
+    if ((*opt == '\0') || (*opt == ' ') || (*opt == '\t')) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 /* 从开始就已经是需要处理的参数/选项 */
 int GETOPT2_ParseFromArgv0(UINT uiArgc, CHAR **ppcArgv, INOUT GETOPT2_NODE_S *opts)
 {
@@ -223,8 +252,8 @@ int GETOPT2_ParseFromArgv0(UINT uiArgc, CHAR **ppcArgv, INOUT GETOPT2_NODE_S *op
     for (i=0; i<uiArgc; i++) {
         /* 判断是否"-" */
         if (ppcArgv[i][0] == '-') {
-            /* 判断是否是"--" */
-            if (ppcArgv[i][1] == '-') {
+            /* 判断是否long option */
+            if (_getopt2_is_long_opt(ppcArgv[i])) {
                 eRet = getopt2_ParseOpt(uiArgc, ppcArgv, opts, i, 1);
             } else {
                 eRet = getopt2_ParseOpt(uiArgc, ppcArgv, opts, i, 0);

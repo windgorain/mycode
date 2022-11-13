@@ -1,5 +1,6 @@
 /*================================================================
 *   Created by LiXingang, Copyright LiXingang
+*   Date: 2017.1.2
 *   Description: ufd map
 *
 ================================================================*/
@@ -206,7 +207,7 @@ void UMAP_ShowMap(PF_PRINT_FUNC print_func)
         if (! hdr) {
             continue;
         }
-        print_func("fd:%d,type:%s,flags:0x%x,key:%u,value:%u,max:%u,name:%s \r\n",
+        print_func("fd:%d, type:%s, flags:0x%x, key:%u, value:%u, max:%u, name:%s \r\n",
                 fd, UMAP_TypeName(hdr->type), hdr->flags, hdr->size_key,
                 hdr->size_value, hdr->max_elem, hdr->map_name);
     }

@@ -17,14 +17,10 @@ typedef struct
     UINT count;
 }_MAP_AVL_S;
 
-typedef struct
-{
-    AVL_NODE avl_node;
-    MAP_ELE_S stEle;
-}_MAP_AVL_NODE_S;
-
 static void map_avl_destroy(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud);
 static void map_avl_reset(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud);
+static BS_STATUS map_avl_add_node(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen,
+        void *pData, void *node, UINT flag);
 static BS_STATUS map_avl_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag);
 static MAP_ELE_S * map_avl_get_ele(MAP_HANDLE map, void *key, UINT key_len);
 static void * map_avl_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen);
@@ -37,6 +33,7 @@ static MAP_ELE_S * map_avl_getnext(MAP_HANDLE map, MAP_ELE_S *pstCurrent);
 static MAP_FUNC_S g_map_avl_funcs = {
     .destroy_func = map_avl_destroy,
     .reset_func = map_avl_reset,
+    .add_node_func = map_avl_add_node,
     .add_func = map_avl_add,
     .get_ele_func = map_avl_get_ele,
     .get_func = map_avl_get,
@@ -49,7 +46,7 @@ static MAP_FUNC_S g_map_avl_funcs = {
 
 static int _map_avl_cmp(void *key, void * pstCmpNode)
 {
-    _MAP_AVL_NODE_S *pstNode = pstCmpNode;
+    MAP_AVL_NODE_S *pstNode = pstCmpNode;
     MAP_ELE_S *ele = key;
 
     if (pstNode->stEle.uiKeyLen == 0) {
@@ -60,7 +57,7 @@ static int _map_avl_cmp(void *key, void * pstCmpNode)
     return MEM_Cmp(ele->pKey, ele->uiKeyLen, pstNode->stEle.pKey, pstNode->stEle.uiKeyLen);
 }
 
-static _MAP_AVL_NODE_S * _map_avl_find(IN MAP_CTRL_S *map, IN VOID *pKey, IN UINT uiKeyLen)
+static MAP_AVL_NODE_S * _map_avl_find(IN MAP_CTRL_S *map, IN VOID *pKey, IN UINT uiKeyLen)
 {
     _MAP_AVL_S *avl_map = map->impl_map;
     MAP_ELE_S ele;
@@ -76,7 +73,7 @@ static BS_WALK_RET_E _map_avl_walk(void *node, void *ud)
     USER_HANDLE_S *pstUserHandle = ud;
     PF_MAP_WALK_FUNC pfWalkFunc = pstUserHandle->ahUserHandle[0];
     VOID *pUserHandleTmp = pstUserHandle->ahUserHandle[1];
-    _MAP_AVL_NODE_S *pstNode = node;
+    MAP_AVL_NODE_S *pstNode = node;
 
     return pfWalkFunc(&pstNode->stEle, pUserHandleTmp);
 }
@@ -87,7 +84,7 @@ static void _map_avl_free(void *pNode, void *ud)
     PF_MAP_FREE_FUNC func = pstUserHandle->ahUserHandle[0];
     VOID *pUserHandleTmp = pstUserHandle->ahUserHandle[1];
     MAP_CTRL_S *map = pstUserHandle->ahUserHandle[2];
-    _MAP_AVL_NODE_S *pstNode = pNode;
+    MAP_AVL_NODE_S *pstNode = pNode;
 
     if (func) {
         func(pstNode->stEle.pData, pUserHandleTmp);
@@ -95,7 +92,9 @@ static void _map_avl_free(void *pNode, void *ud)
     if (pstNode->stEle.dup_key) {
         MemCap_Free(map->memcap, pstNode->stEle.pKey);
     }
-    MemCap_Free(map->memcap, pstNode);
+    if (pstNode->stEle.link_alloced) {
+        MemCap_Free(map->memcap, pstNode);
+    }
 }
 
 static void map_avl_reset(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud)
@@ -112,28 +111,19 @@ static void map_avl_destroy(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud
     MemCap_Free(map->memcap, map);
 }
 
-static BS_STATUS map_avl_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag)
+static inline int _map_avl_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen,
+        void *pData, MAP_AVL_NODE_S *pstNode, UINT flag)
 {
     _MAP_AVL_S *avl_map = map->impl_map;
-    _MAP_AVL_NODE_S *pstNode;
-
-    if ((map->uiCapacity != 0) && (map->uiCapacity <= avl_map->count)) {
-        RETURN(BS_NO_RESOURCE);
-    }
-
-    pstNode = MemCap_ZMalloc(map->memcap, sizeof(_MAP_AVL_NODE_S));
-    if (NULL == pstNode) {
-        RETURN(BS_NO_MEMORY);
-    }
 
     if ((flag & MAP_FLAG_DUP_KEY) && (uiKeyLen != 0)) {
         pstNode->stEle.pKey = MemCap_Dup(map->memcap, pKey, uiKeyLen);
         if (NULL == pstNode->stEle.pKey) {
-            MemCap_Free(map->memcap, pstNode);
             RETURN(BS_NO_MEMORY);
         }
         pstNode->stEle.dup_key = 1;
     } else {
+        pstNode->stEle.dup_key = 0;
         pstNode->stEle.pKey = pKey;
     }
 
@@ -144,8 +134,7 @@ static BS_STATUS map_avl_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pD
         if (pstNode->stEle.dup_key) {
             MemCap_Free(map->memcap, pstNode->stEle.pKey);
         }
-        MemCap_Free(map->memcap, pstNode);
-        RETURN(BS_CONFLICT);
+        RETURN(BS_ALREADY_EXIST);
     }
 
     avl_map->count ++;
@@ -153,9 +142,52 @@ static BS_STATUS map_avl_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pD
     return BS_OK;
 }
 
+static BS_STATUS map_avl_add_node(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen,
+        void *pData, void *node, UINT flag)
+{
+    _MAP_AVL_S *avl_map = map->impl_map;
+    MAP_AVL_NODE_S *pstNode = node;
+
+    BS_DBGASSERT(0 == (flag & MAP_FLAG_PERMIT_DUPLICATE));
+
+    if ((map->uiCapacity != 0) && (map->uiCapacity <= avl_map->count)) {
+        RETURN(BS_NO_RESOURCE);
+    }
+
+    pstNode->stEle.link_alloced = 0;
+
+    return _map_avl_add(map, pKey, uiKeyLen, pData, pstNode, flag);
+}
+
+static BS_STATUS map_avl_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag)
+{
+    _MAP_AVL_S *avl_map = map->impl_map;
+    MAP_AVL_NODE_S *pstNode;
+
+    BS_DBGASSERT(0 == (flag & MAP_FLAG_PERMIT_DUPLICATE));
+
+    if ((map->uiCapacity != 0) && (map->uiCapacity <= avl_map->count)) {
+        RETURN(BS_NO_RESOURCE);
+    }
+
+    pstNode = MemCap_ZMalloc(map->memcap, sizeof(MAP_AVL_NODE_S));
+    if (NULL == pstNode) {
+        RETURN(BS_NO_MEMORY);
+    }
+    pstNode->stEle.link_alloced = 1;
+
+    int ret = _map_avl_add(map, pKey, uiKeyLen, pData, pstNode, flag);
+    if (ret < 0) {
+        MemCap_Free(map->memcap, pstNode);
+        return ret;
+    }
+
+    return BS_OK;
+}
+
 static MAP_ELE_S * map_avl_get_ele(MAP_HANDLE map, void *key, UINT key_len)
 {
-    _MAP_AVL_NODE_S *pstFind;
+    MAP_AVL_NODE_S *pstFind;
 
     pstFind = _map_avl_find(map, key, key_len);
     if (NULL == pstFind) {
@@ -167,7 +199,7 @@ static MAP_ELE_S * map_avl_get_ele(MAP_HANDLE map, void *key, UINT key_len)
 
 static void * map_avl_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 {
-    _MAP_AVL_NODE_S *pstFind;
+    MAP_AVL_NODE_S *pstFind;
 
     pstFind = _map_avl_find(map, pKey, uiKeyLen);
     if (NULL == pstFind) {
@@ -181,7 +213,7 @@ static void * map_avl_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 static void * map_avl_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 {
     _MAP_AVL_S *avl_map = map->impl_map;
-    _MAP_AVL_NODE_S *pstNode;
+    MAP_AVL_NODE_S *pstNode;
     MAP_ELE_S ele;
     VOID *pData;
 
@@ -199,7 +231,9 @@ static void * map_avl_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
     if (pstNode->stEle.dup_key) {
         MemCap_Free(map->memcap, pstNode->stEle.pKey);
     }
-    MemCap_Free(map->memcap, pstNode);
+    if (pstNode->stEle.link_alloced) {
+        MemCap_Free(map->memcap, pstNode);
+    }
 
     avl_map->count --;
 
@@ -241,7 +275,7 @@ static void map_avl_walk(IN MAP_HANDLE map, IN PF_MAP_WALK_FUNC pfWalkFunc, IN V
 static MAP_ELE_S * map_avl_getnext(MAP_HANDLE map, MAP_ELE_S *pstCurrent)
 {
     _MAP_AVL_S *avl_map = map->impl_map;
-    _MAP_AVL_NODE_S *node;
+    MAP_AVL_NODE_S *node;
 
     if (NULL == pstCurrent) {
         node = avlMinimumGet(avl_map->avl_root);

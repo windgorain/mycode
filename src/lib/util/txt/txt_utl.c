@@ -1409,3 +1409,33 @@ char * TXT_Str2Translate(char *str, char *trans_char_sets, char *out, int out_si
     return out;
 }
 
+/* 将数字转为二进制字符串:
+ * min_len: 最小输出字节数, 如果不足则在前面补0
+ */
+char * TXT_Num2BitString(uint64_t v, int min_len, OUT char *str)
+{
+    int i, j = 0;
+    int flag = 0;
+
+    for(i=63; i>=0; i--) {
+        if (i < min_len) {
+            flag = 1;
+        }
+        if (v & (1ULL << i)) {
+            flag = 1;
+        }
+        if (flag) {
+            str[j] = '0';
+            if (v & (1ULL << i)) {
+                str[j] = '1';
+            }
+            j++;
+        }
+    }
+
+    str[j] = '\0';
+
+    return str;
+}
+
+

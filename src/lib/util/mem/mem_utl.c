@@ -155,14 +155,15 @@ int MEM_Sprint(IN UCHAR *pucMem, IN UINT uiLen, OUT char *buf, int buf_size)
 {
     int tmp_len1, tmp_len2;
     UCHAR *d = pucMem;
-    char info[16];
+    char info[24];
     int len = 0;
     int reserved_size = buf_size;
     int copyed_len = 0;
+    UINT mem_len = uiLen;
 
-    while (len > 0) {
-        tmp_len1 = MIN(16, len);
-        len -= tmp_len1;
+    while (mem_len > 0) {
+        tmp_len1 = MIN(16, mem_len);
+        mem_len -= tmp_len1;
         while (tmp_len1 > 0) {
             tmp_len2 = MIN(4, tmp_len1);
             tmp_len1 -= tmp_len2;
@@ -177,7 +178,7 @@ int MEM_Sprint(IN UCHAR *pucMem, IN UINT uiLen, OUT char *buf, int buf_size)
             copyed_len += len;
             d += tmp_len2;
         }
-        len = strlcpy(buf + len, "\r\n", reserved_size);
+        len = strlcpy(buf + copyed_len, "\r\n", reserved_size);
         if (len >= reserved_size) {
             RETURN(BS_OUT_OF_RANGE);
         }
