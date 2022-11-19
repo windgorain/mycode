@@ -1,5 +1,6 @@
 /*================================================================
 *   Created by LiXingang, Copyright LiXingang
+*   Date: 2017.10.2
 *   Description: 
 *
 ================================================================*/
@@ -268,6 +269,7 @@ static UINT _mybpf_prog_get_helper_offset(UINT imm)
     return helper_func - MYBPF_PROG_HelperBase;
 }
 
+/* 如果使用MYBPF_Run,就不要调用这个函数. 如果使用MYBPF_RunBpfCode, 就需要调用这个函数 */
 int MYBPF_PROG_FixupBpfCalls(MYBPF_PROG_NODE_S *prog)
 {
     struct bpf_insn *insn = (void*)prog->insn;
