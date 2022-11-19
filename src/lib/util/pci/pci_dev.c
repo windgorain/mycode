@@ -4,11 +4,13 @@
 *
 ********************************************************/
 #include "bs.h"
+#include "utl/bit_opt.h"
 #include "utl/pci_utl.h"
+#include "utl/pci_dev.h"
 
-UINT PCI_CFG_Read(PCIE_DEV_CFG_S *cfg, int addr, int size)
+UINT PCIE_DevCfg_Read(PCIE_DEV_S *dev, int addr, int size)
 {
-    UCHAR *d = (void*)cfg;
+    UCHAR *d = (void*)&dev->cfg;
     UINT val = 0;
 
     d += addr;
@@ -28,23 +30,26 @@ UINT PCI_CFG_Read(PCIE_DEV_CFG_S *cfg, int addr, int size)
     return val;
 }
 
-void PCI_CFG_Write(PCIE_DEV_CFG_S *cfg, int addr, int size, UINT val)
+void PCIE_DevCfg_Write(PCIE_DEV_S *dev, int addr, UINT val, UCHAR first_be)
 {
-    UCHAR *d = (void*)cfg;
+    int i;
+    UCHAR *d = (void*)&dev->cfg;
+    UCHAR *s = (void*)&val;
+    UCHAR *msk = (void*)&dev->writable_bits;
 
     d += addr;
+    msk += addr;
 
-    switch (size) {
-        case 1:
-            *d = val;
-            break;
-        case 2:
-            *(USHORT*)d = val;
-            break;
-        case 4:
-            *(UINT*)d = val;
-            break;
+    for (i=0; i<4; i++) {
+        if (first_be & (1 << i)) {
+            if (! msk[i]) {
+                continue;
+            }
+            BIT_SETTO(d[i], msk[i], s[i]);
+        }
     }
+
+    return;
 }
 
 

@@ -26,7 +26,7 @@ typedef struct
 typedef UINT OS_SEM;
 #endif
 
-BS_STATUS _OSSEM_Create(CHAR *pcName, UINT ulInitNum, OUT OS_SEM *pOsSem);
+BS_STATUS _OSSEM_Create(const char *pcName, UINT ulInitNum, OUT OS_SEM *pOsSem);
 BS_STATUS _OSSEM_Delete(OS_SEM *pOsSem);
 BS_STATUS _OSSEM_P(OS_SEM *pOsSem, BS_WAIT_E eWaitMode, UINT ulMilliseconds);
 BS_STATUS _OSSEM_V(OS_SEM *pOsSem);

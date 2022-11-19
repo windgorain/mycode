@@ -158,7 +158,7 @@ BS_STATUS EXEC_OutString(IN CHAR *pszInfo)
     return BS_OK;
 }
 
-BS_STATUS EXEC_OutInfo(IN CHAR *pcFmt, ...)
+BS_STATUS EXEC_OutInfo(const char *pcFmt, ...)
 {
     TXT_ARGS_PRINT(exec_OutString, NULL);
     return BS_OK;

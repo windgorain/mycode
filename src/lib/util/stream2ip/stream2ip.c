@@ -175,7 +175,8 @@ int S2IP_Hsk(S2IP_S *ctrl, PF_S2IP_OUTPUT output_func, void *user_handle)
     return 0;
 }
 
-int S2IP_Data(S2IP_S *ctrl, void *data, int data_len, PF_S2IP_OUTPUT output_func, void *user_handle)
+/* ack: 是否构造回应ack报文 */
+int S2IP_Data(S2IP_S *ctrl, void *data, int data_len, BOOL_T ack, PF_S2IP_OUTPUT output_func, void *user_handle)
 {
     unsigned char buf[STREAM2IP_MAX_IP_LEN];
     char *ptr = data;
@@ -210,7 +211,7 @@ int S2IP_Data(S2IP_S *ctrl, void *data, int data_len, PF_S2IP_OUTPUT output_func
     }
 
     /* 构造ack */
-    {
+    if (ack) {
         ip_total_len = sizeof(struct s2ip_tcp_hdr) + sizeof(struct s2ip_ipv4_hdr);
 
         S2IP_Switch(ctrl);

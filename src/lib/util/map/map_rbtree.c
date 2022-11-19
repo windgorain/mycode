@@ -17,14 +17,10 @@ typedef struct
     UINT count;
 }_MAP_RBTREE_S;
 
-typedef struct
-{
-    RB_TREE_NODE_S rb_node;
-    MAP_ELE_S stEle;
-}_MAP_RBTREE_NODE_S;
-
 static void map_rbtree_destroy(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud);
 static void map_rbtree_reset(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud);
+static BS_STATUS map_rbtree_add_node(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen,
+        void *pData, void *node, UINT flag);
 static BS_STATUS map_rbtree_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag);
 static MAP_ELE_S * map_rbtree_get_ele(MAP_HANDLE map, void *key, UINT key_len);
 static void * map_rbtree_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen);
@@ -37,6 +33,7 @@ static MAP_ELE_S * map_rbtree_getnext(MAP_HANDLE map, MAP_ELE_S *pstCurrent);
 static MAP_FUNC_S g_map_rbtree_funcs = {
     .destroy_func = map_rbtree_destroy,
     .reset_func = map_rbtree_reset,
+    .add_node_func = map_rbtree_add_node,
     .add_func = map_rbtree_add,
     .get_ele_func = map_rbtree_get_ele,
     .get_func = map_rbtree_get,
@@ -49,7 +46,7 @@ static MAP_FUNC_S g_map_rbtree_funcs = {
 
 static int _map_rbtree_cmp(void *key, RB_TREE_NODE_S *pstCmpNode)
 {
-    _MAP_RBTREE_NODE_S *pstNode = (void*)pstCmpNode;
+    MAP_RBTREE_NODE_S *pstNode = (void*)pstCmpNode;
     MAP_ELE_S *ele = key;
 
     if (pstNode->stEle.uiKeyLen == 0) {
@@ -60,7 +57,7 @@ static int _map_rbtree_cmp(void *key, RB_TREE_NODE_S *pstCmpNode)
     return MEM_Cmp(ele->pKey, ele->uiKeyLen, pstNode->stEle.pKey, pstNode->stEle.uiKeyLen);
 }
 
-static _MAP_RBTREE_NODE_S * _map_rbtree_find(IN MAP_CTRL_S *map, IN VOID *pKey, IN UINT uiKeyLen)
+static MAP_RBTREE_NODE_S * _map_rbtree_find(IN MAP_CTRL_S *map, IN VOID *pKey, IN UINT uiKeyLen)
 {
     _MAP_RBTREE_S *rbtree_map = map->impl_map;
     MAP_ELE_S ele;
@@ -76,7 +73,7 @@ static BS_WALK_RET_E _map_rbtree_walk(RB_TREE_NODE_S *node, void *ud)
     USER_HANDLE_S *pstUserHandle = ud;
     PF_MAP_WALK_FUNC pfWalkFunc = pstUserHandle->ahUserHandle[0];
     VOID *pUserHandleTmp = pstUserHandle->ahUserHandle[1];
-    _MAP_RBTREE_NODE_S *pstNode = (void*)node;
+    MAP_RBTREE_NODE_S *pstNode = (void*)node;
 
     return pfWalkFunc(&pstNode->stEle, pUserHandleTmp);
 }
@@ -87,7 +84,7 @@ static void _map_rbtree_free(RB_TREE_NODE_S *pNode, void *ud)
     PF_MAP_FREE_FUNC func = pstUserHandle->ahUserHandle[0];
     VOID *pUserHandleTmp = pstUserHandle->ahUserHandle[1];
     MAP_CTRL_S *map = pstUserHandle->ahUserHandle[2];
-    _MAP_RBTREE_NODE_S *pstNode = (void*)pNode;
+    MAP_RBTREE_NODE_S *pstNode = (void*)pNode;
 
     if (func) {
         func(pstNode->stEle.pData, pUserHandleTmp);
@@ -95,7 +92,9 @@ static void _map_rbtree_free(RB_TREE_NODE_S *pNode, void *ud)
     if (pstNode->stEle.dup_key) {
         MemCap_Free(map->memcap, pstNode->stEle.pKey);
     }
-    MemCap_Free(map->memcap, pstNode);
+    if (pstNode->stEle.link_alloced) {
+        MemCap_Free(map->memcap, pstNode);
+    }
 }
 
 static void map_rbtree_reset(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud)
@@ -112,28 +111,19 @@ static void map_rbtree_destroy(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void 
     MemCap_Free(map->memcap, map);
 }
 
-static BS_STATUS map_rbtree_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag)
+static inline int _map_rbtree_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen,
+        void *pData, MAP_RBTREE_NODE_S *pstNode, UINT flag)
 {
     _MAP_RBTREE_S *rbtree_map = map->impl_map;
-    _MAP_RBTREE_NODE_S *pstNode;
-
-    if ((map->uiCapacity != 0) && (map->uiCapacity <= rbtree_map->count)) {
-        RETURN(BS_NO_RESOURCE);
-    }
-
-    pstNode = MemCap_ZMalloc(map->memcap, sizeof(_MAP_RBTREE_NODE_S));
-    if (NULL == pstNode) {
-        RETURN(BS_NO_MEMORY);
-    }
 
     if ((flag & MAP_FLAG_DUP_KEY) && (uiKeyLen != 0)) {
         pstNode->stEle.pKey = MemCap_Dup(map->memcap, pKey, uiKeyLen);
         if (NULL == pstNode->stEle.pKey) {
-            MemCap_Free(map->memcap, pstNode);
             RETURN(BS_NO_MEMORY);
         }
         pstNode->stEle.dup_key = 1;
     } else {
+        pstNode->stEle.dup_key = 0;
         pstNode->stEle.pKey = pKey;
     }
 
@@ -144,8 +134,7 @@ static BS_STATUS map_rbtree_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID 
         if (pstNode->stEle.dup_key) {
             MemCap_Free(map->memcap, pstNode->stEle.pKey);
         }
-        MemCap_Free(map->memcap, pstNode);
-        RETURN(BS_CONFLICT);
+        RETURN(BS_ALREADY_EXIST);
     }
 
     rbtree_map->count ++;
@@ -153,9 +142,52 @@ static BS_STATUS map_rbtree_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID 
     return BS_OK;
 }
 
+static BS_STATUS map_rbtree_add_node(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen,
+        void *pData, void *node, UINT flag)
+{
+    _MAP_RBTREE_S *rbtree_map = map->impl_map;
+    MAP_RBTREE_NODE_S *pstNode = node;
+
+    BS_DBGASSERT(0 == (flag & MAP_FLAG_PERMIT_DUPLICATE));
+
+    if ((map->uiCapacity != 0) && (map->uiCapacity <= rbtree_map->count)) {
+        RETURN(BS_NO_RESOURCE);
+    }
+
+    pstNode->stEle.link_alloced = 0;
+
+    return _map_rbtree_add(map, pKey, uiKeyLen, pData, pstNode, flag);
+}
+
+static BS_STATUS map_rbtree_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag)
+{
+    _MAP_RBTREE_S *rbtree_map = map->impl_map;
+    MAP_RBTREE_NODE_S *pstNode;
+
+    BS_DBGASSERT(0 == (flag & MAP_FLAG_PERMIT_DUPLICATE));
+
+    if ((map->uiCapacity != 0) && (map->uiCapacity <= rbtree_map->count)) {
+        RETURN(BS_NO_RESOURCE);
+    }
+
+    pstNode = MemCap_ZMalloc(map->memcap, sizeof(MAP_RBTREE_NODE_S));
+    if (NULL == pstNode) {
+        RETURN(BS_NO_MEMORY);
+    }
+    pstNode->stEle.link_alloced = 1;
+
+    int ret = _map_rbtree_add(map, pKey, uiKeyLen, pData, pstNode, flag);
+    if (ret < 0) {
+        MemCap_Free(map->memcap, pstNode);
+        return ret;
+    }
+
+    return 0;
+}
+
 static MAP_ELE_S * map_rbtree_get_ele(MAP_HANDLE map, void *key, UINT key_len)
 {
-    _MAP_RBTREE_NODE_S *pstFind;
+    MAP_RBTREE_NODE_S *pstFind;
 
     pstFind = _map_rbtree_find(map, key, key_len);
     if (NULL == pstFind) {
@@ -167,7 +199,7 @@ static MAP_ELE_S * map_rbtree_get_ele(MAP_HANDLE map, void *key, UINT key_len)
 
 static void * map_rbtree_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 {
-    _MAP_RBTREE_NODE_S *pstFind;
+    MAP_RBTREE_NODE_S *pstFind;
 
     pstFind = _map_rbtree_find(map, pKey, uiKeyLen);
     if (NULL == pstFind) {
@@ -181,7 +213,7 @@ static void * map_rbtree_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 static void * map_rbtree_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 {
     _MAP_RBTREE_S *rbtree_map = map->impl_map;
-    _MAP_RBTREE_NODE_S *pstNode;
+    MAP_RBTREE_NODE_S *pstNode;
     MAP_ELE_S ele;
     VOID *pData;
 
@@ -198,7 +230,10 @@ static void * map_rbtree_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
     if (pstNode->stEle.dup_key) {
         MemCap_Free(map->memcap, pstNode->stEle.pKey);
     }
-    MemCap_Free(map->memcap, pstNode);
+
+    if (pstNode->stEle.link_alloced) {
+        MemCap_Free(map->memcap, pstNode);
+    }
 
     rbtree_map->count --;
 
@@ -240,7 +275,7 @@ static void map_rbtree_walk(IN MAP_HANDLE map, IN PF_MAP_WALK_FUNC pfWalkFunc, I
 static MAP_ELE_S * map_rbtree_getnext(MAP_HANDLE map, MAP_ELE_S *pstCurrent)
 {
     _MAP_RBTREE_S *rbtree_map = map->impl_map;
-    _MAP_RBTREE_NODE_S *node;
+    MAP_RBTREE_NODE_S *node;
 
     if (NULL == pstCurrent) {
         node = (void*)RBTree_Min(&rbtree_map->root);

@@ -1,5 +1,6 @@
 /*================================================================
 *   Created by LiXingang, Copyright LiXingang
+*   Date: 2017.10.1
 *   Description: 
 *
 ================================================================*/
@@ -33,33 +34,51 @@ static inline bool _mybpf_bounds_check(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, void *a
     }
 }
 
-int MYBPF_Init(OUT MYBPF_VM_S *vm, UINT ext_func_max, void *ext_funcs)
+int MYBPF_SetFunc(MYBPF_VM_S *vm, int id, PF_BPF_HELPER_FUNC func)
 {
-    memset(vm, 0, sizeof(*vm));
-    vm->ext_func_max = ext_func_max;
-    vm->ext_funcs = ext_funcs;
-    return 0;
-}
-
-int MYBPF_SetExtFunc(MYBPF_VM_S *vm, int idx, PF_BPF_HELPER_FUNC func)
-{
-    if ((idx <= 0) || (idx >= vm->ext_func_max)){
-        RETURN(BS_BAD_PARA);
+    if (id < vm->base_func_max) {
+        RETURN(BS_NO_PERMIT);
+    } else if ((id >= vm->user_func_min) && (id < vm->user_func_max)) {
+        vm->user_helpers[id - vm->user_func_min] = func;
+    } else {
+        RETURN(BS_ERR);
     }
 
-    vm->ext_funcs[idx] = func;
-
     return 0;
 }
 
-int MYBPF_SetTailCallIndex(MYBPF_VM_S *vm, unsigned int idx)
+int MYBPF_SetTailCallIndex(MYBPF_VM_S *vm, unsigned int id)
 {
     if (vm->tail_call_index != 0) {
         return -1;
     }
 
-    vm->tail_call_index = idx;
+    vm->tail_call_index = id;
     return 0;
+}
+
+static inline void * _mybpf_get_helper(MYBPF_VM_S *vm, UINT id)
+{
+    if (id < vm->base_func_max) {
+        return vm->base_helpers[id];
+    }
+
+    if ((id >= vm->user_func_min) && (id < vm->user_func_max)) {
+        return vm->user_helpers[id - vm->user_func_min];
+    }
+
+    return NULL;
+}
+
+static inline UINT64 _mybpf_call(MYBPF_VM_S *vm, UINT id, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+{
+    PF_BPF_HELPER_FUNC func = _mybpf_get_helper(vm, id);
+
+    if (! func) {
+        return -1;
+    }
+
+    return func(p1, p2, p3, p4, p5);
 }
 
 bool MYBPF_Validate(MYBPF_VM_S *vm, void *insn, uint32_t num_insts)
@@ -198,12 +217,8 @@ bool MYBPF_Validate(MYBPF_VM_S *vm, void *insn, uint32_t num_insts)
             break;
 
         case EBPF_OP_CALL:
-            if (inst.imm < 0 || inst.imm >= vm->ext_func_max) {
+            if (NULL == _mybpf_get_helper(vm, inst.imm)) {
                 vm->print_func("invalid call immediate at PC %d", i);
-                return false;
-            }
-            if (!vm->ext_funcs[inst.imm]) {
-                vm->print_func("call to nonexistent function %u at PC %d", inst.imm, i);
                 return false;
             }
             break;
@@ -663,7 +678,7 @@ static inline int _mybpf_run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U
             ctx->bpf_ret = reg[0];
             return 0;
         case EBPF_OP_CALL:
-            reg[0] = vm->ext_funcs[inst.imm](reg[1], reg[2], reg[3], reg[4], reg[5]);
+            reg[0] = _mybpf_call(vm, inst.imm, reg[1], reg[2], reg[3], reg[4], reg[5]);
             if ((inst.imm == vm->tail_call_index) && (reg[0] == 0)) {
                 ctx->bpf_ret = reg[0];
                 return 0;

@@ -18,14 +18,16 @@ typedef struct {
     int fd;
 }MYBPF_HOOKPOINT_NODE_S;
 
-static DLL_HEAD_S g_mybpf_xdp_list = DLL_HEAD_INIT_VALUE(&g_mybpf_xdp_list);
-
 static inline int _mybpf_process_xdp_fd(MYBPF_XDP_BUFF_S *xdp_buf, int fd)
 {
     MYBPF_PROG_NODE_S *prog;
 
     prog = MYBPF_PROG_GetByFD(fd);
     if (! prog) {
+        return XDP_PASS;
+    }
+
+    if (prog->disabled) {
         return XDP_PASS;
     }
 
@@ -42,12 +44,12 @@ static inline int _mybpf_process_xdp_fd(MYBPF_XDP_BUFF_S *xdp_buf, int fd)
     return ctx.bpf_ret;
 }
 
-static MYBPF_HOOKPOINT_NODE_S * _mybpf_xdp_detach(int fd)
+static MYBPF_HOOKPOINT_NODE_S * _mybpf_xdp_detach(DLL_HEAD_S *list, int fd)
 {
     MYBPF_HOOKPOINT_NODE_S *node;
     MYBPF_HOOKPOINT_NODE_S *found = NULL;
 
-    DLL_SCAN(&g_mybpf_xdp_list, node) {
+    DLL_SCAN(list, node) {
         if (node->fd == fd) {
             found = node;
             break;
@@ -55,13 +57,13 @@ static MYBPF_HOOKPOINT_NODE_S * _mybpf_xdp_detach(int fd)
     }
 
     if (found) {
-        DLL_DEL(&g_mybpf_xdp_list, &node->link_node);
+        DLL_DEL(list, &node->link_node);
     }
 
     return found;
 }
 
-int MYBPF_XdpAttach(int fd)
+int MYBPF_XdpAttach(DLL_HEAD_S *list, int fd)
 {
     MYBPF_HOOKPOINT_NODE_S *node;
 
@@ -75,16 +77,16 @@ int MYBPF_XdpAttach(int fd)
 
     node->fd = fd;
 
-    DLL_ADD_RCU(&g_mybpf_xdp_list, &node->link_node);
+    DLL_ADD_RCU(list, &node->link_node);
 
     return 0;
 }
 
-int MYBPF_XdpDetach(int fd)
+int MYBPF_XdpDetach(DLL_HEAD_S *list, int fd)
 {
     MYBPF_HOOKPOINT_NODE_S *node;
 
-    node = _mybpf_xdp_detach(fd);
+    node = _mybpf_xdp_detach(list, fd);
 
     if (node) {
         RcuEngine_Free(node);
@@ -94,14 +96,14 @@ int MYBPF_XdpDetach(int fd)
     return 0;
 }
 
-int MYBPF_XdpInput(MYBPF_XDP_BUFF_S *xdp_buf)
+int MYBPF_XdpInput(DLL_HEAD_S *list, MYBPF_XDP_BUFF_S *xdp_buf)
 {
     MYBPF_HOOKPOINT_NODE_S *node;
     int ret = XDP_PASS;
 
     int state = RcuEngine_Lock();
 
-    DLL_SCAN(&g_mybpf_xdp_list, node) {
+    DLL_SCAN(list, node) {
         ret = _mybpf_process_xdp_fd(xdp_buf, node->fd);
         if (ret != XDP_PASS) {
             break;

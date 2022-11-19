@@ -31,7 +31,7 @@ typedef struct
     CHAR     acName[_SEM_MAX_NAME_LEN+1];
 }SEM_CTRL_S;
 
-static SEM_HANDLE sem_Create(IN CHAR *pcName, IN INT iInitNum, IN _SEM_TYPE_E eType)
+static SEM_HANDLE sem_Create(const char *pcName, IN INT iInitNum, IN _SEM_TYPE_E eType)
 {
     UINT ulRet;
     SEM_CTRL_S *pstSem;
@@ -56,7 +56,7 @@ static SEM_HANDLE sem_Create(IN CHAR *pcName, IN INT iInitNum, IN _SEM_TYPE_E eT
         return NULL;
     }
 
-    TXT_StrCpy(pstSem->acName, pcName);
+    TXT_StrCpy(pstSem->acName, (void*)pcName);
     pstSem->count = iInitNum;
     pstSem->eSemType = eType;
 
@@ -64,14 +64,14 @@ static SEM_HANDLE sem_Create(IN CHAR *pcName, IN INT iInitNum, IN _SEM_TYPE_E eT
 }
 
 /* 主要用于递归取互斥信号量. 如果不存在递归情况,建议使用计数器信号量, 效率比这个高一倍左右 */
-SEM_HANDLE SEM_MCreate (IN CHAR *pcName)
+SEM_HANDLE SEM_MCreate (const char *pcName)
 {
     return sem_Create(pcName, 1, _SEM_TYPE_MUTEX);
 }
 
 
 /* 当lInitNum为1时, 就相当于不支持递归SEM_P的互斥信号量. 如果使用者不存在递归情况,建议使用它 */
-SEM_HANDLE SEM_CCreate (IN CHAR *pcName, IN INT iInitNum)
+SEM_HANDLE SEM_CCreate (const char *pcName, IN INT iInitNum)
 {
     return sem_Create(pcName, iInitNum, _SEM_TYPE_COUNTER);
 }

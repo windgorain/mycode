@@ -7,13 +7,14 @@
 #include "bs.h"
 
 #include "utl/time_utl.h"
+#include "utl/rand_utl.h"
 
-UINT RAND_Get()
+UINT RAND_Get(void)
 {
     return rand();
 }
 
-UINT RAND_GetNonZero()
+UINT RAND_GetNonZero(void)
 {
     UINT uiRand;
 
@@ -32,7 +33,7 @@ VOID RAND_Entropy(IN UINT uiEntropy)
 
 #ifdef IN_UNIXLIKE
 /* 获取/dev/urandom随机数 */
-unsigned long RAND_GetRandom()
+unsigned long RAND_GetRandom(void)
 {
 	int fd=0;
 	unsigned long ul_num = 0;
@@ -53,13 +54,13 @@ unsigned long RAND_GetRandom()
 	return ul_num;
 }
 #else
-unsigned long RAND_GetRandom()
+unsigned long RAND_GetRandom(void)
 {
     return RAND_Get();
 }
 #endif
 
-static void rand_init()
+static void rand_init(void)
 {
     srand(time(NULL));
 }

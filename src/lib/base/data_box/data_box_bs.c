@@ -3,15 +3,8 @@
 *   Description: 
 *
 ********************************************************/
-#ifndef _ULCAPP_HOOKPOINT_H
-#define _ULCAPP_HOOKPOINT_H
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+#include "bs.h"
+
+IDFUNC_CTRL_S g__bs_idfunc_db;
 
 
-#ifdef __cplusplus
-}
-#endif
-#endif //ULCAPP_HOOKPOINT_H_

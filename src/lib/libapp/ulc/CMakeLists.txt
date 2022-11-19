@@ -7,6 +7,7 @@ aux_source_directory(./cmd SRC)
 aux_source_directory(./hookpoint SRC)
 aux_source_directory(./cfg_lock SRC)
 aux_source_directory(./ioctl SRC)
+aux_source_directory(./runtime SRC)
 
 set(NAME ulc)
 INCLUDE(../my_libapp.txt)

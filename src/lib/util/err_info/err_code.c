@@ -9,12 +9,12 @@
 
 static THREAD_LOCAL ERR_CODE_S g_err_code;
 
-void ErrCode_Set(int err_code, char *info, char *file_name, const char *func_name, int line)
+void ErrCode_Set(int err_code, char *info, const char *file_name, const char *func_name, int line)
 {
     ERR_CODE_S *err_code_ctrl = &g_err_code;
 
     err_code_ctrl->file_name = file_name;
-    err_code_ctrl->func_name = (char*)func_name;
+    err_code_ctrl->func_name = func_name;
     err_code_ctrl->line = line;
     err_code_ctrl->err_code = err_code;
     err_code_ctrl->info[0] = '\0';
@@ -34,7 +34,7 @@ void ErrCode_Clear(void)
     err_code_ctrl->info[0] = '\0';
 }
 
-char * ErrCode_GetFileName(void)
+const char * ErrCode_GetFileName(void)
 {
     if (g_err_code.file_name == NULL) {
         return "null";
@@ -60,7 +60,7 @@ char * ErrCode_GetInfo(void)
 
 char * ErrCode_Build(OUT char *buf, int buf_size)
 {
-    char *file = ErrCode_GetFileName();
+    const char *file = ErrCode_GetFileName();
     int line = ErrCode_GetLine();
     int code = ErrCode_GetErrCode();
     char *errinfo = ErrCode_GetInfo();
@@ -80,7 +80,7 @@ char * ErrCode_Build(OUT char *buf, int buf_size)
 
 void ErrCode_Print(void)
 {
-    char *file = ErrCode_GetFileName();
+    const char *file = ErrCode_GetFileName();
     int line = ErrCode_GetLine();
     int code = ErrCode_GetErrCode();
     char *errinfo = ErrCode_GetInfo();
@@ -91,6 +91,22 @@ void ErrCode_Print(void)
 
     if (errinfo && errinfo[0]) {
         fprintf(stderr, "ErrInfo: %s \r\n", errinfo);
+    }
+}
+
+void ErrCode_Output(PF_PRINT_FUNC output)
+{
+    const char *file = ErrCode_GetFileName();
+    int line = ErrCode_GetLine();
+    int code = ErrCode_GetErrCode();
+    char *errinfo = ErrCode_GetInfo();
+
+    if (file) {
+        output("Err: file:%s(%d):%d \r\n", file, line, code);
+    }
+
+    if (errinfo && errinfo[0]) {
+        output("ErrInfo: %s \r\n", errinfo);
     }
 }
 

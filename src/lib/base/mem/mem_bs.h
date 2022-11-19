@@ -23,7 +23,7 @@ typedef struct {
 #ifdef IN_DEBUG
     DTQ_NODE_S link_node;
 #endif
-    CHAR *pszFileName;
+    const char *pszFileName;
     UINT usLine:16;
     UINT level:4;
     UINT busy:1;
@@ -37,7 +37,7 @@ typedef struct {
 
 typedef struct {
     volatile UINT count;
-    char *filename;
+    const char *filename;
 }_MEM_DESC_S;
 
 typedef struct {

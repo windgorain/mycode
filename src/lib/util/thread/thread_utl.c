@@ -23,7 +23,7 @@ BS_STATUS ThreadUtl_Resume(THREAD_ID thread_id)
     return _ThreadOs_Resume (thread_id);
 }
 
-THREAD_ID ThreadUtl_GetSelfID()
+THREAD_ID ThreadUtl_GetSelfID(void)
 {
     return _ThreadOs_GetSelfID();
 }

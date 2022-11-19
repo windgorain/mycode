@@ -1,5 +1,6 @@
 /*================================================================
 *   Created by LiXingang, Copyright LiXingang
+*   Date: 2017.10.1
 *   Description: ebpf prog管理
 *
 ================================================================*/
@@ -21,7 +22,7 @@ static void _mybpf_prog_free_prog(void *f)
     RcuEngine_Free(node);
 }
 
-MYBPF_PROG_NODE_S * MYBPF_PROG_Alloc(struct bpf_insn *insn, int len /* insn的字节数 */, char *prog_name)
+MYBPF_PROG_NODE_S * MYBPF_PROG_Alloc(struct bpf_insn *insn, int len /* insn的字节数 */, char *sec_name, char *prog_name)
 {
     MYBPF_PROG_NODE_S *node;
     int size = sizeof(MYBPF_PROG_NODE_S) + len;
@@ -33,9 +34,14 @@ MYBPF_PROG_NODE_S * MYBPF_PROG_Alloc(struct bpf_insn *insn, int len /* insn的�
 
     memset(node, 0, sizeof(MYBPF_PROG_NODE_S));
 
+    if (sec_name) {
+        strlcpy(node->sec_name, sec_name, sizeof(node->sec_name));
+    }
+
     if (prog_name) {
         strlcpy(node->prog_name, prog_name, sizeof(node->prog_name));
     }
+
     node->insn_len = len;
     memcpy(node->insn, insn, len);
 
@@ -69,6 +75,24 @@ MYBPF_PROG_NODE_S * MYBPF_PROG_RefByFD(int fd)
     return UFD_RefFileData(fd);
 }
 
+void MYBPF_PROG_Disable(int fd)
+{
+    MYBPF_PROG_NODE_S *n = MYBPF_PROG_GetByFD(fd);
+    if (! n) {
+        return;
+    }
+    n->disabled = 1;
+}
+
+void MYBPF_PROG_Enable(int fd)
+{
+    MYBPF_PROG_NODE_S *n = MYBPF_PROG_GetByFD(fd);
+    if (! n) {
+        return;
+    }
+    n->disabled = 0;
+}
+
 void MYBPF_PROG_Close(int fd)
 {
     UFD_Close(fd);
@@ -87,7 +111,8 @@ void MYBPF_PROG_ShowProg(PF_PRINT_FUNC print_func)
         if (! prog) {
             continue;
         }
-        print_func("fd:%d,xlated:%u,name:%s \r\n", fd, prog->insn_len, prog->prog_name);
+        print_func("fd:%d, xlated:%u, sec:%s, name:%s \r\n",
+                fd, prog->insn_len, prog->sec_name, prog->prog_name);
     }
 
     RcuEngine_UnLock(state);

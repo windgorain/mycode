@@ -172,7 +172,7 @@ static BS_STATUS txt_DelLineComment
             read = pcFind + strlen(pcCommentFlag);
 
             /* 查找行尾 */
-            pcFind = TXT_MStrnchr(read, strlen(read), "\r\n");
+            pcFind = TXT_MStrnchr(read, strlen(read), (void*)"\r\n");
             if (NULL == pcFind) {
                 break;
             }
@@ -444,7 +444,7 @@ CHAR *TXT_Strim(IN CHAR *pszStr)
     stString.pcData = pszStr;
     stString.uiLen = strlen(pszStr);
     
-    LSTR_Strim(&stString, " \t\n\r", &stString);
+    LSTR_Strim(&stString, (void*)" \t\n\r", &stString);
     stString.pcData[stString.uiLen] = '\0';
 
     return stString.pcData;
@@ -521,7 +521,7 @@ char * TXT_StrimAll(IN CHAR *pcStr)
 /* 将不包含头尾空白字符的结果copy到dst */
 char * TXT_StrimTo(char *in, char *out)
 {
-    in = TXT_StrimHead(in, strlen(in), " \t\r\n");
+    in = TXT_StrimHead(in, strlen(in), (void*)" \t\r\n");
     strcpy(out, in);
     TXT_Strim(out);
 
@@ -531,7 +531,7 @@ char * TXT_StrimTo(char *in, char *out)
 /* 将不包含空白字符的结果copy到dst */
 char * TXT_StrimAllTo(char *in, char *out)
 {
-    in = TXT_StrimHead(in, strlen(in), " \t\r\n");
+    in = TXT_StrimHead(in, strlen(in), (void*)" \t\r\n");
     strcpy(out, in);
     TXT_StrimAll(out);
 
@@ -1054,7 +1054,7 @@ BS_STATUS TXT_XAtoui(IN CHAR *pszBuf, OUT UINT *pulNum)
     return BS_OK;
 }
 
-CHAR TXT_Random()
+CHAR TXT_Random(void)
 {
     /* A-Z, a-z, 0-9 共62个字符 */
     UINT uiRandom;
@@ -1408,4 +1408,34 @@ char * TXT_Str2Translate(char *str, char *trans_char_sets, char *out, int out_si
 
     return out;
 }
+
+/* 将数字转为二进制字符串:
+ * min_len: 最小输出字节数, 如果不足则在前面补0
+ */
+char * TXT_Num2BitString(uint64_t v, int min_len, OUT char *str)
+{
+    int i, j = 0;
+    int flag = 0;
+
+    for(i=63; i>=0; i--) {
+        if (i < min_len) {
+            flag = 1;
+        }
+        if (v & (1ULL << i)) {
+            flag = 1;
+        }
+        if (flag) {
+            str[j] = '0';
+            if (v & (1ULL << i)) {
+                str[j] = '1';
+            }
+            j++;
+        }
+    }
+
+    str[j] = '\0';
+
+    return str;
+}
+
 

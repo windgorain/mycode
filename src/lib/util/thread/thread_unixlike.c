@@ -39,7 +39,7 @@ BS_STATUS _ThreadOs_Resume(THREAD_ID thread_id)
     return BS_OK;
 }
 
-THREAD_ID _ThreadOs_GetSelfID()
+THREAD_ID _ThreadOs_GetSelfID(void)
 {
     return pthread_self();
 }

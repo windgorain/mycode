@@ -826,14 +826,14 @@ char * TM_GetTimeString(OUT char* out_datetime, int length, UINT input_time/*0�
 }
 
 #ifdef IN_WINDOWS
-static inline UINT64 tm_os_GetNsFromInit()
+static inline UINT64 tm_os_GetNsFromInit(void)
 {
     return (UINT64)GetTickCount();
 }
 #endif
 
 #ifdef IN_UNIXLIKE
-static inline UINT64 tm_os_GetNsFromInit()
+static inline UINT64 tm_os_GetNsFromInit(void)
 {
     struct timespec ts;
 
@@ -843,30 +843,30 @@ static inline UINT64 tm_os_GetNsFromInit()
 #endif
 
 /* 从系统启动到现在的ns数 */
-UINT64 TM_NsFromInit()
+UINT64 TM_NsFromInit(void)
 {
     return tm_os_GetNsFromInit();
 }
 
 /* 从系统启动到现在的us数 */
-UINT64 TM_UsFromInit()
+UINT64 TM_UsFromInit(void)
 {
     return tm_os_GetNsFromInit() / 1000;
 }
 
 /* 从系统启动到现在的ms数 */
-UINT64 TM_MsFromInit()
+UINT64 TM_MsFromInit(void)
 {
     return tm_os_GetNsFromInit() / 1000000;
 }
 
 /* 从系统启动到现在的秒数 */
-ULONG TM_SecondsFromInit()
+ULONG TM_SecondsFromInit(void)
 {
     return TM_UsFromInit()/1000000;
 }
 
-unsigned long TM_GetTickPerSec()
+unsigned long TM_GetTickPerSec(void)
 {
     unsigned long clocks;
 
@@ -875,7 +875,7 @@ unsigned long TM_GetTickPerSec()
     return clocks * 10;
 }
 
-static void tm_HZInit()
+static void tm_HZInit(void)
 {
     TM_HZ = TM_GetTickPerSec();
     TM_MS_HZ = TM_HZ/1000;

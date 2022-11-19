@@ -18,15 +18,10 @@ typedef struct
     HASH_HANDLE hHash;
 }_MAP_HASH_S;
 
-typedef struct
-{
-    HASH_NODE_S stHashNode;
-    MAP_ELE_S stEle;
-}_MAP_NODE_S;
-
 static void map_hash_destroy(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud);
 static void map_hash_reset(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *ud);
-static BS_STATUS map_hash_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag);
+static int map_hash_add_node(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, void *node, UINT flag);
+static int map_hash_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag);
 static MAP_ELE_S * map_hash_get_ele(MAP_HANDLE map, void *key, UINT key_len);
 static void * map_hash_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen);
 static void * map_hash_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen);
@@ -38,6 +33,7 @@ static MAP_ELE_S * map_hash_getnext(MAP_HANDLE map, MAP_ELE_S *pstCurrent);
 static MAP_FUNC_S g_map_hash_funcs = {
     .destroy_func = map_hash_destroy,
     .reset_func = map_hash_reset,
+    .add_node_func = map_hash_add_node,
     .add_func = map_hash_add,
     .get_ele_func = map_hash_get_ele,
     .get_func = map_hash_get,
@@ -59,15 +55,15 @@ static inline UINT _map_key_hash_factor(IN void *key, UINT key_len)
 
 static UINT _map_hash_factor(IN VOID *pstHashNode)
 {
-    _MAP_NODE_S *pstNode = pstHashNode;
+    MAP_HASH_NODE_S *pstNode = pstHashNode;
 
     return _map_key_hash_factor(pstNode->stEle.pKey, pstNode->stEle.uiKeyLen);
 }
 
 static int _map_hash_cmp(IN VOID * pstHashNode1, IN VOID * pstHashNode2)
 {
-    _MAP_NODE_S *pstNode1 = pstHashNode1;
-    _MAP_NODE_S *pstNode2 = pstHashNode2;
+    MAP_HASH_NODE_S *pstNode1 = pstHashNode1;
+    MAP_HASH_NODE_S *pstNode2 = pstHashNode2;
 
     if (pstNode1->stEle.uiKeyLen != pstNode2->stEle.uiKeyLen) {
         return -1;
@@ -81,10 +77,10 @@ static int _map_hash_cmp(IN VOID * pstHashNode1, IN VOID * pstHashNode2)
     return MEM_Cmp(pstNode1->stEle.pKey, pstNode1->stEle.uiKeyLen, pstNode2->stEle.pKey, pstNode2->stEle.uiKeyLen);
 }
 
-static _MAP_NODE_S * _map_hash_find(IN MAP_CTRL_S *map, IN VOID *pKey, IN UINT uiKeyLen)
+static MAP_HASH_NODE_S * _map_hash_find(IN MAP_CTRL_S *map, IN VOID *pKey, IN UINT uiKeyLen)
 {
     _MAP_HASH_S *hash_map = map->impl_map;
-    _MAP_NODE_S stNode;
+    MAP_HASH_NODE_S stNode;
     
     stNode.stEle.pKey = pKey;
     stNode.stEle.uiKeyLen = uiKeyLen;
@@ -97,7 +93,7 @@ static BS_WALK_RET_E _map_hash_walk(IN HASH_HANDLE hHashId, IN VOID *pNode, IN V
     USER_HANDLE_S *pstUserHandle = pUserHandle;
     PF_MAP_WALK_FUNC pfWalkFunc = pstUserHandle->ahUserHandle[0];
     VOID *pUserHandleTmp = pstUserHandle->ahUserHandle[1];
-    _MAP_NODE_S *pstNode = pNode;
+    MAP_HASH_NODE_S *pstNode = pNode;
 
     return pfWalkFunc(&pstNode->stEle, pUserHandleTmp);
 }
@@ -108,7 +104,7 @@ static void _map_hash_free_all(IN HASH_HANDLE hHashId, IN VOID *pNode, IN VOID *
     PF_MAP_FREE_FUNC func = pstUserHandle->ahUserHandle[0];
     VOID *pUserHandleTmp = pstUserHandle->ahUserHandle[1];
     MAP_CTRL_S *map = pstUserHandle->ahUserHandle[2];
-    _MAP_NODE_S *pstNode = pNode;
+    MAP_HASH_NODE_S *pstNode = pNode;
 
     if (func) {
         func(pstNode->stEle.pData, pUserHandleTmp);
@@ -116,7 +112,9 @@ static void _map_hash_free_all(IN HASH_HANDLE hHashId, IN VOID *pNode, IN VOID *
     if (pstNode->stEle.dup_key) {
         MemCap_Free(map->memcap, pstNode->stEle.pKey);
     }
-   MemCap_Free(map->memcap, pstNode);
+    if (pstNode->stEle.link_alloced) {
+        MemCap_Free(map->memcap, pstNode);
+    }
 }
 
 static int _map_hash_getnext_cmp(IN MAP_ELE_S *pstNode, IN MAP_ELE_S *current)
@@ -169,36 +167,36 @@ static void map_hash_destroy(MAP_HANDLE map, PF_MAP_FREE_FUNC free_func, void *u
     MemCap_Free(map->memcap, map);
 }
 
-static BS_STATUS map_hash_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag)
+static int _map_hash_add_check(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, UINT flag, UINT hash_factor)
 {
     _MAP_HASH_S *hash_map = map->impl_map;
-    _MAP_NODE_S *pstNode;
-    _MAP_NODE_S stNodeToFind;
-    _MAP_NODE_S *pstFind;
-    UINT hash_factor;
+    MAP_HASH_NODE_S *pstFind;
+    MAP_HASH_NODE_S stNodeToFind;
 
     if ((map->uiCapacity != 0) && (map->uiCapacity <= HASH_Count(hash_map->hHash))) {
         RETURN(BS_NO_RESOURCE);
     }
 
-    hash_factor = _map_key_hash_factor(pKey, uiKeyLen);
-
-    stNodeToFind.stEle.pKey = pKey;
-    stNodeToFind.stEle.uiKeyLen = uiKeyLen;
-    pstFind = HASH_FindWithFactor(hash_map->hHash, hash_factor, _map_hash_cmp, &stNodeToFind);
-    if (pstFind) {
-        RETURN(BS_ALREADY_EXIST);
+    if (0 == (flag & MAP_FLAG_PERMIT_DUPLICATE)) {
+        stNodeToFind.stEle.pKey = pKey;
+        stNodeToFind.stEle.uiKeyLen = uiKeyLen;
+        pstFind = HASH_FindWithFactor(hash_map->hHash, hash_factor, _map_hash_cmp, &stNodeToFind);
+        if (pstFind) {
+            RETURN(BS_ALREADY_EXIST);
+        }
     }
 
-    pstNode = MemCap_ZMalloc(map->memcap, sizeof(_MAP_NODE_S));
-    if (NULL == pstNode) {
-        RETURN(BS_NO_MEMORY);
-    }
+    return 0;
+}
+
+static inline int _map_hash_add(MAP_HANDLE map, void *pKey, UINT uiKeyLen, void *pData,
+        MAP_HASH_NODE_S *pstNode, UINT flag, UINT hash_factor)
+{
+    _MAP_HASH_S *hash_map = map->impl_map;
 
     if ((flag & MAP_FLAG_DUP_KEY) && (uiKeyLen != 0)) {
         pstNode->stEle.pKey = MemCap_Dup(map->memcap, pKey, uiKeyLen);
         if (NULL == pstNode->stEle.pKey) {
-            MemCap_Free(map->memcap, pstNode);
             RETURN(BS_NO_MEMORY);
         }
         pstNode->stEle.dup_key = 1;
@@ -214,9 +212,62 @@ static BS_STATUS map_hash_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *p
     return BS_OK;
 }
 
+static BS_STATUS map_hash_add_node(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen,
+        void *pData, void *node, UINT flag)
+{
+    MAP_HASH_NODE_S *pstNode = node;
+    UINT hash_factor;
+    int ret;
+
+    hash_factor = _map_key_hash_factor(pKey, uiKeyLen);
+
+    ret = _map_hash_add_check(map, pKey, uiKeyLen, flag, hash_factor);
+    if (ret < 0) {
+        return ret;
+    }
+
+    pstNode->stEle.link_alloced = 0;
+
+    ret = _map_hash_add(map, pKey, uiKeyLen, pData, pstNode, flag, hash_factor);
+    if (ret < 0) {
+        return ret;
+    }
+
+    return 0;
+}
+
+static BS_STATUS map_hash_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag)
+{
+    MAP_HASH_NODE_S *pstNode;
+    UINT hash_factor;
+    int ret;
+
+    hash_factor = _map_key_hash_factor(pKey, uiKeyLen);
+
+    ret = _map_hash_add_check(map, pKey, uiKeyLen, flag, hash_factor);
+    if (ret < 0) {
+        return ret;
+    }
+
+    pstNode = MemCap_ZMalloc(map->memcap, sizeof(MAP_HASH_NODE_S));
+    if (NULL == pstNode) {
+        RETURN(BS_NO_MEMORY);
+    }
+
+    pstNode->stEle.link_alloced = 1;
+
+    ret = _map_hash_add(map, pKey, uiKeyLen, pData, pstNode, flag, hash_factor);
+    if (ret < 0) {
+        MemCap_Free(map->memcap, pstNode);
+        return ret;
+    }
+
+    return BS_OK;
+}
+
 static MAP_ELE_S * map_hash_get_ele(MAP_HANDLE map, void *key, UINT key_len)
 {
-    _MAP_NODE_S *pstFind;
+    MAP_HASH_NODE_S *pstFind;
 
     pstFind = _map_hash_find(map, key, key_len);
     if (NULL == pstFind) {
@@ -228,7 +279,7 @@ static MAP_ELE_S * map_hash_get_ele(MAP_HANDLE map, void *key, UINT key_len)
 
 static void * map_hash_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 {
-    _MAP_NODE_S *pstFind;
+    MAP_HASH_NODE_S *pstFind;
 
     pstFind = _map_hash_find(map, pKey, uiKeyLen);
     if (NULL == pstFind) {
@@ -242,7 +293,7 @@ static void * map_hash_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 static void * map_hash_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 {
     _MAP_HASH_S *hash_map = map->impl_map;
-    _MAP_NODE_S *pstNode;
+    MAP_HASH_NODE_S *pstNode;
     VOID *pData;
 
     pstNode = _map_hash_find(map, pKey, uiKeyLen);
@@ -257,7 +308,10 @@ static void * map_hash_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
     if (pstNode->stEle.dup_key) {
         MemCap_Free(map->memcap, pstNode->stEle.pKey);
     }
-    MemCap_Free(map->memcap, pstNode);
+
+    if (pstNode->stEle.link_alloced) {
+        MemCap_Free(map->memcap, pstNode);
+    }
 
     return pData;
 }

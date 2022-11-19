@@ -108,9 +108,9 @@ PLUG_API int PRecverImpl_Run(PRECVER_RUNNER_S *runner)
                 RAND_FastGet(&seed), htons(80));
         S2IP_Hsk(&s2ip_ctrl, precver_http_cb, runner);
         for (j=0; j<count_data; j++) {
-            S2IP_Data(&s2ip_ctrl, request, request_len, precver_http_cb, runner);
+            S2IP_Data(&s2ip_ctrl, request, request_len, 1, precver_http_cb, runner);
             S2IP_Switch(&s2ip_ctrl);
-            S2IP_Data(&s2ip_ctrl, reply, reply_len, precver_http_cb, runner);
+            S2IP_Data(&s2ip_ctrl, reply, reply_len, 1, precver_http_cb, runner);
             S2IP_Switch(&s2ip_ctrl);
         }
         S2IP_Bye(&s2ip_ctrl, precver_http_cb, runner);

@@ -154,7 +154,7 @@ void _MEM_UnLock()
     MUTEX_V(&g_stMemLock);
 }
 
-PLUG_API void * MEM_MallocMem(ULONG size, CHAR *pszFileName, UINT ulLine)
+PLUG_API void * MEM_MallocMem(ULONG size, const char *pszFileName, UINT ulLine)
 {
     _MEM_HEAD_S *head;
     _MEM_TAIL_S *tail;
@@ -195,7 +195,7 @@ PLUG_API void * MEM_MallocMem(ULONG size, CHAR *pszFileName, UINT ulLine)
     return mem;
 }
 
-PLUG_API void MEM_FreeMem(IN VOID *pMem, IN CHAR *pszFileName, IN UINT ulLine)
+PLUG_API void MEM_FreeMem(IN VOID *pMem, const char *pszFileName, IN UINT ulLine)
 {
     _MEM_HEAD_S *head;
     _MEM_TAIL_S *tail;

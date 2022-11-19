@@ -55,7 +55,7 @@ VOID MUTEX_Final(IN MUTEX_S *pstMutex)
 #endif
 }
 
-VOID _MUTEX_P(IN MUTEX_S *pstMutex, IN CHAR *pcFile, IN UINT uiLine)
+void _MUTEX_P(IN MUTEX_S *pstMutex, const char *pcFile, IN UINT uiLine)
 {
     BS_DBGASSERT(pstMutex->inited);
 

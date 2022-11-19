@@ -11,7 +11,7 @@
 
 #ifdef IN_UNIXLIKE
 
-BS_STATUS _OSSEM_Create(CHAR *pcName, UINT ulInitNum, OUT OS_SEM *pOsSem)
+BS_STATUS _OSSEM_Create(const char *pcName, UINT ulInitNum, OUT OS_SEM *pOsSem)
 {
     if (0 != pthread_mutex_init(&pOsSem->mutex, 0))
     {
@@ -63,8 +63,9 @@ BS_STATUS _OSSEM_P(OS_SEM *pOsSem, UINT ulFlag, UINT ulMilliseconds)
         else
         {
             struct timespec time;
-            time.tv_sec = ulMilliseconds/1000;
-            time.tv_nsec = (ulMilliseconds % 1000) * 1000000;
+            clock_gettime(CLOCK_REALTIME, &time);
+            time.tv_sec += ulMilliseconds/1000;
+            time.tv_nsec += (ulMilliseconds % 1000) * 1000000;
 
             while (pOsSem->v <= 0)
             {
