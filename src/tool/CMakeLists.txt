@@ -74,3 +74,13 @@ aux_source_directory(./wasm/wasme SRC)
 add_executable(wasme ${SRC})
 target_link_libraries(wasme sutil unixlike_util dl pthread m ssl crypto)
 
+set(SRC "")
+aux_source_directory(./pcie_sim SRC)
+add_executable(pcie_sim ${SRC})
+target_link_libraries(pcie_sim sutil unixlike_util dl pthread)
+
+set(SRC "")
+aux_source_directory(./equation SRC)
+add_executable(equation ${SRC})
+target_link_libraries(equation sutil unixlike_util dl pthread)
+

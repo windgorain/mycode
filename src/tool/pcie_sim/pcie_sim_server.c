@@ -11,6 +11,7 @@
 #include "utl/pci_utl.h"
 #include "utl/pci_sim.h"
 #include "utl/pci_vblk.h"
+#include "utl/pci_vnet.h"
 
 #define PCIE_SIM_PATH "/tmp/uds.sock"
 
@@ -20,20 +21,14 @@
 #define PCIE_SIM_LOG_SEND(fmt, ...) PRINT_YELLOW(fmt, ##__VA_ARGS__)
 #define PCIE_SIM_LOG_RECV(fmt, ...) PRINT_PURPLE(fmt, ##__VA_ARGS__)
 
-struct cosim_trans_hdr{
-    uint8_t opcode;
-    uint8_t sub_opcode;
-    uint16_t flag;
-    int32_t data_len;
-    int64_t id;
-    uint32_t seg_id;
-    uint32_t reserve1;
-    uint64_t context;
-    uint64_t reserve[3];
-}__attribute__((packed));
+typedef struct {
+    uint32_t type;
+    uint32_t len;
+    uint64_t reserve[6];
+}PCIE_SIM_SERVER_HDR_S;
 
 static char g_pcie_sim_recv_buf[1028*4];
-static struct cosim_trans_hdr g_pcie_sim_send_hdr;
+static PCIE_SIM_SERVER_HDR_S g_pcie_sim_send_hdr;
 
 static int _pcie_sim_print(const char *fmt, ...)
 {
@@ -57,7 +52,7 @@ static int _pcie_sim_server_send(void *sim, void *data, int len)
 
     int socket_fd = HANDLE_UINT(s->user_data);
 
-    g_pcie_sim_send_hdr.data_len = len;
+    g_pcie_sim_send_hdr.len = len;
 
     send(socket_fd, &g_pcie_sim_send_hdr, sizeof(g_pcie_sim_send_hdr), 0);
 
@@ -100,7 +95,7 @@ static int _pcie_sim_server_process_tlp(void *tlp_msg, int msg_len)
 }
 
 CONSTRUCTOR(init) {
-    PCI_Vblk_Init(&g_pcie_sim.dev);
+    PCI_Vnet_Init(&g_pcie_sim.dev);
 }
 
 int main(int argc, char **argv)
@@ -108,7 +103,7 @@ int main(int argc, char **argv)
     int nrecv;
     struct sockaddr_un server;
     char *path = PCIE_SIM_PATH;
-    struct cosim_trans_hdr hdr;
+    PCIE_SIM_SERVER_HDR_S hdr;
 
     if (argc >= 2) {
         path = argv[1];
@@ -157,7 +152,7 @@ int main(int argc, char **argv)
 
             memcpy(&g_pcie_sim_send_hdr, &hdr, sizeof(hdr));
 
-            _pcie_sim_server_process_tlp(g_pcie_sim_recv_buf, hdr.data_len);
+            _pcie_sim_server_process_tlp(g_pcie_sim_recv_buf, hdr.len);
         }
 
         close(fd);

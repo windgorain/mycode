@@ -39,17 +39,23 @@ int PCI_DMA_ProcessMwr(void *msg, int len, PF_PCI_DMA_WRITE dma_write_func, void
     addr = PCIE_GetMemTlpAddr(msg);
     last_dw_addr = PCIE_GetLastDwAddr(addr, length);
 
-    _pci_dma_process_mwr_be(addr, data, first_be, dma_write_func, user_data);
-
-    length -= 4;
-    if (length <= 0) {
-        return 0;
+    /* 中断处理 */
+    if ((addr & 0xfff00000) == 0xfee00000) {
+        return dma_write_func(addr, data, length, user_data);
     }
 
-    addr += 4;
-    data += 4;
+    if (first_be != 0xf) {
+        _pci_dma_process_mwr_be(addr, data, first_be, dma_write_func, user_data);
+        length -= 4;
+        if (length <= 0) {
+            return 0;
+        }
 
-    if (last_be) {
+        addr += 4;
+        data += 4;
+    }
+
+    if ((last_be) && (last_be != 0xf)) {
         length -= 4;
         _pci_dma_process_mwr_be(last_dw_addr, data + length, last_be, dma_write_func, user_data);
     }
@@ -73,12 +79,14 @@ int PCI_DMA_ProcessMrd(PCIE_TLP_MEM_S *tlp, int len,
     UCHAR last_be;
     int length;
     PCIE_TLP_S reply_msg = {0};
+    PCIE_TLP_COMPLETE_S *cpld = (void*)&reply_msg;
     UINT low_addr;
     UINT last_drop = 0;
     UINT byte_count;
     UINT size;
     UINT copy_size;
     char buf[PCIE_RCB];
+    UCHAR tag;
 
     length = PCIE_GetTlpDataLength((void*)tlp);
     first_be = PCIE_TLP_CFG_FIRST_BE(tlp);
@@ -86,6 +94,7 @@ int PCI_DMA_ProcessMrd(PCIE_TLP_MEM_S *tlp, int len,
     addr = PCIE_GetMemTlpAddr(tlp);
     last_dw_addr = PCIE_GetLastDwAddr(addr, length);
     low_addr = PCIE_FirstBe2LowAddr(addr, first_be);
+    tag = PCIE_TLP_CFG_TAG(tlp);
 
     /* 根据last_be计算最后需要少拷贝几个字节 */
     if (last_be) {
@@ -103,6 +112,7 @@ int PCI_DMA_ProcessMrd(PCIE_TLP_MEM_S *tlp, int len,
         }
         dma_read_func(addr + (low_addr & 0x3), buf, copy_size, user_data);
         PCIE_BuildCpldTLP(0, tlp->request_id, byte_count, low_addr, copy_size, buf, (void*)&reply_msg);
+        cpld->tag = tag;
         send_func(&reply_msg, PCIE_TLP_3DW + size, user_data);
         byte_count -= size;
         addr += size;

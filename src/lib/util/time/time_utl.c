@@ -27,11 +27,28 @@ typedef enum tagHTTP_TimeStandard
 } HTTP_TIME_STANDARD_E;
 
 /* var */
-static CHAR *g_aucTimeWeekDay[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-static CHAR *g_aucTimeMonth[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+static const char *g_aucTimeWeekDay[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+static const char *g_aucTimeMonth[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 static UCHAR g_aucDaysOfMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 unsigned long TM_HZ = 0;   /* 一秒的tick数 */
 unsigned long TM_MS_HZ = 0; /* 一U秒的tick数 */
+
+#ifdef IN_WINDOWS
+static inline UINT64 _tm_os_GetNsFromInit(void)
+{
+    return (UINT64)GetTickCount();
+}
+#endif
+
+#ifdef IN_UNIXLIKE
+static inline UINT64 _tm_os_GetNsFromInit(void)
+{
+    struct timespec ts;
+
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+    return ((UINT64)ts.tv_sec * 1000000000 + (UINT64)ts.tv_nsec);
+}
+#endif
 
 /* 转换成如下格式:Fri, 29 Feb 2008 12:20:34  */
 VOID TM_Utc2String(IN time_t ulUtcTime, OUT CHAR *szStringTime)
@@ -805,59 +822,55 @@ time_t TM_Gmt2Utc(IN CHAR *pcValue, IN ULONG ulLen)
     return (time_t) ulTime;
 }
 
-char * TM_GetTimeString(OUT char* out_datetime, int length, UINT input_time/*0表示取当前时间*/)
+/*
+ * input_time: 0表示取当前时间
+ * string: NULL表示使用内置静态变量,多线程环境下有可能覆盖 
+ */
+char * TM_GetTimeString(UINT input_time, OUT char *string, int size)
 {
     struct tm *tm;
+    static char tmp[64];
+
+    if (! string) {
+        string = tmp;
+        size = sizeof(tmp);
+    }
 
     if(input_time == 0){
         struct timeval tv;
         gettimeofday(&tv, NULL);
         tm = localtime(&tv.tv_sec);
-        sprintf(out_datetime, "%04d-%02d-%02d %02d:%02d:%02d.%06u",
-                tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour,
-                tm->tm_min, tm->tm_sec, (UINT) (tv.tv_usec));
     } else {
         time_t now=(time_t)input_time;
-        tm= localtime(&now);
-        strftime(out_datetime,length,"%Y-%m-%d %H:%M:%S",tm);
+        tm = localtime(&now);
     }
 
-    return out_datetime;
-}
+    strftime(string, size, "%Y-%m-%d %H:%M:%S", tm);
+/*
+    snprintf(string, size, "%04d-%02d-%02d %02d:%02d:%02d.%06u",
+            tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour,
+            tm->tm_min, tm->tm_sec, (UINT) (tv.tv_usec));
+*/
 
-#ifdef IN_WINDOWS
-static inline UINT64 tm_os_GetNsFromInit(void)
-{
-    return (UINT64)GetTickCount();
+    return string;
 }
-#endif
-
-#ifdef IN_UNIXLIKE
-static inline UINT64 tm_os_GetNsFromInit(void)
-{
-    struct timespec ts;
-
-    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-    return ((UINT64)ts.tv_sec * 1000000000 + (UINT64)ts.tv_nsec);
-}
-#endif
 
 /* 从系统启动到现在的ns数 */
 UINT64 TM_NsFromInit(void)
 {
-    return tm_os_GetNsFromInit();
+    return _tm_os_GetNsFromInit();
 }
 
 /* 从系统启动到现在的us数 */
 UINT64 TM_UsFromInit(void)
 {
-    return tm_os_GetNsFromInit() / 1000;
+    return _tm_os_GetNsFromInit() / 1000;
 }
 
 /* 从系统启动到现在的ms数 */
 UINT64 TM_MsFromInit(void)
 {
-    return tm_os_GetNsFromInit() / 1000000;
+    return _tm_os_GetNsFromInit() / 1000000;
 }
 
 /* 从系统启动到现在的秒数 */

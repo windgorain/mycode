@@ -22,13 +22,18 @@ void PCIE_TAG_Init(OUT PCIE_TAG_S *tags)
 
 static int pcie_tag_alloc_tag(PCIE_TAG_S *tags)
 {
-    int i;
-    for (i=0; i<PCIE_TAG_MAX; i++) {
-        if (! tags->node[i].used) {
-            tags->node[i].used = 1;
-            return i;
+    UCHAR tag;
+
+    tag = tags->tag_begin;
+
+    do {
+        if (! tags->node[tag].used) {
+            tags->node[tag].used = 1;
+            tags->tag_begin = tag + 1;
+            return tag;
         }
-    }
+        tag ++;
+    } while(tag != tags->tag_begin);
 
     return -1;
 }

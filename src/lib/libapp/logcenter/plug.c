@@ -1,19 +1,19 @@
 /*================================================================
-*   Created：2018.10.04 LiXingang All rights reserved.
-*   Description: 自动根据系统创建接口
+*   Created by LiXingang
+*   Description: 
 *
 ================================================================*/
 #include "bs.h"
-
 #include "utl/local_info.h"
 
-extern int TUN_Init();
+extern void LogCenter_Init();
 
 PLUG_API int Plug_Stage(int stage)
 {
     switch (stage) {
         case PLUG_STAGE_PLUG_LOAD:
-            return TUN_Init();
+            LogCenter_Init();
+            break;
         default:
             break;
     }
@@ -22,3 +22,5 @@ PLUG_API int Plug_Stage(int stage)
 }
 
 PLUG_MAIN
+
+

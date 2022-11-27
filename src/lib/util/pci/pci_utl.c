@@ -319,7 +319,7 @@ void PCIE_BuildEpMemWriteTLP(USHORT bdf, UINT addr, BOOL_T is64, int size, void 
     } else {
         PCIE_BuildMemTLP(2, 0, bdf, addr, is64, size, tlp);
     }
-    PCIE_WriteTlpData(data, size, is64, (void*)tlp);
+    PCIE_WriteTlpData(data, NUM_ALIGN(size, 4), is64, (void*)tlp);
 }
 
 void PCIE_BuildCpldTLP(USHORT comp_id, USHORT req_id, UINT byte_count,

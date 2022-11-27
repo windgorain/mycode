@@ -13,7 +13,7 @@
 
 void UCHAR_2_HEX(UCHAR c, OUT CHAR *hex)
 {
-    static char * hexchars="0123456789abcdef";
+    static const char * hexchars="0123456789abcdef";
 
     hex[0] = hexchars[(c>>4) & 0xf];
     hex[1] = hexchars[(c) & 0xf];

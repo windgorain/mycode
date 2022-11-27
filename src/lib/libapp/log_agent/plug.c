@@ -6,12 +6,12 @@
 ******************************************************************************/
 #include "bs.h"
 
+#include "comp/comp_logagent.h"
 #include "utl/local_info.h"
 
 extern int LOGAGENT_TCP_Init();
 extern int LOGAGENT_HTTP_Init();
 extern int LOGAGENT_ALERT_Init();
-extern int LOGAGENT_COMP_Init();
 
 PLUG_API int Plug_Stage(int stage)
 {
@@ -20,7 +20,6 @@ PLUG_API int Plug_Stage(int stage)
             LOGAGENT_TCP_Init();
             LOGAGENT_HTTP_Init();
             LOGAGENT_ALERT_Init();
-            LOGAGENT_COMP_Init();
             break;
         default:
             break;

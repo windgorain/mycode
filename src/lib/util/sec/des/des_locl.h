@@ -93,7 +93,7 @@
 
 #define D_ENCRYPT(LL,R,S) {\
 	LOAD_DATA_tmp(R,S,u,t,E0,E1); \
-	t=ROTATE(t,4); \
+	t = BIT_ROTATE(t,4); \
 	LL^=\
 		g_DES_SPtrans[0][(u>> 2L)&0x3f]^ \
 		g_DES_SPtrans[2][(u>>10L)&0x3f]^ \

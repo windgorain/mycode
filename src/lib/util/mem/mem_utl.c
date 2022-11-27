@@ -178,7 +178,7 @@ int MEM_Sprint(IN UCHAR *pucMem, IN UINT uiLen, OUT char *buf, int buf_size)
             copyed_len += len;
             d += tmp_len2;
         }
-        len = strlcpy(buf + copyed_len, "\r\n", reserved_size);
+        len = strlcpy(buf + copyed_len, (char*)"\r\n", reserved_size);
         if (len >= reserved_size) {
             RETURN(BS_OUT_OF_RANGE);
         }
@@ -217,7 +217,7 @@ void MEM_Print(UCHAR *pucMem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用
             func(info);
             d += tmp_len2;
         }
-        func("\r\n");
+        func((char*)"\r\n");
     }
 }
 

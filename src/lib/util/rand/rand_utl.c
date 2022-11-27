@@ -31,6 +31,16 @@ VOID RAND_Entropy(IN UINT uiEntropy)
     srand(seed);
 }
 
+/* 生成一段随机内存 */
+void RAND_Mem(OUT UCHAR *buf, int len)
+{
+    int i;
+
+    for (i=0; i<len; i++) {
+        buf[i] = RAND_Get();
+    }
+}
+
 #ifdef IN_UNIXLIKE
 /* 获取/dev/urandom随机数 */
 unsigned long RAND_GetRandom(void)

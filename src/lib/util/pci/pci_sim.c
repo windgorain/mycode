@@ -23,7 +23,7 @@ static int _pcie_sim_process_cfg_read(PCIE_SIM_S *sim, void *msg)
         RETURN(BS_ERR);
     }
 
-    UINT v = PCIE_DevCfg_Read(&sim->dev, addr, size);
+    UINT v = PCIE_DEV_ReadConfig(&sim->dev, addr);
 
     v = htonl(v);
 
@@ -44,11 +44,49 @@ static int _pcie_sim_process_cfg_write(PCIE_SIM_S *sim, void *msg, int len)
 
     val = ntohl(val);
 
-    PCIE_DevCfg_Write(&sim->dev, addr, val, first_be);
+    PCIE_DEV_WriteConfig(&sim->dev, addr, val, first_be);
 
     PCIE_BuildCplTLP(sim->bdf, tlp->request_id, &cpl);
 
     return sim->tlp_send(sim, &cpl, sizeof(cpl));
+}
+
+static int _pcie_sim_process_mrd(PCIE_SIM_S *sim, void *msg, int len)
+{
+    PCIE_TLP_MEM_S *tlp = msg;
+    PCIE_TLP_CFG_CPLD_S cpld = {0};
+
+    UINT size = PCIE_GetTlpDataLength((void*)tlp);
+    UINT first_be = PCIE_TLP_CFG_FIRST_BE(tlp);
+    UINT addr = PCIE_GetMemTlpAddr(tlp);
+    UINT low_addr = PCIE_FirstBe2LowAddr(addr, first_be);
+
+    if (size > 4) {
+        BS_DBGASSERT(0);
+        RETURN(BS_ERR);
+    }
+
+    UINT v = PCIE_DEV_ReadBar(&sim->dev, 0, addr);
+
+    v = htonl(v);
+
+    PCIE_BuildCpldTLP(sim->bdf, tlp->request_id, size, low_addr, size, &v, (void*)&cpld);
+
+    return sim->tlp_send(sim, &cpld, PCIE_TLP_3DW + size);
+}
+
+static int _pcie_sim_process_mwr(PCIE_SIM_S *sim, void *msg, int len)
+{
+    PCIE_TLP_MEM_S *tlp = msg;
+
+    UINT first_be = PCIE_TLP_CFG_FIRST_BE(tlp);
+    UINT64 addr = PCIE_GetMemTlpAddr(tlp);
+    UINT *v = PCIE_GetTlpDataPtr(tlp);
+    UINT val = *v;
+
+    val = ntohl(val);
+
+    return PCIE_DEV_WriteBar(&sim->dev, 0, addr, val, first_be);
 }
 
 static int _pcie_sim_process_recved_msg(PCIE_SIM_S *sim, void *msg, int len)
@@ -59,9 +97,11 @@ static int _pcie_sim_process_recved_msg(PCIE_SIM_S *sim, void *msg, int len)
     switch (type) {
         case PCIE_TLP_TYPE_MRD:
         case PCIE_TLP_TYPE_MRDLK:
+            ret = _pcie_sim_process_mrd(sim, msg, len);
             break;
 
         case PCIE_TLP_TYPE_MWR:
+            ret = _pcie_sim_process_mwr(sim, msg, len);
             break;
 
         case PCIE_TLP_TYPE_CPL:

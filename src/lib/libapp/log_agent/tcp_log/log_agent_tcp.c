@@ -42,6 +42,9 @@ static void logagent_tcp_DoMatch(void *ippkt, UINT pktlen, NET_PKT_TYPE_E type)
 int LOGAGENT_TCP_Init()
 {
     g_logagent_tcp_match = IPMatch_Create(LOGAGENT_TCP_MACTCH_COUNT);
+
+    TCPLOG_Init(&g_logagent_tcp_log);
+
     return 0;
 }
 
@@ -55,16 +58,20 @@ MATCH_HANDLE LOGAGENT_TCP_GetMatch()
     return g_logagent_tcp_match;
 }
 
-BS_STATUS LOGAGENT_TCP_ParseConfig(char *conf_string)
+BS_STATUS LOGAGENT_TCP_ParseConfig(char *conf_string, UCHAR *is_enable)
 {
-    TCPLOG_Init(&g_logagent_tcp_log, LOGAGENT_CONF_GetConfDir(),
+    TCPLOG_SetDir(&g_logagent_tcp_log, LOGAGENT_CONF_GetConfDir(),
             LOGAGENT_CONF_GetLogDir());
-    return TCPLOG_ParseConfig(&g_logagent_tcp_log, conf_string);
+    int ret = TCPLOG_ParseConfig(&g_logagent_tcp_log, conf_string);
+
+    *is_enable = g_logagent_tcp_log.log_enable;
+
+    return ret;
 }
 
-int LOGAGENT_TCP_Input(void *ippkt, UINT pktlen, NET_PKT_TYPE_E pkt_type)
+int LOGAGENT_TCP_Input(void *ippkt, UINT pktlen, NET_PKT_TYPE_E pkt_type, int dir)
 {
-    int ret = TCPLOG_Input(&g_logagent_tcp_log, ippkt, pktlen, pkt_type);
+    int ret = TCPLOG_Input(&g_logagent_tcp_log, ippkt, pktlen, pkt_type, dir);
 
     if (ret == BS_OK) {
         logagent_tcp_DoMatch(ippkt, pktlen, pkt_type);
@@ -72,5 +79,3 @@ int LOGAGENT_TCP_Input(void *ippkt, UINT pktlen, NET_PKT_TYPE_E pkt_type)
 
     return ret;
 }
-
-

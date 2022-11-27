@@ -6,7 +6,6 @@ aux_source_directory(./tcp_log SRC)
 aux_source_directory(./alert_count SRC)
 aux_source_directory(./conf SRC)
 aux_source_directory(./cmd SRC)
-aux_source_directory(./comp SRC)
 set(NAME logagent)
 INCLUDE(../my_libapp.txt)
 
