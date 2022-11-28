@@ -55,6 +55,7 @@ BITMATCH_S * BITMATCH_Create(int tab_number, int max_rule_num)
     }
 
     ctrl->tab_number = tab_number;
+    ctrl->max_rule_num = max_rule_num;
 
     return ctrl;
 }
@@ -90,10 +91,9 @@ void BITMATCH_DelRule(BITMATCH_S *ctrl, UINT tbl_index, UCHAR range_min, UCHAR r
     BS_DBGASSERT(rule_id < ctrl->max_rule_num);
     BS_DBGASSERT(range_max >= range_min);
 
-    bits = ctrl->data + ((ctrl->max_rule_num / 8) * tbl_index);
-
     for (i=range_min; i<=range_max; i++) {
-        ArrayBit_Clr(bits, i);
+        bits = bitmatch_get_bits(ctrl, tbl_index, i);
+        ArrayBit_Clr(bits, rule_id);
     }
 }
 
