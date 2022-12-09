@@ -14,25 +14,42 @@
 #include "utl/mem_utl.h"
 #include "utl/list_dtq.h"
 
-void * MEM_RcuMalloc(IN UINT uiSize)
+static void _mem_rcu_free_callback(void *pstRcuNode)
+{
+    MEM_Free(pstRcuNode);
+}
+
+void * _mem_rcu_malloc(IN UINT uiSize, const char *file, int line)
 {
     UINT uiNewSize;
     UCHAR *pucMem;
 
     uiNewSize = sizeof(RCU_NODE_S) + uiSize;
 
-    pucMem = MEM_Malloc(uiNewSize);
-    if (NULL == pucMem)
-    {
+    pucMem = _mem_Malloc(uiNewSize, file, line);
+    if (NULL == pucMem) {
         return NULL;
     }
 
     return pucMem + sizeof(RCU_NODE_S);
 }
 
-static void _mem_RcuFreeCallBack(void *pstRcuNode)
+void * _mem_rcu_zmalloc(IN UINT uiSize, const char *file, int line)
 {
-    MEM_Free(pstRcuNode);
+    void *pMem = MEM_RcuMalloc(uiSize);
+    if (pMem) {
+        Mem_Zero(pMem, uiSize);
+    }
+    return pMem;
+}
+
+void * _mem_rcu_dup(void *mem, int size, const char *file, int line)
+{
+    void *buf = _mem_rcu_malloc(size, file, line);
+    if (buf) {
+        memcpy(buf, mem, size);
+    }
+    return buf;
 }
 
 void MEM_RcuFree(IN VOID *pMem)
@@ -41,6 +58,6 @@ void MEM_RcuFree(IN VOID *pMem)
 
     pucMem -= sizeof(RCU_NODE_S);
 
-    RcuEngine_Call((RCU_NODE_S*)pucMem, _mem_RcuFreeCallBack);
+    RcuEngine_Call((RCU_NODE_S*)pucMem, _mem_rcu_free_callback);
 }
 

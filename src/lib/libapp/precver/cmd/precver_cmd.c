@@ -164,8 +164,14 @@ static void precer_cmd_save(void *worker, void *ud)
         return;
     }
 
-    if (wrk->index == 0) { /* 0是全局配置 */
-        precver_cmd_SaveWorker(ud, wrk);
+    /* 0是运行配置, 只显示不保存 */
+    if (wrk->index == 0) {
+        if (CmdExp_IsShowing(ud)) {
+            if (0 == CMD_EXP_OutputMode(ud, "worker %d", wrk->index)) {
+                precver_cmd_SaveWorker(ud, wrk);
+                CMD_EXP_OutputModeQuit(ud);
+            }
+        }
         return;
     }
 

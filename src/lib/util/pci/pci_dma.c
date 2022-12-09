@@ -94,7 +94,7 @@ int PCI_DMA_ProcessMrd(PCIE_TLP_MEM_S *tlp, int len,
     addr = PCIE_GetMemTlpAddr(tlp);
     last_dw_addr = PCIE_GetLastDwAddr(addr, length);
     low_addr = PCIE_FirstBe2LowAddr(addr, first_be);
-    tag = PCIE_TLP_CFG_TAG(tlp);
+    tag = tlp->tag;
 
     /* 根据last_be计算最后需要少拷贝几个字节 */
     if (last_be) {
@@ -102,19 +102,22 @@ int PCI_DMA_ProcessMrd(PCIE_TLP_MEM_S *tlp, int len,
     }
 
     byte_count = length;
+    byte_count -= last_drop;
+    byte_count -= (low_addr & 0x3);
 
-    while (byte_count > 0) {
+    while (length > 0) {
         size = PCIE_RCB - (addr % PCIE_RCB);
-        size = MIN(size, byte_count);
+        size = MIN(size, length);
         copy_size = size - (low_addr & 0x3);
         if (addr + copy_size > last_dw_addr) {
             copy_size -= last_drop;
         }
-        dma_read_func(addr + (low_addr & 0x3), buf, copy_size, user_data);
-        PCIE_BuildCpldTLP(0, tlp->request_id, byte_count, low_addr, copy_size, buf, (void*)&reply_msg);
+        dma_read_func(addr + (low_addr & 0x3), &buf[low_addr & 0x3], copy_size, user_data);
+        PCIE_BuildCpldTLP(0, tlp->request_id, byte_count, low_addr, size, buf, (void*)&reply_msg);
         cpld->tag = tag;
         send_func(&reply_msg, PCIE_TLP_3DW + size, user_data);
-        byte_count -= size;
+        length -= size;
+        byte_count -= copy_size;
         addr += size;
         low_addr = 0;
     }

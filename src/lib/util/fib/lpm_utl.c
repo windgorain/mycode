@@ -436,6 +436,7 @@ static void lpm_reset(void *plpm)
     lpm->funcs = &g_lpm_funcs;
 }
 
+/* array_size: LPM_ENTRY_S的个数 */
 int LPM_Init(IN LPM_S *lpm, IN UINT array_size, IN LPM_ENTRY_S *array/* 可以为NULL */)
 {
     memset(lpm, 0, sizeof(LPM_S));

@@ -12,13 +12,13 @@ BS_STATUS THREAD_Display()
     THREAD_NAMED_ITER_S iter;
     THREAD_NAMED_INFO_S *info;
 
-    EXEC_OutString(" ThreadID ThreadName\r\n"
+    EXEC_OutString(" ThreadID   ThreadName\r\n"
         "--------------------------------------------------------------------------\r\n");
 
     ThreadNamed_InitIter(&iter);
 
     while (NULL != (info = ThreadNamed_GetNext(&iter))) {
-        EXEC_OutInfo(" %-8u %-16s\r\n", info->thread_id, info->name);
+        EXEC_OutInfo(" %-10u %-16s\r\n", info->thread_id, info->name);
     }
 
     EXEC_OutString("\r\n");
@@ -26,7 +26,7 @@ BS_STATUS THREAD_Display()
     return BS_OK;
 }
 
-THREAD_ID THREAD_Create
+THREAD_ID _thread_create
 (
     IN CHAR  *pucName,
     IN THREAD_CREATE_PARAM_S *pstParam, /* 可以为NULL */
@@ -35,5 +35,10 @@ THREAD_ID THREAD_Create
 )
 {
     return ThreadNamed_Create(pucName, pstParam, pfFunc, pstUserHandle);
+}
+
+void _thread_reg_ob(THREAD_NAMED_OB_S *ob)
+{
+    ThreadNamed_RegOb(ob);
 }
 

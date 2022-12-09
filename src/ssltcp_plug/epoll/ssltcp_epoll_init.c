@@ -89,8 +89,7 @@ static BS_STATUS _SSLTCP_Epll_AsynSocketInit()
         RETURN(BS_ERR);
     }
 
-    if (THREAD_INVALID_ID == THREAD_Create("Epoll", NULL,
-                _SSLTCP_Epoll_Main, NULL)) {
+    if (THREAD_ID_INVALID == THREAD_Create("Epoll", NULL, _SSLTCP_Epoll_Main, NULL)) {
         RETURN(BS_ERR);
     }
 

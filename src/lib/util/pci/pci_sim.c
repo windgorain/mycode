@@ -28,6 +28,7 @@ static int _pcie_sim_process_cfg_read(PCIE_SIM_S *sim, void *msg)
     v = htonl(v);
 
     PCIE_BuildCpldTLP(sim->bdf, tlp->request_id, size, low_addr, size, &v, (void*)&cpld);
+    cpld.tlp.tag = tlp->tag;
 
     return sim->tlp_send(sim, &cpld, PCIE_TLP_3DW + size);
 }
@@ -47,6 +48,7 @@ static int _pcie_sim_process_cfg_write(PCIE_SIM_S *sim, void *msg, int len)
     PCIE_DEV_WriteConfig(&sim->dev, addr, val, first_be);
 
     PCIE_BuildCplTLP(sim->bdf, tlp->request_id, &cpl);
+    cpl.tag = tlp->tag;
 
     return sim->tlp_send(sim, &cpl, sizeof(cpl));
 }
@@ -71,6 +73,7 @@ static int _pcie_sim_process_mrd(PCIE_SIM_S *sim, void *msg, int len)
     v = htonl(v);
 
     PCIE_BuildCpldTLP(sim->bdf, tlp->request_id, size, low_addr, size, &v, (void*)&cpld);
+    cpld.tlp.tag = tlp->tag;
 
     return sim->tlp_send(sim, &cpld, PCIE_TLP_3DW + size);
 }

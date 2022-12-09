@@ -155,7 +155,7 @@ static BS_STATUS svpn_acl_ContextCreate(IN SVPN_CONTEXT_HANDLE hSvpnContext)
         return BS_NO_MEMORY;
     }
 
-    pstAclCtx->hUriAcl = URI_ACL_Create();
+    pstAclCtx->hUriAcl = URI_ACL_Create(NULL);
 
     if (NULL == pstAclCtx->hUriAcl)
     {

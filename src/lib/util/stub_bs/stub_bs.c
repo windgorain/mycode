@@ -7,7 +7,7 @@
 #include "bs.h"
 #include "utl/mem_utl.h"
 
-VOID * mem_Malloc(IN UINT uiSize, const char *pcFileName, IN UINT uiLine)
+VOID * _mem_Malloc(IN UINT uiSize, const char *pcFileName, IN UINT uiLine)
 {
 #ifdef SUPPORT_MEM_MANAGED
     return MEM_MallocMem(uiSize, pcFileName, uiLine);
@@ -16,7 +16,7 @@ VOID * mem_Malloc(IN UINT uiSize, const char *pcFileName, IN UINT uiLine)
 #endif
 }
 
-VOID mem_Free(IN VOID *pMem, const char *pcFileName, IN UINT uiLine)
+VOID _mem_Free(IN VOID *pMem, const char *pcFileName, IN UINT uiLine)
 {
 #ifdef SUPPORT_MEM_MANAGED
     MEM_FreeMem(pMem, pcFileName, uiLine);

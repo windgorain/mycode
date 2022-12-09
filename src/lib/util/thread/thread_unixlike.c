@@ -21,7 +21,7 @@ THREAD_ID _ThreadOs_Create(PF_THREAD_UTL_FUNC func, UINT pri, UINT stack_size, v
     pthread_attr_setscope(&attr, PTHREAD_CREATE_DETACHED);
 
     if (0 != pthread_create(&tid, NULL, (PF_START_ROUTINE_FUNC)func, arg)) {
-        return THREAD_INVALID_ID;
+        return THREAD_ID_INVALID;
     }
 
     return tid;

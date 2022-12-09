@@ -46,16 +46,19 @@ void MSGQUE_Delete(MSGQUE_S *q)
     }
 }
 
+/* 获取消息个数 */
 UINT MSGQUE_Count(MSGQUE_S *q)
 {
 	return (q->prod - q->cons);
 }
 
+/* 获取空闲位置个数 */
 UINT MSGQUE_FreeCount(MSGQUE_S *q)
 {
 	return q->capacity - MSGQUE_Count(q);
 }
 
+/* 消息队列是否已满 */
 int MSGQUE_Full(MSGQUE_S *q)
 {
 	if (MSGQUE_FreeCount(q) == 0) {
@@ -64,6 +67,7 @@ int MSGQUE_Full(MSGQUE_S *q)
     return FALSE;
 }
 
+/* 消息队列是否空的 */
 int MSGQUE_Empty(MSGQUE_S *q)
 {
 	return MSGQUE_Count(q) == 0;

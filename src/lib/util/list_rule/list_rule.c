@@ -11,35 +11,17 @@
 #include "utl/list_rule.h"
 #include "utl/mem_cap.h"
 
-LIST_RULE_LIST_S *ListRule_GetListByID(IN LIST_RULE_HANDLE hListRule, IN UINT uiListID)
-{
-    LIST_RULE_CTRL_S *pstCtx = hListRule;
-    LIST_RULE_HEAD_S *pstListHead;
-
-    pstListHead = NAP_GetNodeByID(pstCtx->hListNap, uiListID);
-    if (NULL == pstListHead)
-    {
-        return NULL;
-    }
-
-    return pstListHead->pstListRule;
-}
-
-static VOID _listrule_DelListNode(
-    IN LIST_RULE_CTRL_S *pstCtx,
-    IN LIST_RULE_HEAD_S *pstListHead,
-    IN PF_RULE_FREE pfFunc,
-    IN VOID *pUserHandle)
+static void _listrule_DelListNode(LIST_RULE_CTRL_S *pstCtx, LIST_RULE_HEAD_S *pstListHead, PF_RULE_FREE pfFunc, void *ud)
 {
     LIST_RULE_LIST_S *pstList = pstListHead->pstListRule;
 
-    if (NULL != pstList)
-    {
-        ListRule_DestroyList((LIST_RULE_HANDLE)pstCtx, pstList, pfFunc, pUserHandle);
+    if (NULL != pstList) {
+        ListRule_DestroyList((LIST_RULE_HANDLE)pstCtx, pstList, pfFunc, ud);
         pstListHead->pstListRule = NULL;
     }
 
     NAP_Free(pstCtx->hListNap, pstListHead);
+
     return;
 }
 
@@ -53,6 +35,22 @@ static void _listrule_reset(INOUT LIST_RULE_CTRL_S *pstCtx, PF_RULE_FREE pfFunc,
         pstListHead = NAP_GetNodeByIndex(pstCtx->hListNap, uiIndex);
         _listrule_DelListNode(pstCtx, pstListHead, pfFunc, pUserHandle);
     }
+}
+
+static LIST_RULE_HEAD_S *_listrule_GetListHeadByName(IN LIST_RULE_HANDLE ctx, IN CHAR *list_name)
+{
+    NAP_HANDLE hListNap = ctx->hListNap;
+    LIST_RULE_HEAD_S *pstListHead;
+    UINT uiIndex = NAP_INVALID_INDEX;
+
+    while ((uiIndex = NAP_GetNextIndex(hListNap, uiIndex)) != NAP_INVALID_INDEX) {
+        pstListHead = NAP_GetNodeByIndex(hListNap, uiIndex);
+        if ((NULL != pstListHead->pstListRule) && (strcmp(pstListHead->pstListRule->list_name, list_name) == 0)) {
+            return pstListHead;
+        }
+    }
+
+    return NULL;
 }
 
 BS_STATUS ListRule_Init(INOUT LIST_RULE_CTRL_S *pstCtx, void *memcap)
@@ -98,120 +96,140 @@ LIST_RULE_HANDLE ListRule_Create(void *memcap)
     return pstCtx;
 }
 
-VOID ListRule_Destroy(IN LIST_RULE_HANDLE hListRule, IN PF_RULE_FREE pfFunc,IN VOID *pUserHandle)
+void ListRule_Destroy(LIST_RULE_HANDLE ctx, PF_RULE_FREE pfFunc, void *pUserHandle)
 {
-    LIST_RULE_CTRL_S *pstCtx = hListRule;
-
-    ListRule_Finit(pstCtx, pfFunc, pUserHandle);
-    MemCap_Free(pstCtx->memcap, pstCtx);
-
+    ListRule_Finit(ctx, pfFunc, pUserHandle);
+    MemCap_Free(ctx->memcap, ctx);
     return;
 }
 
-void ListRule_Reset(IN LIST_RULE_HANDLE hListRule, IN PF_RULE_FREE pfFunc, IN VOID *pUserHandle)
+void ListRule_Reset(IN LIST_RULE_HANDLE ctx, IN PF_RULE_FREE pfFunc, IN VOID *pUserHandle)
 {
-    _listrule_reset(hListRule, pfFunc, pUserHandle);
+    _listrule_reset(ctx, pfFunc, pUserHandle);
     return;
 }
 
-LIST_RULE_LIST_S *ListRule_CreateList(IN LIST_RULE_HANDLE hListRule, IN CHAR *pcListName)
+/* 创建一个list, 但是不加入list表 */
+LIST_RULE_LIST_S * ListRule_CreateList(IN LIST_RULE_HANDLE ctx, IN CHAR *list_name, int user_data_size)
 {
-    LIST_RULE_CTRL_S *pstCtx = hListRule;
     LIST_RULE_LIST_S *pstList;
-    CHAR *pcListNameDup;
 
-    pcListNameDup = TXT_Strdup(pcListName);
-    if (NULL == pcListNameDup)
-    {
-        return NULL;
-    }    
+    BS_DBGASSERT(strlen(list_name) < LIST_RULE_LIST_NAME_SIZE);
 
-    pstList = MemCap_ZMalloc(pstCtx->memcap, sizeof(LIST_RULE_LIST_S));
-    if (NULL == pstList)
-    {
-        MEM_Free(pcListNameDup);
+    pstList = MemCap_ZMalloc(ctx->memcap, sizeof(LIST_RULE_LIST_S) + user_data_size);
+    if (NULL == pstList) {
         return NULL;
     }
 
     RuleList_Init(&pstList->stRuleList);
-    pstList->pcListName = pcListNameDup;
+    strlcpy(pstList->list_name, list_name, sizeof(pstList->list_name));
     pstList->default_action = BS_ACTION_UNDEF;
+
     return pstList;
 }
 
-VOID ListRule_DestroyList(IN LIST_RULE_HANDLE hListRule, LIST_RULE_LIST_S *pstList, IN PF_RULE_FREE pfFunc, IN VOID *pUserHandle)
+VOID ListRule_DestroyList(IN LIST_RULE_HANDLE ctx, LIST_RULE_LIST_S *pstList, IN PF_RULE_FREE pfFunc, IN VOID *uh)
 {
-    LIST_RULE_CTRL_S *pstCtx = hListRule;
-
-    if (NULL != pstList)
-    {
-        RuleList_Finit(&pstList->stRuleList, pfFunc, pUserHandle);
-
-        if (NULL != pstList->pcListName)
-        {
-            MEM_Free(pstList->pcListName);
-            pstList->pcListName = NULL;
-        }
-        MemCap_Free(pstCtx->memcap, pstList);
+    if (NULL != pstList) {
+        RuleList_Finit(&pstList->stRuleList, pfFunc, uh);
+        MemCap_Free(ctx->memcap, pstList);
     }
-
-    return;
 }
 
-UINT ListRule_AddList(IN LIST_RULE_HANDLE hListRule, IN CHAR *pcListName)
+/* 将一个List添加到表中, 返回ListID */
+UINT ListRule_AttachList(LIST_RULE_HANDLE ctx, LIST_RULE_LIST_S *list)
 {
-    LIST_RULE_CTRL_S *pstCtx = hListRule;
     LIST_RULE_HEAD_S *pstListHead;
+
+    pstListHead = NAP_ZAlloc(ctx->hListNap);
+    if (! pstListHead) {
+        return 0;
+    }
+
+    pstListHead->pstListRule = list;
+
+    list->list_id = NAP_GetIDByNode(ctx->hListNap, pstListHead);
+
+    return list->list_id;
+}
+
+/* 根据ListID Detach一个List,  */
+LIST_RULE_LIST_S * ListRule_DetachList(LIST_RULE_HANDLE ctx, UINT list_id)
+{
+    LIST_RULE_HEAD_S *pstListHead;
+
+    pstListHead = NAP_GetNodeByID(ctx->hListNap, list_id);
+    if (! pstListHead) {
+        return NULL;
+    }
+
+    LIST_RULE_LIST_S *list = pstListHead->pstListRule;
+    pstListHead->pstListRule = NULL;
+    NAP_Free(ctx->hListNap, pstListHead);
+
+    list->list_id = NAP_INVALID_ID;
+
+    return list;
+}
+
+/* 创建一个list并加入list表 */
+UINT ListRule_AddList(IN LIST_RULE_HANDLE ctx, IN CHAR *list_name, int user_data_size)
+{
     LIST_RULE_LIST_S *pstList;
 
-    pstList = ListRule_CreateList(hListRule, pcListName);
-    if (NULL == pstList)
-    {
-        return 0;
+    pstList = ListRule_CreateList(ctx, list_name, user_data_size);
+    if (NULL == pstList) {
+        return NAP_INVALID_ID;
     }
 
-    pstListHead = NAP_ZAlloc(pstCtx->hListNap);
-    if (NULL == pstListHead)
-    {
-        ListRule_DestroyList(hListRule, pstList, NULL, NULL);
-        return 0;
+    UINT list_id = ListRule_AttachList(ctx, pstList);
+    if (list_id == 0) {
+        ListRule_DestroyList(ctx, pstList, NULL, NULL);
+        return NAP_INVALID_ID;
     }
 
-    pstListHead->pstListRule = pstList;
-    return NAP_GetIDByNode(pstCtx->hListNap, pstListHead);
+    return list_id;
 }
 
-VOID ListRule_DelList(
-    IN LIST_RULE_HANDLE hListRule,
-    IN UINT uiListID,
-    IN PF_RULE_FREE pfFunc,
-    IN VOID *pUserHandle)
+void ListRule_DelList(LIST_RULE_HANDLE ctx, LIST_RULE_LIST_S *list, PF_RULE_FREE pfFunc, void *ud)
 {
-    LIST_RULE_CTRL_S *pstCtx = hListRule;
+    ListRule_DelListID(ctx, list->list_id, pfFunc, ud);
+}
+
+void ListRule_DelListID(LIST_RULE_HANDLE ctx, UINT uiListID, PF_RULE_FREE pfFunc, void *ud)
+{
     LIST_RULE_HEAD_S *pstListHead;
 
-    pstListHead = NAP_GetNodeByID(pstCtx->hListNap, uiListID);
-    if (NULL == pstListHead)
-    {
+    pstListHead = NAP_GetNodeByID(ctx->hListNap, uiListID);
+    if (NULL == pstListHead) {
         return;
     }
 
-    _listrule_DelListNode(pstCtx, pstListHead, pfFunc, pUserHandle);
+    _listrule_DelListNode(ctx, pstListHead, pfFunc, ud);
+}
+
+LIST_RULE_LIST_S *ListRule_GetListByID(IN LIST_RULE_HANDLE ctx, IN UINT uiListID)
+{
+    LIST_RULE_HEAD_S *pstListHead;
+
+    pstListHead = NAP_GetNodeByID(ctx->hListNap, uiListID);
+    if (NULL == pstListHead) {
+        return NULL;
+    }
+
+    return pstListHead->pstListRule;
 }
 
 /* 返回成功, 自动释放Old List; 返回失败, 需要调用者释放New List */
-BS_STATUS ListRule_ReplaceList(IN LIST_RULE_HANDLE hListRule, 
-                               IN UINT uiListID, IN PF_RULE_FREE pfFunc, IN VOID *pUserHandle, 
-                               IN LIST_RULE_LIST_S *pstListNew)
+int ListRule_ReplaceList(LIST_RULE_HANDLE ctx, UINT uiListID,
+        PF_RULE_FREE pfFunc, void *ud, LIST_RULE_LIST_S *pstListNew)
 {
-    LIST_RULE_CTRL_S *pstCtx = hListRule;
     LIST_RULE_HEAD_S *pstListHead;
     LIST_RULE_LIST_S *pstListOld;
 
-    pstListHead = NAP_GetNodeByID(pstCtx->hListNap, uiListID);
-    if (NULL == pstListHead)
-    {
-        return BS_NOT_FOUND;
+    pstListHead = NAP_GetNodeByID(ctx->hListNap, uiListID);
+    if (! pstListHead) {
+        RETURN(BS_NOT_FOUND);
     }
 
     pstListOld = pstListHead->pstListRule;
@@ -224,20 +242,19 @@ BS_STATUS ListRule_ReplaceList(IN LIST_RULE_HANDLE hListRule,
 
     if (NULL != pstListOld)
     {
-        ListRule_DestroyList(hListRule, pstListOld, pfFunc, pUserHandle);
+        ListRule_DestroyList(ctx, pstListOld, pfFunc, ud);
     }
 
     return BS_OK;
 }
 
 /* 增加List的引用计数 */
-BS_STATUS ListRule_AddListRef(IN LIST_RULE_HANDLE hListRule, IN UINT uiListID)
+BS_STATUS ListRule_IncListRef(IN LIST_RULE_HANDLE ctx, IN UINT uiListID)
 {
     LIST_RULE_LIST_S *pstList;
 
-    pstList = ListRule_GetListByID(hListRule, uiListID);
-    if (NULL == pstList)
-    {
+    pstList = ListRule_GetListByID(ctx, uiListID);
+    if (NULL == pstList) {
         return BS_NOT_FOUND;
     }
 
@@ -247,13 +264,12 @@ BS_STATUS ListRule_AddListRef(IN LIST_RULE_HANDLE hListRule, IN UINT uiListID)
 }
 
 /* 减少List的引用计数 */
-BS_STATUS ListRule_DelListRef(IN LIST_RULE_HANDLE hListRule, IN UINT uiListID)
+BS_STATUS ListRule_DecListRef(IN LIST_RULE_HANDLE ctx, IN UINT uiListID)
 {
     LIST_RULE_LIST_S *pstList;
 
-    pstList = ListRule_GetListByID(hListRule, uiListID);
-    if (NULL == pstList)
-    {
+    pstList = ListRule_GetListByID(ctx, uiListID);
+    if (NULL == pstList) {
         return BS_NOT_FOUND;
     }
 
@@ -263,39 +279,50 @@ BS_STATUS ListRule_DelListRef(IN LIST_RULE_HANDLE hListRule, IN UINT uiListID)
 }
 
 /* 获取List的引用计数 */
-UINT ListRule_GetListRef(IN LIST_RULE_HANDLE hListRule, IN UINT uiListID)
+UINT ListRule_GetListRef(IN LIST_RULE_HANDLE ctx, IN UINT uiListID)
 {
     LIST_RULE_LIST_S *pstList;
 
-    pstList = ListRule_GetListByID(hListRule, uiListID);
-    if (NULL == pstList)
-    {
+    pstList = ListRule_GetListByID(ctx, uiListID);
+    if (NULL == pstList) {
         return 0;
     }
 
     return pstList->uiRefCount;
 }
 
-BS_ACTION_E ListRule_GetDefaultActionByID(IN LIST_RULE_HANDLE hListRule, IN UINT uiListID)
+/* 判断是否存在至少一个被应用的list */
+BOOL_T ListRule_IsAnyListRefed(IN LIST_RULE_HANDLE ctx)
+{
+    LIST_RULE_LIST_S *pstList = NULL;
+
+    while ((pstList = ListRule_GetNextList(ctx, pstList))) {
+        if (pstList->uiRefCount > 0){
+            return BOOL_TRUE;
+        }
+    }
+
+    return BOOL_FALSE;
+}
+
+BS_ACTION_E ListRule_GetDefaultActionByID(IN LIST_RULE_HANDLE ctx, IN UINT uiListID)
 {
     LIST_RULE_LIST_S *pstList;
 
-    pstList = ListRule_GetListByID(hListRule, uiListID);
-    if (NULL == pstList)
-    {
+    pstList = ListRule_GetListByID(ctx, uiListID);
+    if (NULL == pstList) {
         return BS_ACTION_UNDEF;
     }
 
     return pstList->default_action;
 }
 
-BS_STATUS ListRule_SetDefaultActionByID(IN LIST_RULE_HANDLE hListRule, IN UINT uiListID, BS_ACTION_E enAciton)
+BS_STATUS ListRule_SetDefaultActionByID(IN LIST_RULE_HANDLE ctx, IN UINT uiListID, BS_ACTION_E enAciton)
 {
     LIST_RULE_LIST_S *pstList;
 
-    pstList = ListRule_GetListByID(hListRule, uiListID);
-    if (NULL == pstList)
-    {
+    pstList = ListRule_GetListByID(ctx, uiListID);
+    if (NULL == pstList) {
         return BS_NO_SUCH;
     }
 
@@ -303,70 +330,62 @@ BS_STATUS ListRule_SetDefaultActionByID(IN LIST_RULE_HANDLE hListRule, IN UINT u
     return BS_OK;
 }
 
-static LIST_RULE_HEAD_S *_listrule_GetListHeadByName(IN LIST_RULE_HANDLE hListRule, IN CHAR *pcListName)
+UINT ListRule_GetListIDByName(IN LIST_RULE_HANDLE ctx, IN CHAR *list_name)
 {
-    LIST_RULE_CTRL_S *pstCtx = hListRule;
-    NAP_HANDLE hListNap = pstCtx->hListNap;
-    LIST_RULE_HEAD_S *pstListHead;
-    UINT uiIndex = NAP_INVALID_INDEX;
-
-    while ((uiIndex = NAP_GetNextIndex(hListNap, uiIndex)) != NAP_INVALID_INDEX)
-    {
-        pstListHead = NAP_GetNodeByIndex(hListNap, uiIndex);
-        if ((NULL != pstListHead->pstListRule) && (strcmp(pstListHead->pstListRule->pcListName, pcListName) == 0))
-        {
-            return pstListHead;
-        }
-    }
-
-    return NULL;
-}
-
-UINT ListRule_GetListIDByName(IN LIST_RULE_HANDLE hListRule, IN CHAR *pcListName)
-{
-    LIST_RULE_CTRL_S *pstCtx = hListRule;
     LIST_RULE_HEAD_S *pstListHead;
 
-    pstListHead = _listrule_GetListHeadByName(hListRule, pcListName);
+    pstListHead = _listrule_GetListHeadByName(ctx, list_name);
     if (NULL != pstListHead)
     {
-        return NAP_GetIDByNode(pstCtx->hListNap, pstListHead);
+        return NAP_GetIDByNode(ctx->hListNap, pstListHead);
     }
 
     return 0;
 }
 
-LIST_RULE_LIST_S *ListRule_GetListByName(IN LIST_RULE_HANDLE hListRule, IN CHAR *pcListName)
+LIST_RULE_LIST_S * ListRule_GetListByName(IN LIST_RULE_HANDLE ctx, IN CHAR *list_name)
 {
     LIST_RULE_HEAD_S *pstListHead;
 
-    pstListHead = _listrule_GetListHeadByName(hListRule, pcListName);
-    if (NULL != pstListHead)
-    {
+    pstListHead = _listrule_GetListHeadByName(ctx, list_name);
+    if (NULL != pstListHead) {
         return pstListHead->pstListRule;
     }
 
     return NULL;
 }
 
-UINT ListRule_GetNextList(IN LIST_RULE_HANDLE hListRule, IN UINT ulCurrentListID /* 0表示获取第一个 */)
+LIST_RULE_LIST_S * ListRule_GetNextList(IN LIST_RULE_HANDLE ctx, IN LIST_RULE_LIST_S *curr/* NULL表示获取第一个 */)
 {
-    LIST_RULE_CTRL_S *pstCtx = hListRule;
+    UINT index = NAP_INVALID_INDEX;
+    if (curr) {
+        index = NAP_GetIndexByNode(ctx->hListNap, curr);
+        if (index == NAP_INVALID_INDEX) {
+            return NULL;
+        }
+    }
 
-    return NAP_GetNextID(pstCtx->hListNap, ulCurrentListID);
-}
-
-CHAR *ListRule_GetListNameByID(IN LIST_RULE_HANDLE hListRule, IN UINT ulListID)
-{
-    LIST_RULE_LIST_S *pstList;
-
-    pstList = ListRule_GetListByID(hListRule, ulListID);
-    if (NULL == pstList)
-    {
+    index = NAP_GetNextIndex(ctx->hListNap, index);
+    if (index == NAP_INVALID_INDEX) {
         return NULL;
     }
 
-    return pstList->pcListName;
+    return NAP_GetNodeByIndex(ctx->hListNap, index);
+}
+
+UINT ListRule_GetNextListID(IN LIST_RULE_HANDLE ctx, IN UINT ulCurrentListID /* 0表示获取第一个 */)
+{
+    return NAP_GetNextID(ctx->hListNap, ulCurrentListID);
+}
+
+CHAR * ListRule_GetListNameByID(IN LIST_RULE_HANDLE ctx, IN UINT ulListID)
+{
+    LIST_RULE_LIST_S *pstList;
+    pstList = ListRule_GetListByID(ctx, ulListID);
+    if (NULL == pstList) {
+        return NULL;
+    }
+    return pstList->list_name;
 }
 
 BS_STATUS ListRule_AddRule2List(LIST_RULE_LIST_S *pstList, IN UINT uiRuleID, IN RULE_NODE_S *pstRule)
@@ -382,7 +401,7 @@ BS_STATUS ListRule_AddRule2List(LIST_RULE_LIST_S *pstList, IN UINT uiRuleID, IN 
     return BS_OK;
 }
 
-BS_STATUS ListRule_AddRule(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UINT uiRuleID, IN RULE_NODE_S *pstRule)
+int ListRule_AddRule(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UINT uiRuleID, IN RULE_NODE_S *pstRule)
 {
     LIST_RULE_LIST_S *pstList;
 
@@ -414,14 +433,12 @@ VOID ListRule_ResetRuleID(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UINT st
 {
     LIST_RULE_LIST_S *pstList;
 
-    if (step == 0)
-    {
+    if (step == 0) {
         step = 1;
     }
 
     pstList = ListRule_GetListByID(hCtx, uiListID);
-    if (NULL == pstList)
-    {
+    if (NULL == pstList) {
         return;
     }
 
@@ -485,17 +502,13 @@ BS_STATUS ListRule_MoveRule(
     return RuleList_MoveRule(&pstList->stRuleList, uiOldRuleID, uiNewRuleID);
 }
 
-RULE_NODE_S *ListRule_GetNextRule(
-    IN LIST_RULE_HANDLE hCtx,
-    IN UINT uiListID,
-    IN UINT uiCurrentRuleID /* RULE_ID_INVALID 表示从头开始 */
-)
+/* uiCurrentRuleID=RULE_ID_INVALID 表示从头开始 */
+RULE_NODE_S *ListRule_GetNextRule(LIST_RULE_HANDLE hCtx, UINT uiListID, UINT uiCurrentRuleID)
 {
     LIST_RULE_LIST_S *pstList;
 
     pstList = ListRule_GetListByID(hCtx, uiListID);
-    if (NULL == pstList)
-    {
+    if (! pstList) {
         return NULL;
     }
 
@@ -507,10 +520,51 @@ BS_STATUS ListRule_ResetID(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UINT u
     LIST_RULE_LIST_S *pstList;
 
     pstList = ListRule_GetListByID(hCtx, uiListID);
-    if (NULL == pstList)
-    {
+    if (! pstList) {
         return BS_NOT_FOUND;
     }
 
     return RuleList_ResetID(&pstList->stRuleList, uiStep);
 }
+
+void ListRule_WalkList(LIST_RULE_HANDLE hCtx, PF_LIST_RULE_WALK_LIST_FUNC walk_list, void *ud)
+{
+    LIST_RULE_LIST_S *list = NULL;
+
+    while ((list = ListRule_GetNextList(hCtx, list))) {
+        walk_list(list, ud);
+    }
+}
+
+void ListRule_WalkRule(LIST_RULE_LIST_S *list, PF_LIST_RULE_WALK_RULE_FUNC walk_rule, void *ud)
+{
+    RULE_NODE_S *rule = NULL;
+
+    while ((rule = RuleList_GetNextByNode(&list->stRuleList, rule))) {
+        walk_rule(list, rule, ud);
+    }
+}
+
+void ListRule_Walk(LIST_RULE_HANDLE hCtx, PF_LIST_RULE_WALK_LIST_FUNC walk_list,
+        PF_LIST_RULE_WALK_RULE_FUNC walk_rule, void *ud)
+{
+    LIST_RULE_LIST_S *list = NULL;
+    RULE_NODE_S *rule = NULL;
+
+    while ((list = ListRule_GetNextList(hCtx, list))) {
+
+        if (walk_list) {
+            walk_list(list, ud);
+        }
+
+        if (! walk_rule) {
+            continue;
+        }
+
+        while ((rule = RuleList_GetNextByNode(&list->stRuleList, rule))) {
+            walk_rule(list, rule, ud);
+        }
+    }
+}
+
+

@@ -14,11 +14,6 @@ static MUTEX_S g_rcu_engine_lock;
 static MEM_CAP_S g_rcu_engine_memcap;
 static MTIMER_S g_rcu_engine_mtimer;
 
-static void rcu_engine_free(void *mem)
-{
-    MEM_Free(mem);
-}
-
 static VOID rcu_engine_timeout(HANDLE timer_handle, USER_HANDLE_S *ud)
 {
     RcuDelay_Step(&g_rcu_engine);
@@ -41,53 +36,13 @@ static void rcu_engine_constructor()
 {
     MUTEX_Init(&g_rcu_engine_lock);
 
-    MemCap_Init(&g_rcu_engine_memcap, _rcuengine_mem_malloc, RcuEngine_Free);
+    MemCap_Init(&g_rcu_engine_memcap, _mem_rcu_malloc, MEM_RcuFree, RcuEngine_Call);
 
     RcuDelay_Init(&g_rcu_engine);
 }
 
 CONSTRUCTOR(init) {
     rcu_engine_constructor();
-}
-
-PLUG_API void * _rcuengine_mem_malloc(int size, char *file, int line)
-{
-    int new_size = size + sizeof(RCU_NODE_S);
-
-    char * buf = mem_Malloc(new_size, file, line);
-    if (! buf) {
-        return NULL;
-    }
-
-    return buf + sizeof(RCU_NODE_S);
-}
-
-/* 在申请的内存之前自动添加一个rcu用于延迟释放内存,和RcuEngine_Free配套使用 */
-PLUG_API void * _rcuengine_mem_zmalloc(int size, char *file, int line)
-{
-    char * buf = _rcuengine_mem_malloc(size, file, line);
-    Mem_Zero(buf, size);
-    return buf;
-}
-
-PLUG_API void * _rcuengine_mem_dup(void *mem, int size, char *file, int line)
-{
-    void *buf = _rcuengine_mem_malloc(size, file, line);
-    if (! buf) {
-        return NULL;
-    }
-
-    memcpy(buf, mem, size);
-
-    return buf;
-}
-
-/* 延迟释放内存, 和RcuEngine_Malloc配套 */
-void RcuEngine_Free(void *mem)
-{
-    char *buf = mem;
-    buf -= sizeof(RCU_NODE_S);
-    RcuEngine_Call((void*)buf, rcu_engine_free);
 }
 
 /* 获取用于RcuEngine的Memcap */

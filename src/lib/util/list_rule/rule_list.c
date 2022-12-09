@@ -1,6 +1,7 @@
 /*================================================================
 *   Created by LiXingang
-*   Description: 
+*   Author:      LiXingang  Version: 1.0  Date: 2016-10-14
+*   Description: 对rule进行管理的list, Rule带有ID
 *
 ================================================================*/
 #include "bs.h"
@@ -44,7 +45,7 @@ void RuleList_ScanRule(RULE_LIST_S *pstList, PF_RULE_SCAN pfFunc, IN VOID *pUser
     return;
 }
 
-void RuleList_Add(RULE_LIST_S * pstList, UINT uiRuleID, RULE_NODE_S *pstRule)
+void RuleList_Add(RULE_LIST_S * pstList, UINT uiRuleID, IN RULE_NODE_S *pstRule)
 {
     DLL_HEAD_S *listhead;
     RULE_NODE_S *pstCur;
@@ -70,7 +71,7 @@ void RuleList_Add(RULE_LIST_S * pstList, UINT uiRuleID, RULE_NODE_S *pstRule)
 
     /* 遍历链表 */
     DLL_SCAN(listhead, pstCur) {
-        if (uiRuleID<= pstCur->uiRuleID) {
+        if (uiRuleID <= pstCur->uiRuleID) {
             pstTemp = pstCur;
             break;
         }
@@ -87,6 +88,13 @@ void RuleList_Add(RULE_LIST_S * pstList, UINT uiRuleID, RULE_NODE_S *pstRule)
     return ;
 }
 
+void RuleList_DelByNode(RULE_LIST_S *pstList, RULE_NODE_S *pstRule)
+{
+    if (NULL != pstRule) {
+        DLL_DEL(&pstList->stRuleList, pstRule);
+    }
+}
+
 RULE_NODE_S * RuleList_Del(RULE_LIST_S *pstList, IN UINT uiRuleID)
 {
     RULE_NODE_S *pstRule = NULL;
@@ -97,9 +105,7 @@ RULE_NODE_S * RuleList_Del(RULE_LIST_S *pstList, IN UINT uiRuleID)
         }
     }
 
-    if (NULL != pstRule) {
-        DLL_DEL(&pstList->stRuleList, pstRule);
-    }
+    RuleList_DelByNode(pstList, pstRule);
 
     return pstRule;
 }

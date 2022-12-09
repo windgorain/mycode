@@ -20,7 +20,7 @@ typedef struct
     UINT flag;
 }_EVENT_CTRL_S;
 
-EVENT_HANDLE Event_Create ()
+EVENT_HANDLE Event_Create(void)
 {
     _EVENT_CTRL_S *pstEventCtrl;
 

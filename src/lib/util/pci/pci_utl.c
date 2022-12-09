@@ -92,6 +92,7 @@ static void _pcie_change_cfg_tlp_order(INOUT PCIE_TLP_CFG_S *tlp)
 {
     tlp->request_id = htons(tlp->request_id);
     tlp->bdf = htons(tlp->bdf);
+    tlp->reg_num = htons(tlp->reg_num);
 }
 
 static void _pcie_change_mem_tlp_order(INOUT PCIE_TLP_MEM_S *tlp) 
@@ -401,7 +402,7 @@ int PCIE_ReadTlpData(OUT void *data, int data_size, BOOL_T is4dw, PCIE_TLP_S *tl
     }
 
     len -= low_addr;
-    out += low_addr;
+    d += low_addr;
 
     memcpy(out, d, len);
 

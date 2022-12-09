@@ -25,6 +25,7 @@ static BS_STATUS map_avl_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pD
 static MAP_ELE_S * map_avl_get_ele(MAP_HANDLE map, void *key, UINT key_len);
 static void * map_avl_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen);
 static void * map_avl_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen);
+static void * map_avl_del_by_ele(IN MAP_HANDLE map, IN MAP_ELE_S *ele);
 static void map_avl_del_all(MAP_HANDLE map, PF_MAP_FREE_FUNC func, void * pUserData);
 static UINT map_avl_count(MAP_HANDLE map);
 static void map_avl_walk(IN MAP_HANDLE map, IN PF_MAP_WALK_FUNC pfWalkFunc, IN VOID *pUserData);
@@ -38,6 +39,7 @@ static MAP_FUNC_S g_map_avl_funcs = {
     .get_ele_func = map_avl_get_ele,
     .get_func = map_avl_get,
     .del_func = map_avl_del,
+    .del_by_ele_func = map_avl_del_by_ele,
     .del_all_func = map_avl_del_all,
     .count_func = map_avl_count,
     .walk_func = map_avl_walk,
@@ -209,24 +211,10 @@ static void * map_avl_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
     return pstFind->stEle.pData;
 }
 
-/* 从集合中删除并返回pData */
-static void * map_avl_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
+static void * _map_avl_del_node(IN MAP_HANDLE map, IN MAP_AVL_NODE_S *pstNode)
 {
+    void *pData = pstNode->stEle.pData;
     _MAP_AVL_S *avl_map = map->impl_map;
-    MAP_AVL_NODE_S *pstNode;
-    MAP_ELE_S ele;
-    VOID *pData;
-
-    ele.pKey = pKey;
-    ele.uiKeyLen = uiKeyLen;
-
-    pstNode = avlDelete(&avl_map->avl_root, &ele, _map_avl_cmp);
-
-    if (! pstNode) {
-        return NULL;
-    }
-
-    pData = pstNode->stEle.pData;
 
     if (pstNode->stEle.dup_key) {
         MemCap_Free(map->memcap, pstNode->stEle.pKey);
@@ -238,6 +226,29 @@ static void * map_avl_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
     avl_map->count --;
 
     return pData;
+}
+
+static void * map_avl_del_by_ele(IN MAP_HANDLE map, IN MAP_ELE_S *ele)
+{
+    MAP_AVL_NODE_S *node = container_of(ele, MAP_AVL_NODE_S, stEle);
+    return _map_avl_del_node(map, node);
+}
+
+/* 从集合中删除并返回pData */
+static void * map_avl_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
+{
+    _MAP_AVL_S *avl_map = map->impl_map;
+    MAP_ELE_S ele;
+
+    ele.pKey = pKey;
+    ele.uiKeyLen = uiKeyLen;
+
+    MAP_AVL_NODE_S *pstNode = avlDelete(&avl_map->avl_root, &ele, _map_avl_cmp);
+    if (! pstNode) {
+        return NULL;
+    }
+
+    return _map_avl_del_node(map, pstNode);
 }
 
 static void map_avl_del_all(MAP_HANDLE map, PF_MAP_FREE_FUNC func, void * pUserData)

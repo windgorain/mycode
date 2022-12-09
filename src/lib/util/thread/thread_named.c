@@ -24,9 +24,10 @@ typedef struct {
 }THREAD_NAMED_NODE_S;
 
 static DLL_HEAD_S g_named_thread_list = DLL_HEAD_INIT_VALUE(&g_named_thread_list);
+static DLL_HEAD_S g_name_thread_notify_list = DLL_HEAD_INIT_VALUE(&g_name_thread_notify_list);
 static MUTEX_S g_named_thread_lock;
 
-static inline void _threadnamed_init()
+static inline void _threadnamed_init(void)
 {
     static int inited = 0;
     if (! inited) {
@@ -37,6 +38,26 @@ static inline void _threadnamed_init()
 
 CONSTRUCTOR(init) {
     _threadnamed_init();
+}
+
+static void _threadnamed_FillInfo(THREAD_NAMED_NODE_S *node, THREAD_NAMED_INFO_S *info)
+{
+    info->func = node->func;
+    info->thread_id = node->thread_id;
+    info->user_data = node->user_data;
+    strcpy(info->name, node->name);
+}
+
+static void _threadnamed_event_notify(UINT event, IN THREAD_NAMED_NODE_S *node)
+{
+    THREAD_NAMED_INFO_S info;
+    THREAD_NAMED_OB_S *ob;
+
+    _threadnamed_FillInfo(node, &info);
+
+    DLL_SCAN(&g_name_thread_notify_list, ob) {
+        ob->ob_func(event, &info);
+    }
 }
 
 static int _threadnamed_Cmp(DLL_NODE_S *pstNode1, DLL_NODE_S *pstNode2, HANDLE hUserHandle)
@@ -66,24 +87,26 @@ static void _threadnamed_FreeNode(THREAD_NAMED_NODE_S *node)
     MEM_Free(node);
 }
 
-#if 0 /* 因为没有使用而编译告警 */
 static THREAD_NAMED_NODE_S * _threadnamed_Find(char *name)
 {
     THREAD_NAMED_NODE_S *node;
+    THREAD_NAMED_NODE_S *found = NULL;
+    int ret;
     
-    MUTEX_P(&g_named_thread_lock);
     DLL_SCAN(&g_named_thread_list, node) {
-        if (strcmp(name, node->name) == 0) {
+        ret = strcmp(name, node->name);
+        if (ret < 0) {
+            break;
+        } else if (ret == 0) {
+            found = node;
             break;
         }
     }
-    MUTEX_V(&g_named_thread_lock);
 
-    return node;
+    return found;
 }
-#endif
 
-static void _threadnamed_cb(void *user_data)
+static void _threadnamed_main(void *user_data)
 {
     THREAD_NAMED_NODE_S *node = user_data;
 
@@ -91,17 +114,11 @@ static void _threadnamed_cb(void *user_data)
     prctl(PR_SET_NAME, node->name);
 #endif
 
+    _threadnamed_event_notify(THREAD_NAMED_EVENT_START, node);
     node->func(&node->user_data);
+    _threadnamed_event_notify(THREAD_NAMED_EVENT_QUIT, node);
 
     _threadnamed_FreeNode(node);
-}
-
-static void _threadnamed_FillInfo(THREAD_NAMED_NODE_S *node, THREAD_NAMED_INFO_S *info)
-{
-    info->func = node->func;
-    info->thread_id = node->thread_id;
-    info->user_data = node->user_data;
-    strcpy(info->name, node->name);
 }
 
 static void * _threadnamed_GetNext(THREAD_NAMED_ITER_S *iter)
@@ -125,25 +142,14 @@ static void * _threadnamed_GetNext(THREAD_NAMED_ITER_S *iter)
 
 static BS_STATUS _threadnamed_GetByName(char *name, THREAD_NAMED_INFO_S *info)
 {
-    THREAD_NAMED_NODE_S *node, *found=NULL;
-    int cmp_ret;
+    THREAD_NAMED_NODE_S *node;
 
-    DLL_SCAN(&g_named_thread_list, node) {
-        cmp_ret = strcmp(name, node->name);
-        if (cmp_ret < 0) {
-            break;
-        }
-        if (cmp_ret == 0) {
-            found = node;
-            break;
-        }
-    }
-
-    if (found == NULL) {
+    node = _threadnamed_Find(name);
+    if (! node) {
         return BS_NOT_FOUND;
     }
 
-    _threadnamed_FillInfo(found, info);
+    _threadnamed_FillInfo(node, info);
 
     return BS_OK;
 }
@@ -159,7 +165,7 @@ static BS_STATUS _threadnamed_GetByID(THREAD_ID thread_id, THREAD_NAMED_INFO_S *
         }
     }
 
-    if (found == NULL) {
+    if (! found) {
         return BS_NOT_FOUND;
     }
 
@@ -168,6 +174,23 @@ static BS_STATUS _threadnamed_GetByID(THREAD_ID thread_id, THREAD_NAMED_INFO_S *
     return BS_OK;
 }
 
+void ThreadNamed_RegOb(THREAD_NAMED_OB_S *ob)
+{
+    _threadnamed_init();
+
+    MUTEX_P(&g_named_thread_lock);
+    DLL_ADD(&g_name_thread_notify_list, &ob->link_node);
+    MUTEX_V(&g_named_thread_lock);
+}
+
+void ThreadNamed_UnregOb(THREAD_NAMED_OB_S *ob)
+{
+    MUTEX_P(&g_named_thread_lock);
+    DLL_DEL(&g_name_thread_notify_list, &ob->link_node);
+    MUTEX_V(&g_named_thread_lock);
+}
+
+/* param/user_data: 可以为NULL */
 THREAD_ID ThreadNamed_Create(char *name, THREAD_CREATE_PARAM_S *param, PF_THREAD_NAMED_FUNC func, USER_HANDLE_S *user_data)
 {
     THREAD_ID thread_id;
@@ -179,7 +202,7 @@ THREAD_ID ThreadNamed_Create(char *name, THREAD_CREATE_PARAM_S *param, PF_THREAD
     node = MEM_ZMalloc(sizeof(THREAD_NAMED_NODE_S));
     if (node == NULL) {
         ERROR_SET(BS_NO_MEMORY);
-        return THREAD_INVALID_ID;
+        return THREAD_ID_INVALID;
     }
 
     node->func = func;
@@ -191,7 +214,7 @@ THREAD_ID ThreadNamed_Create(char *name, THREAD_CREATE_PARAM_S *param, PF_THREAD
     if (0 != _threadnamed_AddNode(node)) {
         MEM_Free(node);
         ERROR_SET(BS_ALREADY_EXIST);
-        return THREAD_INVALID_ID;
+        return THREAD_ID_INVALID;
     }
 
     if (NULL != param) {
@@ -199,8 +222,8 @@ THREAD_ID ThreadNamed_Create(char *name, THREAD_CREATE_PARAM_S *param, PF_THREAD
         stack_size = param->uiStackSize;
     }
 
-    thread_id = ThreadUtl_Create(_threadnamed_cb, pri, stack_size, node);
-    if (THREAD_INVALID_ID == thread_id) {
+    thread_id = ThreadUtl_Create(_threadnamed_main, pri, stack_size, node);
+    if (THREAD_ID_INVALID == thread_id) {
         _threadnamed_FreeNode(node);
         ERROR_SET(BS_ERR);
         return thread_id;

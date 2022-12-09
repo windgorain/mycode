@@ -39,6 +39,7 @@ aux_source_directory(./poller BS_SRC)
 aux_source_directory(./data_box BS_SRC)
 
 add_library(bs SHARED ${BS_SRC} )
+target_compile_definitions(bs PRIVATE USE_BS)
 TARGET_LINK_LIBRARIES(bs util unixlike_util ncurses m pthread pcre ssl crypto)
 set_target_properties(bs PROPERTIES output_name "bs")
 
@@ -46,3 +47,4 @@ set_target_properties(bs PROPERTIES output_name "bs")
 
 add_library(static_bs ${BS_SRC})
 set_property(TARGET static_bs PROPERTY POSITION_INDEPENDENT_CODE ON)
+

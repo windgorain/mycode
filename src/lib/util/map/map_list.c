@@ -24,6 +24,7 @@ static BS_STATUS map_list_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *p
 static MAP_ELE_S * map_list_get_ele(MAP_HANDLE map, void *key, UINT key_len);
 static void * map_list_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen);
 static void * map_list_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen);
+static void * map_list_del_by_ele(IN MAP_HANDLE map, IN MAP_ELE_S *ele);
 static void map_list_del_all(MAP_HANDLE map, PF_MAP_FREE_FUNC func, void * pUserData);
 static UINT map_list_count(MAP_HANDLE map);
 static void map_list_walk(IN MAP_HANDLE map, IN PF_MAP_WALK_FUNC pfWalkFunc, IN VOID *pUserData);
@@ -37,6 +38,7 @@ static MAP_FUNC_S g_map_list_funcs = {
     .get_ele_func = map_list_get_ele,
     .get_func = map_list_get,
     .del_func = map_list_del,
+    .del_by_ele_func = map_list_del_by_ele,
     .del_all_func = map_list_del_all,
     .count_func = map_list_count,
     .walk_func = map_list_walk,
@@ -227,20 +229,13 @@ static void * map_list_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
     return pstFind->stEle.pData;
 }
 
-/* 从集合中删除并返回pData */
-static void * map_list_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
+static void * _map_list_del_node(IN MAP_HANDLE map, IN MAP_LIST_NODE_S *pstNode)
 {
     _MAP_LIST_S *list_map = map->impl_map;
-    MAP_LIST_NODE_S *pstNode;
-    VOID *pData;
-
-    pstNode = _map_list_find(map, pKey, uiKeyLen);
-    if (! pstNode) {
-        return NULL;
-    }
 
     DLL_DEL(&list_map->list, &pstNode->list_node);
-    pData = pstNode->stEle.pData;
+
+    void *pData = pstNode->stEle.pData;
 
     if (pstNode->stEle.dup_key) {
         MemCap_Free(map->memcap, pstNode->stEle.pKey);
@@ -253,6 +248,25 @@ static void * map_list_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
     list_map->count --;
 
     return pData;
+}
+
+static void * map_list_del_by_ele(IN MAP_HANDLE map, IN MAP_ELE_S *ele)
+{
+    MAP_LIST_NODE_S *node = container_of(ele, MAP_LIST_NODE_S, stEle);
+    return _map_list_del_node(map, node);
+}
+
+/* 从集合中删除并返回pData */
+static void * map_list_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
+{
+    MAP_LIST_NODE_S *pstNode;
+
+    pstNode = _map_list_find(map, pKey, uiKeyLen);
+    if (! pstNode) {
+        return NULL;
+    }
+
+    return _map_list_del_node(map, pstNode);
 }
 
 static void map_list_del_all(MAP_HANDLE map, PF_MAP_FREE_FUNC func, void * pUserData)

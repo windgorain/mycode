@@ -15,7 +15,7 @@
 #include "utl/socket_utl.h"
 #include "utl/ip_string.h"
 
-/* 解析字符串 IP/Prefix, 输出IP_PREFIX_S */
+/* 解析字符串 IP/Prefix, 输出主机序IP_PREFIX_S */
 BS_STATUS IPString_ParseIpPrefix(CHAR *pcIpPrefixString, OUT IP_PREFIX_S *pstIpPrefix)
 {
     LSTR_S stIP;
@@ -28,8 +28,7 @@ BS_STATUS IPString_ParseIpPrefix(CHAR *pcIpPrefixString, OUT IP_PREFIX_S *pstIpP
     LSTR_Strim(&stIP, TXT_BLANK_CHARS, &stIP);
     LSTR_Strim(&stPrefix, TXT_BLANK_CHARS, &stPrefix);
 
-    if ((stIP.uiLen > 15) || (stPrefix.uiLen > 2))
-    {
+    if ((stIP.uiLen > 15) || (stPrefix.uiLen > 2)) {
         return BS_BAD_PARA;
     }
 
@@ -45,8 +44,7 @@ BS_STATUS IPString_ParseIpPrefix(CHAR *pcIpPrefixString, OUT IP_PREFIX_S *pstIpP
         uiPrefix = atoi(stPrefix.pcData);
     }
 
-    if (uiPrefix > 32) 
-    {
+    if (uiPrefix > 32) {
         return BS_BAD_PARA;
     }
     pstIpPrefix->ucPrefix = (UCHAR)uiPrefix;
@@ -55,7 +53,7 @@ BS_STATUS IPString_ParseIpPrefix(CHAR *pcIpPrefixString, OUT IP_PREFIX_S *pstIpP
 }
 
 /* 解析字符串 IP/Prefix, 输出IP_MAKS_S */
-BS_STATUS IPString_ParseIpPrefix_OutIpMask(CHAR *pcIpPrefixString, OUT IP_MAKS_S *pstIpMask)
+BS_STATUS IPString_IpPrefixString2IpMask(CHAR *pcIpPrefixString, OUT IP_MAKS_S *pstIpMask)
 {
     BS_STATUS enRet;
     IP_PREFIX_S stPrefix;

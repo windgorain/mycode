@@ -2,6 +2,9 @@
 * Copyright (C), Xingang.Li
 * Author:      LiXingang  Version: 1.0  Date: 2014-11-16
 * Description: node id pool
+*              带有id/index的node管理, key为id/index. 适用于根据id/index快速查找node
+*              但是不能根据node的信息快速查找node, 只能遍历比较查找.
+*              node有一个隐藏header,里面包含id的信息, 所以可以根据node直接获取id/index
 * History:     
 ******************************************************************************/
 #include "bs.h"
@@ -511,13 +514,10 @@ BS_STATUS NAP_ChangeNodeID(IN NAP_HANDLE hNAPHandle, IN VOID *pstNode, IN UINT u
     return BS_OK;
 }
 
-/* 序列号,会在每次申请节点时进行变化 */
-BS_STATUS NAP_EnableSeq
-(
-    IN HANDLE hNAPHandle,
-    IN UINT ulSeqMask,    /* 0表示自动计算Seq */
-    IN UINT uiSeqArrayEleNum    /* seq数组中的元素个数 */
-)
+/* 序列号,会在每次申请节点时进行变化
+ulSeqMask: 0表示自动计算Seq, 只在低32位内进行自动计算 
+uiSeqCount :创建多少个序列数 */
+BS_STATUS NAP_EnableSeq(HANDLE hNAPHandle, UINT ulSeqMask, UINT uiSeqCount)
 {
     _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
 
@@ -531,7 +531,7 @@ BS_STATUS NAP_EnableSeq
         return BS_ERR;
     }
 
-    if (uiSeqArrayEleNum == 0) {
+    if (uiSeqCount == 0) {
         return BS_BAD_PARA;
     }
 
@@ -541,11 +541,11 @@ BS_STATUS NAP_EnableSeq
 
     if (pstCommonHead->stSeqOpt.seq_array == NULL) {
         pstCommonHead->stSeqOpt.seq_array =
-            MemCap_Malloc(pstCommonHead->memcap, sizeof(USHORT) * uiSeqArrayEleNum);
+            MemCap_Malloc(pstCommonHead->memcap, sizeof(USHORT) * uiSeqCount);
         if (NULL == pstCommonHead->stSeqOpt.seq_array) {
             return BS_NO_MEMORY;
         }
-        pstCommonHead->stSeqOpt.uiSeqArrayCount = uiSeqArrayEleNum;
+        pstCommonHead->stSeqOpt.uiSeqArrayCount = uiSeqCount;
     }
 
     pstCommonHead->stSeqOpt.bEnable = TRUE;

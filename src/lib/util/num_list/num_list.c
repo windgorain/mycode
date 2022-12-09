@@ -2,7 +2,7 @@
 * Copyright (C), 2000-2006,  LiXingang
 * Author:      LiXingang  Version: 1.0  Date: 2016-8-31
 * Description: Number List: 支持以字符串形式描述的数字列表
-*              格式例如: 6,2-5,8-7.
+*              格式例如: 6,2-5,8-7
 * History:     
 ******************************************************************************/
 #include "bs.h"
@@ -38,9 +38,8 @@ int NumList_ParseElement(LSTR_S *lstr, OUT UINT *min, OUT UINT *max)
 
     LSTR_Strim(&stBegin, " \t\r\n", &stBegin);
     LSTR_Strim(&stEnd, " \t\r\n", &stEnd);
-    if (stBegin.uiLen == 0)
-    {
-        return 0;
+    if (stBegin.uiLen == 0) {
+        RETURN(BS_ERR);
     }
 
     if (BS_OK != LSTR_Atoui(&stBegin, min)) {
@@ -53,6 +52,10 @@ int NumList_ParseElement(LSTR_S *lstr, OUT UINT *min, OUT UINT *max)
     }
 
     if (BS_OK != LSTR_Atoui(&stEnd, max)) {
+        RETURN(BS_ERR);
+    }
+
+    if (*min > *max) {
         RETURN(BS_ERR);
     }
 
@@ -72,14 +75,13 @@ static int _numlist_ParseElement(IN NUM_LIST_S *pstList, IN LSTR_S *pstEle)
     return NumList_AddRange(pstList, uiNumBegin, uiNumEnd);
 }
 
-BS_STATUS NumList_AddRange(IN NUM_LIST_S *pstList, IN INT iBegin, IN INT iEnd)
+BS_STATUS NumList_AddRange(IN NUM_LIST_S *pstList, INT64 iBegin, INT64 iEnd)
 {
     NUM_LIST_NODE_S *pstNode;
 
     pstNode = MEM_ZMalloc(sizeof(NUM_LIST_NODE_S));
-    if (NULL == pstNode)
-    {
-        return BS_NO_MEMORY;
+    if (NULL == pstNode) {
+        RETURN(BS_NO_MEMORY);
     }
 
     pstNode->iNumBegin = iBegin;
@@ -91,20 +93,35 @@ BS_STATUS NumList_AddRange(IN NUM_LIST_S *pstList, IN INT iBegin, IN INT iEnd)
 }
 
 /* 删除一个Range, 只查找完全匹配的第一个节点删除 */
-BS_STATUS NumList_DelRange(IN NUM_LIST_S *pstList, IN INT iBegin, IN INT iEnd)
+BS_STATUS NumList_DelRange(IN NUM_LIST_S *pstList, INT64 iBegin, INT64 iEnd)
 {
-    NUM_LIST_NODE_S *pstNode;
-
-    DLL_SCAN(&pstList->stList, pstNode)
-    {
-        if ((pstNode->iNumBegin == iBegin) && (pstNode->iNumEnd == iEnd))
-        {
-            DLL_DEL(&pstList->stList, pstNode);
-            return BS_OK;
-        }
+    NUM_LIST_NODE_S *pstNode = NumList_FindRange(pstList, iBegin, iEnd);
+    if (pstNode) {
+        DLL_DEL(&pstList->stList, pstNode);
+        MEM_Free(pstNode);
     }
 
     return BS_OK;
+}
+
+void NumList_DelNode(IN NUM_LIST_S *pstList, IN NUM_LIST_NODE_S *node)
+{
+    DLL_DEL(&pstList->stList, node);
+    MEM_Free(node);
+}
+
+/* 查找一个Range, 只查找完全匹配的第一个节点 */
+NUM_LIST_NODE_S * NumList_FindRange(IN NUM_LIST_S *pstList, INT64 begin, INT64 end)
+{
+    NUM_LIST_NODE_S *pstNode;
+
+    DLL_SCAN(&pstList->stList, pstNode) {
+        if ((pstNode->iNumBegin == begin) && (pstNode->iNumEnd == end)) {
+            return pstNode;
+        }
+    }
+
+    return NULL;
 }
 
 BS_STATUS NumList_ParseLstr(IN NUM_LIST_S *pstList, IN LSTR_S *pstNumListString)
@@ -112,8 +129,7 @@ BS_STATUS NumList_ParseLstr(IN NUM_LIST_S *pstList, IN LSTR_S *pstNumListString)
     LSTR_S stElement;
     BS_STATUS eRet = BS_OK;
     
-    LSTR_SCAN_ELEMENT_BEGIN(pstNumListString->pcData, pstNumListString->uiLen, ',', &stElement)
-    {
+    LSTR_SCAN_ELEMENT_BEGIN(pstNumListString->pcData, pstNumListString->uiLen, ',', &stElement) {
         eRet |= _numlist_ParseElement(pstList, &stElement);
     }LSTR_SCAN_ELEMENT_END();
 
@@ -256,10 +272,8 @@ BOOL_T NumList_IsNumInTheList(IN NUM_LIST_S *pstList, IN INT iNum)
 {
     INT64 iStart, iEnd;
 
-    NUM_LIST_SCAN_BEGIN(pstList, iStart, iEnd)
-    {
-        if ((iNum >= iStart) && (iNum <= iEnd))
-        {
+    NUM_LIST_SCAN_BEGIN(pstList, iStart, iEnd) {
+        if ((iNum >= iStart) && (iNum <= iEnd)) {
             return TRUE;
         }
     }NUM_LIST_SCAN_END();

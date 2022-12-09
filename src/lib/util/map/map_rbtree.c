@@ -25,6 +25,7 @@ static BS_STATUS map_rbtree_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID 
 static MAP_ELE_S * map_rbtree_get_ele(MAP_HANDLE map, void *key, UINT key_len);
 static void * map_rbtree_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen);
 static void * map_rbtree_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen);
+static void * map_rbtree_del_by_ele(IN MAP_HANDLE map, IN MAP_ELE_S *ele);
 static void map_rbtree_del_all(MAP_HANDLE map, PF_MAP_FREE_FUNC func, void * pUserData);
 static UINT map_rbtree_count(MAP_HANDLE map);
 static void map_rbtree_walk(IN MAP_HANDLE map, IN PF_MAP_WALK_FUNC pfWalkFunc, IN VOID *pUserData);
@@ -38,6 +39,7 @@ static MAP_FUNC_S g_map_rbtree_funcs = {
     .get_ele_func = map_rbtree_get_ele,
     .get_func = map_rbtree_get,
     .del_func = map_rbtree_del,
+    .del_by_ele_func = map_rbtree_del_by_ele,
     .del_all_func = map_rbtree_del_all,
     .count_func = map_rbtree_count,
     .walk_func = map_rbtree_walk,
@@ -209,23 +211,10 @@ static void * map_rbtree_get(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
     return pstFind->stEle.pData;
 }
 
-/* 从集合中删除并返回pData */
-static void * map_rbtree_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
+static void * _map_rbtree_del_node(IN MAP_HANDLE map, IN MAP_RBTREE_NODE_S *pstNode)
 {
     _MAP_RBTREE_S *rbtree_map = map->impl_map;
-    MAP_RBTREE_NODE_S *pstNode;
-    MAP_ELE_S ele;
-    VOID *pData;
-
-    ele.pKey = pKey;
-    ele.uiKeyLen = uiKeyLen;
-
-    pstNode = (void*)RBTree_Del(&rbtree_map->root, &ele, _map_rbtree_cmp);
-    if (! pstNode) {
-        return NULL;
-    }
-
-    pData = pstNode->stEle.pData;
+    void *pData = pstNode->stEle.pData;
 
     if (pstNode->stEle.dup_key) {
         MemCap_Free(map->memcap, pstNode->stEle.pKey);
@@ -238,6 +227,30 @@ static void * map_rbtree_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
     rbtree_map->count --;
 
     return pData;
+}
+
+static void * map_rbtree_del_by_ele(IN MAP_HANDLE map, IN MAP_ELE_S *ele)
+{
+    MAP_RBTREE_NODE_S *node = container_of(ele, MAP_RBTREE_NODE_S, stEle);
+    return _map_rbtree_del_node(map, node);
+}
+
+/* 从集合中删除并返回pData */
+static void * map_rbtree_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
+{
+    _MAP_RBTREE_S *rbtree_map = map->impl_map;
+    MAP_RBTREE_NODE_S *pstNode;
+    MAP_ELE_S ele;
+
+    ele.pKey = pKey;
+    ele.uiKeyLen = uiKeyLen;
+
+    pstNode = (void*)RBTree_Del(&rbtree_map->root, &ele, _map_rbtree_cmp);
+    if (! pstNode) {
+        return NULL;
+    }
+
+    return _map_rbtree_del_node(map, pstNode);
 }
 
 static void map_rbtree_del_all(MAP_HANDLE map, PF_MAP_FREE_FUNC func, void * pUserData)
