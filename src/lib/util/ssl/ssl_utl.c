@@ -37,7 +37,7 @@ VOID SSL_UTL_Init()
     SSLeay_add_ssl_algorithms();
     OpenSSL_add_all_algorithms();
     SSL_load_error_strings();
-    ERR_load_BIO_strings();
+//    ERR_load_BIO_strings();
 }
 
 VOID * SSL_UTL_Ctx_Create(int min_version, int max_version)

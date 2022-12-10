@@ -5,6 +5,7 @@
 ================================================================*/
 #include "bs.h"
 #include "utl/rsa_utl.h"
+#include <openssl/decoder.h>
 
 static char * g_private_key =
 "-----BEGIN RSA PRIVATE KEY-----\n"
@@ -59,19 +60,30 @@ static char * g_private_key =
 "9432UoN4exwZOW9ZcfJT3Pl3GyLsiyN/O81Us2o4+YPzbRoHQn8zAEoBBBEkmQ==\n"
 "-----END RSA PRIVATE KEY-----";
 
-RSA * RSA_DftPrivateKey()
+EVP_PKEY * RSA_DftPrivateKey()
 {
-    BIO* bp = NULL;
-    RSA * pri_key;
+    OSSL_DECODER_CTX *dctx;
+    EVP_PKEY *pkey = NULL;
+    const char *format = "PEM";   /* NULL for any format */
+    const char *structure = NULL; /* any structure */
+    const char *keytype = "RSA";  /* NULL for any key */
+    const char *pass = NULL;
+    BIO* bio = NULL;
 
-    if ((bp = BIO_new_mem_buf(g_private_key, -1)) == NULL) {     
+    if ((bio = BIO_new_mem_buf(g_private_key, -1)) == NULL) {     
         return NULL;
     }
 
-    pri_key = PEM_read_bio_RSAPrivateKey(bp, NULL, NULL, NULL);
+    dctx = OSSL_DECODER_CTX_new_for_pkey(&pkey, format, structure, keytype, OSSL_KEYMGMT_SELECT_KEYPAIR, NULL, NULL);
+    if (dctx) {
+        if (pass) {
+            OSSL_DECODER_CTX_set_passphrase(dctx, (void*)pass, strlen(pass));
+        }
+        OSSL_DECODER_from_bio(dctx, bio);
+        OSSL_DECODER_CTX_free(dctx);
+    }
 
-    BIO_free(bp);
+    BIO_free(bio);
 
-    return pri_key;
+    return pkey;
 }
-

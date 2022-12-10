@@ -7,6 +7,7 @@
 #include "bs.h"
 
 #include "utl/md5_utl.h"
+#include "utl/rsa_utl.h"
 #include "utl/file_utl.h"
 #include "utl/txt_utl.h"
 #include "utl/pki_utl.h"
@@ -50,7 +51,7 @@ static PKI_DOMAIN_CONFIGURE_S * pki_GetDftConfig()
 /*****************************************************************************
  生成缺省的密钥对
 *****************************************************************************/
-static EVP_PKEY *PKI_GenerateResvKey(IN UINT uiKeySize)
+static EVP_PKEY * pki_generate_resv_key(IN UINT uiKeySize)
 {
     (VOID) uiKeySize;
     return NULL;
@@ -58,10 +59,10 @@ static EVP_PKEY *PKI_GenerateResvKey(IN UINT uiKeySize)
 
 static PKI_GENERATE_KEY_PAIR_PF g_apfPKIGenerateKeyPair[PKI_SIG_ALGMETHOD_MAX] =
 {
-    PKI_GenerateResvKey,
-    PKEY_GenerateRSAKey,
-    PKEY_GenerateDSAKey,
-    PKI_GenerateResvKey
+    pki_generate_resv_key,
+    RSA_BuildKey,
+    DSA_BuildKey,
+    pki_generate_resv_key
 };
 
 /*****************************************************************************

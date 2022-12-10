@@ -119,7 +119,7 @@ int license_create(int argc, char **argv)
     char *days_str= NULL;
     UINT64 days;
     UINT64 seconds = 0;
-    RSA *pri_key;
+    EVP_PKEY *pri_key;
     int c;
 
     if (argc < 2) {
@@ -170,7 +170,7 @@ int license_create(int argc, char **argv)
         LICENSE_X_Sign(hCff, tagname, pri_key);
     }CFF_SCAN_END();
 
-    RSA_free(pri_key);
+    EVP_PKEY_free(pri_key);
 
     CFF_Save(hCff);
     CFF_Close(hCff);
@@ -182,7 +182,7 @@ int license_verify(int argc, char **argv)
 {
     CFF_HANDLE hCff;
     char *tagname;
-    RSA *pub_key;
+    EVP_PKEY *pub_key;
     int ret;
     char *tip;
 
@@ -214,7 +214,7 @@ int license_verify(int argc, char **argv)
         printf("[%s] %s\r\n", tagname, LICENSE_VerifyResultInfo(ret));
     }CFF_SCAN_END();
 
-    RSA_free(pub_key);
+    EVP_PKEY_free(pub_key);
 
     CFF_Close(hCff);
 

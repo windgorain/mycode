@@ -4,16 +4,14 @@
 * Description: 
 * History:     
 ******************************************************************************/
-
-/* retcode所需要的宏 */
-#define RETCODE_FILE_NUM RETCODE_FILE_NUM_SSLNET
-
 #include "bs.h"
 
 #include <openssl/ssl.h>
 #include <openssl/rand.h>
+#include <openssl/bio.h>
 
 #include "utl/txt_utl.h"
+#include "utl/ssltcp_utl.h"
 
 #define CA_LIST "sslcert/root.pem"
 #define HOST	"localhost"
@@ -266,16 +264,15 @@ static void _SSLNET_LoadDhParams(IN HANDLE hCtx, IN CHAR *pszFileName)
 static void _SSLNET_GenerateEphRsaKey(IN HANDLE hCtx)
 {
     SSL_CTX *ctx = (SSL_CTX *)hCtx;
-    RSA *rsa;
+    EVP_PKEY *rsa;
 
     rsa= RSA_BuildKey(2048);
- 
-    if (!SSL_CTX_set_tmp_rsa(ctx,rsa))
-    {
+
+    if (! SSL_CTX_set_tmp_rsa(ctx, rsa)) {
         return;
     }
 
-    RSA_free(rsa);
+    EVP_PKEY_free(rsa);
 }
 
 static _SSL_NET_POLICY_S * _SSLNET_GetPolicyByName(IN CHAR *pszSslPolicy)

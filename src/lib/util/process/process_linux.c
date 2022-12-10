@@ -127,12 +127,10 @@ UINT _OS_PROCESS_GetPid()
 
 UINT64 _OS_PROCESS_GetTid()
 {
-#ifdef IN_LINUX
+#if 0
     return syscall(__NR_gettid);
 #endif
-#ifdef IN_MAC
-    return syscall(SYS_thread_selfid);
-#endif
+    return (UINT64)(ULONG)pthread_self();
 }
 
 #endif

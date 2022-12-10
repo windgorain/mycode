@@ -113,6 +113,7 @@ int PCI_DMA_ProcessMrd(PCIE_TLP_MEM_S *tlp, int len,
             copy_size -= last_drop;
         }
         dma_read_func(addr + (low_addr & 0x3), &buf[low_addr & 0x3], copy_size, user_data);
+        memset(&reply_msg, 0, PCIE_TLP_4DW);
         PCIE_BuildCpldTLP(0, tlp->request_id, byte_count, low_addr, size, buf, (void*)&reply_msg);
         cpld->tag = tag;
         send_func(&reply_msg, PCIE_TLP_3DW + size, user_data);

@@ -219,10 +219,8 @@ void PCIE_BuildCfgTLP(UCHAR fmt, UCHAR type, USHORT bdf, UINT addr, int size, OU
     PCIE_SET_TLP_FMT(tlp, fmt);
     PCIE_SET_TLP_TYPE(tlp, type);
     PCIE_SET_TLP_CFG_BDF(tlp, bdf);
-    tlp->request_id = bdf;
-
+    tlp->request_id = 0;
     PCIE_SET_TLP_LENGTH(tlp, 1);
-
     PCIE_SET_TLP_CFG_REG_NUM(tlp, addr/4);
 
     for (i=(addr % 4); i<4; i++) {
@@ -268,7 +266,7 @@ void PCIE_BuildMemTLP(UCHAR fmt, UCHAR type, USHORT bdf, UINT64 addr, BOOL_T is6
 
     PCIE_SET_TLP_FMT(tlp, fmt);
     PCIE_SET_TLP_TYPE(tlp, type);
-    tlp->request_id = bdf;
+    tlp->request_id = 0;
 
     len = (size+3)/4;
     if (len == 0) {

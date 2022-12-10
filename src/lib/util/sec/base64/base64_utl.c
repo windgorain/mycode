@@ -3,7 +3,7 @@
 #include "utl/base64_utl.h"
 
 /* 返回Encode后的长度, 不包含最后的'\0' */
-UINT BASE64_Encode(IN UCHAR *pucData, IN UINT uiDataLen, OUT CHAR *pcOut)
+int BASE64_Encode(IN UCHAR *pucData, IN UINT uiDataLen, OUT CHAR *pcOut)
 {
     static const char base64_chars[] =	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -62,8 +62,8 @@ UINT BASE64_Encode(IN UCHAR *pucData, IN UINT uiDataLen, OUT CHAR *pcOut)
 	return ulOutLen;    
 }
 
-/* 返回解释之后的长度 */
-UINT BASE64_Decode(IN CHAR *pcInput, IN UINT uiDataLen, OUT UCHAR *pucOutput)
+/* 返回解释之后的长度, 出错返回<0 */
+int BASE64_Decode(IN CHAR *pcInput, IN UINT uiDataLen, OUT UCHAR *pucOutput)
 {
     int vals[4];
     int i, j, v, len;
@@ -105,7 +105,7 @@ UINT BASE64_Decode(IN CHAR *pcInput, IN UINT uiDataLen, OUT UCHAR *pucOutput)
             }
             else /* invalid input */
             {
-                return BASE64_INVALD;
+                return -1;
             }
 
             vals[j] = v;
@@ -113,12 +113,12 @@ UINT BASE64_Decode(IN CHAR *pcInput, IN UINT uiDataLen, OUT UCHAR *pucOutput)
 
         if (vals[0] == -1 || vals[1] == -1)
         {
-            return BASE64_INVALD;
+            return -1;
         }
 
         if (vals[2] == -1 && vals[3] != -1)
         {
-            return BASE64_INVALD;
+            return -1;
         }
 
         if (vals[3] != -1)

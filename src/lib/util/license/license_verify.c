@@ -48,7 +48,7 @@ static char * license_hostid(OUT char *hostid)
 int license_verify()
 {
     CFF_HANDLE hCff;
-    RSA *pub_key;
+    EVP_PKEY *pub_key;
     int verify_ok = 0;
     char hostid[256] = "";
 
@@ -70,7 +70,7 @@ int license_verify()
 
     pub_key = RSA_DftPublicKey();
     verify_ok = LICENSE_IsEnabled(hCff, "ali_ids", hostid, "ids", pub_key);
-    RSA_free(pub_key);
+    EVP_PKEY_free(pub_key);
 
     CFF_Close(hCff);
 

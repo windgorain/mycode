@@ -78,7 +78,7 @@ static int cffsign_GetSignature(IN CFF_HANDLE hCff, IN char *tag_name, OUT UCHAR
     return len;
 }
 
-static int cffsign_PublicDecryptSignature(IN CFF_HANDLE hcff, IN char *tag_name, IN RSA *pub_key, OUT UCHAR *md5_data)
+static int cffsign_PublicDecryptSignature(CFF_HANDLE hcff, char *tag_name, EVP_PKEY *pub_key, UCHAR *md5_data)
 {
     int len;
     int dec_len;
@@ -90,7 +90,7 @@ static int cffsign_PublicDecryptSignature(IN CFF_HANDLE hcff, IN char *tag_name,
         return -1;
     }
 
-    rsa_len = RSA_size(pub_key);
+    rsa_len = EVP_PKEY_get_size(pub_key);
     buf = MEM_ZMalloc(rsa_len + 1);
     dec = MEM_ZMalloc(rsa_len + 1);
     if ((NULL == buf) || (NULL == dec)) {
@@ -102,7 +102,7 @@ static int cffsign_PublicDecryptSignature(IN CFF_HANDLE hcff, IN char *tag_name,
         goto LABLE_ERR;
     }
 
-    dec_len = RSA_PublicDecrypt(pub_key, buf, len, dec, rsa_len);
+    dec_len = RSA_Decrypt(pub_key, buf, len, dec, rsa_len);
     if (dec_len != MD5_LEN) {
         goto LABLE_ERR;
     }
@@ -121,7 +121,7 @@ LABLE_ERR:
     RETURN(BS_ERR);
 }
 
-static int cffsign_PrivateDecryptSignature(IN CFF_HANDLE hcff, IN char *tag_name, IN RSA *pri_key, OUT UCHAR *md5_data)
+static int cffsign_PrivateDecryptSignature(IN CFF_HANDLE hcff, IN char *tag_name, IN EVP_PKEY *pri_key, OUT UCHAR *md5_data)
 {
     int len;
     int dec_len;
@@ -129,7 +129,7 @@ static int cffsign_PrivateDecryptSignature(IN CFF_HANDLE hcff, IN char *tag_name
     void *buf = NULL;
     void *dec = NULL;
 
-    rsa_len = RSA_size(pri_key);
+    rsa_len = EVP_PKEY_get_size(pri_key);
     buf = MEM_ZMalloc(rsa_len + 1);
     dec = MEM_ZMalloc(rsa_len + 1);
 
@@ -142,7 +142,7 @@ static int cffsign_PrivateDecryptSignature(IN CFF_HANDLE hcff, IN char *tag_name
         goto LABLE_ERR;
     }
 
-    dec_len = RSA_PrivateDecrypt(pri_key, buf, len, dec, rsa_len);
+    dec_len = RSA_Decrypt(pri_key, buf, len, dec, rsa_len);
     if (dec_len != MD5_LEN) {
         goto LABLE_ERR;
     }
@@ -179,20 +179,20 @@ static int cffsign_SetSignProp(IN CFF_HANDLE hCff, IN char *tag_name, IN void *b
     return ret;
 }
 
-static int cffsign_PrivateSign(IN CFF_HANDLE hCff, IN char *tag_name, IN RSA *pri_key, OUT UCHAR *md5_data)
+static int cffsign_PrivateSign(IN CFF_HANDLE hCff, IN char *tag_name, IN EVP_PKEY *pri_key, OUT UCHAR *md5_data)
 {
     int len;
     int ret;
     int rsa_len;
     void *buf = NULL;
 
-    rsa_len = RSA_size(pri_key);
+    rsa_len = EVP_PKEY_get_size(pri_key);
     buf = MEM_ZMalloc(rsa_len + 1);
     if (NULL == buf) {
         RETURN(BS_NO_MEMORY);
     }
 
-    len = RSA_PrivateEncrypt(pri_key, md5_data, MD5_LEN, buf, rsa_len);
+    len = RSA_Encrypt(pri_key, md5_data, MD5_LEN, buf, rsa_len);
     if (len <= 0) {
         goto LABLE_ERR;
     }
@@ -209,20 +209,20 @@ LABLE_ERR:
     return BS_ERR;
 }
 
-static int cffsign_PublicSign(IN CFF_HANDLE hCff, IN char *tag_name, IN RSA *pub_key, OUT UCHAR *md5_data)
+static int cffsign_PublicSign(IN CFF_HANDLE hCff, IN char *tag_name, IN EVP_PKEY *pub_key, OUT UCHAR *md5_data)
 {
     int len;
     int ret;
     int rsa_len;
     void *buf = NULL;
 
-    rsa_len = RSA_size(pub_key);
+    rsa_len = EVP_PKEY_get_size(pub_key);
     buf = MEM_ZMalloc(rsa_len + 1);
     if (NULL == buf) {
         RETURN(BS_NO_MEMORY);
     }
 
-    len = RSA_PublicEncrypt(pub_key, md5_data, MD5_LEN, buf, sizeof(buf));
+    len = RSA_Encrypt(pub_key, md5_data, MD5_LEN, buf, sizeof(buf));
     if (len < 0) {
         goto LABLE_ERR;
     }
@@ -248,7 +248,7 @@ int CFFSign_PrivateSign(IN CFF_HANDLE hCff, IN char *tag_name, IN void *pri_key,
     return cffsign_PrivateSign(hCff, tag_name, pri_key, md5_data);
 }
 
-int CFFSign_PublicVerify(CFF_HANDLE hCff, IN char *tag_name, IN void *pub_key, UINT flag)
+int CFFSign_PublicVerify(CFF_HANDLE hCff, IN char *tag_name, IN EVP_PKEY *pub_key, UINT flag)
 {
     UCHAR md5_data1[MD5_LEN];
     UCHAR md5_data2[MD5_LEN];

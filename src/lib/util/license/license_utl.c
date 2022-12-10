@@ -109,7 +109,7 @@ int LICENSE_X_Sign(IN CFF_HANDLE hCff, IN char *lic_index, IN void *pri_key)
 }
 
 /* 验证license的签名 */
-int LICENSE_X_VerifySignature(IN CFF_HANDLE hCff, IN char *lic_index, IN void *pub_key)
+int LICENSE_X_VerifySignature(IN CFF_HANDLE hCff, IN char *lic_index, IN EVP_PKEY *pub_key)
 {
     return CFFSign_PublicVerify(hCff, lic_index, pub_key, 0);
 }
@@ -153,8 +153,9 @@ BOOL_T LICENSE_X_IsEnabled(IN CFF_HANDLE hCff, IN char *lic_index, IN char *feat
 }
 
 /* 验证License的有效性, 检查项包括:
-  1.是否指定module; 2.是否过期; 3.是否verify通过;*/
-LICENSE_VERIFY_RET LICENSE_X_Verify(IN CFF_HANDLE hCff, IN char *lic_index, IN char *module/* NULL表示不关心 */, IN RSA *pub_key)
+  1.是否指定module; 2.是否过期; 3.是否verify通过;
+  module: 允许NULL, 表示不关心 */
+LICENSE_VERIFY_RET LICENSE_X_Verify(CFF_HANDLE hCff, char *lic_index, char *module, EVP_PKEY *pub_key)
 {
     char *tmp;
 
@@ -295,7 +296,7 @@ char * LICENSE_VerifyResultInfo(IN int result)
     return "";
 }
 
-BOOL_T LICENSE_IsEnabled(IN CFF_HANDLE hCff, IN char *module, IN char *hostid, IN char *feature, IN RSA *pub_key)
+BOOL_T LICENSE_IsEnabled(CFF_HANDLE hCff, char *module, char *hostid, char *feature, EVP_PKEY *pub_key)
 {
     char *tagname;
 
