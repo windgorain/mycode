@@ -56,7 +56,7 @@ static int _mybpf_loader_get_maps_section(ELF_S *elf, OUT MYBPF_LOADER_MAPS_SEC_
     return 0;
 }
 
-static int _mybpf_loader_load_maps(ELF_S *elf, MYBPF_LOADER_NODE_S *node)
+static int _mybpf_loader_load_maps(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBPF_LOADER_NODE_S *node)
 {
     char *map;
     char *map_name;
@@ -87,7 +87,7 @@ static int _mybpf_loader_load_maps(ELF_S *elf, MYBPF_LOADER_NODE_S *node)
 
     for (i=0; i<map_sec.map_count; i++) {
         map_name = ELF_GetSecSymbolName(elf, map_sec.sec_id, 0, i);
-        node->map_fd[i] = UMAP_Open((void*)map, map_def_offset, map_name);
+        node->map_fd[i] = UMAP_Open(runtime->ufd_ctx, (void*)map, map_def_offset, map_name);
         if (node->map_fd[i] < 0) {
             RETURN(BS_CAN_NOT_OPEN);
         }
@@ -121,18 +121,19 @@ static int _mybpf_loader_load_prog(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBPF_L
         EXEC_OutInfo("Can't load %s:%s \r\n", node->param.filename, name);
         RETURN(BS_NO_MEMORY);
     }
+    prog->loader_node = node;
 
-    ret = MYBPF_PROG_ReplaceMapFdWithMapPtr(prog);
+    ret = MYBPF_PROG_ReplaceMapFdWithMapPtr(runtime, prog);
     ret |= MYBPF_PROG_ConvertCtxAccess(prog);
 //    ret |= MYBPF_PROG_FixupBpfCalls(prog);
     if (ret < 0) {
-        MYBPF_PROG_Free(prog);
+        MYBPF_PROG_Free(runtime, prog);
         RETURNI(BS_ERR, "Can't load %s:%s", node->param.filename, name);
     }
 
-    fd = MYBPF_PROG_Add(prog);
+    fd = MYBPF_PROG_Add(runtime, prog);
     if (fd < 0) {
-        MYBPF_PROG_Free(prog);
+        MYBPF_PROG_Free(runtime, prog);
         RETURNI(BS_ERR, "Can't load %s:%s", node->param.filename, name);
     }
 
@@ -144,7 +145,7 @@ static int _mybpf_loader_load_prog(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBPF_L
 
 static int _mybpf_loader_attach_xdp(MYBPF_RUNTIME_S *runtime, int fd, MYBPF_PROG_NODE_S *prog)
 {
-    if (MYBPF_XdpAttach(&runtime->xdp_list, fd) < 0) {
+    if (MYBPF_XdpAttach(runtime, fd) < 0) {
         RETURN(BS_CAN_NOT_CONNECT);
     }
 
@@ -155,7 +156,7 @@ static int _mybpf_loader_attach_xdp(MYBPF_RUNTIME_S *runtime, int fd, MYBPF_PROG
 
 static int _mybpf_loader_deattach_xdp(MYBPF_RUNTIME_S *runtime, int fd, MYBPF_PROG_NODE_S *prog)
 {
-    MYBPF_XdpDetach(&runtime->xdp_list, fd);
+    MYBPF_XdpDetach(runtime, fd);
     BIT_CLR(prog->attached, (1 << MYBPF_ATTACH_TYPE_XDP));
     return 0;
 }
@@ -166,7 +167,7 @@ static int _mybpf_loader_auto_attach_prog(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER
     MYBPF_PROG_NODE_S *prog;
 
     for (i=0; i<node->prog_count; i++) {
-        prog = MYBPF_PROG_GetByFD(node->prog_fd[i]);
+        prog = MYBPF_PROG_GetByFD(runtime, node->prog_fd[i]);
         if (! prog) {
             continue;
         }
@@ -184,7 +185,7 @@ static int _mybpf_loader_deattach_prog_all(MYBPF_RUNTIME_S *runtime, MYBPF_LOADE
     MYBPF_PROG_NODE_S *prog;
 
     for (i=0; i<node->prog_count; i++) {
-        prog = MYBPF_PROG_GetByFD(node->prog_fd[i]);
+        prog = MYBPF_PROG_GetByFD(runtime, node->prog_fd[i]);
         if (! prog) {
             continue;
         }
@@ -212,7 +213,8 @@ static int _mybpf_loader_load_progs(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBPF_
     return ret;
 }
 
-static int _mybpf_loader_parse_relo_and_apply(ELF_S *elf, MYBPF_LOADER_NODE_S *node, ELF_SECTION_S *relo_sec, ELF_SECTION_S *prog_sec)
+static int _mybpf_loader_parse_relo_and_apply(MYBPF_RUNTIME_S *runtime, ELF_S *elf,
+        MYBPF_LOADER_NODE_S *node, ELF_SECTION_S *relo_sec, ELF_SECTION_S *prog_sec)
 {
     Elf_Data *data = relo_sec->data;
     GElf_Shdr *shdr = &relo_sec->shdr;
@@ -242,7 +244,7 @@ static int _mybpf_loader_parse_relo_and_apply(ELF_S *elf, MYBPF_LOADER_NODE_S *n
 
 		/* Match FD relocation against recorded map_data[] offset */
 		for (map_idx = 0; map_idx < node->map_count; map_idx++) {
-            hdr = UMAP_GetByFd(node->map_fd[map_idx]);
+            hdr = UMAP_GetByFd(runtime->ufd_ctx, node->map_fd[map_idx]);
 			if (hdr->map_def_offset == sym->st_value) {
 				match = TRUE;
                 insn[insn_idx].imm = node->map_fd[map_idx];
@@ -258,7 +260,7 @@ static int _mybpf_loader_parse_relo_and_apply(ELF_S *elf, MYBPF_LOADER_NODE_S *n
 	return 0;
 }
 
-static int _mybpf_loader_process_relo(ELF_S *elf, MYBPF_LOADER_NODE_S *node)
+static int _mybpf_loader_process_relo(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBPF_LOADER_NODE_S *node)
 {
     void *iter = NULL;
     ELF_SECTION_S relo_sec, prog_sec;
@@ -277,7 +279,7 @@ static int _mybpf_loader_process_relo(ELF_S *elf, MYBPF_LOADER_NODE_S *node)
             continue;
         }
 
-        _mybpf_loader_parse_relo_and_apply(elf, node, &relo_sec, &prog_sec);
+        _mybpf_loader_parse_relo_and_apply(runtime, elf, node, &relo_sec, &prog_sec);
     }
 
     return 0;
@@ -294,16 +296,16 @@ static int _mybpf_loader_load_by_file(MYBPF_RUNTIME_S *runtime, ELF_S *elf,
         node->map_def_size = to_replace->map_def_size;
         memcpy(node->map_fd, to_replace->map_fd, sizeof(node->map_fd));
         for (i=0; i<node->map_count; i++) {
-            UFD_IncRef(node->map_fd[i]);
+            UFD_IncRef(runtime->ufd_ctx, node->map_fd[i]);
         }
     } else {
-        ret = _mybpf_loader_load_maps(elf, node);
+        ret = _mybpf_loader_load_maps(runtime, elf, node);
         if (ret < 0) {
             return ret;
         }
     }
 
-    _mybpf_loader_process_relo(elf, node);
+    _mybpf_loader_process_relo(runtime, elf, node);
 
     ret = _mybpf_loader_load_progs(runtime, elf, node);
     if (ret < 0) {
@@ -318,7 +320,7 @@ static int _mybpf_loader_load_by_file(MYBPF_RUNTIME_S *runtime, ELF_S *elf,
 }
 
 /* 校验是否可以replace时保留map, maps定义必须一致 */
-static BOOL_T _mybpf_loader_check_may_keep_map(ELF_S *new_elf, MYBPF_LOADER_NODE_S *old_node)
+static BOOL_T _mybpf_loader_check_may_keep_map(MYBPF_RUNTIME_S *runtime, ELF_S *new_elf, MYBPF_LOADER_NODE_S *old_node)
 {
     MYBPF_LOADER_MAPS_SEC_S map_sec;
     UMAP_ELF_MAP_S *elfmap;
@@ -343,7 +345,7 @@ static BOOL_T _mybpf_loader_check_may_keep_map(ELF_S *new_elf, MYBPF_LOADER_NODE
     for (i=0; i<map_sec.map_count; i++) {
         elfmap = (void*)map;
 
-        hdr = UMAP_GetByFd(old_node->map_fd[i]);
+        hdr = UMAP_GetByFd(runtime->ufd_ctx, old_node->map_fd[i]);
         if (! hdr) {
             return FALSE;
         }
@@ -378,7 +380,7 @@ static int _mybpf_loader_check_may_replace(MYBPF_RUNTIME_S *runtime,
 
     if (p->flag & MYBPF_LOADER_FLAG_KEEP_MAP) {
         /* 判断map def是否一致 */
-        check = _mybpf_loader_check_may_keep_map(&elf, old_node);
+        check = _mybpf_loader_check_may_keep_map(runtime, &elf, old_node);
     }
 
     ELF_Close(&elf);
@@ -419,18 +421,18 @@ static void _mybpf_loader_free_node(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_NODE_
     MYBPF_PROG_NODE_S * prog;
 
     for (i=0; i<node->prog_count; i++) {
-        prog = MYBPF_PROG_GetByFD(node->prog_fd[i]);
+        prog = MYBPF_PROG_GetByFD(runtime, node->prog_fd[i]);
         if (! prog) {
             continue;
         }
         if (prog->attached & (1 << MYBPF_ATTACH_TYPE_XDP)) {
-            MYBPF_XdpDetach(&runtime->xdp_list, node->prog_fd[i]);
+            MYBPF_XdpDetach(runtime, node->prog_fd[i]);
         }
-        MYBPF_PROG_Close(node->prog_fd[i]);
+        MYBPF_PROG_Close(runtime, node->prog_fd[i]);
     }
 
     for (i=0; i<node->map_count; i++) {
-        UMAP_Close(node->map_fd[i]);
+        UMAP_Close(runtime->ufd_ctx, node->map_fd[i]);
     }
 
     if (node->param.filename) {
@@ -519,19 +521,19 @@ static int _mybpf_loader_load(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_PARAM_S *p,
     return 0;
 }
 
-static void _mybpf_loader_disable_prog(MYBPF_LOADER_NODE_S *node)
+static void _mybpf_loader_disable_prog(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_NODE_S *node)
 {
     int i;
     for (i=0; i<node->prog_count; i++) {
-        MYBPF_PROG_Disable(node->prog_fd[i]);
+        MYBPF_PROG_Disable(runtime, node->prog_fd[i]);
     }
 }
 
-static void _mybpf_loader_enable_prog(MYBPF_LOADER_NODE_S *node)
+static void _mybpf_loader_enable_prog(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_NODE_S *node)
 {
     int i;
     for (i=0; i<node->prog_count; i++) {
-        MYBPF_PROG_Enable(node->prog_fd[i]);
+        MYBPF_PROG_Enable(runtime, node->prog_fd[i]);
     }
 }
 
@@ -540,7 +542,7 @@ static void _mybpf_loader_disable_node(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_NO
     if (node) {
         /* 先将old node从map中摘除 */
         MAP_Del(runtime->loader_map, node->param.instance, strlen(node->param.instance));
-        _mybpf_loader_disable_prog(node);
+        _mybpf_loader_disable_prog(runtime, node);
     }
 }
 
@@ -548,7 +550,7 @@ static void _mybpf_loader_enable_node(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_NOD
 {
     if (node ) {
         MAP_AddNode(runtime->loader_map, node->param.instance, strlen(node->param.instance), node, &node->link_node, 0);
-        _mybpf_loader_enable_prog(node);
+        _mybpf_loader_enable_prog(runtime, node);
     }
 }
 

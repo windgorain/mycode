@@ -8,6 +8,7 @@
 #include "utl/umap_utl.h"
 #include "app/cioctl_pub.h"
 #include "../h/ulcapp_cfg_lock.h"
+#include "../h/ulcapp_runtime.h"
 
 enum {
     ULC_CIOCTL_LOOKUP_ELE = 0,
@@ -26,7 +27,7 @@ typedef struct {
     UCHAR data[0];
 }ULC_CIOCTL_S;
 
-static int _ulcapp_ioctl_lookup_ele(void *data, int data_len, VBUF_S *reply)
+static int _ulcapp_ioctl_lookup_ele(MYBPF_RUNTIME_S *runtime, void *data, int data_len, VBUF_S *reply)
 {
     int fd;
     int key_len;
@@ -40,7 +41,7 @@ static int _ulcapp_ioctl_lookup_ele(void *data, int data_len, VBUF_S *reply)
     key_len = data_len - sizeof(ULC_CIOCTL_S);
     fd = ntohl(d->fd);
 
-    hdr = UMAP_GetByFd(fd);
+    hdr = UMAP_GetByFd(runtime->ufd_ctx, fd);
     if (! hdr) {
         RETURN(BS_CAN_NOT_OPEN);
     }
@@ -57,7 +58,7 @@ static int _ulcapp_ioctl_lookup_ele(void *data, int data_len, VBUF_S *reply)
     return VBUF_CatFromBuf(reply, value, hdr->size_value);
 }
 
-static int _ulcapp_ioctl_delete_ele(void *data, int data_len, VBUF_S *reply)
+static int _ulcapp_ioctl_delete_ele(MYBPF_RUNTIME_S *runtime, void *data, int data_len, VBUF_S *reply)
 {
     int fd;
     int key_len;
@@ -71,7 +72,7 @@ static int _ulcapp_ioctl_delete_ele(void *data, int data_len, VBUF_S *reply)
     key_len = data_len - sizeof(ULC_CIOCTL_S);
     fd = ntohl(d->fd);
 
-    hdr = UMAP_GetByFd(fd);
+    hdr = UMAP_GetByFd(runtime->ufd_ctx, fd);
     if (! hdr) {
         RETURN(BS_CAN_NOT_OPEN);
     }
@@ -83,7 +84,7 @@ static int _ulcapp_ioctl_delete_ele(void *data, int data_len, VBUF_S *reply)
     return UMAP_DeleteElem(hdr, d->data);
 }
 
-static int _ulcapp_ioctl_update_ele(void *data, int data_len, VBUF_S *reply)
+static int _ulcapp_ioctl_update_ele(MYBPF_RUNTIME_S *runtime, void *data, int data_len, VBUF_S *reply)
 {
     ULC_CIOCTL_S *d = data;
     UMAP_HEADER_S *hdr;
@@ -96,7 +97,7 @@ static int _ulcapp_ioctl_update_ele(void *data, int data_len, VBUF_S *reply)
     int fd = ntohl(d->fd);
     UINT flag = ntohl(d->flag);
 
-    hdr = UMAP_GetByFd(fd);
+    hdr = UMAP_GetByFd(runtime->ufd_ctx, fd);
     if (! hdr) {
         RETURN(BS_CAN_NOT_OPEN);
     }
@@ -111,7 +112,7 @@ static int _ulcapp_ioctl_update_ele(void *data, int data_len, VBUF_S *reply)
     return UMAP_UpdateElem(hdr, key, value, flag);
 }
 
-static int _ulcapp_ioctl_getnext_key(void *data, int data_len, VBUF_S *reply)
+static int _ulcapp_ioctl_getnext_key(MYBPF_RUNTIME_S *runtime, void *data, int data_len, VBUF_S *reply)
 {
     int fd;
     int key_len;
@@ -127,7 +128,7 @@ static int _ulcapp_ioctl_getnext_key(void *data, int data_len, VBUF_S *reply)
     key_len = data_len - sizeof(ULC_CIOCTL_S);
     fd = ntohl(d->fd);
 
-    hdr = UMAP_GetByFd(fd);
+    hdr = UMAP_GetByFd(runtime->ufd_ctx, fd);
     if (! hdr) {
         RETURN(BS_CAN_NOT_OPEN);
     }
@@ -144,7 +145,7 @@ static int _ulcapp_ioctl_getnext_key(void *data, int data_len, VBUF_S *reply)
     return VBUF_CatFromBuf(reply, key, hdr->size_key);
 }
 
-static int _ulcapp_ioctl_process_request_locked(CIOCTL_REQUEST_S *request, VBUF_S *reply)
+static int _ulcapp_ioctl_process_request_locked(MYBPF_RUNTIME_S *runtime, CIOCTL_REQUEST_S *request, VBUF_S *reply)
 {
     int totle_len = ntohl(request->size);
     int req_len = totle_len - sizeof(CIOCTL_REQUEST_S);
@@ -163,16 +164,16 @@ static int _ulcapp_ioctl_process_request_locked(CIOCTL_REQUEST_S *request, VBUF_
 
     switch (cmd) {
         case ULC_CIOCTL_LOOKUP_ELE:
-            ret = _ulcapp_ioctl_lookup_ele(data, data_len, reply);
+            ret = _ulcapp_ioctl_lookup_ele(runtime, data, data_len, reply);
             break;
         case ULC_CIOCTL_DELETE_ELE:
-            ret = _ulcapp_ioctl_delete_ele(data, data_len, reply);
+            ret = _ulcapp_ioctl_delete_ele(runtime, data, data_len, reply);
             break;
         case ULC_CIOCTL_UPDATE_ELE:
-            ret = _ulcapp_ioctl_update_ele(data, data_len, reply);
+            ret = _ulcapp_ioctl_update_ele(runtime, data, data_len, reply);
             break;
         case ULC_CIOCTL_GETNEXT_KEY:
-            ret = _ulcapp_ioctl_getnext_key(data, data_len, reply);
+            ret = _ulcapp_ioctl_getnext_key(runtime, data, data_len, reply);
             break;
         default:
             ret = BS_NOT_SUPPORT;
@@ -185,8 +186,10 @@ static int _ulcapp_ioctl_process_request_locked(CIOCTL_REQUEST_S *request, VBUF_
 static int _ulcapp_ioctl_process_request(CIOCTL_REQUEST_S *request, VBUF_S *reply)
 {
     int ret;
+    MYBPF_RUNTIME_S *runtime = ULCAPP_GetRuntime();
+
     ULCAPP_CfgLock();
-    ret = _ulcapp_ioctl_process_request_locked(request, reply);
+    ret = _ulcapp_ioctl_process_request_locked(runtime, request, reply);
     ULCAPP_CfgUnlock();
     return ret;
 }

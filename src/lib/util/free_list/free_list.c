@@ -14,13 +14,7 @@ int FreeList_Init(FREE_LIST_S *list)
     return 0;
 }
 
-void FreeList_Put(FREE_LIST_S *list, void *node)
-{
-    SL_AddHead(&list->free_list, node);
-}
-
-int FreeList_Puts(FREE_LIST_S *list, void *nodes, UINT node_len,
-        UINT nodes_count)
+int FreeList_Puts(FREE_LIST_S *list, void *nodes, UINT node_len, UINT nodes_count)
 {
     int i;
     unsigned char *tmp = nodes;
@@ -32,10 +26,5 @@ int FreeList_Puts(FREE_LIST_S *list, void *nodes, UINT node_len,
     }
 
     return 0;
-}
-
-void * FreeList_Get(FREE_LIST_S *list)
-{
-    return (void*) SL_DelHead(&list->free_list);
 }
 

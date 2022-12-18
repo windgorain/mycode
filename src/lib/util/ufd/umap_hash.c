@@ -1,6 +1,6 @@
 /*================================================================
 *   Created by LiXingang, Copyright LiXingang
-*   Description: 
+*   Description: user map
 *
 ================================================================*/
 #include "bs.h"
@@ -54,7 +54,7 @@ static void _umap_hash_hash_free_node(HASH_HANDLE hash_tbl, void *node, void *ud
     _umap_hash_free_node(node);
 }
 
-static void _umap_hash_destroy_map(void *f)
+static void _umap_hash_destroy_map(void *ufd_ctx, void *f)
 {
     UMAP_HASH_S *ctrl = f;
 
@@ -63,7 +63,7 @@ static void _umap_hash_destroy_map(void *f)
     RcuEngine_Free(ctrl);
 }
 
-static int _umap_hash_open(UMAP_ELF_MAP_S *elfmap)
+static int _umap_hash_open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap)
 {
     int fd;
 
@@ -84,7 +84,7 @@ static int _umap_hash_open(UMAP_ELF_MAP_S *elfmap)
         return -ENOMEM;
     }
 
-    fd = UFD_Open(UFD_FD_TYPE_MAP, ctrl, _umap_hash_destroy_map);
+    fd = UFD_Open(ctx, UFD_FD_TYPE_MAP, ctrl, _umap_hash_destroy_map);
     if (fd < 0) {
         RcuEngine_Free(ctrl);
         return fd;

@@ -57,7 +57,7 @@ static int _map_list_cmp(MAP_ELE_S *key, void * pstCmpNode)
     return MEM_Cmp(key->pKey, key->uiKeyLen, pstNode->stEle.pKey, pstNode->stEle.uiKeyLen);
 }
 
-int _map_list_cmp_list_node(DLL_NODE_S *pstNode1, DLL_NODE_S *pstNode2, HANDLE hUserHandle)
+static int _map_list_cmp_list_node(DLL_NODE_S *pstNode1, DLL_NODE_S *pstNode2, HANDLE hUserHandle)
 {
     MAP_LIST_NODE_S *node1 = (void*)pstNode1;
     MAP_LIST_NODE_S *node2 = (void*)pstNode2;
@@ -344,6 +344,8 @@ MAP_HANDLE MAP_ListCreate(void *memcap/*可以为NULL*/)
         MemCap_Free(memcap, ctrl);
         return NULL;
     }
+
+    DLL_INIT(&list_map->list);
     ctrl->impl_map = list_map;
 
     return ctrl;

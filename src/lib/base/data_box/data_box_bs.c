@@ -1,10 +1,10 @@
 /*********************************************************
 *   Copyright (C) LiXingang
-*   Description: 
+*   Description: 在bs中放一些公用数据
 *
 ********************************************************/
 #include "bs.h"
 
-IDFUNC_CTRL_S g__bs_idfunc_db;
+void * g_databox_bs[];
 
 

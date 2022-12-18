@@ -5,7 +5,6 @@
 ================================================================*/
 #include "bs.h"
 #include "utl/rsa_utl.h"
-#include <openssl/decoder.h>
 
 static char * g_public_key = "-----BEGIN PUBLIC KEY-----\n"
 "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAsUdSg2wF9HFlCDA5K/Jj\n"
@@ -24,26 +23,16 @@ static char * g_public_key = "-----BEGIN PUBLIC KEY-----\n"
 
 EVP_PKEY * RSA_DftPublicKey()
 {
-    OSSL_DECODER_CTX *dctx;
-    EVP_PKEY *pkey = NULL;
-    const char *format = "PEM";   /* NULL for any format */
-    const char *structure = NULL; /* any structure */
-    const char *keytype = "RSA";  /* NULL for any key */
-    const char *pass = NULL;
     BIO* bio = NULL;
 
     if ((bio = BIO_new_mem_buf(g_public_key, -1)) == NULL) {     
         return NULL;
     }
 
-    dctx = OSSL_DECODER_CTX_new_for_pkey(&pkey, format, structure, keytype, OSSL_KEYMGMT_SELECT_KEYPAIR, NULL, NULL);
-    if (dctx) {
-        if (pass) {
-            OSSL_DECODER_CTX_set_passphrase(dctx, (void*)pass, strlen(pass));
-        }
-        OSSL_DECODER_from_bio(dctx, bio);
-        OSSL_DECODER_CTX_free(dctx);
-    }
+    EVP_PKEY *pkey = PEM_read_bio_PUBKEY(bio, NULL, NULL, NULL);
+//    RSA * pub_key = PEM_read_bio_RSA_PUBKEY(bio, NULL, NULL, NULL);
+//    EVP_PKEY *pkey = EVP_PKEY_new();
+//    EVP_PKEY_set0_RSA(pkey, pub_key);
 
     BIO_free(bio);
 

@@ -161,6 +161,7 @@ int license_create(int argc, char **argv)
     }
 
     pri_key = RSA_DftPrivateKey();
+    BS_DBGASSERT(pri_key);
 
     CFF_SCAN_TAG_START(hCff, tagname) {
         LICENSE_X_SetCreateTime(hCff, tagname);
@@ -204,6 +205,7 @@ int license_verify(int argc, char **argv)
     }
 
     pub_key = RSA_DftPublicKey();
+    BS_DBGASSERT(pub_key);
 
     CFF_SCAN_TAG_START(hCff, tagname) {
         tip = LICENSE_X_GetTip(hCff, tagname);

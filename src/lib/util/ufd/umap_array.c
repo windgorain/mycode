@@ -12,13 +12,13 @@ typedef struct {
     UCHAR data[0];
 }UMAP_ARRAY_S;
 
-static void _umap_array_destroy_map(void *f)
+static void _umap_array_destroy_map(void *ufd_ctx, void *f)
 {
     UMAP_ARRAY_S *ctrl = f;
     RcuEngine_Free(ctrl);
 }
 
-static int _umap_array_open(UMAP_ELF_MAP_S *elfmap)
+static int _umap_array_open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap)
 {
     int fd;
     int len;
@@ -34,7 +34,7 @@ static int _umap_array_open(UMAP_ELF_MAP_S *elfmap)
         return -ENOMEM;
     }
 
-    fd = UFD_Open(UFD_FD_TYPE_MAP, ctrl, _umap_array_destroy_map);
+    fd = UFD_Open(ctx, UFD_FD_TYPE_MAP, ctrl, _umap_array_destroy_map);
     if (fd < 0) {
         RcuEngine_Free(ctrl);
         return fd;

@@ -1,0 +1,14 @@
+set (LIB_NAME dynamic-${NAME})
+add_library(${LIB_NAME} SHARED ${SRC})
+
+set_target_properties(${LIB_NAME} PROPERTIES OUTPUT_NAME "${NAME}")
+set_target_properties(${LIB_NAME} PROPERTIES PREFIX "lib")
+set_target_properties(${LIB_NAME} PROPERTIES SUFFIX ".so")
+target_compile_definitions(${LIB_NAME} PRIVATE USE_BS)
+
+target_link_libraries(${LIB_NAME} util bs ssl crypto pcap)
+
+IF (UNIX AND NOT APPLE)
+target_link_libraries(${LIB_NAME} rt)
+ENDIF()
+

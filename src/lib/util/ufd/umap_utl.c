@@ -1,7 +1,7 @@
 /*================================================================
 *   Created by LiXingang, Copyright LiXingang
 *   Date: 2017.1.2
-*   Description: ufd map
+*   Description: user bpf map
 *
 ================================================================*/
 #include "bs.h"
@@ -30,7 +30,7 @@ char * UMAP_TypeName(unsigned int type)
 }
 
 /* map_def_offset: 当前map_def在maps字段中的偏移 */
-int UMAP_Open(UMAP_ELF_MAP_S *elfmap, int map_def_offset, char *map_name)
+int UMAP_Open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap, int map_def_offset, char *map_name)
 {
     UINT type = elfmap->type;
     int fd;
@@ -40,12 +40,12 @@ int UMAP_Open(UMAP_ELF_MAP_S *elfmap, int map_def_offset, char *map_name)
 		return -EINVAL;
     }
 
-    fd = g_umap_func_tbl[type]->open_func(elfmap);
+    fd = g_umap_func_tbl[type]->open_func(ctx, elfmap);
     if (fd < 0) {
         return fd;
     }
 
-    hdr = UFD_GetFileData(fd);
+    hdr = UFD_GetFileData(ctx, fd);
 
     hdr->fd = fd;
     hdr->map_def_offset = map_def_offset;
@@ -60,37 +60,37 @@ int UMAP_Open(UMAP_ELF_MAP_S *elfmap, int map_def_offset, char *map_name)
     return fd;
 }
 
-void UMAP_Close(int fd)
+void UMAP_Close(UFD_S *ctx, int fd)
 {
-    UFD_Close(fd);
+    UFD_Close(ctx, fd);
 }
 
-UMAP_HEADER_S * UMAP_GetByFd(int fd)
+UMAP_HEADER_S * UMAP_GetByFd(UFD_S *ctx, int fd)
 {
-    if (UFD_FD_TYPE_MAP != UFD_GetFileType(fd)) {
+    if (UFD_FD_TYPE_MAP != UFD_GetFileType(ctx, fd)) {
         return NULL;
     }
 
-    return UFD_GetFileData(fd);
+    return UFD_GetFileData(ctx, fd);
 }
 
 /* 获取map并增加引用计数 */
-UMAP_HEADER_S * UMAP_RefByFd(int fd)
+UMAP_HEADER_S * UMAP_RefByFd(UFD_S *ctx, int fd)
 {
-    if (UFD_FD_TYPE_MAP != UFD_GetFileType(fd)) {
+    if (UFD_FD_TYPE_MAP != UFD_GetFileType(ctx, fd)) {
         return NULL;
     }
 
-    return UFD_RefFileData(fd);
+    return UFD_RefFileData(ctx, fd);
 }
 
-int UMAP_GetByName(char *map_name)
+int UMAP_GetByName(UFD_S *ctx, char *map_name)
 {
     UMAP_HEADER_S *hdr;
     int fd = -1;
 
-    while ((fd = UFD_GetNextOfType(UFD_FD_TYPE_MAP, fd)) >= 0) {
-        hdr = UFD_GetFileData(fd);
+    while ((fd = UFD_GetNextOfType(ctx, UFD_FD_TYPE_MAP, fd)) >= 0) {
+        hdr = UFD_GetFileData(ctx, fd);
         if (! hdr) {
             continue;
         }
@@ -135,11 +135,11 @@ long UMAP_UpdateElem(void *map, void *key, void *value, U32 flag)
     return g_umap_func_tbl[hdr->type]->update_elem_func(map, key, value, flag);
 }
 
-void * UMAP_LookupElemByFd(int fd, void *key)
+void * UMAP_LookupElemByFd(UFD_S *ctx, int fd, void *key)
 {
     UMAP_HEADER_S *hdr;
 
-    hdr = UMAP_GetByFd(fd);
+    hdr = UMAP_GetByFd(ctx, fd);
     if (! hdr) {
         return NULL;
     }
@@ -147,11 +147,11 @@ void * UMAP_LookupElemByFd(int fd, void *key)
     return UMAP_LookupElem(hdr, key);
 }
 
-long UMAP_DeleteElemByFd(int fd, void *key)
+long UMAP_DeleteElemByFd(UFD_S *ctx, int fd, void *key)
 {
     UMAP_HEADER_S *hdr;
 
-    hdr = UMAP_GetByFd(fd);
+    hdr = UMAP_GetByFd(ctx, fd);
     if (! hdr) {
         RETURN(BS_ERR);
     }
@@ -159,11 +159,11 @@ long UMAP_DeleteElemByFd(int fd, void *key)
     return UMAP_DeleteElem(hdr, key);
 }
 
-long UMAP_UpdataElemByFd(int fd, void *key, void *value, UINT flag)
+long UMAP_UpdataElemByFd(UFD_S *ctx, int fd, void *key, void *value, UINT flag)
 {
     UMAP_HEADER_S *hdr;
 
-    hdr = UMAP_GetByFd(fd);
+    hdr = UMAP_GetByFd(ctx, fd);
     if (! hdr) {
         RETURN(BS_ERR);
     }
@@ -194,7 +194,7 @@ void * UMAP_GetNextKey(void *map, void *curr_key, OUT void **next_key)
     return g_umap_func_tbl[hdr->type]->get_next_key(hdr, curr_key, next_key);
 }
 
-void UMAP_ShowMap(PF_PRINT_FUNC print_func)
+void UMAP_ShowMap(UFD_S *ctx, PF_PRINT_FUNC print_func)
 {
     int fd = -1;
     int state;
@@ -202,8 +202,8 @@ void UMAP_ShowMap(PF_PRINT_FUNC print_func)
 
     state = RcuEngine_Lock();
 
-    while ((fd = UFD_GetNextOfType(UFD_FD_TYPE_MAP, fd)) >= 0) {
-        hdr = UFD_GetFileData(fd);
+    while ((fd = UFD_GetNextOfType(ctx, UFD_FD_TYPE_MAP, fd)) >= 0) {
+        hdr = UFD_GetFileData(ctx, fd);
         if (! hdr) {
             continue;
         }
@@ -215,13 +215,13 @@ void UMAP_ShowMap(PF_PRINT_FUNC print_func)
     RcuEngine_UnLock(state);
 }
 
-void UMAP_DumpMap(int map_fd, PF_PRINT_FUNC print_func)
+void UMAP_DumpMap(UFD_S *ctx, int map_fd, PF_PRINT_FUNC print_func)
 {
     void *key = NULL;
     void *next_key;
     void *data;
 
-    UMAP_HEADER_S *hdr = UMAP_GetByFd(map_fd);
+    UMAP_HEADER_S *hdr = UMAP_GetByFd(ctx, map_fd);
     if (! hdr) {
         return;
     }

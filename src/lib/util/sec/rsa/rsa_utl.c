@@ -6,6 +6,46 @@
 #include "bs.h"
 #include "utl/rsa_utl.h"
 
+/* 私钥加密, 返回加密后的数据长度 */
+static int _rsa_private_encrypt(RSA *pri_key, IN void *in, int in_len, OUT void *out, int out_size)
+{
+	int len = RSA_private_encrypt(in_len, in, out, pri_key, RSA_PKCS1_PADDING);
+    if (len <= 0) {
+        RETURN(BS_ERR);
+    }
+    return len;
+}
+
+/* 公钥解密, 返回解密后的数据长度 */
+static int _rsa_public_decrypt(RSA *pub_key, IN void *in, int in_len, OUT void *out, int out_size)
+{
+	int len = RSA_public_decrypt(in_len, in, out, pub_key, RSA_PKCS1_PADDING);
+    if (len <= 0) {
+        RETURN(BS_ERR);
+    }
+    return len;
+}
+
+/* 公钥加密, 返回加密后的数据长度 */
+static int _rsa_public_encrypt(RSA *pub_key, IN void *in, int in_len, OUT void *out, int out_size)
+{
+	int len = RSA_public_encrypt(in_len, in, out, pub_key, RSA_PKCS1_PADDING);
+    if (len <= 0) {
+        RETURN(BS_ERR);
+    }
+    return len;
+}
+
+/* 私钥解密, 返回解密后的数据长度 */
+static int _rsa_private_decrypt(RSA *pri_key, IN void *in, int in_len, OUT void *out, int out_size)
+{
+	int len = RSA_private_decrypt(in_len, in, out, pri_key, RSA_PKCS1_PADDING);
+    if (len <= 0) {
+        RETURN(BS_ERR);
+    }
+    return len;
+}
+
 static EVP_PKEY * _evp_build_key(EVP_PKEY_CTX *ctx, UINT bits)
 {
     EVP_PKEY *pkey = NULL;
@@ -43,7 +83,7 @@ EVP_PKEY * EVP_BuildKey(int type, UINT bits)
 
 EVP_PKEY * RSA_BuildKey(UINT bits)
 {
-    return EVP_RSA_gen(bits);
+    return EVP_BuildKey(EVP_PKEY_RSA2, bits);
 }
 
 EVP_PKEY * DSA_BuildKey(UINT bits)
@@ -56,60 +96,27 @@ EVP_PKEY * EC_BuildKey(UINT bits)
     return EVP_BuildKey(EVP_PKEY_EC, bits);
 }
 
-typedef int (*PF_EVP_PKEY_do)(EVP_PKEY_CTX *ctx, UCHAR *out, size_t *outlen, const UCHAR *in, size_t inlen);
-
-static int _evp_do_ctx(EVP_PKEY_CTX *ctx, void *in, int in_len, OUT void *out, int out_size, PF_EVP_PKEY_do func)
+/* 非对称私钥加密, 返回加密后的数据长度 */
+int RSA_PrivateEncrypt(IN EVP_PKEY *key, IN void *in, int in_size, OUT void *out, int out_size)
 {
-    size_t out_len;
-
-    if (EVP_PKEY_encrypt_init(ctx) <= 0) {
-        RETURN(BS_ERR);
-    }
-
-    if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING) <= 0) {
-        RETURN(BS_ERR);
-	}
-
-    if (EVP_PKEY_encrypt(ctx, NULL, &out_len, in, in_len) <= 0) {
-        RETURN(BS_ERR);
-    }
-
-    if (out_len > out_size) {
-        RETURN(BS_OUT_OF_RANGE);
-    }
-
-    if (EVP_PKEY_encrypt(ctx, out, &out_len, in, in_len) <= 0) {
-        RETURN(BS_ERR);
-	}
-
-    return out_len;
+    return _rsa_private_encrypt((void*)EVP_PKEY_get0_RSA(key), in, in_size, out, out_size);
 }
 
-static int _evp_do_pkey(EVP_PKEY *key, void *in, int in_len, OUT void *out, int out_size, PF_EVP_PKEY_do func)
+/* 非对称公钥解密, 返回解密后的数据长度 */
+int RSA_PublicDecrypt(IN EVP_PKEY *key, IN void *in, int in_size, OUT void *out, int out_size)
 {
-    EVP_PKEY_CTX *ctx = NULL;
-
-    ctx = EVP_PKEY_CTX_new(key, NULL);
-    if (! ctx) {
-        RETURN(BS_NO_MEMORY);
-	}
-
-    int out_len = _evp_do_ctx(ctx, in, in_len, out, out_size, func);
-
-    EVP_PKEY_CTX_free(ctx);
-
-    return out_len;
+    return _rsa_public_decrypt((void*)EVP_PKEY_get0_RSA(key), in, in_size, out, out_size);
 }
 
-/* 非对称加密, 返回加密后的数据长度 */
-int RSA_Encrypt(IN EVP_PKEY *key, IN void *in, int in_len, OUT void *out, int out_size)
+/* 非对称公钥加密, 返回加密后的数据长度 */
+int RSA_PublicEncrypt(IN EVP_PKEY *key, IN void *in, int in_size, OUT void *out, int out_size)
 {
-    return _evp_do_pkey(key, in, in_len, out, out_size, EVP_PKEY_encrypt);
+    return _rsa_public_encrypt((void*)EVP_PKEY_get0_RSA(key), in, in_size, out, out_size);
 }
 
-/* 非对称解密, 返回解密后的数据长度 */
-int RSA_Decrypt(IN EVP_PKEY *key, IN void *in, int in_len, OUT void *out, int out_size)
+/* 非对称私钥解密, 返回解密后的数据长度 */
+int RSA_PrivateDecrypt(IN EVP_PKEY *key, IN void *in, int in_size, OUT void *out, int out_size)
 {
-    return _evp_do_pkey(key, in, in_len, out, out_size, EVP_PKEY_decrypt);
+    return _rsa_private_decrypt((void*)EVP_PKEY_get0_RSA(key), in, in_size, out, out_size);
 }
 

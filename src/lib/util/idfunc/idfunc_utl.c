@@ -7,11 +7,12 @@
 #include "utl/idfunc_utl.h"
 #include "utl/mybpf_vm.h"
 
-static inline int _idfunc_call_raw(IDFUNC_CTRL_S *ctrl, IDFUNC_NODE_S *node, UINT64 *func_ret, UINT64 p1, UINT64 p2)
+static inline int _idfunc_call_raw(IDFUNC_S *ctrl, IDFUNC_NODE_S *node, UINT64 *func_ret,
+        UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
     PF_IDFUNC_FUNC func = node->func;
 
-    UINT64 ret = func(p1, p2);
+    UINT64 ret = func(p1, p2, p3, p4, p5);
     if (func_ret) {
         *func_ret = ret;
     }
@@ -19,7 +20,8 @@ static inline int _idfunc_call_raw(IDFUNC_CTRL_S *ctrl, IDFUNC_NODE_S *node, UIN
     return 0;
 }
 
-static inline int _idfunc_call_bpf(IDFUNC_CTRL_S *ctrl, IDFUNC_NODE_S *node, UINT64 *func_ret, UINT64 p1, UINT64 p2)
+static inline int _idfunc_call_bpf(IDFUNC_S *ctrl, IDFUNC_NODE_S *node, UINT64 *func_ret,
+        UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
     MYBPF_CTX_S ctx;
 
@@ -32,7 +34,7 @@ static inline int _idfunc_call_bpf(IDFUNC_CTRL_S *ctrl, IDFUNC_NODE_S *node, UIN
 
     ctx.insts = node->func;
 
-    int ret = MYBPF_DefultRun(&ctx, p1, p2, 0, 0, 0);
+    int ret = MYBPF_DefultRun(&ctx, p1, p2, p3, p4, p5);
     if (ret < 0) {
         return ret;
     }
@@ -44,21 +46,39 @@ static inline int _idfunc_call_bpf(IDFUNC_CTRL_S *ctrl, IDFUNC_NODE_S *node, UIN
     return 0;
 }
 
-IDFUNC_NODE_S * IDFUNC_GetNode(IDFUNC_CTRL_S *ctrl, UINT id)
+int IDFUNC_Init(INOUT IDFUNC_S *ctrl, UINT capacity)
 {
-    if (id >= IDFUNC_MAX) {
-        return NULL;
-    }
-    return ctrl->nodes[id];
+    ctrl->capacity = capacity;
+    return 0;
 }
 
-int IDFUNC_SetNode(IDFUNC_CTRL_S *ctrl, UINT id, IDFUNC_NODE_S *node)
+IDFUNC_S * IDFUNC_Create(UINT capacity)
 {
-    if (id >= IDFUNC_MAX) {
+    IDFUNC_S *ctrl = MEM_ZMalloc(sizeof(IDFUNC_S) + capacity * sizeof(IDFUNC_NODE_S)); 
+    if (! ctrl) {
+        return NULL;
+    }
+
+    IDFUNC_Init(ctrl, capacity);
+    return ctrl;
+}
+
+IDFUNC_NODE_S * IDFUNC_GetNode(IDFUNC_S *ctrl, UINT id)
+{
+    if (id >= ctrl->capacity) {
+        return NULL;
+    }
+    return &ctrl->nodes[id];
+}
+
+int IDFUNC_SetNode(IDFUNC_S *ctrl, UINT id, UCHAR type, void *func)
+{
+    if (id >= ctrl->capacity) {
         RETURN(BS_OUT_OF_RANGE);
     }
 
-    ctrl->nodes[id] = node;
+    ctrl->nodes[id].type = type;
+    ctrl->nodes[id].func = func;
 
     return 0;
 }
@@ -66,31 +86,29 @@ int IDFUNC_SetNode(IDFUNC_CTRL_S *ctrl, UINT id, IDFUNC_NODE_S *node)
 /* 
 id: 被调用函数的ID
 func_ret: 被调用函数的返回值. 可以为NULL不关心返回值
-p1, p2: 传给被调用函数的参数
+px: 传给被调用函数的参数
 return: 调用成功失败
  */
-int IDFUNC_Call(IDFUNC_CTRL_S *ctrl, UINT id, UINT64 *func_ret, UINT64 p1, UINT64 p2)
+int IDFUNC_Call(IDFUNC_S *ctrl, UINT id, UINT64 *func_ret, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
     IDFUNC_NODE_S *node;
     int ret = 0;
 
-    if (id >= IDFUNC_MAX) {
+    if (id >= ctrl->capacity) {
         RETURN(BS_OUT_OF_RANGE);
     }
 
-    node = ctrl->nodes[id];
-    if (! node) {
+    node = &ctrl->nodes[id];
+    if (! node->func) {
         RETURN(BS_NO_SUCH);
     }
 
-    BS_DBGASSERT(node->func);
-
     switch (node->type) {
         case IDFUNC_TYPE_RAW:
-            ret = _idfunc_call_raw(ctrl, node, func_ret, p1, p2);
+            ret = _idfunc_call_raw(ctrl, node, func_ret, p1, p2, p3, p4, p5);
             break;
         case IDFUNC_TYPE_BPF:
-            ret = _idfunc_call_bpf(ctrl, node, func_ret, p1, p2);
+            ret = _idfunc_call_bpf(ctrl, node, func_ret, p1, p2, p3, p4, p5);
             break;
         default:
             RETURN(BS_NOT_SUPPORT);
@@ -99,4 +117,5 @@ int IDFUNC_Call(IDFUNC_CTRL_S *ctrl, UINT id, UINT64 *func_ret, UINT64 p1, UINT6
 
     return ret;
 }
+
 

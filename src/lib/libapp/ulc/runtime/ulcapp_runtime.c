@@ -6,6 +6,7 @@
 #include "bs.h"
 #include "utl/exec_utl.h"
 #include "utl/map_utl.h"
+#include "utl/umap_utl.h"
 #include "utl/mybpf_prog.h"
 #include "utl/mybpf_loader.h"
 #include "utl/mybpf_runtime.h"
@@ -24,7 +25,7 @@ static int ulcapp_precver_xdp_pkt_input(void *ob, void *data)
     xdp_buf.data = pkt->data;
     xdp_buf.data_end = pkt->data + pkt->data_len;
 
-    MYBPF_XdpInput(&g_ulcapp_runtime.xdp_list, &xdp_buf);
+    MYBPF_XdpInput(&g_ulcapp_runtime, &xdp_buf);
 
     return 0;
 }
@@ -66,9 +67,14 @@ static int _ulcapp_replace_file(char *filename, char *instance, UINT keep_map)
 
 int ULCAPP_RuntimeInit(void)
 {
-    MYBPF_RuntimeInit(&g_ulcapp_runtime);
+    MYBPF_RuntimeInit(&g_ulcapp_runtime, 1024);
     EHUB_Reg(EHUB_EV_PRECVER_PKT, "ulc", ulcapp_precver_xdp_pkt_input, NULL);
     return 0;
+}
+
+MYBPF_RUNTIME_S * ULCAPP_GetRuntime(void)
+{
+    return &g_ulcapp_runtime;
 }
 
 int ULCAPP_LoadFile(char *filename, char *instance)
@@ -113,4 +119,24 @@ int ULCAPP_RuntimeSave(HANDLE hFile)
     return 0;
 }
 
+void ULCAPP_ShowMap(void)
+{
+    ULCAPP_CfgLock();
+    UMAP_ShowMap(g_ulcapp_runtime.ufd_ctx, EXEC_OutInfo);
+    ULCAPP_CfgUnlock();
+}
+
+void ULCAPP_DumpMap(int map_fd)
+{
+    ULCAPP_CfgLock();
+    UMAP_DumpMap(g_ulcapp_runtime.ufd_ctx, map_fd, EXEC_OutInfo);
+    ULCAPP_CfgUnlock();
+}
+
+void ULCAPP_ShowProg(void)
+{
+    ULCAPP_CfgLock();
+    MYBPF_PROG_ShowProg(&g_ulcapp_runtime, EXEC_OutInfo);
+    ULCAPP_CfgUnlock();
+}
 

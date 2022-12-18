@@ -79,9 +79,7 @@ int ULCAPP_CMD_NoLoadInstance(int argc, char **argv)
 /* show map */
 int ULCAPP_CMD_ShowMap(int argc, char **argv)
 {
-    ULCAPP_CfgLock();
-    UMAP_ShowMap(EXEC_OutInfo);
-    ULCAPP_CfgUnlock();
+    ULCAPP_ShowMap();
     return 0;
 }
 
@@ -92,9 +90,7 @@ int ULCAPP_CMD_DumpMap(int argc, char **argv)
 
     map_fd = atoi(argv[2]);
 
-    ULCAPP_CfgLock();
-    UMAP_DumpMap(map_fd, EXEC_OutInfo);
-    ULCAPP_CfgUnlock();
+    ULCAPP_DumpMap(map_fd);
 
     return 0;
 }
@@ -102,9 +98,7 @@ int ULCAPP_CMD_DumpMap(int argc, char **argv)
 /* show prog */
 int ULCAPP_CMD_ShowProg(int argc, char **argv)
 {
-    ULCAPP_CfgLock();
-    MYBPF_PROG_ShowProg(EXEC_OutInfo);
-    ULCAPP_CfgUnlock();
+    ULCAPP_ShowProg();
     return 0;
 }
 

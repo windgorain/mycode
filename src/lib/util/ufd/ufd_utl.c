@@ -7,17 +7,13 @@
 #include "bs.h"
 #include "utl/ufd_utl.h"
 
-#define UFD_MAX_FD 0xfffff
-
-static UFD_FILE_S g_ufd_fds[UFD_MAX_FD] = {0};
-
-static int _ufd_attach_file(int type, void *data, PF_UFD_FREE free_func)
+static int _ufd_attach_file(UFD_S *ctx, int type, void *data, PF_UFD_FREE free_func)
 {
     int i;
     UFD_FILE_S *fs;
 
-    for (i=0; i<UFD_MAX_FD; i++) {
-        fs = &g_ufd_fds[i];
+    for (i=0; i<ctx->capacity; i++) {
+        fs = &ctx->fds[i];
         if (! fs->data) {
             fs->type = type;
             fs->ref_cnt = 1;
@@ -31,9 +27,9 @@ static int _ufd_attach_file(int type, void *data, PF_UFD_FREE free_func)
     return -EBADF;
 }
 
-static int _ufd_ref(int fd, int ref_count)
+static int _ufd_ref(UFD_S *ctx, int fd, int ref_count)
 {
-    UFD_FILE_S *fs = &g_ufd_fds[fd];
+    UFD_FILE_S *fs = &ctx->fds[fd];
     void *data;
 
     if ((fs->data == NULL) || (fs->ref_cnt <= 0)) {
@@ -45,92 +41,110 @@ static int _ufd_ref(int fd, int ref_count)
     if (fs->ref_cnt <= 0) {
         data = fs->data;
         fs->data = NULL;
-        fs->free_func(data);
+        fs->free_func(ctx, data);
     }
 
     return 0;
 }
 
-int UFD_Open(int type, void *data, PF_UFD_FREE free_func)
+int UFD_Init(INOUT UFD_S *ctx, UINT capacity)
 {
-    return _ufd_attach_file(type, data, free_func);
+    ctx->capacity = capacity;
+    return 0;
 }
 
-int UFD_Close(int fd)
+UFD_S * UFD_Create(UINT capacity)
 {
-    return UFD_Ref(fd, -1);
+    UFD_S *ctx = MEM_ZMalloc(sizeof(UFD_S) + capacity * sizeof(UFD_FILE_S));
+    if (! ctx) {
+        return NULL;
+    }
+
+    UFD_Init(ctx, capacity);
+
+    return ctx;
 }
 
-int UFD_Ref(int fd, int ref_count)
+int UFD_Open(UFD_S *ctx, int type, void *data, PF_UFD_FREE free_func)
+{
+    return _ufd_attach_file(ctx, type, data, free_func);
+}
+
+int UFD_Close(UFD_S *ctx, int fd)
+{
+    return UFD_Ref(ctx, fd, -1);
+}
+
+int UFD_Ref(UFD_S *ctx, int fd, int ref_count)
 {
     int ret;
 
-    if ((fd < 0) || (fd >= UFD_MAX_FD)) {
+    if ((fd < 0) || (fd >= ctx->capacity)) {
         RETURN(BS_BAD_PARA);
     }
 
-    ret = _ufd_ref(fd, ref_count);
+    ret = _ufd_ref(ctx, fd, ref_count);
 
     return ret;
 }
 
-int UFD_IncRef(int fd)
+int UFD_IncRef(UFD_S *ctx, int fd)
 {
-    return UFD_Ref(fd, 1);
+    return UFD_Ref(ctx, fd, 1);
 }
 
-int UFD_DecRef(int fd)
+int UFD_DecRef(UFD_S *ctx, int fd)
 {
-    return UFD_Ref(fd, -1);
+    return UFD_Ref(ctx, fd, -1);
 }
 
-UFD_FILE_S * UFD_GetFile(int fd)
+UFD_FILE_S * UFD_GetFile(UFD_S *ctx, int fd)
 {
-    if ((fd < 0) || (fd >= UFD_MAX_FD)) {
+    if ((fd < 0) || (fd >= ctx->capacity)) {
         return NULL;
     }
 
-    if (g_ufd_fds[fd].data == NULL) {
+    if (ctx->fds[fd].data == NULL) {
         return NULL;
     }
 
-    return &g_ufd_fds[fd];
+    return &ctx->fds[fd];
 }
 
-void * UFD_GetFileData(int fd)
+void * UFD_GetFileData(UFD_S *ctx, int fd)
 {
-    if ((fd < 0) || (fd >= UFD_MAX_FD)) {
+    if ((fd < 0) || (fd >= ctx->capacity)) {
         return NULL;
     }
 
-    return g_ufd_fds[fd].data;
+    return ctx->fds[fd].data;
 }
 
 /* 获取file并增加引用计数 */
-UFD_FILE_S * UFD_RefFile(int fd)
+UFD_FILE_S * UFD_RefFile(UFD_S *ctx, int fd)
 {
-    UFD_IncRef(fd);
-    return UFD_GetFile(fd);
+    UFD_IncRef(ctx, fd);
+    return UFD_GetFile(ctx, fd);
 }
 
 /* 获取filedata并增加引用计数 */
-void * UFD_RefFileData(int fd)
+void * UFD_RefFileData(UFD_S *ctx, int fd)
 {
-    UFD_IncRef(fd);
-    return UFD_GetFileData(fd);
+    UFD_IncRef(ctx, fd);
+    return UFD_GetFileData(ctx, fd);
 }
 
-int UFD_GetFileType(int fd)
+int UFD_GetFileType(UFD_S *ctx, int fd)
 {
-    if ((fd < 0) || (fd >= UFD_MAX_FD)) {
+    if ((fd < 0) || (fd >= ctx->capacity)) {
         return -1;
     }
 
-    return g_ufd_fds[fd].type;
+    return ctx->fds[fd].type;
 }
 
 /* 返回-1表示结束 */
-int UFD_GetNext(int curr /* -1表示获取第一个 */)
+int UFD_GetNext(UFD_S *ctx, int curr /* -1表示获取第一个 */)
 {
     int i;
     int start = curr + 1;
@@ -139,8 +153,8 @@ int UFD_GetNext(int curr /* -1表示获取第一个 */)
         start = 0;
     }
 
-    for (i=start; i<UFD_MAX_FD; i++) {
-        if (g_ufd_fds[i].data) {
+    for (i=start; i<ctx->capacity; i++) {
+        if (ctx->fds[i].data) {
             return i;
         }
     }
@@ -149,10 +163,10 @@ int UFD_GetNext(int curr /* -1表示获取第一个 */)
 }
 
 /* 返回-1表示结束 */
-int UFD_GetNextOfType(int type, int curr /* -1表示获取第一个 */)
+int UFD_GetNextOfType(UFD_S *ctx, int type, int curr /* -1表示获取第一个 */)
 {
-    while ((curr = UFD_GetNext(curr)) >= 0) {
-        if (UFD_GetFileType(curr) == type) {
+    while ((curr = UFD_GetNext(ctx, curr)) >= 0) {
+        if (UFD_GetFileType(ctx, curr) == type) {
             return curr;
         }
     }

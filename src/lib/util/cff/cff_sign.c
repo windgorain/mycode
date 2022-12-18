@@ -69,7 +69,7 @@ static int cffsign_GetSignature(IN CFF_HANDLE hCff, IN char *tag_name, OUT UCHAR
     }
 
     len = len>>1;
-    if (len > buf_size) {
+    if (len >= buf_size) {
         RETURN(BS_OUT_OF_RANGE);
     }
 
@@ -82,83 +82,48 @@ static int cffsign_PublicDecryptSignature(CFF_HANDLE hcff, char *tag_name, EVP_P
 {
     int len;
     int dec_len;
-    int rsa_len;
-    void *buf = NULL;
-    void *dec = NULL;
+    UCHAR buf[513];
+    char dec[513];
 
     if (pub_key == NULL) {
         return -1;
     }
 
-    rsa_len = EVP_PKEY_get_size(pub_key);
-    buf = MEM_ZMalloc(rsa_len + 1);
-    dec = MEM_ZMalloc(rsa_len + 1);
-    if ((NULL == buf) || (NULL == dec)) {
-        goto LABLE_ERR;
-    }
-
-    len = cffsign_GetSignature(hcff, tag_name, buf, rsa_len);
+    len = cffsign_GetSignature(hcff, tag_name, buf, sizeof(buf));
     if (len <= 0) {
-        goto LABLE_ERR;
+        RETURN(BS_ERR);
     }
 
-    dec_len = RSA_Decrypt(pub_key, buf, len, dec, rsa_len);
+    dec_len = RSA_PublicDecrypt(pub_key, buf, len, dec, sizeof(dec));
     if (dec_len != MD5_LEN) {
-        goto LABLE_ERR;
+        RETURN(BS_ERR);
     }
 
     memcpy(md5_data, dec, MD5_LEN);
 
-    MEM_Free(buf);
-    MEM_Free(dec);
     return 0;
-
-LABLE_ERR:
-    if (NULL != buf)
-        MEM_Free(buf);
-    if (NULL != dec)
-        MEM_Free(dec);
-    RETURN(BS_ERR);
 }
 
 static int cffsign_PrivateDecryptSignature(IN CFF_HANDLE hcff, IN char *tag_name, IN EVP_PKEY *pri_key, OUT UCHAR *md5_data)
 {
     int len;
     int dec_len;
-    int rsa_len;
-    void *buf = NULL;
-    void *dec = NULL;
+    UCHAR buf[513];
+    char dec[513];
 
-    rsa_len = EVP_PKEY_get_size(pri_key);
-    buf = MEM_ZMalloc(rsa_len + 1);
-    dec = MEM_ZMalloc(rsa_len + 1);
-
-    if ((NULL == buf) || (NULL == dec)) {
-        goto LABLE_ERR;
-    }
-
-    len = cffsign_GetSignature(hcff, tag_name, buf, rsa_len);
+    len = cffsign_GetSignature(hcff, tag_name, buf, sizeof(buf));
     if (len <= 0) {
-        goto LABLE_ERR;
+        RETURN(BS_ERR);
     }
 
-    dec_len = RSA_Decrypt(pri_key, buf, len, dec, rsa_len);
+    dec_len = RSA_PrivateDecrypt(pri_key, buf, len, dec, sizeof(dec));
     if (dec_len != MD5_LEN) {
-        goto LABLE_ERR;
+        RETURN(BS_ERR);
     }
 
     memcpy(md5_data, dec, MD5_LEN);
 
-    MEM_Free(buf);
-    MEM_Free(dec);
     return 0;
-
-LABLE_ERR:
-    if (NULL != buf)
-        MEM_Free(buf);
-    if (NULL != dec)
-        MEM_Free(dec);
-    RETURN(BS_ERR);
 }
 
 static int cffsign_SetSignProp(IN CFF_HANDLE hCff, IN char *tag_name, IN void *buf, IN UINT buf_len)
@@ -182,59 +147,27 @@ static int cffsign_SetSignProp(IN CFF_HANDLE hCff, IN char *tag_name, IN void *b
 static int cffsign_PrivateSign(IN CFF_HANDLE hCff, IN char *tag_name, IN EVP_PKEY *pri_key, OUT UCHAR *md5_data)
 {
     int len;
-    int ret;
-    int rsa_len;
-    void *buf = NULL;
+    char buf[513];
 
-    rsa_len = EVP_PKEY_get_size(pri_key);
-    buf = MEM_ZMalloc(rsa_len + 1);
-    if (NULL == buf) {
-        RETURN(BS_NO_MEMORY);
-    }
-
-    len = RSA_Encrypt(pri_key, md5_data, MD5_LEN, buf, rsa_len);
+    len = RSA_PrivateEncrypt(pri_key, md5_data, MD5_LEN, buf, sizeof(buf));
     if (len <= 0) {
-        goto LABLE_ERR;
+        RETURN(BS_ERR);
     }
 
-    ret = cffsign_SetSignProp(hCff, tag_name, buf, len);
-
-    MEM_Free(buf);
-
-    return ret;
-
-LABLE_ERR:
-    if (NULL != buf)
-        MEM_Free(buf);
-    return BS_ERR;
+    return cffsign_SetSignProp(hCff, tag_name, buf, len);
 }
 
 static int cffsign_PublicSign(IN CFF_HANDLE hCff, IN char *tag_name, IN EVP_PKEY *pub_key, OUT UCHAR *md5_data)
 {
     int len;
-    int ret;
-    int rsa_len;
-    void *buf = NULL;
+    char buf[513];
 
-    rsa_len = EVP_PKEY_get_size(pub_key);
-    buf = MEM_ZMalloc(rsa_len + 1);
-    if (NULL == buf) {
-        RETURN(BS_NO_MEMORY);
-    }
-
-    len = RSA_Encrypt(pub_key, md5_data, MD5_LEN, buf, sizeof(buf));
+    len = RSA_PublicEncrypt(pub_key, md5_data, MD5_LEN, buf, sizeof(buf));
     if (len < 0) {
-        goto LABLE_ERR;
+        RETURN(BS_ERR);
     }
 
-    ret = cffsign_SetSignProp(hCff, tag_name, buf, len);
-    MEM_Free(buf);
-    return ret;
-
-LABLE_ERR:
-    if (NULL != buf)
-        MEM_Free(buf);
-    return BS_ERR;
+    return cffsign_SetSignProp(hCff, tag_name, buf, len);
 }
 
 int CFFSign_PrivateSign(IN CFF_HANDLE hCff, IN char *tag_name, IN void *pri_key, UINT flag)

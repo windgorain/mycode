@@ -133,7 +133,7 @@ static VOID _buffer_Print(char *pcMsg, BUFFER_S *pstBuffer)
      BUFFER_Write(pstBuffer, pcMsg, strlen(pcMsg));
 }
 
-int BUFFER_Print(BUFFER_S *pstBuffer, char *pcFmt, ...)
+int BUFFER_Print(BUFFER_S *pstBuffer, char *fmt, ...)
 {
     if (! pstBuffer) {
         return BS_ERR;

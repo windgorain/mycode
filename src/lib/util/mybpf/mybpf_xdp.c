@@ -18,30 +18,17 @@ typedef struct {
     int fd;
 }MYBPF_HOOKPOINT_NODE_S;
 
-static inline int _mybpf_process_xdp_fd(MYBPF_XDP_BUFF_S *xdp_buf, int fd)
+static inline int _mybpf_process_xdp_fd(MYBPF_RUNTIME_S *runtime, MYBPF_XDP_BUFF_S *xdp_buf, int fd)
 {
-    MYBPF_PROG_NODE_S *prog;
+    UINT64 bpf_ret;
+    int ret;
 
-    prog = MYBPF_PROG_GetByFD(fd);
-    if (! prog) {
-        return XDP_PASS;
-    }
-
-    if (prog->disabled) {
-        return XDP_PASS;
-    }
-
-//    return MYBPF_RunBpfCode(prog->insn, (long)xdp_buf, 0, 0, 0, 0);
-
-    MYBPF_CTX_S ctx = {0};
-    ctx.insts = prog->insn;
-
-    int ret = MYBPF_DefultRun(&ctx, (long)xdp_buf, 0, 0, 0, 0);
+    ret = MYBPF_PROG_Run(runtime, fd, &bpf_ret, (long)xdp_buf, 0, 0, 0, 0);
     if (ret < 0) {
-        return XDP_DROP;
+        return XDP_PASS;
     }
 
-    return ctx.bpf_ret;
+    return bpf_ret;
 }
 
 static MYBPF_HOOKPOINT_NODE_S * _mybpf_xdp_detach(DLL_HEAD_S *list, int fd)
@@ -63,48 +50,49 @@ static MYBPF_HOOKPOINT_NODE_S * _mybpf_xdp_detach(DLL_HEAD_S *list, int fd)
     return found;
 }
 
-int MYBPF_XdpAttach(DLL_HEAD_S *list, int fd)
+int MYBPF_XdpAttach(MYBPF_RUNTIME_S *runtime, int fd)
 {
     MYBPF_HOOKPOINT_NODE_S *node;
 
-    UFD_IncRef(fd);
+    UFD_IncRef(runtime->ufd_ctx, fd);
 
     node = RcuEngine_ZMalloc(sizeof(MYBPF_HOOKPOINT_NODE_S));
     if (! node) {
-        UFD_DecRef(fd);
+        UFD_DecRef(runtime->ufd_ctx, fd);
         RETURN(BS_NO_MEMORY);
     }
 
     node->fd = fd;
 
-    DLL_ADD_RCU(list, &node->link_node);
+    DLL_ADD_RCU(&runtime->xdp_list, &node->link_node);
 
     return 0;
 }
 
-int MYBPF_XdpDetach(DLL_HEAD_S *list, int fd)
+int MYBPF_XdpDetach(MYBPF_RUNTIME_S *runtime, int fd)
 {
     MYBPF_HOOKPOINT_NODE_S *node;
 
-    node = _mybpf_xdp_detach(list, fd);
+    node = _mybpf_xdp_detach(&runtime->xdp_list, fd);
 
     if (node) {
         RcuEngine_Free(node);
-        UFD_DecRef(fd);
+        UFD_DecRef(runtime->ufd_ctx, fd);
     }
 
     return 0;
 }
 
-int MYBPF_XdpInput(DLL_HEAD_S *list, MYBPF_XDP_BUFF_S *xdp_buf)
+int MYBPF_XdpInput(MYBPF_RUNTIME_S *runtime, MYBPF_XDP_BUFF_S *xdp_buf)
 {
     MYBPF_HOOKPOINT_NODE_S *node;
+    DLL_HEAD_S *list = &runtime->xdp_list;
     int ret = XDP_PASS;
 
     int state = RcuEngine_Lock();
 
     DLL_SCAN(list, node) {
-        ret = _mybpf_process_xdp_fd(xdp_buf, node->fd);
+        ret = _mybpf_process_xdp_fd(runtime, xdp_buf, node->fd);
         if (ret != XDP_PASS) {
             break;
         }

@@ -12,7 +12,7 @@
 #include "mybpf_osbase.h"
 #include "mybpf_def.h"
 
-int MYBPF_PROG_ReplaceMapFdWithMapPtr(MYBPF_PROG_NODE_S *prog)
+int MYBPF_PROG_ReplaceMapFdWithMapPtr(MYBPF_RUNTIME_S *runtime, MYBPF_PROG_NODE_S *prog)
 {
     struct bpf_insn *insn = (void*)prog->insn;
     int insn_cnt = prog->insn_len / sizeof(*insn);
@@ -54,7 +54,7 @@ int MYBPF_PROG_ReplaceMapFdWithMapPtr(MYBPF_PROG_NODE_S *prog)
 
             fd = insn->imm;
 
-            map = UMAP_RefByFd(fd);
+            map = UMAP_RefByFd(runtime->ufd_ctx, fd);
 			if (! map) {
 				return -EINVAL;
 			}
@@ -65,13 +65,13 @@ int MYBPF_PROG_ReplaceMapFdWithMapPtr(MYBPF_PROG_NODE_S *prog)
 				U32 off = insn[1].imm;
 
 				if (off >= BPF_MAX_VAR_OFF) {
-                    UFD_DecRef(fd);
+                    UFD_DecRef(runtime->ufd_ctx, fd);
 					return -EINVAL;
 				}
 
 				int err = UMAP_DirectValue(map, &addr, off);
 				if (err) {
-                    UFD_DecRef(fd);
+                    UFD_DecRef(runtime->ufd_ctx, fd);
 					return err;
 				}
 
@@ -84,13 +84,13 @@ int MYBPF_PROG_ReplaceMapFdWithMapPtr(MYBPF_PROG_NODE_S *prog)
 			/* check whether we recorded this map already */
 			for (j = 0; j < prog->used_map_cnt; j++) {
 				if (prog->used_maps[j] == fd) {
-                    UFD_DecRef(fd);
+                    UFD_DecRef(runtime->ufd_ctx, fd);
 					goto next_insn;
 				}
 			}
 
 			if (prog->used_map_cnt >= MYBPF_PROG_MAX_MAPS) {
-                UFD_DecRef(fd);
+                UFD_DecRef(runtime->ufd_ctx, fd);
                 return -E2BIG;
 			}
 

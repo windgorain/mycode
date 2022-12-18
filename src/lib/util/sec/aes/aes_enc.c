@@ -18,7 +18,7 @@ int AES_Cipher128(UCHAR *key, UCHAR *iv, UCHAR *in, int in_size, UCHAR *out, int
 
     ctx = EVP_CIPHER_CTX_new();
 
-    if (! EVP_CipherInit_ex2(ctx, EVP_aes_128_cbc(), key, iv, do_encrypt, NULL)) {
+    if (! EVP_CipherInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv, do_encrypt)) {
         EVP_CIPHER_CTX_free(ctx);
         RETURN(BS_ERR);
     }
@@ -49,7 +49,7 @@ int AES_Cipher256(UCHAR *key, UCHAR *iv, UCHAR *in, int in_size, UCHAR *out, int
 
     ctx = EVP_CIPHER_CTX_new();
 
-    if (! EVP_CipherInit_ex2(ctx, EVP_aes_256_cbc(), key, iv, do_encrypt, NULL)) {
+    if (! EVP_CipherInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv, do_encrypt)) {
         EVP_CIPHER_CTX_free(ctx);
         RETURN(BS_ERR);
     }
