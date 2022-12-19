@@ -1,4 +1,8 @@
 版权所有 (C) LiXingang
 copyright LiXingang
 
+License:
+某些情况下采用GPL
+某些情况下采用Apache
+
 
