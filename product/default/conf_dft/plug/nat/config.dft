@@ -1,0 +1,6 @@
+ config-view
+  nat-view
+   pcap 0
+   start
+   quit
+  quit

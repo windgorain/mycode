@@ -1,0 +1,11 @@
+# ×¢²áview
+view, config-view, ldap-view(Enter the ldap view), ldap-view, NULL
+save, ldap-view, LDAPAPP_Save
+
+# ×¢²áldap-schemeÄ£°å
+view|templet, ldap-view, ldap-schema %STRING<1-63>, ldap-schema, LDAPAPP_CmdEnterSchemaView
+cmd, ldap-view, no ldap-schema %STRING<1-63>, LDAPAPP_CmdNoSchemaView
+
+# ×¢²áÃüÁî
+cmd, ldap-schema, description %STRING<1-256>, LDAPAPP_CmdDescription
+cmd, ldap-schema, server-address %STRING<1-256> [port %INT<1-65535>], LDAPAPP_CmdServerAddress

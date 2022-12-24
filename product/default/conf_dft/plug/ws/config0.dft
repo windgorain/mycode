@@ -1,0 +1,25 @@
+config-view
+ ws-view
+  gateway __OPT_SH_g40001
+   webcenter hide
+   webcenter readonly
+   type tcp
+   ip address 127.0.0.1
+   port 40001
+   service enable
+   quit
+  gateway __OPT_SH_innergw
+   webcenter hide
+   webcenter readonly
+   type tcp
+   port 40002
+   service enable
+   quit
+  service __OPT_SH_webcenter
+   webcenter hide
+   webcenter readonly
+   bind gateway __OPT_SH_g40001 domain webcenter
+   service enable
+   quit
+  quit
+ quit

@@ -1,0 +1,12 @@
+view, config-view, ulc-view(Enter the test view), ulc-view, NULL
+save, ulc-view, ULCAPP_CMD_Save
+
+cmd, ulc-view, load %STRING<1-63>(instance name) file %STRING<1-255>(bpf obj file), ULCAPP_CMD_LoadFile
+cmd, ulc-view, replace %STRING<1-63>(instance name) file %STRING<1-255>(bpf obj file) [%OPTION], ULCAPP_CMD_ReplaceFile
+cmd, ulc-view, unload %STRING<1-63>(instance name), ULCAPP_CMD_UnloadInstance
+cmd, ulc-view, no load %STRING<1-63>(instance name), ULCAPP_CMD_NoLoadInstance
+cmd, ulc-view, show map, ULCAPP_CMD_ShowMap
+cmd, ulc-view, dump map %INT<0-4095>(map fd), ULCAPP_CMD_DumpMap
+cmd, ulc-view, show prog, ULCAPP_CMD_ShowProg
+
+

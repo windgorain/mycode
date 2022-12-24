@@ -1,0 +1,28 @@
+# ×¢²áview
+view, config-view, ws-view(Enter the ws view), ws-view, NULL
+save, ws-view, WSAPP_Save
+
+
+# ×¢²ágatewayÄ£°å¼°ÆäÃüÁî
+view|templet, ws-view, gateway %STRING<1-63>, ws-gateway, WSAPP_GwCmd_EnterView
+cmd, ws-gateway, type tcp, WSAPP_GwCmd_TypeTcp
+cmd, ws-gateway, type ssl [ ca %STRING<1-127> local %STRING<1-127> key %STRING<1-127> ], WSAPP_GwCmd_TypeSsl
+cmd, ws-gateway, ip address %IP, WSAPP_GwCmd_ConfigIPAddress
+cmd, ws-gateway, port %INT<1-65535>, WSAPP_GwCmd_ConfigPort
+cmd, ws-gateway, filter ip-acl %STRING<1-63>, WSAPP_GwCmd_RefIpAcl
+cmd, ws-gateway, no filter ip-acl, WSAPP_GwCmd_NoRefIpAcl
+cmd, ws-gateway, service enable, WSAPP_GwCmd_Enable
+cmd, ws-gateway, no service enable, WSAPP_GwCmd_NoEnable
+cmd, ws-gateway, description %STRING<1-512>, WSAPP_GwCmd_Description
+cmd, ws-gateway, [no] webcenter {hide|readonly}, WSAPP_GwCmd_WebCenterOpt
+
+cmd, ws-gateway, debug ws {packet|event|process|err|all}, WSAPP_GwCmd_DebugWs
+cmd, ws-gateway, no debug ws {packet|event|process|err|all}, WSAPP_GwCmd_NoDebugWs
+
+# ×¢²ácontextÄ£°å¼°ÆäÃüÁî
+view|templet, ws-view, service %STRING<1-63>, ws-service, WSAPP_ServiceCmd_EnterView
+cmd, ws-service, description %STRING<1-512>, WSAPP_ServiceCmd_Description
+cmd, ws-service, [no] bind gateway %STRING<1-63> [vhost %STRING<1-63>] [domain %STRING<1-63>], WSAPP_ServiceCmd_BindGateway
+cmd, ws-service, service enable, WSAPP_ServiceCmd_Enable
+cmd, ws-service, no service enable, WSAPP_ServiceCmd_NoEnable
+cmd, ws-service, [no] webcenter {hide|readonly}, WSAPP_ServiceCmd_WebCenterOpt

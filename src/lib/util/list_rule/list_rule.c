@@ -110,19 +110,20 @@ void ListRule_Reset(IN LIST_RULE_HANDLE ctx, IN PF_RULE_FREE pfFunc, IN VOID *pU
 }
 
 /* 创建一个list, 但是不加入list表 */
-LIST_RULE_LIST_S * ListRule_CreateList(IN LIST_RULE_HANDLE ctx, IN CHAR *list_name, int user_data_size)
+LIST_RULE_LIST_S * ListRule_CreateList(LIST_RULE_HANDLE ctx, char *list_name, int user_data_size)
 {
     LIST_RULE_LIST_S *pstList;
 
     BS_DBGASSERT(strlen(list_name) < LIST_RULE_LIST_NAME_SIZE);
 
     pstList = MemCap_ZMalloc(ctx->memcap, sizeof(LIST_RULE_LIST_S) + user_data_size);
-    if (NULL == pstList) {
+    if (! pstList) {
         return NULL;
     }
 
     RuleList_Init(&pstList->stRuleList);
     strlcpy(pstList->list_name, list_name, sizeof(pstList->list_name));
+
     pstList->default_action = BS_ACTION_UNDEF;
 
     return pstList;
@@ -173,7 +174,7 @@ LIST_RULE_LIST_S * ListRule_DetachList(LIST_RULE_HANDLE ctx, UINT list_id)
 }
 
 /* 创建一个list并加入list表 */
-UINT ListRule_AddList(IN LIST_RULE_HANDLE ctx, IN CHAR *list_name, int user_data_size)
+UINT ListRule_AddList(IN LIST_RULE_HANDLE ctx, char *list_name, int user_data_size)
 {
     LIST_RULE_LIST_S *pstList;
 
@@ -294,10 +295,10 @@ UINT ListRule_GetListRef(IN LIST_RULE_HANDLE ctx, IN UINT uiListID)
 /* 判断是否存在至少一个被应用的list */
 BOOL_T ListRule_IsAnyListRefed(IN LIST_RULE_HANDLE ctx)
 {
-    LIST_RULE_LIST_S *pstList = NULL;
+    LIST_RULE_HEAD_S *head = NULL;
 
-    while ((pstList = ListRule_GetNextList(ctx, pstList))) {
-        if (pstList->uiRefCount > 0){
+    while ((head = ListRule_GetNextList(ctx, head))) {
+        if (head->pstListRule->uiRefCount > 0){
             return BOOL_TRUE;
         }
     }
@@ -335,8 +336,7 @@ UINT ListRule_GetListIDByName(IN LIST_RULE_HANDLE ctx, IN CHAR *list_name)
     LIST_RULE_HEAD_S *pstListHead;
 
     pstListHead = _listrule_GetListHeadByName(ctx, list_name);
-    if (NULL != pstListHead)
-    {
+    if (NULL != pstListHead) {
         return NAP_GetIDByNode(ctx->hListNap, pstListHead);
     }
 
@@ -355,9 +355,10 @@ LIST_RULE_LIST_S * ListRule_GetListByName(IN LIST_RULE_HANDLE ctx, IN CHAR *list
     return NULL;
 }
 
-LIST_RULE_LIST_S * ListRule_GetNextList(IN LIST_RULE_HANDLE ctx, IN LIST_RULE_LIST_S *curr/* NULL表示获取第一个 */)
+LIST_RULE_HEAD_S * ListRule_GetNextList(IN LIST_RULE_HANDLE ctx, IN LIST_RULE_HEAD_S *curr/* NULL表示获取第一个 */)
 {
     UINT index = NAP_INVALID_INDEX;
+
     if (curr) {
         index = NAP_GetIndexByNode(ctx->hListNap, curr);
         if (index == NAP_INVALID_INDEX) {
@@ -529,10 +530,10 @@ BS_STATUS ListRule_ResetID(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UINT u
 
 void ListRule_WalkList(LIST_RULE_HANDLE hCtx, PF_LIST_RULE_WALK_LIST_FUNC walk_list, void *ud)
 {
-    LIST_RULE_LIST_S *list = NULL;
+    LIST_RULE_HEAD_S *head = NULL;
 
-    while ((list = ListRule_GetNextList(hCtx, list))) {
-        walk_list(list, ud);
+    while ((head = ListRule_GetNextList(hCtx, head))) {
+        walk_list(head->pstListRule, ud);
     }
 }
 
@@ -548,21 +549,21 @@ void ListRule_WalkRule(LIST_RULE_LIST_S *list, PF_LIST_RULE_WALK_RULE_FUNC walk_
 void ListRule_Walk(LIST_RULE_HANDLE hCtx, PF_LIST_RULE_WALK_LIST_FUNC walk_list,
         PF_LIST_RULE_WALK_RULE_FUNC walk_rule, void *ud)
 {
-    LIST_RULE_LIST_S *list = NULL;
+    LIST_RULE_HEAD_S *head = NULL;
     RULE_NODE_S *rule = NULL;
 
-    while ((list = ListRule_GetNextList(hCtx, list))) {
+    while ((head = ListRule_GetNextList(hCtx, head))) {
 
         if (walk_list) {
-            walk_list(list, ud);
+            walk_list(head->pstListRule, ud);
         }
 
         if (! walk_rule) {
             continue;
         }
 
-        while ((rule = RuleList_GetNextByNode(&list->stRuleList, rule))) {
-            walk_rule(list, rule, ud);
+        while ((rule = RuleList_GetNextByNode(&head->pstListRule->stRuleList, rule))) {
+            walk_rule(head->pstListRule, rule, ud);
         }
     }
 }

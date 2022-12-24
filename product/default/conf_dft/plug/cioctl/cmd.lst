@@ -1,0 +1,9 @@
+view, config-view, cioctl-view(Enter the cioctl view), cioctl-view, NULL
+save, cioctl-view, CIOCTL_CMD_Save
+
+cmd, cioctl-view, name process-key, CIOCTL_CMD_NamePKey
+cmd, cioctl-view, name string %STRING<1-127>, CIOCTL_CMD_NameString
+cmd, cioctl-view, no name, CIOCTL_CMD_CmdNoName
+cmd, cioctl-view, pipe-server enable, CIOCTL_CMD_PipeServerEnable
+
+

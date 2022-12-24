@@ -1,0 +1,5 @@
+config-view
+ pwatcher-view
+  ob tcpfp enable
+  quit
+ quit

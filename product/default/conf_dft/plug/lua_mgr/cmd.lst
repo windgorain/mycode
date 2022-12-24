@@ -1,0 +1,16 @@
+# ×¢²áview
+view, config-view, lua-view(Enter the lua view), lua-view, NULL
+save, lua-view, LuaMgr_Save
+
+# ×¢²álua group
+view|templet, lua-view, group %INT<0-31>, lua-group, LuaMgr_EnterGroup
+cmd, lua-view, no group %INT<0-31>, LuaMgr_NoGroup
+
+# ×¢²áÃüÁî
+cmd, lua-group, disable, LuaMgr_Disable
+cmd, lua-group, no disable, LuaMgr_Enable
+cmd, lua-group, enable, LuaMgr_Enable
+cmd, lua-group, name %STRING<1-31>, LuaMgr_SetName
+cmd, lua-group, load %STRING<1-255>, LuaMgr_LoadFile
+cmd, lua-group, no load %STRING<1-255>, LuaMgr_UnLoadFile
+

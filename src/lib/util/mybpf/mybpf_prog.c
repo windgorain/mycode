@@ -124,7 +124,7 @@ void MYBPF_PROG_ShowProg(MYBPF_RUNTIME_S *runtime, PF_PRINT_FUNC print_func)
 }
 
 /* 根据instance:func_name 获取prog fd. 找不到则返回<0 */
-int MYBPF_PROG_GetByFuncName(MYBPF_RUNTIME_S *runtime, char *instance, char *name)
+int MYBPF_PROG_GetByFuncName(MYBPF_RUNTIME_S *runtime, char *instance, char *func_name)
 {
     int i;
     MYBPF_PROG_NODE_S *prog;
@@ -137,7 +137,7 @@ int MYBPF_PROG_GetByFuncName(MYBPF_RUNTIME_S *runtime, char *instance, char *nam
     for (i=0; i<loader->prog_count; i++) {
         prog = MYBPF_PROG_GetByFD(runtime, loader->prog_fd[i]);
         BS_DBGASSERT(prog);
-        if (strcmp(prog->prog_name, name) == 0) {
+        if (strcmp(prog->prog_name, func_name) == 0) {
             return loader->prog_fd[i];
         }
     }

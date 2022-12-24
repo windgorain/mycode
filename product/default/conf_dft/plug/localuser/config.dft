@@ -1,0 +1,7 @@
+config-view
+ localuser-view
+  local-user admin
+   password cipher 309cb42eb8616f2cae687d94788fc797
+   quit
+  quit
+ quit

@@ -1,0 +1,8 @@
+config-view
+ sslvpn-view
+  context default
+   bind ws-service sslvpn
+   description SSLVPN缺省 
+   quit
+  quit
+ quit

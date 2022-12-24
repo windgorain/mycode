@@ -1,0 +1,6 @@
+view, config-view, bpffunc-view(Enter the bpffunc view), bpffunc-view, NULL
+
+cmd, bpffunc-view, show prog, BPFFUNC_ShowProg
+cmd, bpffunc-view, run prog %INT<0-1023>, BPFFUNC_RunProg
+
+

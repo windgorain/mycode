@@ -7,6 +7,9 @@
 #include "utl/idfunc_utl.h"
 #include "utl/exec_utl.h"
 #include "utl/mybpf_prog.h"
+#include "utl/mybpf_loader.h"
+
+#define BPFFUNC_MAX 1024
 
 static MYBPF_RUNTIME_S g_bpffunc_runtime;
 static IDFUNC_S *g_bpffunc_ctx;
@@ -15,7 +18,7 @@ int BPFFUNC_RuntimeInit(void)
 {
     int ret;
 
-    ret = MYBPF_RuntimeInit(&g_bpffunc_runtime, 1024);
+    ret = MYBPF_RuntimeInit(&g_bpffunc_runtime, BPFFUNC_MAX);
     if (ret < 0) {
         return ret;
     }
@@ -30,7 +33,27 @@ int BPFFUNC_RuntimeInit(void)
 
 PLUG_API int BPFFUNC_ShowProg(void)
 {
-    MYBPF_PROG_ShowProg(&g_bpffunc_runtime, EXEC_OutInfo);
+    int i;
+    IDFUNC_NODE_S *node;
+    MYBPF_PROG_NODE_S *prog;
+    MYBPF_LOADER_NODE_S *loader;
+
+    for (i=0; i<BPFFUNC_MAX; i++) {
+        node = IDFUNC_Get(g_bpffunc_ctx, i);
+        if ((! node) || (! node->func)){
+            continue;
+        }
+
+        prog = UFD_GetFileData(g_bpffunc_runtime.ufd_ctx, node->fd);
+        if (! prog) {
+            continue;
+        }
+        loader = prog->loader_node;
+        EXEC_OutInfo("id:%d, fd:%d, xlated:%u, sec:%s, name:%s, instance:%s, file:%s \r\n",
+                i, node->fd, prog->insn_len, prog->sec_name, prog->prog_name,
+                loader->param.instance, loader->param.filename);
+    }
+
     return 0;
 }
 
@@ -42,6 +65,7 @@ PLUG_API int BPFFUNC_RunProg(int argc, char **argv)
     id = TXT_Str2Ui(argv[2]);
 
     IDFUNC_Call(g_bpffunc_ctx, id, &bpf_ret, 0, 0, 0, 0, 0);
+
     return 0;
 }
 

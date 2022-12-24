@@ -1,0 +1,5 @@
+view, config-view, kfapp-view(Enter the kfapp view), kfapp-view, NULL
+
+cmd, kfapp-view, debug kfapp, KFAPP_Debug
+cmd, kfapp-view, no debug kfapp, KFAPP_NoDebug
+cmd, kfapp-view, do %STRING<1-511>, KFAPP_CmdDo

@@ -1,0 +1,325 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--[if IE 8]> <html class="lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>在线用户</title>
+
+<link rel="icon" href="/img/logo.gif" type="image/x-icon" />
+<link rel="bookmark" href="/img/logo.gif" type="image/x-icon" /> 
+
+<link rel="stylesheet" type="text/css" href="/_base/css/base.css">
+<link rel="stylesheet" type="text/css" href="/_base/css/button.css">
+<link rel="stylesheet" type="text/css" href="/_base/css/container.css">
+<link rel="stylesheet" type="text/css" href="/_base/js/jquery/datatable/css/jquery.dataTables.min.css">
+
+<script src="/_base/js/my/base.js"></script>
+<script src="/_base/js/jquery/jquery.js"></script>
+<script src="/_base/js/jquery/datatable/js/jquery.dataTables.js"></script>
+<script src="/_base/js/my/myutl.js"></script>
+<script src="/_base/js/my/string/string.js"></script>
+<script src="/_base/js/my/request/request.js"></script>
+<script src="/_base/js/my/ctype.js"></script>
+
+<script src="/js/chkol.js"></script>
+
+<!--[if lt IE 8]>
+<script src="/_base/js/my/inputfocus.js"></script>
+<![endif]--> 
+
+<script language="javascript">
+
+var g_bIsCreate = false;
+
+function IsUserGroupSelected(sUserGroupSelected, sUserGroup)
+{
+	var aUserGroupSelected = sUserGroupSelected.split(",");
+	
+	for (var index in aUserGroupSelected)
+	{
+		if (aUserGroupSelected[index] == sUserGroup)
+		{
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+function UserGroupBox_Clear()
+{
+	$('#usergroup').empty().multiselect2side('destroy');
+}
+
+function UserGroupBox_Init(sUserGroupSelected)
+{
+	$('#usergroup').empty().multiselect2side('destroy');
+
+	$('#usergroup').multiselect2side({
+		search: "<img src='/js/jquery/multiselect2side/img/search.gif' />",
+		moveOptions: false
+	});
+	
+	$.ajax(
+		{ type: "GET",
+			url: "/json/request.json?_key_=UserGroup.List",
+			async: false,
+			dataType: "json",
+			success: function(oJson) {
+				for (var index in oJson.data)
+				{
+					var bSelect = false;
+					
+					if (true == IsUserGroupSelected(sUserGroupSelected, oJson.data[index].name))
+					{
+						bSelect = true;
+					}
+					
+					$('#usergroup').multiselect2side('addOption', {name: oJson.data[index].name, value: oJson.data[index].name, selected: bSelect});
+				}
+			}
+		});
+}
+
+function isUserExist(oEle)
+{  
+	var username=oEle.value;
+	var sn = oEle._ctype_sn;
+
+	CType_SetChecking(oEle, "正在检查用户名是否可用...");
+		
+	$.ajax(
+		{ type: "POST",
+			url: "/json/request.json",   
+			data: "_key_=LocalUser.IsExist&UserName=" + username,
+			dataType: "json",
+			async: true,
+			success: function(oJson) {
+				if (sn != oEle._ctype_sn)
+				{
+					return;
+				}
+				
+                if (RQ_IsOK(oJson)) {
+					if (oJson.exist == "True") {
+						CType_SetErrorInfo(oEle, "该用户名已存在");
+					} else {
+						CType_SetCheckOk(oEle);
+					}
+				} else {
+					var sErrinfo = "检查失败";
+					if (oJson.reason) {
+						sErrinfo += ",原因:";
+						sErrinfo += oJson.reason;
+					}
+					CType_SetErrorInfo(oEle, sErrinfo);
+				}
+			}
+		});
+}
+
+function compare_password()
+{
+	if ($("#password").val() != $("#password2").val())
+	{
+		return "密码不一致";
+	}
+
+	return null;
+}
+
+function ClearForm()
+{
+	$("#username").val("");
+	$("#password").val("");
+	$("#password2").val("");
+	$("#user_name_info").html("").removeClass();
+	$("#password_info").html("").removeClass();
+	$("#password2_info").html("").removeClass();
+	UserGroupBox_Clear();
+}
+
+function CreateUser()
+{
+	ClearForm();
+	UserGroupBox_Init("");
+	$("#username").attr("disabled",false);
+	$("#password").attr("ctype_must",1);
+	$("#password2").attr("ctype_must",1);
+	$("#password").attr("ctype_user_tip","");
+	$("#password_must").show();
+	$("#password2_must").show();
+	$("#TipTitle").html("新建本地用户");
+	g_bIsCreate = true;
+
+	var inst = $('[data-remodal-id=modal]').remodal();
+	inst.open();
+}
+
+function ConfigUser(sUserName, sUserGroupSelected)
+{
+	ClearForm();
+	UserGroupBox_Init(sUserGroupSelected);
+	$("#username").val(sUserName).attr("disabled",true);
+	$("#password").attr("ctype_must",0);
+	$("#password2").attr("ctype_must",0);
+	$("#password").attr("ctype_user_tip","为空表示不更改密码");
+	$("#password_must").hide();
+	$("#password2_must").hide();
+		
+	$("#TipTitle").html("配置本地用户");
+	g_bIsCreate = false;
+
+	var inst = $('[data-remodal-id=modal]').remodal();
+	inst.open();
+}
+
+function DeleteUsers()
+{
+	var oTable = $('#user_table').DataTable();
+	var aSelect = oTable.rows('.selected').data();
+	var sIdList = "";
+
+	$('#user_table').dataTable().fnGetData();
+
+	if (aSelect.length == 0)
+	{
+		return;
+	}
+	
+	for (var i=0; i<aSelect.length; i++)
+	{
+		sIdList += aSelect[i].NodeID + ",";
+	}
+	
+  $.ajax(
+	{ type: "POST",
+		url: "/request.cgi",
+		data: "_do=OnlineUser.Delete&NodeIDList=" + sIdList,
+		async: false,
+		dataType: "json",
+		success: function(oJson) {
+			  UserTable_Load();
+		}
+	});
+}
+
+function UserTable_Load()
+{
+	if (true == CheckOnline())
+	{
+		$('#user_table').dataTable( {
+			"bDestroy": true,
+			"sAjaxSource": "/request.cgi?_do=OnlineUser.List",
+			"columns": [{"data":"NodeID", bVisible:false},{"data":null, orderable:false},{"data":"UserName"},{"data":"VirtualAddress"},{"data":"Description"}] ,
+			"createdRow":function(nRow,oData,iDataIndex){
+				$('td',nRow).eq(0).html('<input type=checkbox onclick=UserTable_SelectRow(' + iDataIndex + ') />');
+				return nRow;
+			}
+		} );
+	}
+	else
+	{
+		top.location = "/client/index.htm";
+	}
+}
+
+function UserTable_SelectRow(iDataIndex)
+{
+	$('#user_table tbody tr').eq(iDataIndex).toggleClass('selected');
+}
+
+function mysubmit()
+{
+	var oForm = document.getElementById("MyForm");
+	if (CType_CheckForm(oForm) == false)
+	{
+		return;
+	}
+	
+	var sUserGroups = $('#usergroup').val();
+	if (sUserGroups == null)
+	{
+		sUserGroups = "";
+	}
+	
+	var sRequest = ""
+	if (g_bIsCreate == true)
+	{
+		sRequest = "_key_=LocalUser.Create";
+	}
+	else
+	{
+		sRequest = "_key_=LocalUser.Modify";
+	}
+	
+	sRequest = sRequest + "&UserName=" + $("#username").val() + "&Password=" + $("#password").val() + "&UserGroup=" + sUserGroups;
+	
+	var check = true;
+	
+	$.ajax(
+		{ type: "POST",
+			url: "/json/request.json",
+			data: sRequest,
+			async: false,
+			dataType: "json",
+			success: function(oJson) {
+                if (RQ_IsOK(oJson)) {
+					UserTable_Load();
+				} else {
+					check = false;
+					alert("结果: 失败\r\n原因: " + oJson.reason);
+				}
+			}
+		});
+		
+		if (check == true)
+		{
+			mycacel();
+		}
+}
+
+function mycacel()
+{
+	var inst = $('[data-remodal-id=modal]').remodal();
+	inst.close();
+}
+
+$(document).ready(function() {
+	UserTable_Load();
+} );
+
+</script>
+
+</head>
+
+<body>
+
+<!-- 用户列表 -->
+<!-- container Begin -->
+<div class="Container">
+ <div class="Container-Row">
+ 	
+ 	<table id="user_table" class="cell-border" cellspacing=0 width="100%">
+ 		<thead>
+ 			<tr> 
+ 				<th align="left">NodeID</th>
+ 				<th align="left">选择</th>
+ 				<th align="left">用户名</th>
+ 				<th align="left">虚拟地址/掩码</th>
+ 				<th align="left">描述</th>
+ 			</tr>
+ 		</thead>
+ 	</table>
+ 	
+ 	<input type="button" class="btn large blue" value="踢除用户" onclick="DeleteUsers();">
+ 	
+ </div>
+</div>
+<!-- container End -->
+
+</body>
+</html>
+

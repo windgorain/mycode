@@ -1,0 +1,5 @@
+config-view
+ pwatcher-view
+  ob sslfp enable
+  quit
+ quit

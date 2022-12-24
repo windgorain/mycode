@@ -1,0 +1,5 @@
+config-view
+ pipecmds-view
+  server enable
+  quit
+ quit

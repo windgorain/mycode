@@ -1,0 +1,33 @@
+# ◊¢≤·view
+view, config-view, wan-view(Enter the wan view), wan-view, NULL
+save, wan-view, WAN_CMD_Save
+
+# debug√¸¡Ó
+cmd, wan-view, debug ip packet [acl %STRING<1-63>], WAN_IpFwd_DebugPacket
+cmd, wan-view, no debug ip packet, WAN_IpFwd_NoDebugPacket
+cmd, wan-view, debug eth packet, WAN_EthLink_DebugPacket
+cmd, wan-view, no debug eth packet, WAN_EthLink_NoDebugPacket
+cmd, wan-view, debug dhcp packet, WAN_DHCP_DebugPacket
+cmd, wan-view, no debug dhcp packet, WAN_DHCP_NoDebugPacket
+cmd, wan-view, debug dhcp error, WAN_DHCP_DebugError
+cmd, wan-view, no debug dhcp error, WAN_DHCP_NoDebugError
+cmd, wan-view, debug arp packet, WAN_ARP_DebugPacket
+cmd, wan-view, no debug arp packet, WAN_ARP_NoDebugPacket
+cmd, wan-view, debug arp event, WAN_ARP_DebugEvent
+cmd, wan-view, no debug arp event, WAN_ARP_NoDebugEvent
+
+# ◊¢≤·Vrfƒ£∞Âº∞∆‰√¸¡Ó
+view|templet, wan-view, vrf %STRING<1-127>, wan-vrf-view, WAN_VFCmd_EnterView
+cmd, wan-vrf-view|wan-view, show fib, WAN_FIB_ShowFib
+cmd, wan-vrf-view|wan-view, show arp, WAN_ARP_ShowArp
+cmd, wan-vrf-view|wan-view, route static %IP(destnation ip address) %INT<0-32>(prefix) %IP(nexthop) [interface %STRING<1-63>(out interface)], WAN_FIB_RouteStatic
+cmd, wan-vrf-view|wan-view, no route static %IP(destnation ip address) %INT<0-32>(prefix) %IP(nexthop), WAN_FIB_NoRouteStatic
+
+# ◊¢≤·PCAP√¸¡Ó
+cmd, if.pcap, ip address host, WAN_PCAP_SetIpHost
+
+# ◊¢≤·IPµÿ÷∑π‹¿Ì√¸¡Ó
+cmd|view_pcre, ^if\..+$, ip address %IP(ip address) %INT<1-32>(mask), WAN_IPAddrCmd_IpAddress
+cmd|view_pcre, ^if\..+$, no ip address %IP(ip address), WAN_IPAddrCmd_NoIpAddress
+cmd|view_pcre, ^if\..+$, [no] nat outbound, WAN_NAT_SetOutBoundCmd
+

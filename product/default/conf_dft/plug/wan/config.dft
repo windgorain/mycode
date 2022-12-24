@@ -1,0 +1,6 @@
+config-view
+ wan-view
+  vrf default
+   quit
+  quit
+ quit

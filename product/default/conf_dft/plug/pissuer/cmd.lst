@@ -1,0 +1,5 @@
+# ×¢²áview
+view, config-view, pissuer-view(Enter the pissuer view), pissuer-view, NULL
+
+cmd, pissuer-view, show ob, pissue_CmdShow
+

@@ -101,7 +101,7 @@ static int _mybpf_loader_load_maps(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBPF_L
 
 static int _mybpf_loader_load_prog(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBPF_LOADER_NODE_S *node, ELF_SECTION_S *sec)
 {
-    char *name;
+    char *func_name;
     int fd;
     int ret;
     MYBPF_PROG_NODE_S *prog;
@@ -115,10 +115,18 @@ static int _mybpf_loader_load_prog(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBPF_L
         RETURNI(BS_ERR, "Reach prog max number");
     }
 
-    name = ELF_GetSecSymbolName(elf, sec->sec_id, STT_FUNC, 0);
-    prog = MYBPF_PROG_Alloc(sec->data->d_buf, sec->data->d_size, sec->shname, name);
+    func_name = ELF_GetSecSymbolName(elf, sec->sec_id, STT_FUNC, 0);
+    if (! func_name) {
+        RETURNI(BS_ERR, "Can't get function name");
+    }
+
+    if ((node->param.func_name) && (strcmp(node->param.func_name, func_name))) {
+        return 0;
+    }
+
+    prog = MYBPF_PROG_Alloc(sec->data->d_buf, sec->data->d_size, sec->shname, func_name);
     if (! prog) {
-        EXEC_OutInfo("Can't load %s:%s \r\n", node->param.filename, name);
+        EXEC_OutInfo("Can't load %s:%s \r\n", node->param.filename, func_name);
         RETURN(BS_NO_MEMORY);
     }
     prog->loader_node = node;
@@ -128,13 +136,13 @@ static int _mybpf_loader_load_prog(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBPF_L
 //    ret |= MYBPF_PROG_FixupBpfCalls(prog);
     if (ret < 0) {
         MYBPF_PROG_Free(runtime, prog);
-        RETURNI(BS_ERR, "Can't load %s:%s", node->param.filename, name);
+        RETURNI(BS_ERR, "Can't load %s:%s", node->param.filename, func_name);
     }
 
     fd = MYBPF_PROG_Add(runtime, prog);
     if (fd < 0) {
         MYBPF_PROG_Free(runtime, prog);
-        RETURNI(BS_ERR, "Can't load %s:%s", node->param.filename, name);
+        RETURNI(BS_ERR, "Can't load %s:%s", node->param.filename, func_name);
     }
 
     node->prog_fd[prog_index] = fd;
@@ -204,6 +212,10 @@ static int _mybpf_loader_load_progs(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBPF_
     int ret = 0;
 
     while ((iter = ELF_GetNextSection(elf, iter, &sec))) {
+        if ((node->param.sec_name) && (strcmp(node->param.sec_name, sec.shname))) {
+            continue;
+        }
+
         ret = _mybpf_loader_load_prog(runtime, elf, node, &sec);
         if (ret < 0) {
             break;
@@ -447,6 +459,10 @@ static void _mybpf_loader_free_node(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_NODE_
         MEM_Free(node->param.sec_name);
     }
 
+    if (node->param.func_name) {
+        MEM_Free(node->param.func_name);
+    }
+
     MEM_Free(node);
 }
 
@@ -480,6 +496,15 @@ static MYBPF_LOADER_NODE_S * _mybpf_loader_create_node(MYBPF_RUNTIME_S *runtime,
     if (p->sec_name) {
         node->param.sec_name = TXT_Strdup(p->sec_name);
         if (node->param.sec_name == NULL) {
+            ERR_VSet(BS_NO_MEMORY, "Can't alloc memory");
+            _mybpf_loader_free_node(runtime, node);
+            return NULL;
+        }
+    }
+
+    if (p->func_name) {
+        node->param.func_name = TXT_Strdup(p->func_name);
+        if (node->param.func_name == NULL) {
             ERR_VSet(BS_NO_MEMORY, "Can't alloc memory");
             _mybpf_loader_free_node(runtime, node);
             return NULL;
@@ -635,7 +660,7 @@ MYBPF_LOADER_NODE_S * MYBPF_LoaderGetNext(MYBPF_RUNTIME_S *runtime, INOUT void *
     MAP_ELE_S *ele;
     MYBPF_LOADER_NODE_S *node;
 
-    ele = MAP_GetNext(runtime->loader_map, *iter);
+    ele = MAP_GetNextEle(runtime->loader_map, *iter);
     *iter = ele;
     if (! ele) {
         return NULL;

@@ -1,0 +1,13 @@
+# ×¢²áview
+view, config-view, webproxy-view(Enter the webproxy view), webproxy-view, NULL
+save, webproxy-view, WebProxyApp_Save
+
+# ×¢²áÃüÁî
+cmd, webproxy-view, bind ws-service %STRING<1-63>, WebProxyApp_Cmd_BindWsService
+
+
+# debug
+cmd, webproxy-view, debug web-proxy packet, WebProxyApp_Main_DebugPacket
+cmd, webproxy-view, no debug web-proxy packet, WebProxyApp_Main_NoDebugPacket
+cmd, webproxy-view, debug web-proxy fsm, WebProxyApp_Main_DebugFsm
+cmd, webproxy-view, no debug web-proxy fsm, WebProxyApp_Main_NoDebugFsm

@@ -1,0 +1,9 @@
+# ×¢²áview
+view, config-view, hcall-view(Enter the ws view), hcall-view, NULL
+save, hcall-view, HCall_Save
+
+# ×¢²áÃüÁî
+cmd, hcall-view, bind ws-service %STRING<1-63>, HCall_BindService
+cmd, hcall-view, no bind ws-service, HCall_UnBindService
+cmd, hcall-view, [no] debug packet, HCall_DebugPacket
+cmd, hcall-view, [no] permit module %STRING<1-63>, HCall_PermitModule

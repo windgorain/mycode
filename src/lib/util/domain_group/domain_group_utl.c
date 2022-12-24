@@ -27,7 +27,7 @@ static void _domain_group_free_List(IN void *pstRcuNode)
     return;
 }
 
-static int _domaingroup_check_domain(IN CHAR* pcDomain)
+static int _domain_group_check_domain(IN CHAR* pcDomain)
 {
     int length = strlen(pcDomain);
     int i = 0;
@@ -72,10 +72,10 @@ DOMAIN_GROUP_HANDLE DomainGroup_Create(void *memcap)
 
 void DomainGroup_Destroy(DOMAIN_GROUP_HANDLE pool)
 {
-    LIST_RULE_LIST_S *list;
+    LIST_RULE_HEAD_S *head;
 
-    while ((list = ListRule_GetNextList(pool, NULL))) {
-        int ret = _domain_group_del_list(pool, list);
+    while ((head = ListRule_GetNextList(pool, NULL))) {
+        int ret = _domain_group_del_list(pool, head->pstListRule);
         BS_DBGASSERT(ret == 0);
     }
 
@@ -128,7 +128,6 @@ int DomainGroup_DelList(IN DOMAIN_GROUP_HANDLE pool, IN char *pcName)
     return _domain_group_del_list(pool, list);
 }
 
-
 DOMAIN_GROUP_NODE_S * DomainGroup_FindNode(IN LIST_RULE_LIST_S *pstList, char *pcDomain)
 {
     RULE_NODE_S *rule_node = NULL;
@@ -153,7 +152,7 @@ int DomainGroup_AddDomain(IN LIST_RULE_LIST_S *pstList, char *pcDomain)
 
     BS_DBGASSERT(pstList);
 
-    if((ret = _domaingroup_check_domain(pcDomain)) < 0) {
+    if((ret = _domain_group_check_domain(pcDomain)) < 0) {
         return ret;
     }
 

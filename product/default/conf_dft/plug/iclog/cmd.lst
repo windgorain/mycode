@@ -1,0 +1,9 @@
+# ×¢²áview
+view, config-view, iclog-view(Enter the iclog view), iclog-view, NULL
+save, iclog-view, ICLOG_Save
+
+cmd, iclog-view, file size %INT<0-4000000>(file size K; 0 is unlimited), ICLOG_SetLogFileSize
+cmd, iclog-view, event {fatal|err|warn|fail|info|debug|all}, ICLOG_SetEvents
+cmd, iclog-view, no event {fatal|err|warn|fail|info|debug|all}, ICLOG_NoEvents
+cmd, iclog-view, [no] iclog enable, ICLOG_Enable
+

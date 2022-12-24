@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--[if IE 8]> <html class="lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>SSLVPN</title>
+
+<link rel="icon" href="/_base/img/logo.gif" type="image/x-icon" />
+<link rel="bookmark" href="/_base/img/logo.gif" type="image/x-icon" /> 
+
+<link rel="stylesheet" type="text/css" href="/_base/css/base.css">
+<link rel="stylesheet" type="text/css" href="/_base/css/button.css">
+<link rel="stylesheet" type="text/css" href="/_base/css/container.css">
+<link rel="stylesheet" type="text/css" href="/_base/js/jquery/multiselect2side/css/jquery.multiselect2side.css" media="screen" />
+
+<script src="/_base/js/my/base.js"></script>
+<script src="/_base/js/jquery/jquery.js"></script>
+<script src="/_base/js/jquery/query/jquery.query.js"></script>
+<script src="/_base/js/jquery/multiselect2side/js/jquery.multiselect2side.js" ></script>
+<script src="/_base/js/my/myutl.js"></script>
+<script src="/_base/js/my/string/string.js"></script>
+<script src="/_base/js/my/ip.js"></script>
+<script src="/_base/js/my/toolbar/toolbar.js"></script>
+<script src="/_base/js/my/ctype.js"></script>
+<script src="/_base/js/my/request/request.js"></script>
+<script src="/js/check.js"></script>
+
+<!--[if lt IE 8]>
+<script src="/_base/js/my/inputfocus.js"></script>
+<![endif]--> 
+
+<script language="javascript">
+
+function ws_service_box_init()
+{
+$.ajax(
+	{ type: "GET",
+		url: "/request.cgi?_do=ws.service.List",
+		async: false,
+		dataType: "json",
+		success: function(oJson) {
+            if (RQ_IsOK(oJson) {
+				var aGW = oJson.data;
+				var x;
+				for (x in aGW) {
+					$("#WsService").append("<option value='" + aGW[x].Name + "'>" +aGW[x].Name + "</option>");
+				}					
+			}
+		}
+	});
+}
+
+function ws_service_init()
+{
+$.ajax(
+	{ type: "GET",
+		url: "/request.cgi?_do=webcenter.GetConfig",
+		async: false,
+		dataType: "json",
+		success: function(oJson) {
+            if (RQ_IsOK(oJson) {
+				$("#WsService").val(oJson.WsService);
+			}
+		}
+	});
+}
+
+function mysubmit(oForm)
+{
+	AdminCheckOnline();
+	
+	var check = CType_CheckForm(oForm);
+	if (check == false)
+	{
+		return false;
+	}
+	
+	$.ajax({
+		type: "POST",
+		url: "/request.cgi",
+		data: "_do=webcenter.SetConfig&WsService=" + $("#WsService").val(),
+		async: false,
+		dataType: "json",
+		success: function(oJson) {
+            if (RQ_IsOK(oJson) {
+				$("#result").html("结果: 成功");
+			} else {
+				var sContent = "结果: 失败<br>原因: " + oJson.reason;
+				$("#result").html(sContent);
+			}
+			
+			$("#resultdiv").show();
+		}
+	});	
+
+	return false;
+}
+
+$(document).ready(function() {
+	AdminCheckOnline();
+	ws_service_box_init();
+	ws_service_init();
+});
+
+</script>
+
+</head>
+
+<body>
+	
+<!-- container Begin -->
+<div class="Container">
+ <div class="Container-Row">
+ 	
+ 	<fieldset>
+	
+	<legend>WEB网管配置</legend>
+			
+ 	<form onsubmit="return mysubmit(this);">
+ 		
+ 		<table class="fieldset-row">
+
+			<tr>
+				<td>WEB服务:</td>
+				<td>
+					<select id="WsService" name="WsService">
+						<option value=''></option>
+					</select>
+				</td>
+			</tr>
+
+			<tr>
+				<td></td>
+				<td><input type="submit" class="btn large blue" value="确定"></td>
+			</tr>
+
+		</table>
+
+	</form>
+
+	</fieldset>
+
+ </div>
+ 
+ <div class="Container-Block" style="display:none" id="resultdiv">
+ 	<span id="result"></span>
+ </div>
+ 
+</div>
+<!-- container End -->
+
+</body>
+</html>

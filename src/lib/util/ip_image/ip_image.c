@@ -177,7 +177,7 @@ void IPIMG_Walk(IPIMG_HANDLE ipimg_handle, PF_IPIMG_WALK_IP walk_func, void *ud)
     MAP_ELE_S *ele = NULL;
     IPIMG_IP_ID_S *node;
 
-    while(NULL != (ele = MAP_GetNext(ipimg->ip_map, ele))) {
+    while(NULL != (ele = MAP_GetNextEle(ipimg->ip_map, ele))) {
         node = ele->pData;
         walk_func(node, ud);
     }

@@ -93,10 +93,10 @@ ADDRESS_POOL_HANDLE AddressPool_Create(void *memcap)
 
 void AddressPool_Destroy(ADDRESS_POOL_HANDLE pool)
 {
-    LIST_RULE_LIST_S *list;
+    LIST_RULE_HEAD_S *head;
 
-    while ((list = ListRule_GetNextList(pool, NULL))) {
-        int ret = _address_pool_del_ip_list(pool, list);
+    while ((head = ListRule_GetNextList(pool, NULL))) {
+        int ret = _address_pool_del_ip_list(pool, head->pstListRule);
         BS_DBGASSERT(ret == 0);
     }
 
@@ -108,7 +108,7 @@ LIST_RULE_LIST_S * AddressPool_FindListByName(IN ADDRESS_POOL_HANDLE pool, IN CH
     return ListRule_GetListByName(pool, pcListName);
 }
 
-int AddressPool_AddIpList(ADDRESS_POOL_HANDLE pool, IN char *list_name)
+int AddressPool_AddIpList(ADDRESS_POOL_HANDLE pool, char *list_name)
 {
     LIST_RULE_LIST_S *list;
     ADDRESS_POOL_LIST_S *node;

@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>VNINI</title>
+
+<link rel="stylesheet" type="text/css" href="/_base/css/base.css">
+<link rel="stylesheet" type="text/css" href="/_base/css/container.css">
+<link rel="stylesheet" type="text/css" href="/_base/css/button.css">
+
+<script src="/_base/js/my/base.js"></script>
+<script src="/_base/js/jquery/jquery.js"></script>
+<script src="/_base/js/my/htmler/htmler.js"></script>
+
+<!--[if lt IE 8]>
+<script src="/_base/js/my/inputfocus.js"></script>
+<![endif]-->
+
+<script>
+
+$(document).ready(function() {
+	ret = HtmlerCmd('IniGetKey', 'File=vnini.ini,Sec=config,Key=description');
+	if (! ret.json.Error)
+	{
+		$("#description").val(ret.json.Value);
+	}
+	
+	BsDo("vnetc.SetDescription","Description=" + $("#description").val());
+	
+	GetAddressInfo();
+});
+
+function DescSubmit()
+{
+	HtmlerCmd('IniSetKey', 'File=vnini.ini,Sec=config,Key=description,Value=' + $("#description").val());
+	BsDo("vnetc.SetDescription","Description=" + $("#description").val());
+}
+
+function GetAddressInfo()
+{
+	var ret = BsDo('vnetc.GetAddressInfo');
+
+	if (ret.json.result == "Success")
+	{
+		$("#IP").html(ret.json.Address);
+		$("#Mask").html(ret.json.Mask);
+	}
+	
+	setTimeout("GetAddressInfo();", 2000);
+}
+
+</script>
+
+</head>
+
+<body scroll=no>
+
+<!-- container Begin -->
+<div class="Container">
+	<div class="Container-Row">
+		<div class="Title">用户信息</div>
+		<div class="Context">
+			<table>
+				<tr><td>地址:</td> <td><span id="IP"></span></td></tr>
+				<tr><td>掩码:</td> <td><span id="Mask"></span></td></tr>
+				<tr>
+					<td>描述:</td>
+					<td>
+						<input id="description" name="description" type="text" maxlength="256" value="无描述信息">
+						<input type="button" class="btn blue" onclick="DescSubmit()" value="确定" />
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	
+	<div class="Container-Row">
+		<div class="Title">说明</div>
+		<div class="Context">
+		 		<li>同名用户可以互通</li>
+		 		<li>一个用户名可以在不同电脑上同时登录</li>
+  	</div>
+	</div>
+
+</div>
+<!-- container End -->
+
+</body>
+</html>

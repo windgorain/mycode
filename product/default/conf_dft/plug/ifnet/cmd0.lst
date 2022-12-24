@@ -1,0 +1,8 @@
+# ×¢²áview
+view, config-view, ifnet-view(Enter the ifnet view), ifnet-view, NULL
+save, ifnet-view, IFNET_Save
+
+cmd, ifnet-view, show interface, IFNET_ShowInterface
+
+
+

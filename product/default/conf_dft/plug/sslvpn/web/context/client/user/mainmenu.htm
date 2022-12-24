@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="/_base/css/base.css">
+<link rel="stylesheet" href="/_base/js/jquery/treeview/jquery.treeview.css" />
+<link rel="stylesheet" href="/_base/js/jquery/treeview/screen.css" />
+	
+<script src="/_base/js/jquery/jquery.js"></script>
+<script src="/_base/js/jquery/treeview/jquery.treeview.js"></script>
+<script src="/_base/js/jquery/jquery.cookie.js" type="text/javascript"></script>
+<script src="/_base/js/my/htmler/htmler.js"></script>
+
+<script>
+$(document).ready(function(){
+	$("#menu").treeview();
+});
+
+function onexit()
+{
+	HtmlerCmd('Exit');	
+}
+
+</script>
+</head>
+
+<body>
+	
+	<ul id="menu" class="filetree">
+		<li><span class="file"><a href="webproxy/web_proxy_list.htm" target="contentFrame">Web资源</a></span></li>
+		<li><span class="file"><a href="tcprelay/tcprelay_list.htm" target="contentFrame">TCP资源</a></span></li>
+		<li><span class="file"><a href="ip/ipres_list.htm" target="contentFrame">IP资源</a></span></li>
+		<li><span class="file"><a href="userinfo/change_passwd.htm" target="contentFrame">更改密码</a></span></li>
+		<li><span class="file"><a href="/client/index.htm" onclick="onexit()" target="_parent">退出</a></span></li>
+	</ul>
+</body>
+</html>

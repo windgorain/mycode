@@ -1,0 +1,17 @@
+config-view
+ telnetserver-view
+  service 1
+   interactive
+   port 2300
+   ip 127.0.0.1
+   server enable
+   quit
+  service 2
+   interactive
+   port 12345
+   ip 127.0.0.1
+   server enable
+   quit
+  quit
+ quit
+

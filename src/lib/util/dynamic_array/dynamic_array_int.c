@@ -4,13 +4,13 @@
 
 static int _dynamic_array_int_compare(void *a, void *b, void *ud)
 {
-    int num1 = *(int32_t *)a;
-    int num2 = *(int32_t *)b;
+    int num1 = *(int *)a;
+    int num2 = *(int *)b;
 
     return num1 - num2;
 }
 
-BOOL_T VectorInt_IsExist(VECTOR_INT_HDL vec, int val)
+BOOL_T VectorInt_IsExist(VECTOR_S *vec, int val)
 {
     int index = VECTOR_Find(vec, &val, _dynamic_array_int_compare, NULL);
     if (index < 0) {
@@ -19,12 +19,12 @@ BOOL_T VectorInt_IsExist(VECTOR_INT_HDL vec, int val)
     return TRUE;
 }
 
-void VectorInt_Sort(VECTOR_INT_HDL vec)
+void VectorInt_Sort(VECTOR_S *vec)
 {
     VECTOR_Sort(vec, _dynamic_array_int_compare, NULL);
 }
 
-int VectorInt_DelByVal(VECTOR_INT_HDL vec, int val)
+int VectorInt_DelByVal(VECTOR_S *vec, int val)
 {
     int index = VECTOR_Find(vec, &val, _dynamic_array_int_compare, NULL);
 	if (index < 0) {

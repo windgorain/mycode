@@ -1,0 +1,17 @@
+view, config-view, telnetserver-view(Enter the telnetserver view), telnetserver-view, NULL
+save, telnetserver-view, _telsvr_SaveCmd
+
+view|templet, telnetserver-view, service %INT<0-31>, telnet-service, TELSVR_CmdService
+
+cmd, telnet-service, interactive, TELSVR_CmdInteractive
+cmd, telnet-service, muc %INT<1-4095>, TELSVR_CmdMuc
+cmd, telnet-service, [no] muc, TELSVR_CmdMuc
+cmd, telnet-service, ip %IP, TELSVR_CmdSetIp
+cmd, telnet-service, port %INT<1-65535>, TELSVR_CmdSetPort
+cmd, telnet-service, port process-index [base %INT<1-65535>], TELSVR_CmdSetPortProcessIndex
+cmd, telnet-service, port pid [base %INT<1-65535>], TELSVR_CmdSetPortPID
+cmd, telnet-service, port range %INT<1-65535> %INT<1-65535>, TELSVR_CmdSetPortRange
+cmd, telnet-service, port any, TELSVR_CmdSetPortAny
+cmd, telnet-service, server enable, TELSVR_CmdEnable
+cmd, telnet-service, no server enable, TELSVR_CmdDisable
+

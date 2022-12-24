@@ -1,0 +1,11 @@
+cmd, config-view, debug http proxy all, HTTP_PROXY_DbgAll
+cmd, config-view, debug http proxy conntion, HTTP_PROXY_DbgConnect
+cmd, config-view, debug http proxy error, HTTP_PROXY_DbgErr
+cmd, config-view, debug http proxy head, HTTP_PROXY_DbgHead
+cmd, config-view, debug http proxy body, HTTP_PROXY_DbgBody
+cmd, config-view, no debug http proxy all, HTTP_PROXY_UnDbgAll
+cmd, config-view, no debug http proxy conntion, HTTP_PROXY_UnDbgConnect
+cmd, config-view, no debug http proxy error, HTTP_PROXY_UnDbgErr
+cmd, config-view, no debug http proxy head, HTTP_PROXY_UnDbgHead
+cmd, config-view, no debug http proxy body, HTTP_PROXY_UnDbgBody
+

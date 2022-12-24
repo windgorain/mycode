@@ -6,6 +6,9 @@
 #include "bs.h"
 #include "utl/rsa_utl.h"
 
+#pragma GCC diagnostic push    // 记录当前的诊断状态
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+ 
 /* 私钥加密, 返回加密后的数据长度 */
 static int _rsa_private_encrypt(RSA *pri_key, IN void *in, int in_len, OUT void *out, int out_size)
 {
@@ -119,4 +122,6 @@ int RSA_PrivateDecrypt(IN EVP_PKEY *key, IN void *in, int in_size, OUT void *out
 {
     return _rsa_private_decrypt((void*)EVP_PKEY_get0_RSA(key), in, in_size, out, out_size);
 }
+
+#pragma GCC diagnostic pop    // 恢复诊断状
 

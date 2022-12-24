@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="/_base/css/base.css">
+<link rel="stylesheet" href="/_base/js/jquery/treeview/jquery.treeview.css" />
+<link rel="stylesheet" href="/_base/js/jquery/treeview/screen.css" />
+	
+<script src="/_base/js/jquery/jquery.js"></script>
+<script src="/_base/js/jquery/treeview/jquery.treeview.js"></script>
+	
+<script>
+	$(document).ready(function(){
+	$("#menu").treeview();
+});
+</script>
+</head>
+
+<body>
+	
+	<ul id="menu" class="filetree">
+    <li class="closed"><span class="folder">用户管理</span>
+			<ul>
+				<li><span class="file"><a href="usr/list.htm" target="contentFrame">本地用户</a></span></li>
+			</ul>
+		</li>
+		<li class="closed"><span class="folder">权限控制</span>
+			<ul>
+				<li><span class="file"><a href="acl/list.htm" target="contentFrame">ACL</a></span></li>
+			</ul>
+		</li>
+		<li class="closed"><span class="folder">资源管理</span>
+			<ul>
+				<li><span class="file"><a href="web_res/list.htm" target="contentFrame">Web资源</a></span></li>
+				<li><span class="file"><a href="tcp_res/list.htm" target="contentFrame">TCP资源</a></span></li>
+				<li><span class="file"><a href="ip_res/list.htm" target="contentFrame">IP资源</a></span></li>
+			</ul>
+		</li>
+		<li class="closed"><span class="folder">地址配置</span>
+			<ul>
+				<li><span class="file"><a href="ippool/list.htm" target="contentFrame">虚拟地址池</a></span></li>
+				<li><span class="file"><a href="inner_dns/inner_dns.htm" target="contentFrame">内网域名解析</a></span></li>
+			</ul>
+		</li>
+		<li class="closed"><span class="folder">角色</span>
+			<ul>
+				<li><span class="file"><a href="role/list.htm" target="contentFrame">角色管理</a></span></li>
+			</ul>
+		</li>
+		<li class="closed"><span class="folder">设置</span>
+			<ul>
+				<li><span class="file"><a href="admininfo/change_passwd.htm" target="contentFrame">更改密码</a></span></li>
+			</ul>
+		</li>
+		<li><span class="file"><a href="/admin.htm" target="_parent">退出</a></span></li>
+	</ul>
+</body>
+</html>

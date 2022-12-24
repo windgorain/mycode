@@ -15,29 +15,44 @@ static void _idfunc_walk_config(HANDLE cff, char *tag, HANDLE ud)
     USER_HANDLE_S *uh = ud;
     MYBPF_RUNTIME_S *rt = uh->ahUserHandle[0];
     IDFUNC_S *ctrl = uh->ahUserHandle[1];
-    char *file, *sec_name;
+    char *file, *sec_name = NULL, *func_name = NULL;
     MYBPF_PROG_NODE_S *prog;
-    UINT id;
+    UINT id = (UINT)(int)-1;
+    int fd;
     MYBPF_LOADER_PARAM_S p = {0};
-
-    id = TXT_Str2Ui(tag);
 
     if (CFF_GetPropAsString(cff, tag, "file", &file) < 0) {
         return;
     }
-    if (CFF_GetPropAsString(cff, tag, "sec_name", &sec_name) < 0) {
+
+    CFF_GetPropAsString(cff, tag, "sec_name", &sec_name);
+    CFF_GetPropAsString(cff, tag, "func_name", &func_name);
+    CFF_GetPropAsUint(cff, tag, "id", &id);
+
+    if (id == (UINT)(int)-1) {
         return;
     }
 
+    /* sec name 和 func name至少要指定一个 */
+    if ((! sec_name) && (! func_name)) {
+        return;
+    }
+
+    p.instance = tag;
     p.filename = file;
     p.sec_name = sec_name;
-    p.instance = tag;
+    p.func_name = func_name;
 
     if (MYBPF_LoaderLoad(rt, &p) < 0) {
         return;
     }
 
-    int fd = MYBPF_PROG_GetBySecName(rt, tag, sec_name);
+    if (sec_name) {
+        fd = MYBPF_PROG_GetBySecName(rt, tag, sec_name);
+    } else  {
+        fd = MYBPF_PROG_GetByFuncName(rt, tag, func_name);
+    }
+
     if (fd < 0) {
         return;
     }
@@ -45,7 +60,7 @@ static void _idfunc_walk_config(HANDLE cff, char *tag, HANDLE ud)
     prog = MYBPF_PROG_RefByFD(rt, fd);
     BS_DBGASSERT(prog);
 
-    IDFUNC_SetNode(ctrl, id, IDFUNC_TYPE_BPF, prog->insn);
+    IDFUNC_Set(ctrl, id, IDFUNC_TYPE_BPF, fd, prog->insn);
 }
 
 int IDFUNC_Load(MYBPF_RUNTIME_S *rt, IDFUNC_S *ctrl, char *conf_file)

@@ -1,0 +1,8 @@
+save, pwatcher-view, PWatcherBlab_Save
+
+cmd, pwatcher-view, [no] ob bl-abnormal enable, PWatcherBlab_Enable
+cmd, pwatcher-view, ob bl-abnormal filter [%STRING<1-127>(Set bpf filter. Eg: 'port 80')], PWATCHEROB_SetFilter
+
+cmd, pwatcher-view, [no] ob bl-abnormal option {ip|http|dns}, PWatcherBlab_Option
+cmd, pwatcher-view, [no] ob bl-abnormal learn_time %INT<1-31536000>(seconds), PWatcherBlab_LearnTime
+

@@ -254,12 +254,12 @@ static void idkey_base_walk(IDKEY_HDL hCtrl, PF_IDKEY_WALK_FUNC walk_func, void 
     IDKEY_NODE_S *node;
 
     if (ctrl->id_tbl) {
-        while ((ele = MAP_GetNext(ctrl->id_tbl, ele))) {
+        while ((ele = MAP_GetNextEle(ctrl->id_tbl, ele))) {
             node = ele->pData;
             walk_func(&node->kl, node->id, node->data, ud);
         }
     } else if (ctrl->key_tbl) {
-        while ((ele = MAP_GetNext(ctrl->key_tbl, ele))) {
+        while ((ele = MAP_GetNextEle(ctrl->key_tbl, ele))) {
             node = ele->pData;
             walk_func(&node->kl, node->id, node->data, ud);
         }

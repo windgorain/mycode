@@ -1,0 +1,8 @@
+save, pwatcher-view, PWATCHEROB_Save
+
+cmd, pwatcher-view, ob tcpfp enable, PWATCHEROB_Enable
+cmd, pwatcher-view, no ob tcpfp enable, PWATCHEROB_Disable
+cmd, pwatcher-view, ob tcpfp filter [%STRING<1-127>(Set bpf filter. Eg: 'port 80')], PWATCHEROB_SetFilter
+
+cmd, pwatcher-view, ob tcpfp reset, PWATCHEROB_TCPFP_Reset
+

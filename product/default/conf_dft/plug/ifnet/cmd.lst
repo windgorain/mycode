@@ -1,0 +1,4 @@
+cmd, if.pcap|if.tun, [no] shutdown, IFNET_ShutdownInterface
+
+
+

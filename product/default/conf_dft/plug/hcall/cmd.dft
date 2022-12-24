@@ -1,0 +1,6 @@
+config-view
+ hcall-view
+  bind ws-service hcall
+  permit module syscaller
+  quit
+ quit

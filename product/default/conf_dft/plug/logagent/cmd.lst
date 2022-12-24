@@ -1,0 +1,30 @@
+view, config-view, logagent-view(Enter the acl view), logagent-view, NULL
+save, logagent-view, LOGAGENT_Save
+
+cmd, logagent-view, [no] tcp log enable, LOGAGENT_TCP_CmdHttpLogEnable
+cmd, logagent-view, tcp match %INT<0-127> {sip|dip} %IP mask %INT<0-32>, LOGAGENT_TCP_CmdMatchIP
+cmd, logagent-view, tcp match %INT<0-127> {sport|dport} %INT<0-65535>, LOGAGENT_TCP_CmdMatchPort
+cmd, logagent-view, tcp match %INT<0-127> enable, LOGAGENT_TCP_CmdMatchEnable
+cmd, logagent-view, no tcp match %INT<0-127> enable, LOGAGENT_TCP_CmdMatchDisable
+cmd, logagent-view, show tcp match count [%INT<0-127>], LOGAGENT_TCP_CmdShowMatchCount
+cmd, logagent-view, reset tcp match count [%INT<0-127>], LOGAGENT_TCP_CmdResetMatchCount
+
+cmd, logagent-view, [no] http log enable, LOGAGENT_HTTP_CmdHttpLogEnable
+cmd, logagent-view, [no] http log cookie, LOGAGENT_HTTP_CmdHttpLogCookie
+cmd, logagent-view, [no] http log set-cookie, LOGAGENT_HTTP_CmdHttpLogSetCookie
+cmd, logagent-view, http log request-body %INT<0-65535>, LOGAGENT_HTTP_CmdHttpLogRequestBody
+cmd, logagent-view, http log response-body %INT<0-65535>, LOGAGENT_HTTP_CmdHttpLogResponseBody
+cmd, logagent-view, http match %INT<0-127> {sip|dip} %IP mask %INT<0-32>, LOGAGENT_HTTP_CmdMatchIP
+cmd, logagent-view, http match %INT<0-127> {sport|dport} %INT<0-65535>, LOGAGENT_HTTP_CmdMatchPort
+cmd, logagent-view, http match %INT<0-127> enable, LOGAGENT_HTTP_CmdMatchEnable
+cmd, logagent-view, no http match %INT<0-127> enable, LOGAGENT_HTTP_CmdMatchDisable
+cmd, logagent-view, show http match count [%INT<0-127>], LOGAGENT_HTTP_CmdShowMatchCount
+cmd, logagent-view, reset http match count [%INT<0-127>], LOGAGENT_HTTP_CmdResetMatchCount
+
+cmd, logagent-view, alert match %INT<0-127> sid %INT<0-4294967295>, LOGAGENT_ALERT_CmdMatchSid
+cmd, logagent-view, alert match %INT<0-127> enable, LOGAGENT_ALERT_CmdMatchEnable
+cmd, logagent-view, no alert match %INT<0-127> enable, LOGAGENT_ALERT_CmdMatchDisable
+cmd, logagent-view, show alert match count [%INT<0-127>], LOGAGENT_ALERT_CmdShowMatchCount
+cmd, logagent-view, reset alert match count [%INT<0-127>], LOGAGENT_ALERT_CmdResetMatchCount
+
+cmd, logagent-view, show config-path, LOGAGENT_CmdShowConfigPath

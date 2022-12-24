@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+<link rel="stylesheet" href="/_base/css/base.css">
+<link rel="stylesheet" href="/_base/js/jquery/treeview/jquery.treeview.css" />
+<link rel="stylesheet" href="/_base/js/jquery/treeview/screen.css" />
+	
+<script src="/_base/js/jquery/jquery.js"></script>
+<script src="/_base/js/jquery/treeview/jquery.treeview.js"></script>
+	
+<script>
+	$(document).ready(function(){
+	$("#menu").treeview();
+});
+</script>
+</head>
+
+<body>
+	
+	<ul id="menu" class="filetree">
+		<li class="closed"><span class="folder">用户管理</span>
+			<ul>
+				<li><span class="file"><a href="/domain/user/admin/info.htm" target="content">管理员</a></span></li>
+				<li><span class="file"><a href="/domain/user/onlineuser/onlineuser.htm" target="content">在线用户</a></span></li>
+			</ul>
+		</li>
+		<li class="closed"><span class="folder">DHCP</span>
+			<ul>
+				<li><span class="file"><a href="dhcp/ip.htm" target="content">地址池</a></span></li>
+			</ul>
+		</li>
+		<li><span class="file"><a href="system/system.htm" target="content">系统设置</a></span></li>
+	</ul>
+</body>
+</html>

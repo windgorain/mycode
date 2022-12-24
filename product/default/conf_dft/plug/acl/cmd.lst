@@ -1,0 +1,88 @@
+# acl view
+view|level:10, config-view, acl-view(Enter the acl view), acl-view, NULL
+save|level:10, acl-view, AclApp_Save
+
+# ip-acl list
+view|templet|level:10, acl-view, ip-acl %STRING<1-63>, ip-acl-list, AclAppIP_EnterListView
+cmd|level:10, acl-view, no ip-acl %STRING<1-63>, AclAppIP_CmdNoList
+cmd|level:10, acl-view, clear-all ip-acl, AclAppIP_Clear
+
+# ip-acl rule
+cmd|level:10, ip-acl-list, rule %INT<1-10000000> action {permit|deny} [%OPTION], AclAppIP_CmdRule
+cmd|level:10, ip-acl-list, no rule %INT<1-10000000>, AclAppIP_CmdNoRule
+cmd|level:10, ip-acl-list, default action {permit|deny}, AclAppIP_CmdSet_DefaultAction
+cmd|level:10, ip-acl-list, no default action, AclAppIP_CmdSet_DefaultAction
+cmd|level:10, ip-acl-list, move rule %INT<1-10000000> to %INT<1-10000000>, AclAppIP_CmdMoveRule
+cmd|level:10, ip-acl-list, rebase step %INT<1-100000>, AclAppIP_CmdRebaseRuleID
+cmd|level:10, ip-acl-list, increase start %INT<1-10000000> end %INT<1-10000000> [step %INT<1-100000>], AclAppIP_Cmd_IncreaseID
+cmd|level:10, ip-acl-list, load-file(file path example /tmp/ip_acl.cfg) %STRING<1-255>, AclAppIP_Cmd_LoadFile
+cmd|level:10, ip-acl-list, show refered-count, AclAppIP_CmdShowRefer
+cmd|level:10, ip-acl-list, show stats, AclAppIP_CmdShowStats
+cmd|level:10, ip-acl-list, clear stats, AclAppIP_CmdClearStats
+cmd|level:10, ip-acl-list, test sip(source ip) %STRING<1-15> dip(destination ip) %STRING<1-15> sport(source port) %INT<1-65535> dport(desination port) %INT<1-65535> proto(protocol) %INT<1-255> [count %INT<1-1000000>], AclAppIP_TestIpMatch
+
+# dmain-acl list
+view|templet, acl-view, domain-acl %STRING<1-63>(list name), domain-acl-list, AclDomain_EnterListView
+cmd, acl-view, no domain-acl %STRING<1-63>, AclDomain_CmdNoList
+cmd, acl-view, clear-all domain-acl, AclDomain_Clear
+
+# domain-acl rule
+cmd, domain-acl-list, rule %INT<1-10000000> action {permit|deny} [%OPTION], AclDomain_CmdRule
+cmd, domain-acl-list, no rule %INT<1-10000000>, AclDomain_CmdNoRule
+cmd, domain-acl-list, default action {permit|deny}, AclDomain_CmdSet_DefaultAction
+cmd, domain-acl-list, no default action, AclDomain_CmdSet_DefaultAction
+cmd, domain-acl-list, move rule %INT<1-10000000> to %INT<1-10000000>, AclDomain_CmdMoveRule
+cmd, domain-acl-list, rebase step %INT<1-100000>, AclDomain_CmdRebaseRuleID
+cmd, domain-acl-list, increase start %INT<1-10000000> end %INT<1-10000000> [step %INT<1-100000>], AclDomain_Cmd_IncreaseID
+cmd, domain-acl-list, show refered-count, AclDomain_CmdShowRefer
+cmd, domain-acl-list, show stats, AclDomain_CmdShowStats
+cmd, domain-acl-list, clear stats, AclDomain_CmdClearStats
+
+# url-acl list
+view|templet, acl-view, url-acl %STRING<1-63>, url-acl-list, AclURL_EnterListView
+cmd, acl-view, no url-acl %STRING<1-63>, AclURL_CmdNoList
+cmd, acl-view, clear-all url-acl, AclURL_Clear
+
+cmd, url-acl-list, rule %INT<1-10000000> action {permit|deny} [%OPTION], AclURL_CmdRule
+cmd, url-acl-list, no rule %INT<1-10000000>, AclURL_CmdNoRule
+cmd, url-acl-list, default action {permit|deny}, AclURL_CmdSet_DefaultAction
+cmd, url-acl-list, no default action, AclURL_CmdSet_DefaultAction
+cmd, url-acl-list, move rule %INT<1-10000000> to %INT<1-10000000>, AclURL_CmdMoveRule
+cmd, url-acl-list, rebase step %INT<1-100000>, AclURL_CmdRebaseRuleID
+cmd, url-acl-list, increase start %INT<1-10000000> end %INT<1-10000000> [step %INT<1-100000>], AclURL_CmdIncreaseID
+cmd, url-acl-list, show refered-count, AclURL_CmdShowRefer
+cmd, url-acl-list, show stats, AclURL_CmdShowStats
+cmd, url-acl-list, clear stats, AclURL_CmdClearStats
+
+#domain-group 
+view|templet, acl-view, domain-group(Enter domain group view) %STRING<1-63>, domain-group, AclDomainGroup_EnterView
+cmd, acl-view, show domain-group, AclDomainGroup_ShowName
+cmd, acl-view, no domain-group %STRING<1-63>, AclDomainGroup_Delete
+cmd, acl-view, clear-all domain-group, AclDomainGroup_Clear
+cmd, domain-group, [no] domain(example www.baidu.com) %STRING<1-255>, AclDomainGroup_SetDomain
+cmd, domain-group, show refered-count, AclDomainGroup_ShowReferedCount
+cmd, domain-group, load-file(file path example /tmp/domain_group.cfg) %STRING<1-255>, AclDomainGroup_LoadCfgFromFile
+cmd, domain-group, test-domain %STRING<1-255>, AclDomainGroup_TestMatch
+
+# ip-group
+cmd|level:10, acl-view, show ip-group, AclIPGroup_Show
+cmd|level:10, acl-view, no ip-group %STRING<1-63>, AclIPGroup_Delete
+cmd|level:10, acl-view, clear-all ip-group, AclIPGroup_Clear
+
+view|templet|level:10, acl-view, ip-group(Enter ip group view) %STRING<1-63>(ip group name), acl-addresses-ip, AclIPGroup_EnterView
+cmd|level:10, acl-addresses-ip, [no] ip %STRING<1-18>(example 10.10.10.10/32), AclIPGroup_SetIp
+cmd|level:10, acl-addresses-ip, test-ip %IP<1-15>(example 10.10.10.10), AclIPGroup_TestMatchIp
+cmd|level:10, acl-addresses-ip, show refered-count, AclIPGroup_ShowRefCount
+cmd|level:10, acl-addresses-ip, load-file(file path example /tmp/acl_ip.cfg) %STRING<1-255>, AclIPGroup_LoadFromFile
+
+# port-group
+cmd|level:10, acl-view, show port-group, AclPortGroup_Show
+cmd|level:10, acl-view, no port-group %STRING<1-63>, AclPortGroup_Delete
+cmd|level:10, acl-view, clear-all port-group, AclPortGroup_Clear
+
+view|templet|level:10, acl-view, port-group(Enter port group view) %STRING<1-63>(port group name), acl-addresses-port, AclPortGroup_EnterView
+cmd|level:10, acl-addresses-port, [no] port(example 200-300) %STRING<1-11>, AclPortGroup_SetPortRange
+cmd|level:10, acl-addresses-port, test-port(1-65535) %INT<1-65535>, AclPortGroup_TestMatchPort
+cmd|level:10, acl-addresses-port, show refered-count, AclPortGroup_ShowRefCount
+cmd|level:10, acl-addresses-port, load-file(file path example /tmp/acl_port.cfg) %STRING<1-255>, AclAddresses_LoadPortCfgFromFile
+

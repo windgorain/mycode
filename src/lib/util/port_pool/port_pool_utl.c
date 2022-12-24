@@ -50,10 +50,10 @@ PORT_POOL_HANDLE PortPool_Create(void *memcap)
 
 void PortPool_Destroy(PORT_POOL_HANDLE pool)
 {
-    LIST_RULE_LIST_S *list;
+    LIST_RULE_HEAD_S *head;
 
-    while ((list = ListRule_GetNextList(pool, NULL))) {
-        int ret = _port_pool_del_list(pool, list);
+    while ((head = ListRule_GetNextList(pool, NULL))) {
+        int ret = _port_pool_del_list(pool, head->pstListRule);
         BS_DBGASSERT(ret == 0);
     }
 

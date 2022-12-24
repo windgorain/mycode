@@ -1,0 +1,7 @@
+# ×¢²áview
+view, config-view, webcenter-view(Enter the webcenter view), webcenter-view, NULL
+save, webcenter-view, WebCenter_Save
+
+# ×¢²áÃüÁî
+cmd, webcenter-view, bind ws-service %STRING<1-63>, WebCenter_Cmd_BindWsService
+cmd, webcenter-view, bind inner-ws-service %STRING<1-63>, WebCenter_Cmd_BindInnerWsService

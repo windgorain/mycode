@@ -379,7 +379,7 @@ void PCIE_WriteTlpData(void *data, int data_len, BOOL_T is4dw, OUT PCIE_TLP_S *t
 }
 
 /* 返回read了多长 */
-int PCIE_ReadTlpData(OUT void *data, int data_size, BOOL_T is4dw, PCIE_TLP_S *tlp)
+int PCIE_ReadTlpData(UINT64 addr, OUT void *data, int data_size, BOOL_T is4dw, PCIE_TLP_S *tlp)
 {
     char *d;
     int length;
@@ -393,14 +393,18 @@ int PCIE_ReadTlpData(OUT void *data, int data_size, BOOL_T is4dw, PCIE_TLP_S *tl
     d = _pcie_get_data_ptr(tlp, is4dw);
 
     UINT low_addr = PCIE_TLP_COMP_LOWER_ADDR(comp_tlp);
-    low_addr &= 0x3;
 
-    if (len <= low_addr) {
-        return -1;
+    if (low_addr) {
+        low_addr &= 0x3;
+        if (len <= low_addr) {
+            return -1;
+        }
+        len -= low_addr;
+        d += low_addr;
+    } else {
+        len -= (addr % 4);
+        d += (addr % 4);
     }
-
-    len -= low_addr;
-    d += low_addr;
 
     memcpy(out, d, len);
 

@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--[if IE 8]> <html class="lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>WEB代理</title>
+
+<link rel="icon" href="/_base/img/logo.gif" type="image/x-icon" />
+<link rel="bookmark" href="/_base/img/logo.gif" type="image/x-icon" /> 
+
+<link rel="stylesheet" type="text/css" href="/_base/css/base.css">
+<link rel="stylesheet" type="text/css" href="/_base/css/button.css">
+<link rel="stylesheet" type="text/css" href="/_base/css/container.css">
+<link rel="stylesheet" type="text/css" href="/_base/js/jquery/datatable/css/jquery.dataTables.css">
+
+<script src="/_base/js/my/base.js"></script>
+<script src="/_base/js/jquery/jquery.js"></script>
+<script src="/_base/js/jquery/cookie/jquery.cookie.js"></script>
+<script src="/_base/js/jquery/datatable/js/jquery.dataTables.js"></script>
+<script src="/_base/js/my/myutl.js"></script>
+<script src="/_base/js/my/string/string.js"></script>
+<script src="/_base/js/my/ip.js"></script>
+<script src="/_base/js/my/toolbar/toolbar.js"></script>
+<script src="/_base/js/my/ctype.js"></script>
+<script src="/_base/js/my/datatable/mydatatable.js"></script>
+<script src="/svpnjs/usr.js"></script>
+
+<!--[if lt IE 8]>
+<script src="/_base/js/my/inputfocus.js"></script>
+<![endif]--> 
+
+<script language="javascript">
+	
+/*
+用法示例：var myURL = parseURL('http://abc.com:8080/dir/index.html?id=255&m=hello#top');   
+myURL.file='index.html' 
+myURL.hash= 'top' 
+myURL.host= 'abc.com' 
+myURL.query= '?id=255&m=hello' 
+myURL.params= Object = { id: 255, m: hello } 
+myURL.path= '/dir/index.html' 
+myURL.segments= Array = ['dir', 'index.html'] 
+myURL.port= '8080' 
+myURL.protocol= 'http' 
+myURL.source= 'http://abc.com:8080/dir/index.html?id=255&m=hello#top' 
+*/
+function parseURL(url)
+{ 
+	var a = document.createElement('a'); 
+	a.href = url; 
+	return { 
+		source: url, 
+		protocol: a.protocol.replace(':',''), 
+		host: a.hostname, 
+		port: a.port, 
+		query: a.search, 
+		params: (function(){ 
+			var ret = {}, 
+			seg = a.search.replace(/^\?/,'').split('&'), 
+			len = seg.length, i = 0, s; 
+			for (;i<len;i++)
+			{ 
+				if (!seg[i])
+				{
+					continue;
+				} 
+				s = seg[i].split('='); 
+				ret[s[0]] = s[1]; 
+			}
+			return ret; 
+		})(), 
+		file: (a.pathname.match(/\/([^\/?#]+)$/i) || [,''])[1], 
+		hash: a.hash.replace('#',''), 
+		path: a.pathname.replace(/^([^\/])/,'/$1'), 
+		relative: (a.href.match(/tps?:\/\/[^\/]+(.+)/) || [,''])[1], 
+		segments: a.pathname.replace(/^\//,'').split('/') 
+	}; 
+}
+
+function open_url(sUrl)
+{
+	if (false == ClientCheckOnline())
+	{
+		return;
+	}
+	
+	if (sUrl.indexOf("://") == -1)
+	{
+		sUrl = "http://" + sUrl;
+	}
+
+	var myUrl = parseURL(sUrl);
+	if (myUrl.port == "")
+	{
+		if (myUrl.protocol == "http")
+		{
+			myUrl.port = "80";
+		}
+		else if (myUrl.protocol == "https")
+		{
+			myUrl.port = "443";
+		}
+		else
+		{
+			myUrl.port = "0";
+		}
+	}
+	
+	var sNewUrl = "/_proxy_/" + myUrl.protocol + "/" + myUrl.port + "/" + myUrl.host;
+
+	if (myUrl.path == "")
+	{
+		sNewUrl += "/";
+	}
+
+	sNewUrl += myUrl.path + myUrl.query;
+
+	if (myUrl.hash != "")
+	{
+		sNewUrl = sNewUrl + "#" + myUrl.hash;
+	}
+	
+	window.open("/__ws_keep__/cmd.cgi?1=Action=SetCookie,CookieName=svpnuid,Value="
+							+ $.cookie('svpnuid')
+							+ "&2=Action=Redirect2Url,Url=" + sNewUrl);
+	return;
+}
+	
+function ResTable_Load()
+{
+	if (false == ClientCheckOnline())
+	{
+		return;
+	}
+
+	$('#res_table').dataTable( {
+		"bDestroy": true,
+		"sAjaxSource": "/request.cgi?_do=WebRes.List",
+		"columns": [{"data":"Name"},{"data":"Description"},{"data":"URL"} ],
+		"createdRow":function(nRow,oData,iDataIndex){
+			$('td',nRow).eq(0).html('<a href="javascript:open_url(\'' + oData.URL + '\');">'+oData.Name+'</a>');
+			return nRow;
+		}
+	} );
+
+}
+
+$(document).ready(function() {
+	ResTable_Load();
+} );
+
+function OpenWeb()
+{
+	if (false == ClientCheckOnline())
+	{
+		return;
+	}
+	
+	window.open("/__ws_keep__/cmd.cgi?1=Action=SetCookie,CookieName=svpnuid,Value="
+							+ $.cookie('svpnuid')
+							+ "&2=Action=Redirect2Url,Url=/user/home.htm");
+}
+
+</script>
+
+</head>
+
+<body>
+
+<!-- 资源列表 -->
+<div class="remodal-bg">
+	<!-- container Begin -->
+	<div class="Container">
+	 <div class="Container-Row">
+	 	
+	 	<TABLE id=res_table class=display cellSpacing=0 width="100%">
+	 		<THEAD>
+	 			<TR> <TH>名称</TH> <TH>描述</TH> <TH>URL</TH> </TR>
+	 		</THEAD>
+	 	</TABLE>
+	 	
+	 	<input type="button" class="btn large blue" value="打开管理页面" onclick="OpenWeb()">
+	 	
+	 </div>
+	</div>
+	<!-- container End -->
+</div>
+
+
+</body>
+</html>
+

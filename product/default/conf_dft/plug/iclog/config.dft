@@ -1,0 +1,9 @@
+config-view
+    iclog-view
+        event fatal
+        event err
+        event warn
+        file size 10000
+        iclog enable
+        quit
+    quit

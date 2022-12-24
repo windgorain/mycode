@@ -1,0 +1,9 @@
+# 注册view
+view, config-view, pipecmds-view(Enter the pipecmds view), pipecmds-view, NULL
+save, pipecmds-view, _pipecmds_SaveCmd
+
+cmd, pipecmds-view, name process-key, PIPECMDS_CmdNamePKey
+cmd, pipecmds-view, name string %STRING<1-127>, PIPECMDS_CmdNameString
+cmd, pipecmds-view, server enable, PIPECMDS_CmdEnable
+cmd, pipecmds-view, no server enable, PIPECMDS_CmdDisable
+

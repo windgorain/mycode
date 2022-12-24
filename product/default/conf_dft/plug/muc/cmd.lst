@@ -1,0 +1,17 @@
+# ×¢²áview
+view, config-view, muc-view(Enter the muc view), muc-view, NULL
+save, muc-view, MUC_Save
+
+# ×¢²áMUCÄ£°å
+view|templet, muc-view, muc %INT<1-4095>, muc-instance, MucCmd_CreateInstance
+cmd, muc-view, no muc %INT<1-4095>, MucCmd_DestroyInstance
+
+# ×¢²áÃüÁî
+cmd, muc-instance, description %STRING<1-127>, MucCmd_SetDescription
+cmd, muc-instance, start, MucCmd_Start
+cmd, muc-instance, stop, MucCmd_Stop
+cmd, muc-instance, enter, MucCmd_Enter
+
+cmd, config-view, switchto muc %INT<1-4095>, MucCmd_SwitchTo
+cmd, user-view|config-view|muc-view, show muc, MucCmd_ShowMuc
+

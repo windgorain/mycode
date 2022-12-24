@@ -1,0 +1,6 @@
+save, pwatcher-view, PWATCHEROB_Save
+
+cmd, pwatcher-view, ob ssl enable, PWATCHEROB_Enable
+cmd, pwatcher-view, no ob ssl enable, PWATCHEROB_Disable
+cmd, pwatcher-view, ob ssl filter [%STRING<1-127>(Set bpf filter. Eg: 'port 80')], PWATCHEROB_SetFilter
+

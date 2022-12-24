@@ -63,7 +63,7 @@ IDFUNC_S * IDFUNC_Create(UINT capacity)
     return ctrl;
 }
 
-IDFUNC_NODE_S * IDFUNC_GetNode(IDFUNC_S *ctrl, UINT id)
+IDFUNC_NODE_S * IDFUNC_Get(IDFUNC_S *ctrl, UINT id)
 {
     if (id >= ctrl->capacity) {
         return NULL;
@@ -71,13 +71,14 @@ IDFUNC_NODE_S * IDFUNC_GetNode(IDFUNC_S *ctrl, UINT id)
     return &ctrl->nodes[id];
 }
 
-int IDFUNC_SetNode(IDFUNC_S *ctrl, UINT id, UCHAR type, void *func)
+int IDFUNC_Set(IDFUNC_S *ctrl, UINT id, UCHAR type, int fd, void *func)
 {
     if (id >= ctrl->capacity) {
         RETURN(BS_OUT_OF_RANGE);
     }
 
     ctrl->nodes[id].type = type;
+    ctrl->nodes[id].fd = fd;
     ctrl->nodes[id].func = func;
 
     return 0;

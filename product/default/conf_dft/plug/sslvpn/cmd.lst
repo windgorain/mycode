@@ -1,0 +1,61 @@
+# 注册view
+view, config-view, sslvpn-view(Enter the sslvpn view), sslvpn-view, NULL
+save, sslvpn-view, SVPN_Save
+
+# 注册context模板及其命令
+view|templet, sslvpn-view, context %STRING<1-63>, sslvpn-context, SVPN_ContextCmd_EnterView
+cmd, sslvpn-view, no context %STRING<1-63>, SVPN_ContextCmd_NoContext
+cmd, sslvpn-context, bind ws-service %STRING<1-63>, SVPN_ContextCmd_BindService
+cmd, sslvpn-context, description %STRING<1-512>, SVPN_ContextCmd_Description
+
+# 注册local-user模板及其命令
+view|templet, sslvpn-context, local-user %STRING<1-63>, sslvpn-local-user, SVPN_LocalUserCmd_EnterView
+cmd, sslvpn-local-user, password simple %STRING<1-63>, SVPN_LocalUserCmd_SetPassword
+cmd, sslvpn-local-user, password cipher %STRING<1-63>, SVPN_LocalUserCmd_SetPasswordCipher
+cmd, sslvpn-local-user, role %STRING<1-63>, SVPN_LocalUserCmd_SetRole
+
+# 注册acl模板及其命令
+view|templet, sslvpn-context, acl %STRING<1-63>, sslvpn-acl, SVPN_AclCmd_EnterView
+cmd, sslvpn-acl, description %STRING<1-255>, SVPN_AclCmd_SetDescription
+cmd, sslvpn-acl, rule {permit|deny} %STRING<1-255>, SVPN_AclCmd_SetRule
+cmd, sslvpn-acl, submit, SVPN_AclCmd_Submit
+
+# 注册web resource模板及其命令
+view|templet, sslvpn-context, web-resource %STRING<1-63>, sslvpn-web-res, SVPN_WebResCmd_EnterView
+cmd, sslvpn-web-res, description %STRING<1-255>, SVPN_WebResCmd_SetDescription
+cmd, sslvpn-web-res, url %STRING<1-255>, SVPN_WebResCmd_SetUrl
+cmd, sslvpn-web-res, [no] permit, SVPN_WebResCmd_Permit
+
+# 注册tcp resource模板及其命令
+view|templet, sslvpn-context, tcp-resource %STRING<1-63>, sslvpn-tcp-res, SVPN_TcpResCmd_EnterView
+cmd, sslvpn-tcp-res, description %STRING<1-255>, SVPN_TcpResCmd_SetDescription
+cmd, sslvpn-tcp-res, address %STRING<1-255>, SVPN_TcpResCmd_SetServerAddress
+
+# 注册ip resource模板及其命令
+view|templet, sslvpn-context, ip-resource %STRING<1-63>, sslvpn-ip-res, SVPN_IpResCmd_EnterView
+cmd, sslvpn-ip-res, description %STRING<1-255>, SVPN_IpResCmd_SetDescription
+cmd, sslvpn-ip-res, address %STRING<1-255>, SVPN_IpResCmd_AddAddress
+
+# 注册ip pool模板及其命令
+view|templet, sslvpn-context, ip-pool %STRING<1-63>, sslvpn-ip-pool, SVPN_IpPoolCmd_EnterView
+cmd, sslvpn-ip-pool, description %STRING<1-255>, SVPN_IpPoolCmd_SetDescription
+cmd, sslvpn-ip-pool, start-ip %STRING<1-15>, SVPN_IpPoolCmd_SetStartAddress
+cmd, sslvpn-ip-pool, end-ip %STRING<1-15>, SVPN_IpPoolCmd_SetEndAddress
+
+# 注册Role模板及其命令
+view|templet, sslvpn-context, role %STRING<1-63>, sslvpn-role, SVPN_RoleCmd_EnterView
+cmd, sslvpn-role, description %STRING<1-255>, SVPN_RoleCmd_SetDescription
+cmd, sslvpn-role, acl %STRING<1-63>, SVPN_RoleCmd_SetAcl
+cmd, sslvpn-role, web-resource %STRING<1-63>, SVPN_RoleCmd_AddWebRes
+cmd, sslvpn-role, tcp-resource %STRING<1-63>, SVPN_RoleCmd_AddTcpRes
+cmd, sslvpn-role, ip-resource %STRING<1-63>, SVPN_RoleCmd_AddIpRes
+
+# debug
+cmd, sslvpn-view, debug web-proxy packet, SVPN_WebProxy_DebugPacket
+cmd, sslvpn-view, no debug web-proxy packet, SVPN_WebProxy_NoDebugPacket
+cmd, sslvpn-view, debug web-proxy fsm, SVPN_WebProxy_DebugFsm
+cmd, sslvpn-view, no debug web-proxy fsm, SVPN_WebProxy_NoDebugFsm
+cmd, sslvpn-view, debug ip-tunnel {packet|error|handshake|event|process|all}, SVPN_Debug_Cmd
+cmd, sslvpn-view, no debug ip-tunnel {packet|error|handshake|event|process|all}, SVPN_NoDebug_Cmd
+cmd, sslvpn-view, debug tcp-relay {packet|error|process|event|all}, SVPN_Debug_Cmd
+cmd, sslvpn-view, no debug tcp-relay {packet|error|event|process|all}, SVPN_NoDebug_Cmd

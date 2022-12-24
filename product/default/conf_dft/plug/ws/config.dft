@@ -1,0 +1,24 @@
+config-view
+ ws-view
+  gateway g443
+   type ssl
+   port 443
+   service enable
+   quit
+  gateway g80
+   type tcp
+   port 80
+   service enable
+   quit
+  service sslvpn
+   description SSLVPN 
+   bind gateway g443 domain SSLVPN
+   service enable
+   quit
+  service webcenter
+   description WEB网管 
+   bind gateway g80 domain WebCenter
+   service enable
+   quit
+  quit
+ quit

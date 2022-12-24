@@ -385,7 +385,7 @@ static BS_STATUS _wan_nat_kf_List(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, I
 
     uiPhase = RcuEngine_Lock();
 
-    while (NULL != (pstEle = MAP_GetNext(g_hWanNatAgg, pstEle)))
+    while (NULL != (pstEle = MAP_GetNextEle(g_hWanNatAgg, pstEle)))
     {
         pstNatIfCtrl = pstEle->pData;
 

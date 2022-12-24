@@ -1,0 +1,15 @@
+# ×¢²áview
+view, config-view, pcap-view(Enter the pcap view), pcap-view, NULL
+save, pcap-view, PCAP_CMD_Save
+
+
+cmd, pcap-view, debug pcap {packet}, PCAP_Debug_Cmd
+cmd, pcap-view, no debug pcap {packet}, PCAP_NoDebug_Cmd
+
+# ×¢²ápcapÄ£°å¼°ÃüÁî
+view|templet, pcap-view, pcap %INT<0-31>, pcap-agent, PCAP_CMD_EnterAgent
+cmd, pcap-agent, show device, PCAP_CMD_ShowDev
+cmd, pcap-agent, device %STRING<1-127>, PCAP_CMD_SetDev
+cmd, pcap-agent, start, PCAP_CMD_Start
+
+

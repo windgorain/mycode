@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="/_base/css/base.css">
+<link rel="stylesheet" href="/_base/js/jquery/treeview/jquery.treeview.css" />
+<link rel="stylesheet" href="/_base/js/jquery/treeview/screen.css" />
+	
+<script src="/_base/js/jquery/jquery.js"></script>
+<script src="/_base/js/jquery/treeview/jquery.treeview.js"></script>
+<script src="/_base/js/my/request/request.js"></script>
+	
+<script>
+$(document).ready(function(){
+	$("#menu").treeview();
+	
+	var sHostName = window.location.host;
+	sHostName = sHostName.substring(0, sHostName.indexOf(":", 0));
+
+	if ((sHostName == "127.0.0.1") || (sHostName.toLowerCase() == "localhost"))
+	{
+		$("#logout_li").hide();
+	}
+});
+
+function logout()
+{
+	$.ajax(
+		{ type: "GET",
+			url: "/logout.cgi",
+			async: true
+		});
+		
+	return true;
+}
+
+function saveconfig()
+{
+	$.ajax(
+		{ type: "GET",
+			url: "/request.cgi?_do=webcenter.SaveConfig",
+			async: false,
+			dataType: "json",
+			success: function(oJson) {
+                if (RQ_IsOK(oJson)) {
+					window.alert("保存成功");
+				}
+			}
+		});
+		
+	return true;
+}
+
+</script>
+</head>
+
+<body>
+	<ul id="menu" class="filetree">
+		<li class="closed"><span class="folder">WEB服务</span>
+			<ul>
+				<li><span class="file"><a href="module/ws/gateway/list.htm" target="contentFrame">WEB网关</a></span></li>
+				<li><span class="file"><a href="module/ws/service/list.htm" target="contentFrame">WEB服务</a></span></li>
+				<li><span class="file"><a href="module/webcenter/webcenter.htm" target="contentFrame">WEB网管</a></span></li>
+	  		<li><span class="file"><a href="module/localuser/list.htm" target="contentFrame">WEB管理员</a></span></li>
+			</ul>
+		</li>
+		
+		<li class="closed"><span class="folder">网络设置</span>
+			<ul>
+			  <li><span class="file"><a href="module/interface/list.htm" target="contentFrame">接口管理</a></span></li>
+			  <li><span class="file"><a href="module/route/list.htm" target="contentFrame">路由设置</a></span></li>
+			  <li><span class="file"><a href="module/nat/list.htm" target="contentFrame">NAT</a></span></li>
+	  	</ul>
+		</li>
+		
+		<li class="closed"><span class="folder">SSLVPN</span>
+			<ul>
+				<li><span class="file"><a href="module/sslvpn/domain/list.htm" target="contentFrame">域列表</a></span></li>
+			</ul>
+		</li>
+
+		<li class="closed"><span class="folder">PWatcher</span>
+			<ul>
+				<li><span class="file"><a href="module/pwatcher/ob/list.htm" target="contentFrame">OB列表</a></span></li>
+			</ul>
+		</li>
+
+		<li><span class="file"><a href="#" onclick="saveconfig();" >保存配置</a></span></li>
+		<li id="logout_li"><span class="file"><a href="/index.htm" target="_parent" onclick="logout();" >退出</a></span></li>
+	</ul>
+</body>
+</html>

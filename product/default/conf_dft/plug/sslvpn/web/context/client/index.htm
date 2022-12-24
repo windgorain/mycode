@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>用户</title>
+
+<link rel="icon" href="/_base/img/logo.gif" type="image/x-icon" />
+<link rel="bookmark" href="/_base/img/logo.gif" type="image/x-icon" /> 
+
+<link rel="stylesheet" type="text/css" href="/_base/css/base.css">
+<link rel="stylesheet" type="text/css" href="/_base/css/container.css">
+<link rel="stylesheet" type="text/css" href="/_base/css/button.css">
+
+<script src="/_base/js/my/base.js"></script>
+<script src="/_base/js/jquery/jquery.js"></script>
+<script src="/_base/js/my/myutl.js"></script>
+<script src="/_base/js/my/string/string.js"></script>
+<script src="/_base/js/my/ip.js"></script>
+<script src="/_base/js/my/ctype.js"></script>
+<script src="/_base/js/my/toolbar/toolbar.js"></script>
+<script src="/_base/js/my/htmler/htmler.js"></script>
+<script src="/_base/js/my/request/request.js"></script>
+
+<!--[if lt IE 8]>
+<script src="/js/my/inputfocus.js"></script>
+<![endif]--> 
+
+<script language="javascript">
+function mysubmit(oForm)
+{
+	$("#resultdiv").hide();
+
+	var check = CType_CheckForm(oForm);
+	if (check == false)
+	{
+		return check;
+	}
+	
+	$.ajax(
+		{ type: "POST",
+			url: "/request.cgi",   
+			data: "_do=User.Login&UserName=" + $("#username").val() + "&Password=" + $("#password").val(),
+			async: false,
+			dataType: "json",
+			success: function(oJson) {
+                if (RQ_IsOK(oJson)) {
+					window.location="success.htm"
+				} else {
+					var sContent = "结果: 失败<br>原因: " + oJson.reason;
+					$("#result").html(sContent);
+					$("#resultdiv").show();
+				}
+			}
+		});
+		
+		return false;
+}
+</script>
+
+</head>
+
+<body>
+
+<!-- container Begin -->
+<div class="Container">
+	<div class="Container-Row">
+
+		<fieldset>
+			<legend>用户登录</legend>
+
+			<form method="POST" onsubmit="return mysubmit(this);">
+
+				<table class="fieldset-row">
+
+					<tr>
+						<td>用户名:</td>
+						<td>
+							<input class="text" id="username" name="username" type="text" maxlength="31" style="width:155px;">
+						</td>
+					</tr>
+
+					<tr>
+						<td>密码:</td>
+						<td>
+							<input class="text" id="password" name="password" type="password" maxlength="31" style="width:155px;">
+						</td>
+					</tr>
+
+					</tr>
+						<td></td>
+						<td><input type="submit" class="btn large blue" width=180 value="登录" /></td>
+						<td></td>
+					<tr>
+
+				</table>
+		
+			</form>
+	
+		</fieldset>
+	
+	</div>
+	
+ <div class="Container-Block" style="display:none" id="resultdiv">
+ 	<span id="result"></span>
+ </div>
+	
+</div>
+<!-- container End -->
+
+</body>
+</html>
+

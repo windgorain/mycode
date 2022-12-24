@@ -1,0 +1,19 @@
+﻿<html>
+<head>
+<script src="/_base/js/jquery/jquery.js"></script>
+<script>
+$(document).ready(function() {
+	$.ajax(
+		{ type: "Get",
+			url: "/request.cgi?_do=User.Logout",
+			async: false
+		});
+		
+	window.location = "/";
+});
+</script>
+</head>
+
+<body>
+</body>
+</html>

@@ -1,0 +1,4 @@
+cmd, pwatcher-view, ob clock enable, PWATCHEROB_Enable
+cmd, pwatcher-view, no ob clock enable, PWATCHEROB_Disable
+
+

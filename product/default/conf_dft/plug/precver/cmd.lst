@@ -1,0 +1,20 @@
+# ×¢²áview
+view, config-view, precver-view(Enter the precver view), precver-view, NULL
+save, precver-view, PRecver_Cmd_Save
+
+view|templet, precver-view, worker %INT<1-31>, precver-worker, PRecver_Cmd_EnterWorker
+
+cmd, precver-view, no worker %INT<1-31>, PRecver_Cmd_NoWorker
+cmd, precver-view, sample packet rate %INT<1-255>, PRecver_Cmd_SetWorkersPktSample
+cmd, precver-view, no sample packet rate %INT<1-255>, PRecver_Cmd_NoSetWorkersPktSample
+cmd, precver-view, jshow sample, PRecver_Cmd_JShow
+
+cmd, precver-worker, source %STRING<1-31>, PRecver_Cmd_SetWorkerSource
+cmd, precver-worker, param %STRING<1-127>, PRecver_Cmd_SetWorkerParam
+cmd, precver-worker, affinity %INT<1-255>, PRecver_Cmd_SetWorkerAffinity
+cmd, precver-worker, no affinity, PRecver_Cmd_ClrWorkerAffinity
+cmd, precver-worker, start, PRecver_Cmd_WorkerStart
+cmd, precver-worker, no start, PRecver_Cmd_WorkerStop
+cmd, precver-worker, sample packet rate %INT<1-255>, PRecver_Cmd_SetWorkerPktSample
+cmd, precver-worker, no sample packet rate %INT<1-255>, PRecver_Cmd_NoSetWorkerPktSample
+

@@ -1,0 +1,8 @@
+config-view
+ pwatcher-view
+  ob bl-abnormal option ip
+  ob bl-abnormal option http
+  ob bl-abnormal option dns
+  ob bl-abnormal enable
+  quit
+ quit

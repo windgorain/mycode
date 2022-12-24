@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--[if IE 8]> <html class="lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+
+<link rel="icon" href="/_base/img/logo.gif" type="image/x-icon" />
+<link rel="bookmark" href="/_base/img/logo.gif" type="image/x-icon" /> 
+
+<link rel="stylesheet" type="text/css" href="/_base/css/base.css">
+<link rel="stylesheet" type="text/css" href="/_base/css/button.css">
+<link rel="stylesheet" type="text/css" href="/_base/css/container.css">
+<link rel="stylesheet" type="text/css" href="/_base/js/jquery/datatable/css/jquery.dataTables.css">
+
+<script src="/_base/js/my/base.js"></script>
+<script src="/_base/js/jquery/jquery.js"></script>
+<script src="/_base/js/jquery/datatable/js/jquery.dataTables.js"></script>
+<script src="/_base/js/my/myutl.js"></script>
+<script src="/_base/js/my/string/string.js"></script>
+<script src="/_base/js/my/ip.js"></script>
+<script src="/_base/js/my/toolbar/toolbar.js"></script>
+<script src="/_base/js/my/ctype.js"></script>
+<script src="/_base/js/my/nameobject/list.js"></script>
+<script src="/_base/js/my/request/request.js"></script>
+<script src="/js/check.js"></script>
+
+<!--[if lt IE 8]>
+<script src="/_base/js/my/inputfocus.js"></script>
+<![endif]--> 
+
+<script language="javascript">
+function Create()
+{
+	window.location="add.htm";
+}
+
+var oParam = {
+		"sListUrl":"/request.cgi?_do=wan.nat.List",
+		"sDeleteUrl":"/request.cgi?_do=wan.nat.Delete",
+		"supportEdit":false,
+		"columns":[{"data":null}, {"data":"Name"}]
+	};
+
+function Delete()
+{
+	MyDataTable_DelSelected(oParam);
+}
+
+$(document).ready(function() {
+	AdminCheckOnline();
+	
+	MyDataTable_Init(oParam);
+} );
+
+</script>
+
+</head>
+
+<body>
+
+<!-- 列表 -->
+<!-- container Begin -->
+<div class="Container">
+ <div class="Container-Row">
+ 	
+ 	<TABLE id="MyDftTableID" class=display cellSpacing=0 width="100%">
+ 		<THEAD>
+ 			<TR> <TH><input type="checkbox" id="MyDftSelectAllID"></TH> <TH>接口</TH> </TR>
+ 		</THEAD>
+ 	</TABLE>
+ 	
+ 	<input type="button" class="btn large blue" value="新建" onclick="Create()">
+ 	<input type="button" class="btn large blue" value="删除" onclick="Delete()">
+ 	
+ </div>
+
+</div>
+<!-- container End -->
+
+</body>
+</html>
+

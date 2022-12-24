@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<link rel="stylesheet" type="text/css" href="/_base/css/base.css">
+<link rel="stylesheet" type="text/css" href="/_base/css/container.css">
+<link rel="stylesheet" type="text/css" href="/_base/css/button.css">
+<link rel="stylesheet" type="text/css" href="/_base/js/jquery/datatable/css/jquery.dataTables.css">
+
+<script src="/_base/js/my/base.js"></script>
+<script src="/_base/js/jquery/jquery.js"></script>
+<script src="/_base/js/jquery/datatable/js/jquery.dataTables.js"></script>
+<script src="/_base/js/my/myutl.js"></script>
+<script src="/_base/js/my/string/string.js"></script>
+<script src="/_base/js/my/ip.js"></script>
+<script src="/_base/js/my/toolbar/toolbar.js"></script>
+<script src="/_base/js/my/request/request.js"></script>
+<script src="/_base/js/my/ctype.js"></script>
+
+<!--[if lt IE 8]>
+<script src="/js/my/inputfocus.js"></script>
+<![endif]--> 
+
+<script language="javascript">
+function compare_password()
+{
+	if ($("#password").val() != $("#password2").val())
+	{
+		return "密码不一致";
+	}
+
+	return null;
+}
+
+function mysubmit(oForm)
+{
+	if (false == UserCheckOnline())
+	{
+		return false;
+	}
+	
+	var check = CType_CheckForm(oForm);
+	if (check == false)
+	{
+		return false;
+	}
+	
+	$.ajax(
+		{ type: "POST",
+			url: "request.cgi",   
+			data: "_do=User.Password.Change&UserName=admin&OldPassword=" + $("#oldpassword").val() + "&Password=" + $("#password").val(),
+			async: false,
+			dataType: "json",
+			success: function(oJson) {
+                if (RQ_IsOK(oJson)) {
+					$("#result").html("结果: 成功");
+					$("#username").val("");
+					$("#password").val("");
+					$("#password2").val("");
+				} else {
+					var sContent = "结果: 失败<br>原因: " + oJson.reason;
+					$("#result").html(sContent);
+				}
+				
+				$("#resultdiv").show();
+			}
+		});
+		
+		return false;
+}
+
+</script>
+
+</head>
+
+<body>
+	
+<!-- container Begin -->
+<div class="Container">
+ <div class="Container-Row">
+ 	
+ 	<fieldset>
+	
+	<legend>更改密码</legend>
+			
+ 	<form onsubmit="return mysubmit(this);">
+ 		
+ 		<table class="fieldset-row">
+
+			<tr>
+				<td>旧密码:</td>
+				<td>
+					<input id="oldpassword" name="oldpassword" type="password" maxlength="31"
+						ctype="none" ctype_info_label="oldpassword_info" min="5" ctype_must=1>
+					<label class="input_must">*</label>
+				  <em id="oldpassword_info"> </em>
+				</td>
+			</tr>
+
+			<tr>
+				<td>新密码:</td>
+				<td>
+					<input id="password" name="password" type="password" maxlength="31"
+						ctype="none" ctype_info_label="password_info" min="5" ctype_must=1>
+					<label class="input_must">*</label>
+				  <em id="password_info"> </em>
+				</td>
+			</tr>
+
+			<tr>
+				<td>确认密码:</td>
+				<td>
+					<input id="password2" name="password2" type="password" maxlength="31"
+						ctype="none" ctype_info_label="password2_info" min="5"
+						ctype_syn_check="compare_password(this)" ctype_must=1>
+					<label class="input_must">*</label>
+				  <em id="password2_info"> </em></td>
+			</tr>
+
+			<tr>
+				<td></td>
+				<td><input type="submit" class="btn large blue" value="确定"></td>
+			</tr>
+
+		</table>
+
+	</form>
+
+	</fieldset>
+
+ </div>
+ 
+ <div class="Container-Block" style="display:none" id="resultdiv">
+ 	<span id="result"></span>
+ </div>
+ 
+</div>
+<!-- container End -->
+
+</body>
+</html>

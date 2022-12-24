@@ -1,0 +1,5 @@
+config-view
+ webcenter-view
+  bind inner-ws-service __OPT_SH_webcenter
+  quit
+ quit

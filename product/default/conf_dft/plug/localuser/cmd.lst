@@ -1,0 +1,14 @@
+# ×¢²áview
+view, config-view, localuser-view(Enter the local user view), localuser-view, NULL
+save, localuser-view, LocalUser_Save
+enter, config-view, LocalUser_Enter
+
+# ×¢²álocaluserÄ£°å
+view|templet, localuser-view, local-user %STRING<1-63>, localuser-templet, LocalUser_EnterLocalUserView
+
+# ×¢²áÃüÁî
+cmd, localuser-templet, password simple %STRING<1-63>, LocalUser_CmdPasswordSimple
+cmd, localuser-templet, password cipher %STRING<1-63>, LocalUser_CmdPasswordCipher
+cmd, localuser-templet, description %STRING<1-256>, LocalUser_CmdDescription
+cmd, localuser-templet, type {cmd|pipecmd|telnet|web}*, LocalUser_CmdType
+

@@ -1,0 +1,24 @@
+# ◊¢≤·view
+view, config-view, nat-view(Enter the nat view), nat-view, NULL
+save, nat-view, NAT_CMD_Save
+
+# ◊¢≤·showœµ¡–√¸¡Ó
+cmd, nat-view, show nat, NAT_CMD_Show
+cmd, nat-view, show arp, NAT_ARP_ShowArp
+
+# ◊¢≤·≈‰÷√√¸¡Ó
+cmd, nat-view, pcap private %INT<0-15>, NAT_CMD_Pcap
+cmd, nat-view, pcap pub %INT<0-15>, NAT_CMD_PubPcap
+cmd, nat-view, gateway-ip %STRING<1-15>, NAT_CMD_SetGateWay
+cmd, nat-view, pub-ip %STRING<1-15>, NAT_CMD_SetPubIp
+cmd, nat-view, pub-mac %STRING<1-17>, NAT_CMD_SetPubMac
+cmd, nat-view, start, NAT_CMD_Enable
+
+cmd, nat-view, arp static %STRING<1-15> %STRING<1-17>, NAT_ARP_AddStaticArp
+
+
+# debug√¸¡Ó
+cmd, nat-view, debug packet, NAT_CMD_DebugPacket
+cmd, nat-view, no debug packet, NAT_CMD_NoDebugPacket
+cmd, nat-view, debug arp, NAT_ARP_Debug
+cmd, nat-view, no debug arp, NAT_ARP_NoDebug

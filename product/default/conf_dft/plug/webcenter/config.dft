@@ -1,0 +1,5 @@
+config-view
+ webcenter-view
+  bind ws-service webcenter
+  quit
+ quit
