@@ -78,7 +78,7 @@ UINT HOOKAPI_GetModuleHandle(IN CHAR *pszModeName)
 VOID HOOKAPI_ReplaceIATByTable(IN HOOKAPI_ENTRY_TBL_S *pstTbl, IN UINT ulNum)
 {
     UINT i;
-    PLUG_ID ulHandle;
+    PLUG_HDL ulHandle;
     HANDLE pfOldEntry;
 
     for (i=0; i<ulNum; i++)
@@ -88,7 +88,7 @@ VOID HOOKAPI_ReplaceIATByTable(IN HOOKAPI_ENTRY_TBL_S *pstTbl, IN UINT ulNum)
             continue;
         }
         
-        ulHandle = (PLUG_ID)HOOKAPI_GetModuleHandle(pstTbl[i].pszDllName);
+        ulHandle = (PLUG_HDL)HOOKAPI_GetModuleHandle(pstTbl[i].pszDllName);
         if (0 == ulHandle)
         {
             continue;

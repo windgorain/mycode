@@ -58,7 +58,7 @@ static void plugmgr_FreeNode(PLUG_MGR_NODE_S *node)
 static PLUG_MGR_NODE_S * plugmgr_LoadFile(PLUG_MGR_S *plug_mgr,
         char *plug_name, char *filename, char *conf_path, char *save_path)
 {
-    PLUG_ID hPlug;
+    PLUG_HDL hPlug;
     CHAR *pszErroInfo = NULL;
     PLUG_MGR_NODE_S *node = plugmgr_AllocNode(plug_name, filename);
     UINT_FUNC_3 pfFunc;
@@ -67,7 +67,7 @@ static PLUG_MGR_NODE_S * plugmgr_LoadFile(PLUG_MGR_S *plug_mgr,
         return NULL;
     }
 
-    hPlug = (PLUG_ID)PLUG_LOAD(filename);
+    hPlug = (PLUG_HDL)PLUG_LOAD(filename);
     if (hPlug == NULL) {
 #ifdef IN_UNIXLIKE
         pszErroInfo = dlerror();
@@ -203,7 +203,7 @@ static VOID plugmgr_NotifyStage(CFF_HANDLE hCff, char *tag, void *ud)
     USER_HANDLE_S *uh = ud;
     PLUG_MGR_S *mgr = uh->ahUserHandle[0];
     int stage = HANDLE_UINT(uh->ahUserHandle[1]);
-    PLUG_ID ulPlugId;
+    PLUG_HDL ulPlugId;
     PF_PLUG_STAGE pfFunc;
     PLUG_MGR_ENV_S env;
 
@@ -235,7 +235,7 @@ static VOID plugmgr_NotifyStage(CFF_HANDLE hCff, char *tag, void *ud)
 static VOID plugmgr_RegCmd(PLUG_MGR_S *mgr, char *plug_name, char *filename,
         char *conf_path, char *save_path, char *cmdfile)
 {
-    PLUG_ID plug;
+    PLUG_HDL plug;
     PLUG_MGR_NODE_S *node;
 
     node = PlugMgr_Find(mgr, plug_name);

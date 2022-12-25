@@ -46,7 +46,7 @@ int PRecverPlug_LoadPlug(char *plug_name)
     return PlugMgr_LoadManual(&g_precver_plug_mgr, g_precver_plug_path, plug_name);
 }
 
-PLUG_ID PRecverPlug_GetPlug(char *plug_name)
+PLUG_HDL PRecverPlug_GetPlug(char *plug_name)
 {
     PLUG_MGR_NODE_S *node = PlugMgr_Find(&g_precver_plug_mgr, plug_name);
     if (! node) {

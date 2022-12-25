@@ -11,7 +11,7 @@ typedef int (WSAAPI *PF_CONNECT_FUNC)(IN int s, IN const struct sockaddr FAR * n
 typedef int (WSAAPI *PF_WSAConnect_FUNC)(SOCKET s, const struct sockaddr FAR * name, int namelen, LPWSABUF lpCallerData, LPWSABUF lpCalleeData, LPQOS lpSQOS, LPQOS lpGQOS);
 typedef UINT (WINAPI *PF_LoadLibraryA_FUNC)(IN CHAR * lpLibFileName);
 typedef UINT (WINAPI *PF_LoadLibraryW_FUNC)(IN CHAR *pszFileName);
-typedef UINT (WINAPI *PF_GetProcAddress_FUNC)(IN PLUG_ID ulPlugId, IN CHAR *pszFuncName);
+typedef UINT (WINAPI *PF_GetProcAddress_FUNC)(IN PLUG_HDL ulPlugId, IN CHAR *pszFuncName);
 typedef UINT (WINAPI *PF_LoadLibraryExA_FUNC)(IN CHAR *pszFileName, IN HANDLE hFile, IN UINT dwFlags);
 typedef HMODULE (WINAPI *PF_LoadLibraryExW_FUNC)(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags);
 
@@ -77,7 +77,7 @@ UINT APITBL_LoadLibraryExW(IN CHAR * lpLibFileName, IN UINT hFile, IN UINT dwFla
 }
 
 
-VOID * APITBL_GetProcAddress(IN PLUG_ID ulPlugId, IN CHAR *pszFuncName)
+VOID * APITBL_GetProcAddress(IN PLUG_HDL ulPlugId, IN CHAR *pszFuncName)
 {
     return (VOID*) g_stApiTbl.pfGetProcAddress(ulPlugId, pszFuncName);
 }
@@ -103,12 +103,12 @@ static _APITBL_PROTECT_FUNCS_S g_stApiTblProtectFuncs[]=
 VOID _APITBL_InitProtectFunc()
 {
     UINT pfFunc;
-    PLUG_ID ulPlugId;
+    PLUG_HDL ulPlugId;
     UINT i;
 
     for (i=0; i<sizeof(g_stApiTblProtectFuncs)/sizeof(_APITBL_PROTECT_FUNCS_S); i++)
     {
-        ulPlugId = (PLUG_ID)PLUG_LOAD(g_stApiTblProtectFuncs[i].pszDllName);
+        ulPlugId = (PLUG_HDL)PLUG_LOAD(g_stApiTblProtectFuncs[i].pszDllName);
         if (0 == ulPlugId)
         {
             continue;

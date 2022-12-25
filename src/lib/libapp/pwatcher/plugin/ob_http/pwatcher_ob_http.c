@@ -139,7 +139,7 @@ static void pwatcher_ob_http_Finit()
     Sleep(1000);
 }
 
-PLUG_API BOOL_T DllMain(PLUG_ID hPlug, int reason, void *reserved)
+PLUG_API BOOL_T DllMain(PLUG_HDL hPlug, int reason, void *reserved)
 {
     switch(reason) {
         case DLL_PROCESS_ATTACH:

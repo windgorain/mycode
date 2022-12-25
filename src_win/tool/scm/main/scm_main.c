@@ -7,7 +7,7 @@
 #include "bs.h"
 #include "utl/sys_utl.h"
 
-static PLUG_ID g_hPlug;
+static PLUG_HDL g_hPlug;
 static VOID_FUNC g_scm_stop_func = NULL;
 
 static BOOL_T scm_ConsoleCtrlHander(IN INT lEvent)

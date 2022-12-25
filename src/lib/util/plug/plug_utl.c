@@ -17,10 +17,10 @@
 #define DLL_PROCESS_DETACH 3 /*\!< about to unload (after Terminate*) */
 
 /* Linux 上加载动态链接库 */
-PLUG_ID PLUG_LoadLib(IN CHAR *pszFilePath)
+PLUG_HDL PLUG_LoadLib(IN CHAR *pszFilePath)
 {
     PF_PLUG_Entry pfDllMainFunc = NULL;
-    PLUG_ID hPlugId;
+    PLUG_HDL hPlugId;
 
     hPlugId = dlopen(pszFilePath, RTLD_NOW);
     if (0 == hPlugId) {
@@ -37,7 +37,7 @@ PLUG_ID PLUG_LoadLib(IN CHAR *pszFilePath)
 }
 
 /* Linux 上卸载动态链接库 */
-void PLUG_UnloadLib(PLUG_ID plug)
+void PLUG_UnloadLib(PLUG_HDL plug)
 {
     PF_PLUG_Entry pfDllMainFunc = NULL;
 

@@ -107,8 +107,8 @@ typedef char bool;
 
     #define PLUG_HIDE
     #define PLUG_API  __declspec(dllexport)
-    #define PLUG_ID    HINSTANCE 
-    #define PLUG_LOAD(pcPlugFilePath)                  (PLUG_ID)LoadLibraryA(pcPlugFilePath)
+    #define PLUG_HDL    HINSTANCE 
+    #define PLUG_LOAD(pcPlugFilePath)                  (PLUG_HDL)LoadLibraryA(pcPlugFilePath)
     #define PLUG_FREE(ulPlugId)                        FreeLibrary(ulPlugId)
     #define PLUG_GET_FUNC_BY_NAME(ulPlugId,pcFuncName) GetProcAddress(ulPlugId, pcFuncName)
     #define THREAD_LOCAL __declspec(thread) 
@@ -119,10 +119,10 @@ typedef char bool;
 #define DESTRUCTOR(_final) __attribute__((destructor)) static void _final(void)
 #define PLUG_API  __attribute__ ((visibility("default")))
 #define PLUG_HIDE __attribute__ ((visibility("hidden"))) 
-#define PLUG_ID    void*
+#define PLUG_HDL void*
 #define PLUG_LOAD(pcPlugFilePath)   PLUG_LoadLib(pcPlugFilePath)
 #define PLUG_FREE(ulPlugId)         PLUG_UnloadLib(ulPlugId)
-#define PLUG_GET_FUNC_BY_NAME(ulPlugId,pcFuncName)    dlsym((PLUG_ID)ulPlugId,pcFuncName)
+#define PLUG_GET_FUNC_BY_NAME(ulPlugId,pcFuncName)    dlsym((PLUG_HDL)ulPlugId,pcFuncName)
 #define THREAD_LOCAL __thread
 #endif
 

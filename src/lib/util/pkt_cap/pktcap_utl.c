@@ -15,7 +15,7 @@ static _PKTCAP_FUNC_TBL_S g_stPktcapFuncTbl = {0};
 
 static BS_STATUS _os_pktcap_Init()
 {
-	PLUG_ID ulPlugId = 0;
+	PLUG_HDL ulPlugId = 0;
 	UINT i;
 	VOID ** pFunc;
     CHAR *pcDllFile = "";

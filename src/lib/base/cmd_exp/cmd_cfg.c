@@ -76,7 +76,7 @@ static void cmd_cfg_RegLocalCfg()
     }
 }
 
-static PF_CMD_EXP_RUN cmd_cfg_GetFunc(IN PLUG_ID ulPlugId, IN CHAR *pszFuncName)
+static PF_CMD_EXP_RUN cmd_cfg_GetFunc(IN PLUG_HDL ulPlugId, IN CHAR *pszFuncName)
 {
     _CMD_CFG_LINK_NODE_S *node;
     PF_CMD_EXP_RUN pfFunc = NULL;
@@ -131,7 +131,7 @@ BS_STATUS CMD_CFG_RegFunc(char *func_name, PF_CMD_EXP_RUN func)
 typedef struct {
     CMDLST_S cmdlst;
     char *save_path;
-    PLUG_ID plug;
+    PLUG_HDL plug;
 }CMD_CFG_S;
 
 static int cmd_cfg_RegLine(void *cmdlst, CMDLST_ELE_S *ele)
@@ -185,7 +185,7 @@ static int cmd_cfg_UnRegLine(void *cmdlst, CMDLST_ELE_S *ele)
     }
 }
  /* ulPlugId: 0表示使用本地的函数符号表,非零表示是dll的handle,使用那里面的函数*/
-BS_STATUS CMD_CFG_RegCmd(CHAR *pszFileName, PLUG_ID plug, char *save_path)
+BS_STATUS CMD_CFG_RegCmd(CHAR *pszFileName, PLUG_HDL plug, char *save_path)
 {
     CMD_CFG_S cfg;
 

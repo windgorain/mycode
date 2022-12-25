@@ -103,12 +103,13 @@ int PCI_DMA_ProcessMrd(PCIE_TLP_MEM_S *tlp, int len,
 
     byte_count = length;
     byte_count -= last_drop;
-    byte_count -= (low_addr & 0x3);
+    byte_count -= PCIE_BeUnsetCount(first_be);
 
     while (length > 0) {
         size = PCIE_RCB - (addr % PCIE_RCB);
         size = MIN(size, length);
         copy_size = size - (low_addr & 0x3);
+        copy_size = MIN(copy_size, byte_count);
         if (addr + copy_size > last_dw_addr) {
             copy_size -= last_drop;
         }

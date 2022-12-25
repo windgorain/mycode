@@ -46,7 +46,7 @@ typedef struct {
     DLL_NODE_S link_node; /* 必须为第一个成员 */
     char *plug_name;
     char *filename;
-    PLUG_ID hPlug;
+    PLUG_HDL hPlug;
 }PLUG_MGR_NODE_S;
 
 typedef struct {

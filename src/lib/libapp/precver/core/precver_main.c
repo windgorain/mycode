@@ -20,7 +20,7 @@ int PRecver_Run(int index)
 {
     char *argv[32];
     int argc = 0;
-    PLUG_ID hplug;
+    PLUG_HDL hplug;
     PF_PRecverImpl_Init pfinit;
     PF_PRecverImpl_Run pfrun;
 

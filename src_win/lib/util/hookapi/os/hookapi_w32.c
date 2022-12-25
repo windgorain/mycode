@@ -235,9 +235,9 @@ UINT OS_HookApi_GetModuleHandle(IN CHAR *pszModeName)
 
 HMODULE WINAPI _OS_LoadLibraryA_Hook(IN CHAR * pszFileName)
 {
-    PLUG_ID ulPlugId;
+    PLUG_HDL ulPlugId;
 
-    ulPlugId = (PLUG_ID) APITBL_LoadLibrary(pszFileName);
+    ulPlugId = (PLUG_HDL) APITBL_LoadLibrary(pszFileName);
     if (ulPlugId == 0)
     {
         return 0;
@@ -249,9 +249,9 @@ HMODULE WINAPI _OS_LoadLibraryA_Hook(IN CHAR * pszFileName)
 
 HMODULE WINAPI _OS_LoadLibraryExA_Hook(IN CHAR * pszFileName, IN UINT hFile, IN UINT ulFlag)
 {
-    PLUG_ID ulPlugId;
+    PLUG_HDL ulPlugId;
 
-    ulPlugId = (PLUG_ID) APITBL_LoadLibraryExA(pszFileName, (UINT)hFile, ulFlag);
+    ulPlugId = (PLUG_HDL) APITBL_LoadLibraryExA(pszFileName, (UINT)hFile, ulFlag);
     if (ulPlugId == 0)
     {
         return 0;
@@ -263,9 +263,9 @@ HMODULE WINAPI _OS_LoadLibraryExA_Hook(IN CHAR * pszFileName, IN UINT hFile, IN 
 
 HMODULE WINAPI _OS_LoadLibraryExW_Hook(IN CHAR * pszFileName, IN UINT hFile, IN UINT ulFlag)
 {
-    PLUG_ID ulPlugId;
+    PLUG_HDL ulPlugId;
 
-    ulPlugId = (PLUG_ID) APITBL_LoadLibraryExW(pszFileName, hFile, ulFlag);
+    ulPlugId = (PLUG_HDL) APITBL_LoadLibraryExW(pszFileName, hFile, ulFlag);
     if (ulPlugId == 0)
     {
         return 0;
@@ -277,9 +277,9 @@ HMODULE WINAPI _OS_LoadLibraryExW_Hook(IN CHAR * pszFileName, IN UINT hFile, IN 
 
 HMODULE WINAPI _OS_LoadLibraryW_Hook(IN CHAR * pszFileName)
 {
-    PLUG_ID ulPlugId;
+    PLUG_HDL ulPlugId;
 
-    ulPlugId = (PLUG_ID) APITBL_LoadLibraryW(pszFileName);
+    ulPlugId = (PLUG_HDL) APITBL_LoadLibraryW(pszFileName);
     if (ulPlugId == 0)
     {
         return 0;
@@ -294,7 +294,7 @@ FARPROC WINAPI _OS_GetProcAddress_HOOK(IN UINT ulPlugId, IN CHAR *pszFuncName)
     HANDLE pfFunc;
     UINT i;
 
-    pfFunc = PLUG_GET_FUNC_BY_NAME((PLUG_ID)ulPlugId, pszFuncName);
+    pfFunc = PLUG_GET_FUNC_BY_NAME((PLUG_HDL)ulPlugId, pszFuncName);
     if (pfFunc == 0)
     {
         return 0;
@@ -336,7 +336,7 @@ VOID OS_HOOKAPI_ReplaceSysFunc(IN HOOKAPI_ENTRY_TBL_S *pstTbl, IN UINT ulNum)
             continue;
         }
         
-        pfOldEntry = PLUG_GET_FUNC_BY_NAME((PLUG_ID)ulHandle, g_stHookApiSysFunc[i].pszOldFuncName);
+        pfOldEntry = PLUG_GET_FUNC_BY_NAME((PLUG_HDL)ulHandle, g_stHookApiSysFunc[i].pszOldFuncName);
         if (pfOldEntry == 0)
         {
             continue;

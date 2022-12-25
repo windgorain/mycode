@@ -103,7 +103,7 @@ PLUG_API int PWATCHEROB_DUMP_DisableProtocol(int argc, char **argv)
     return 0;
 }
 
-PLUG_API BOOL_T DllMain(PLUG_ID hPlug, int reason, void *reserved)
+PLUG_API BOOL_T DllMain(PLUG_HDL hPlug, int reason, void *reserved)
 {
     switch(reason) {
         case DLL_PROCESS_ATTACH:

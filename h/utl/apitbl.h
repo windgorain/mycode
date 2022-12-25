@@ -26,7 +26,7 @@ PLUG_API INT APITBL_WSAConnect
     LPQOS lpGQOS
 );
 PLUG_API UINT APITBL_LoadLibrary(IN CHAR *pszLibFileName);
-PLUG_API VOID * APITBL_GetProcAddress(IN PLUG_ID ulPlugId, IN CHAR *pszFuncName);
+PLUG_API VOID * APITBL_GetProcAddress(IN PLUG_HDL ulPlugId, IN CHAR *pszFuncName);
 PLUG_API UINT APITBL_LoadLibraryW(IN CHAR *pszLibFileName);
 PLUG_API UINT APITBL_LoadLibraryExA(IN CHAR * lpLibFileName, IN UINT hFile, IN UINT dwFlags);
 PLUG_API UINT APITBL_LoadLibraryExW(IN CHAR * lpLibFileName, IN UINT hFile, IN UINT dwFlags);

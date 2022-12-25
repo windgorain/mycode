@@ -179,6 +179,25 @@ static inline UINT PCIE_FirstBe2LowAddr(UINT addr, UCHAR first_be)
     return low_addr;
 }
 
+/* 看be有几位 */
+static inline UCHAR PCIE_BeSettedCount(UCHAR be)
+{
+    int i;
+    int count = 0;
+    for (i=0; i<4; i++) {
+        if (be & (1 << i)) {
+            count ++;
+        }
+    }
+    return count;
+}
+
+/* 看be忽略几位 */
+static inline UCHAR PCIE_BeUnsetCount(UCHAR be)
+{
+    return 4 - PCIE_BeSettedCount(be);
+}
+
 static inline UINT64 PCIE_GetLastDwAddr(UINT64 begin_addr, UINT length)
 {
     return (begin_addr + length) - 4;
