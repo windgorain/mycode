@@ -72,7 +72,7 @@ BOOL CHtmlerApp::InitInstance()
 	// 例如修改为公司或组织名
 	SetRegistryKey(_T("Htmler"));
 
-	FILE_SET_CURRENT_DIRECTORY(SYS_GetSelfFilePath());
+	FILE_ChangeCurrentDir(SYS_GetSelfFilePath());
 
 	CHtmlerDlg dlg;
 	m_pMainWnd = &dlg;

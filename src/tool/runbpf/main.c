@@ -16,12 +16,14 @@
 
 static int _runbpf_file(int argc, char **argv);
 static int _dump_prog(int argc, char **argv);
+static int _show_prog(int argc, char **argv);
 static int _export_prog(int argc, char **argv);
 
 static SUB_CMD_NODE_S g_subcmds[] = 
 {
     {"run", _runbpf_file, "run file"},
-    {"show prog", _dump_prog, "show prog"},
+    {"dump prog", _dump_prog, "dump prog"},
+    {"show prog", _show_prog, "show prog"},
     {"export prog", _export_prog, "export prog"},
     {NULL, NULL}
 };
@@ -63,7 +65,6 @@ static int _runbpf_file(int argc, char **argv)
     static char *params = NULL;
     static char *function = NULL;
     static GETOPT2_NODE_S opt[] = {
-        {'o', 'h', "help", 0, NULL, NULL, 0},
         {'o', 'f', "function", 's', &function, "function name", 0},
         {'o', 'p', "params", 's', &params, "params", 0},
         {'P', 0, "filename", 's', &filename, "bpf file name", 0},
@@ -74,17 +75,18 @@ static int _runbpf_file(int argc, char **argv)
         return -1;
     }
 
-    if (GETOPT2_IsOptSetted(opt, 'h', NULL)) {
-        _runbpf_opt_help(opt);
-        return 0;
-    }
-
     if (filename == NULL) {
         _runbpf_opt_help(opt);
         return -1;
     }
 
     return _runbpf_run_file(filename, function, params);
+}
+
+static BS_WALK_RET_E _walk_prog_show(void *data, int len, char *sec_name, char *func_name, void *ud)
+{
+    printf("%s: %s \r\n", sec_name, func_name);
+    return BS_WALK_CONTINUE;
 }
 
 static BS_WALK_RET_E _walk_prog_dump(void *data, int len, char *sec_name, char *func_name, void *ud)
@@ -98,7 +100,7 @@ static BS_WALK_RET_E _walk_prog_dump(void *data, int len, char *sec_name, char *
         return BS_WALK_CONTINUE;
     }
 
-    printf("Section %s function %s : \r\n", sec_name, func_name);
+    printf("%s: %s : \r\n", sec_name, func_name);
 
     for (i=0; i<count; i++) {
         UCHAR *d = (void*)&code[i];
@@ -136,13 +138,10 @@ static BS_WALK_RET_E _walk_prog_export(void *data, int len, char *sec_name, char
     return BS_WALK_CONTINUE;
 }
 
-static int _dump_prog(int argc, char **argv)
+static int _show_prog(int argc, char **argv)
 {
     static char *filename=NULL;
-    static char *function = NULL;
     static GETOPT2_NODE_S opt[] = {
-        {'o', 'h', "help", 0, NULL, NULL, 0},
-        {'o', 'f', "function", 's', &function, "function name", 0},
         {'P', 0, "filename", 's', &filename, "bpf file name", 0},
         {0} };
 
@@ -151,9 +150,26 @@ static int _dump_prog(int argc, char **argv)
         return -1;
     }
 
-    if (GETOPT2_IsOptSetted(opt, 'h', NULL)) {
+    if (MYBPF_WalkProg(filename, _walk_prog_show, NULL) < 0) {
+        printf("Can't process file %s \r\n", filename);
+        return -1;
+    }
+
+    return 0;
+}
+
+static int _dump_prog(int argc, char **argv)
+{
+    static char *filename=NULL;
+    static char *function = NULL;
+    static GETOPT2_NODE_S opt[] = {
+        {'o', 'f', "function", 's', &function, "function name", 0},
+        {'P', 0, "filename", 's', &filename, "bpf file name", 0},
+        {0} };
+
+    if (BS_OK != GETOPT2_Parse(argc, argv, opt)) {
         _runbpf_opt_help(opt);
-        return 0;
+        return -1;
     }
 
     if (MYBPF_WalkProg(filename, _walk_prog_dump, function) < 0) {
@@ -169,7 +185,6 @@ static int _export_prog(int argc, char **argv)
     static char *filename=NULL;
     static char *function = NULL;
     static GETOPT2_NODE_S opt[] = {
-        {'o', 'h', "help", 0, NULL, NULL, 0},
         {'o', 'f', "function", 's', &function, "function name", 0},
         {'P', 0, "filename", 's', &filename, "bpf file name", 0},
         {0} };
@@ -177,11 +192,6 @@ static int _export_prog(int argc, char **argv)
     if (BS_OK != GETOPT2_Parse(argc, argv, opt)) {
         _runbpf_opt_help(opt);
         return -1;
-    }
-
-    if (GETOPT2_IsOptSetted(opt, 'h', NULL)) {
-        _runbpf_opt_help(opt);
-        return 0;
     }
 
     if (MYBPF_WalkProg(filename, _walk_prog_export, function) < 0) {
