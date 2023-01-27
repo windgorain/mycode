@@ -4,17 +4,17 @@
 *
 *****************************************************************************/
 #include "bs.h"
-#include "utl/idfunc_utl.h"
+#include "utl/bfunc_utl.h"
 #include "utl/mybpf_runtime.h"
 #include "utl/mybpf_loader.h"
 #include "utl/mybpf_prog.h"
 #include "utl/cff_utl.h"
 
-static void _idfunc_walk_config(HANDLE cff, char *tag, HANDLE ud)
+static void _bfunc_walk_config(HANDLE cff, char *tag, HANDLE ud)
 {
     USER_HANDLE_S *uh = ud;
     MYBPF_RUNTIME_S *rt = uh->ahUserHandle[0];
-    IDFUNC_S *ctrl = uh->ahUserHandle[1];
+    BFUNC_S *ctrl = uh->ahUserHandle[1];
     char *file, *sec_name = NULL, *func_name = NULL;
     MYBPF_PROG_NODE_S *prog;
     UINT id = (UINT)(int)-1;
@@ -60,10 +60,10 @@ static void _idfunc_walk_config(HANDLE cff, char *tag, HANDLE ud)
     prog = MYBPF_PROG_RefByFD(rt, fd);
     BS_DBGASSERT(prog);
 
-    IDFUNC_Set(ctrl, id, IDFUNC_TYPE_BPF, fd, prog->insn);
+    BFUNC_Set(ctrl, id, 0, fd, prog->insn);
 }
 
-int IDFUNC_Load(MYBPF_RUNTIME_S *rt, IDFUNC_S *ctrl, char *conf_file)
+int BFUNC_Load(MYBPF_RUNTIME_S *rt, BFUNC_S *ctrl, char *conf_file)
 {
     CFF_HANDLE cff;
     USER_HANDLE_S uh;
@@ -76,7 +76,7 @@ int IDFUNC_Load(MYBPF_RUNTIME_S *rt, IDFUNC_S *ctrl, char *conf_file)
     uh.ahUserHandle[0] = rt;
     uh.ahUserHandle[1] = ctrl;
 
-    CFF_WalkTag(cff, _idfunc_walk_config, &uh);
+    CFF_WalkTag(cff, _bfunc_walk_config, &uh);
 
     CFF_Close(cff);
 

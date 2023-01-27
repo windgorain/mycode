@@ -554,7 +554,7 @@ static char * ip4_string(char *p, const UCHAR *addr, const char *fmt)
 
 	switch (fmt[2]) {
 	case 'h':
-#ifdef BS_BIG_ENDIAN
+#if BS_BIG_ENDIAN
 		index = 0;
 		step = 1;
 #else

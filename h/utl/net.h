@@ -30,32 +30,6 @@ extern "C" {
 
 #define PREFIX_2_COUNT(depth) (1UL << (depth)) /* 整个地址段可以有多少个prefix的网段 */
 
-/* 3字节数据转网络序 */
-#ifdef BS_BIG_ENDIAN
-#define ntoh3B(x) (x)
-#define hton3B(x) (x)
-#else
-#define ntoh3B(x) ((((x) & 0xff) << 16) | ((x) & 0x00ff00) | (((x) >> 16) & 0xff))
-#define hton3B(x) ntoh3B(x)
-#endif
-
-#ifndef htonll
-static inline uint64_t __my_htonll(uint64_t val)
-{
-	if (1 == htonl(1))
-		return val;
-	return (((uint64_t)htonl(val)) << 32) | htonl(val >> 32);
-}
- 
-static inline uint64_t __my_ntohll(uint64_t val)
-{
-    return __my_htonll(val);
-}
-
-#define htonll __my_htonll
-#define ntohll __my_ntohll
-#endif
-
 /* 将Prefix转换成主机序的Mask */
 static inline UINT PREFIX_2_MASK(IN UCHAR ucPrefixLen)
 {

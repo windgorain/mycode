@@ -8,10 +8,13 @@
 #include "utl/lstr_utl.h"
 #include "utl/ip_string.h"
 #include "utl/bloomfilter_utl.h"
+#include "utl/trie_utl.h"
 #include "utl/data2hex_utl.h"
 #include "utl/dns_utl.h"
 #include "utl/dns_log.h"
 #include "utl/itoa.h"
+
+#define DOMAIN_NAME_MIN_LEN 3
 
 typedef struct {
     UINT sip;
@@ -36,11 +39,69 @@ static int _dnslog_bloomfilter_test(DNS_LOG_S *config, UINT sip, UINT dip, USHOR
     return 0;
 }
 
+int dnslog_matchRule_byDomain(TRIE_HANDLE trie, char *domainname)
+{
+    HANDLE hID;
+    char invert_domain[255] = {0};
+
+    MEM_Invert(domainname, strlen(domainname), invert_domain);
+    TRIE_COMMON_S *trieComm = Trie_Match(trie, (UCHAR *)invert_domain,
+            strlen(invert_domain), TRIE_MATCH_WILDCARD);
+    if(!trieComm){
+        return 0;
+    }
+    hID = trieComm->ud;
+
+    return HANDLE_UINT(hID);
+}
+
+
+/* 从文件加载字符串,每行一条 */
+static int dnslog_domainList_LoadFile_(TRIE_HANDLE trie, char *filename)
+{
+    FILE *fp;
+    char buf[256];
+    ULONG len;
+    TRIE_COMMON_S *triComm = NULL;
+    int i = 0;
+    char c;
+    char invert_domain[256] = {0};
+
+    fp = fopen(filename, "rb");
+    if (NULL == fp) {
+        RETURN(BS_CAN_NOT_OPEN);
+    }
+
+    while(NULL != fgets(buf, sizeof(buf), fp)) {
+        TXT_Strim(buf);
+        len = TXT_StrimTail(buf, strlen(buf), "\r\n");
+        buf[len] = '\0';
+        MEM_Invert(buf, strlen(buf), invert_domain);
+
+        for(i=0; invert_domain[i] != '\0'; i++) {
+            c = invert_domain[i];
+            if (c == '*') {
+                invert_domain[i] = '\0';
+            }
+        }
+
+        triComm = Trie_Insert(trie, (UCHAR *)invert_domain, strlen(invert_domain), TRIE_NODE_FLAG_WILDCARD, UINT_HANDLE(1));
+        if(!triComm){
+            continue; //已经存在
+        }
+    }
+
+    fclose(fp);
+
+    return 0;
+}
 
 static int _dnslog_process_kv(LSTR_S *pstKey, LSTR_S *pstValue, void *pUserHandle)
 {
     DNS_LOG_S *config = pUserHandle;
-
+    char filename[FILE_MAX_PATH_LEN + 1];
+    char buf[256];
+    char *file;
     if ((LSTR_StrCmp(pstKey, "log_utl") == 0) && (pstValue->uiLen > 0)) {
         LOG_ParseConfig(&config->log_utl, pstValue->pcData, pstValue->uiLen);
     } else if ((LSTR_StrCmp(pstKey, "payload_hex") == 0) && (pstValue->uiLen > 0) && (pstValue->pcData[0] == '1')) {
@@ -51,6 +112,17 @@ static int _dnslog_process_kv(LSTR_S *pstKey, LSTR_S *pstValue, void *pUserHandl
             BloomFilter_Init(&config->bloomfilter, config->bloomfilter_size);
             BloomFilter_SetStepsToClearAll(&config->bloomfilter, 60);
             BloomFilter_SetAutoStep(&config->bloomfilter, 1);
+        }
+    } else if ((LSTR_StrCmp(pstKey, "domain_whitelist") == 0) && (pstValue->uiLen > 0)
+                && (pstValue->pcData[0] == '1')) {
+        //直接修改树类型TRIE_TYPE_4BITS 即可切换
+        LSTR_Strlcpy(pstValue, sizeof(buf), buf);
+        file = FILE_ToAbsPath(config->config_base_dir, buf,
+                filename, sizeof(filename));
+        if (file != NULL) {
+            config->domain_whitelist_enable = 1;
+            config->domain_trie = Trie_Create(TRIE_TYPE_4BITS);
+            dnslog_domainList_LoadFile_(&config->domain_trie, file);
         }
     }
 
@@ -66,7 +138,7 @@ static int Log_Fill_DNSPayload(void *payload, UINT payload_len, char *buf, int b
         return 0;
     }
 
-    int offset = snprintf(buf, buflen, ",\"payloadhex\":\"");
+    int offset = scnprintf(buf, buflen, ",\"payloadhex\":\"");
 
     DH_Data2HexString(payload, len, buf + offset);
     offset += 2*len;
@@ -114,7 +186,7 @@ int Log_Fill_DNSHead(IN VOID *dnspkt, IN int pktlen, OUT CHAR *info, IN UINT inf
         return 0;
     }
 
-    return snprintf(info, infosize,
+    return scnprintf(info, infosize,
             ",\"ID\":%u,\"QR\":%u,\"opcode\":%u,\"AA\":%u,\"TC\":%u,"
             "\"RD\":%u,\"RA\":%u,\"rcode\":%u,"
             "\"question\":%u, \"answer_rr\":%u,"
@@ -177,8 +249,13 @@ void DNSLOG_Input(DNS_LOG_S *config, void *ippkt, UINT pktlen, NET_PKT_TYPE_E pk
 
     payload = udpheader + 1;
 
-    if (BS_OK != DNS_GetDomainNameByPacket(payload, payload_len, domain_name)) {
+    if (BS_OK != DNS_GetQueryNameByPacket(payload, payload_len, domain_name)) {
         domain_name[0] = 0;
+    }
+
+    if ((config->domain_whitelist_enable != 0) && (strlen(domain_name) > DOMAIN_NAME_MIN_LEN)
+            && (0 != dnslog_matchRule_byDomain(config->domain_trie,domain_name))) {
+        return;
     }
 
     if (config->log_utl.file) {
@@ -189,7 +266,7 @@ void DNSLOG_Input(DNS_LOG_S *config, void *ippkt, UINT pktlen, NET_PKT_TYPE_E pk
 
         offset += IP46_Header2String(&ipheader, ippkt, log_buf + offset, MAX_LOG_BUF - offset, 0);
 
-        offset += snprintf(log_buf + offset, MAX_LOG_BUF - offset,
+        offset += scnprintf(log_buf + offset, MAX_LOG_BUF - offset,
                 ",\"sport\":%u,\"dport\":%u,\"length\":%u,\"domain_name\":\"%s\"",
                 ntohs(udpheader->usSrcPort), ntohs(udpheader->usDstPort), payload_len, domain_name);
 
@@ -202,7 +279,6 @@ void DNSLOG_Input(DNS_LOG_S *config, void *ippkt, UINT pktlen, NET_PKT_TYPE_E pk
         offset += Log_FillTail(log_buf + offset, MAX_LOG_BUF - offset);
 
         LOG_Output(&config->log_utl, log_buf, offset);
-        LOG_Flush(&config->log_utl);
     }
 
     return;

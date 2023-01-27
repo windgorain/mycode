@@ -36,11 +36,11 @@ typedef enum
 }SYS_OS_BIT_E;
 
 BOOL_T SYS_IsInstanceExist(IN VOID *pszName);
-SYS_OS_VER_E SYS_GetOsVer();
-SYS_OS_BIT_E SYS_GetOsBit();
-CHAR * SYS_GetSelfFileName();
+SYS_OS_VER_E SYS_GetOsVer(void);
+SYS_OS_BIT_E SYS_GetOsBit(void);
+CHAR * SYS_GetSelfFileName(void);
 /* 不带有文件名的路径 */
-CHAR * SYS_GetSelfFilePath();
+CHAR * SYS_GetSelfFilePath(void);
 /* 设置自启动*/
 BS_STATUS SYS_SetSelfStart(IN CHAR *pcRegName, IN BOOL_T bSelfStart, IN char *arg);
 void ShowCmdWin(int show);

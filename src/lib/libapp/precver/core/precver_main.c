@@ -6,6 +6,7 @@
 #include "bs.h"
 
 #include "utl/txt_utl.h"
+#include "utl/args_utl.h"
 #include "utl/ubpf_utl.h"
 #include "utl/time_utl.h"
 #include "comp/comp_event_hub.h"
@@ -49,7 +50,7 @@ int PRecver_Run(int index)
     }
 
     if (runner->param != NULL) {
-        argc = TXT_StrToToken(runner->param, " \t", argv, 32);
+        argc = ARGS_Split(runner->param, argv, 32);
     }
 
     int ret = pfinit(runner, argc, argv);

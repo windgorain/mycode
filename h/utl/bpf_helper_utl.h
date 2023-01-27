@@ -20,11 +20,11 @@ typedef UINT64 (*PF_BPF_HELPER_FUNC)(UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4,
 extern const void * g_bpf_base_helpers[BPF_BASE_HELPER_MAX];
 extern void * g_bpf_user_helpers[BPF_USER_HELPER_COUNT];
 
-void * BpfHelper_BaseHelper();
-void * BpfHelper_UserHelper();
+void * BpfHelper_BaseHelper(void);
+void * BpfHelper_UserHelper(void);
 
-UINT BpfHelper_BaseSize();
-UINT BpfHelper_UserSize();
+UINT BpfHelper_BaseSize(void);
+UINT BpfHelper_UserSize(void);
 
 PF_BPF_HELPER_FUNC BpfHelper_GetFunc(UINT id);
 int BpfHelper_SetUserFunc(UINT id, void *func);

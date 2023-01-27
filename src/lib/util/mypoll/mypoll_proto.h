@@ -36,6 +36,9 @@ VOID _Mypoll_Proto_Del
 
 BS_WALK_RET_E _Mypoll_Proto_Run(IN _MYPOLL_CTRL_S *pstMyPoll);
 
+extern MYPOLL_PROTO_S * Mypoll_Select_GetProtoTbl(void);
+extern MYPOLL_PROTO_S * Mypoll_Epoll_GetProtoTbl(void);
+
 #ifdef __cplusplus
     }
 #endif /* __cplusplus */

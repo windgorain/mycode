@@ -72,6 +72,10 @@ extern "C" {
 #define BOOL_FALSE FALSE
 #endif
 
+#ifndef UINT32_MAX
+#define UINT32_MAX (0xffffffff)
+#endif
+
 #ifndef false
 #define true 1
 #define false 0

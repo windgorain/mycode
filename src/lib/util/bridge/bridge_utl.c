@@ -81,11 +81,14 @@ void BR_DelIf(BR_HANDLE br, IF_INDEX ifindex)
 int BR_PktInput(BR_HANDLE br, IF_INDEX ifindex, BR_PKT_S *pkt, void *ud)
 {
     ETH_HEADER_S *eth_hdr = pkt->eth_hdr;
-    MAC_NODE_S node = {0};
+    MAC_NODE_S node;
     BR_MAC_UD_S mac_ud;
     USER_HANDLE_S uh;
 
     MAC_ADDR_COPY(node.stMac.aucMac, eth_hdr->stSMac.aucMac);
+    node.uiFlag = 0;
+    node.uiPRI = 0;
+
     mac_ud.ifindex= ifindex;
     MACTBL_Add(br->mactbl, &node, &mac_ud, MAC_MODE_LEARN);
 

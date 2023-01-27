@@ -1,16 +1,16 @@
 /*********************************************************
 *   Copyright (C) LiXingang
-*   Description: 
+*   Description: bpf func; renamed frome idfunc_utl.c
 *
 ********************************************************/
 #include "bs.h"
-#include "utl/idfunc_utl.h"
+#include "utl/bfunc_utl.h"
 #include "utl/mybpf_vm.h"
 
-static inline int _idfunc_call_raw(IDFUNC_S *ctrl, IDFUNC_NODE_S *node, UINT64 *func_ret,
+static inline int _bfunc_call_raw(BFUNC_S *ctrl, BFUNC_NODE_S *node, UINT64 *func_ret,
         UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
-    PF_IDFUNC_FUNC func = node->func;
+    PF_BFUNC_FUNC func = node->func;
 
     UINT64 ret = func(p1, p2, p3, p4, p5);
     if (func_ret) {
@@ -20,7 +20,7 @@ static inline int _idfunc_call_raw(IDFUNC_S *ctrl, IDFUNC_NODE_S *node, UINT64 *
     return 0;
 }
 
-static inline int _idfunc_call_bpf(IDFUNC_S *ctrl, IDFUNC_NODE_S *node, UINT64 *func_ret,
+static inline int _bfunc_call_bpf(BFUNC_S *ctrl, BFUNC_NODE_S *node, UINT64 *func_ret,
         UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
     MYBPF_CTX_S ctx;
@@ -46,24 +46,24 @@ static inline int _idfunc_call_bpf(IDFUNC_S *ctrl, IDFUNC_NODE_S *node, UINT64 *
     return 0;
 }
 
-int IDFUNC_Init(INOUT IDFUNC_S *ctrl, UINT capacity)
+int BFUNC_Init(INOUT BFUNC_S *ctrl, UINT capacity)
 {
     ctrl->capacity = capacity;
     return 0;
 }
 
-IDFUNC_S * IDFUNC_Create(UINT capacity)
+BFUNC_S * BFUNC_Create(UINT capacity)
 {
-    IDFUNC_S *ctrl = MEM_ZMalloc(sizeof(IDFUNC_S) + capacity * sizeof(IDFUNC_NODE_S)); 
+    BFUNC_S *ctrl = MEM_ZMalloc(sizeof(BFUNC_S) + capacity * sizeof(BFUNC_NODE_S)); 
     if (! ctrl) {
         return NULL;
     }
 
-    IDFUNC_Init(ctrl, capacity);
+    BFUNC_Init(ctrl, capacity);
     return ctrl;
 }
 
-IDFUNC_NODE_S * IDFUNC_Get(IDFUNC_S *ctrl, UINT id)
+BFUNC_NODE_S * BFUNC_Get(BFUNC_S *ctrl, UINT id)
 {
     if (id >= ctrl->capacity) {
         return NULL;
@@ -71,13 +71,13 @@ IDFUNC_NODE_S * IDFUNC_Get(IDFUNC_S *ctrl, UINT id)
     return &ctrl->nodes[id];
 }
 
-int IDFUNC_Set(IDFUNC_S *ctrl, UINT id, UCHAR type, int fd, void *func)
+int BFUNC_Set(BFUNC_S *ctrl, UINT id, UINT jited, int fd, void *func)
 {
     if (id >= ctrl->capacity) {
         RETURN(BS_OUT_OF_RANGE);
     }
 
-    ctrl->nodes[id].type = type;
+    ctrl->nodes[id].jited = jited;
     ctrl->nodes[id].fd = fd;
     ctrl->nodes[id].func = func;
 
@@ -90,10 +90,10 @@ func_ret: 被调用函数的返回值. 可以为NULL不关心返回值
 px: 传给被调用函数的参数
 return: 调用成功失败
  */
-int IDFUNC_Call(IDFUNC_S *ctrl, UINT id, UINT64 *func_ret, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+int BFUNC_Call(BFUNC_S *ctrl, UINT id, UINT64 *func_ret, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
-    IDFUNC_NODE_S *node;
-    int ret = 0;
+    BFUNC_NODE_S *node;
+    int ret;
 
     if (id >= ctrl->capacity) {
         RETURN(BS_OUT_OF_RANGE);
@@ -104,16 +104,10 @@ int IDFUNC_Call(IDFUNC_S *ctrl, UINT id, UINT64 *func_ret, UINT64 p1, UINT64 p2,
         RETURN(BS_NO_SUCH);
     }
 
-    switch (node->type) {
-        case IDFUNC_TYPE_RAW:
-            ret = _idfunc_call_raw(ctrl, node, func_ret, p1, p2, p3, p4, p5);
-            break;
-        case IDFUNC_TYPE_BPF:
-            ret = _idfunc_call_bpf(ctrl, node, func_ret, p1, p2, p3, p4, p5);
-            break;
-        default:
-            RETURN(BS_NOT_SUPPORT);
-            break;
+    if (node->jited) {
+        ret = _bfunc_call_raw(ctrl, node, func_ret, p1, p2, p3, p4, p5);
+    } else {
+        ret = _bfunc_call_bpf(ctrl, node, func_ret, p1, p2, p3, p4, p5);
     }
 
     return ret;

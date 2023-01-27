@@ -23,7 +23,7 @@ typedef struct
 }_SSHOW_CTRL_S;
 
 typedef struct {
-    char *filename;
+    const char *filename;
     int line;
 }_SSHOW_FL_S;
 
@@ -48,7 +48,7 @@ CONSTRUCTOR(init) {
     sshow_init();
 }
 
-PLUG_API BS_STATUS _sshow_Add(IN INT iSocketId, char *file, int line)
+PLUG_API BS_STATUS _sshow_Add(IN INT iSocketId, const char *file, int line)
 {
     if (iSocketId >= _SSHOW_DFT_MAX_SOCKET_ID)
     {
@@ -214,7 +214,7 @@ static VOID _sshow_Show (IN UINT uiTypeBit)
 
             filename = "";
             if (g_sshow_fls[i].filename) {
-                filename = FILE_GetFileNameFromPath(g_sshow_fls[i].filename);
+                filename = FILE_GetFileNameFromPath((char*)g_sshow_fls[i].filename);
             }
 
             EXEC_OutInfo(" %-4d  %-4s  %-6s  %-5d  %-15s  %-5d  %s:%d \r\n",

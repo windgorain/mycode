@@ -65,6 +65,21 @@ UFD_S * UFD_Create(UINT capacity)
     return ctx;
 }
 
+void UFD_Destroy(UFD_S *ctx)
+{
+    int i;
+    UFD_FILE_S *fs;
+
+    for (i=0; i<ctx->capacity; i++) {
+        fs = &ctx->fds[i];
+        if ((fs->data) && (fs->ref_cnt) && (fs->free_func)){
+            fs->free_func(ctx, fs->data);
+        }
+    }
+
+    MEM_Free(ctx);
+}
+
 int UFD_Open(UFD_S *ctx, int type, void *data, PF_UFD_FREE free_func)
 {
     return _ufd_attach_file(ctx, type, data, free_func);

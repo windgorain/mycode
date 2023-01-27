@@ -111,6 +111,8 @@ extern UINT TXT_Str2Ui(IN CHAR *pcStr);
 
 extern BS_STATUS TXT_XAtoui(IN CHAR *pszBuf, OUT UINT *pulNum);
 
+extern long TXT_Strtol(char *str, int base);
+
 extern CHAR TXT_Random(void);
 extern void TXT_ReplaceChar(INOUT char *pcTxtBuf, char from, char to);
 extern VOID TXT_ReplaceSubStr(IN CHAR *pcTxtBuf, IN CHAR *pcSubStrFrom, IN CHAR *pcSubStrTo, OUT CHAR *pcTxtOutBuf, IN ULONG ulSize);

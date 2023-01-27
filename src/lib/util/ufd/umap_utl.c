@@ -177,11 +177,11 @@ int UMAP_DirectValue(void *map, OUT U64 *addr, UINT off)
     UMAP_HEADER_S *hdr = map;
 
     if (! hdr) {
-		return -EINVAL;
+        RETURN(BS_ERR);
     }
 
     if (! g_umap_func_tbl[hdr->type]->direct_value_func) {
-		return -EINVAL;
+        RETURN(BS_ERR);
     }
 
     return g_umap_func_tbl[hdr->type]->direct_value_func(map, addr, off);

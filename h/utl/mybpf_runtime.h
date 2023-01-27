@@ -22,6 +22,7 @@ typedef struct {
 }MYBPF_RUNTIME_S;
 
 int MYBPF_RuntimeInit(OUT MYBPF_RUNTIME_S *runtime, UINT ufd_capacity);
+void MYBPF_RuntimeFini(OUT MYBPF_RUNTIME_S *runtime);
 
 #ifdef __cplusplus
 }

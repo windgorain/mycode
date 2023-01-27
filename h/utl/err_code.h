@@ -39,7 +39,7 @@ void ErrCode_FatalError(char *format, ...);
 
 /* print file line msg */
 #define PRINTFLM_COLOR(_color, _fmt, ...) PRINT_COLOR(_color, "%s(%d): " _fmt, __FILE__, __LINE__, ##__VA_ARGS__)
-
+#define PRINTFLM_COLOR_LN(_color, _fmt, ...) PRINT_COLOR_LN(_color, "%s(%d): " _fmt, __FILE__, __LINE__, ##__VA_ARGS__)
 
 #define PRINTFLM_BLACK(fmt, ...) PRINTFLM_COLOR(SHELL_FONT_COLOR_BLACK, fmt, ##__VA_ARGS__)
 #define PRINTFLM_GREEN(fmt, ...) PRINTFLM_COLOR(SHELL_FONT_COLOR_GREEN, fmt, ##__VA_ARGS__)

@@ -69,7 +69,7 @@ CHAR * ICMP_Header2String(IN VOID *tcp, OUT CHAR *info, IN UINT infosize)
 {
     ICMP_ECHO_HEAD_S *icmph = tcp;
 
-    snprintf(info, infosize,
+    scnprintf(info, infosize,
             "\"type\":%u,\"code\":%u,\"id\":%u, \"seq\":%u",
             icmph->stIcmpHeader.ucType, icmph->stIcmpHeader.ucCode,
             ntohs(icmph->stEcho.usIcmpId), ntohs(icmph->stEcho.usSn)); 
@@ -81,13 +81,13 @@ int Log_Fill_IcmpHead(ICMP_ECHO_HEAD_S *icmph, char *buf, int buflen, char dump_
 {
     if (!icmph) return 0;
 
-    int offset = snprintf(buf, buflen,
+    int offset = scnprintf(buf, buflen,
             ",\"type\":%u,\"code\":%u,\"id\":%u, \"seq\":%u",
             icmph->stIcmpHeader.ucType, icmph->stIcmpHeader.ucCode,
             ntohs(icmph->stEcho.usIcmpId), ntohs(icmph->stEcho.usSn)); 
 
     if (dump_hex) {
-        offset += snprintf(buf + offset, buflen - offset, ",\"icmpheaderhex\":\"");
+        offset += scnprintf(buf + offset, buflen - offset, ",\"icmpheaderhex\":\"");
         DH_Data2HexString((void*)icmph, sizeof(ICMP_HEAD_S), buf + offset);
         offset += 2 * sizeof(ICMP_HEAD_S);
         buf[offset++]= '"';
@@ -109,7 +109,7 @@ int fill_log_icmpbody(IP46_HEAD_S *ipheader, int pktlen, ICMP_ECHO_HEAD_S *icmph
         payload = icmpheader + 1;
     }
     if (payload_len > 0 && payload) {
-        offset+=snprintf(buf, buflen, ",\"payloadhex\":\"");
+        offset+=scnprintf(buf, buflen, ",\"payloadhex\":\"");
         payload_len = MIN(payload_len, 50);
         DH_Data2HexString(payload, payload_len, buf + offset);
         offset += 2*payload_len;
@@ -201,6 +201,5 @@ void ICMPLOG_Input(ICMP_LOG_S *config, VOID *ippkt, UINT pktlen, NET_PKT_TYPE_E 
         offset += Log_FillTail(log_buf + offset, MAX_LOG_BUF - offset);
 
         LOG_Output(&config->log_utl, log_buf, offset);
-        LOG_Flush(&config->log_utl);
     }
 }

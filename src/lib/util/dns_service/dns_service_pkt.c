@@ -32,7 +32,7 @@ BS_STATUS DNS_Service_PktInput
         return BS_ERR;
     }
     
-    if (BS_OK != DNS_GetDomainNameByPacket(pucRequest, uiRequestLen, szDomainName))
+    if (BS_OK != DNS_GetQueryNameByPacket(pucRequest, uiRequestLen, szDomainName))
     {
         return BS_ERR;
     }

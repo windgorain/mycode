@@ -390,7 +390,11 @@ char * GETOPT2_BuildHelpinfo(GETOPT2_NODE_S *nodes, OUT char *buf, int buf_size)
 
     buf[0] = '\0';
 
-    len += snprintf(buf+len, buf_size-len, "Commond: ");
+    if (getopt2_is_have_opt(nodes)) {
+        len += snprintf(buf+len, buf_size-len, "Commond: [Options]");
+    } else {
+        len += snprintf(buf+len, buf_size-len, "Commond: ");
+    }
 
     len += getopt2_build_param_help(nodes, buf+len, buf_size-len);
 

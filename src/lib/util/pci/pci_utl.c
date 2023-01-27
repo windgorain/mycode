@@ -301,7 +301,7 @@ void PCIE_BuildMemTLP(UCHAR fmt, UCHAR type, USHORT bdf, UINT64 addr, BOOL_T is6
 }
 
 /* 构造pcie ep mem read tlp */
-void PCIE_BuildEpMemReadTLP(USHORT bdf, UINT addr, BOOL_T is64, int size, OUT PCIE_TLP_MEM_S *tlp)
+void PCIE_BuildEpMemReadTLP(USHORT bdf, UINT64 addr, BOOL_T is64, int size, OUT PCIE_TLP_MEM_S *tlp)
 {
     if (is64) {
         PCIE_BuildMemTLP(1, 0, bdf, addr, is64, size, tlp);
@@ -311,7 +311,7 @@ void PCIE_BuildEpMemReadTLP(USHORT bdf, UINT addr, BOOL_T is64, int size, OUT PC
 }
 
 /* 构造pcie ep mem write tlp */
-void PCIE_BuildEpMemWriteTLP(USHORT bdf, UINT addr, BOOL_T is64, int size, void *data, OUT PCIE_TLP_MEM_S *tlp)
+void PCIE_BuildEpMemWriteTLP(USHORT bdf, UINT64 addr, BOOL_T is64, int size, void *data, OUT PCIE_TLP_MEM_S *tlp)
 {
     if (is64) {
         PCIE_BuildMemTLP(3, 0, bdf, addr, is64, size, tlp);

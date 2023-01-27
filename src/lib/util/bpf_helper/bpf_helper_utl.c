@@ -167,19 +167,19 @@ const void * g_bpf_base_helpers[BPF_BASE_HELPER_MAX] = {
 };
 
 /* 返回bpf helper的table指针 */
-void * BpfHelper_BaseHelper()
+void * BpfHelper_BaseHelper(void)
 {
     return g_bpf_base_helpers;
 }
 
 /* 返回base helper table的size, 表示最多可以容纳多少个元素 */
-UINT BpfHelper_BaseSize()
+UINT BpfHelper_BaseSize(void)
 {
     return BPF_BASE_HELPER_MAX;
 }
 
 /* 返回user helper table的size, 表示最多可以容纳多少个元素 */
-UINT BpfHelper_UserSize()
+UINT BpfHelper_UserSize(void)
 {
     return BPF_USER_HELPER_COUNT;
 }

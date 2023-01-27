@@ -30,13 +30,14 @@
 #define SOCKET_E_AGAIN      -EAGAIN
 #endif
 
-extern int _Socket_Create(int iFamily, UINT ulType, char *filename, int line);
+extern int _Socket_Create(int iFamily, UINT ulType, const char *filename, int line);
 extern BS_STATUS Socket_Close(IN INT iSocketId);
 extern int Socket_Connect(IN INT iSocketId, IN UINT ulIp/* 主机序 */, IN USHORT usPort/* 主机序 */);
 extern int Socket_UDPClient(UINT ip/* 主机序 */, USHORT port/* 主机序 */);
 extern int Socket_UnixSocketClient(char *path, int type, int flags);
 extern BOOL_T Socket_IsIPv4(IN CHAR *pcIpOrName);
 extern BOOL_T Socket_N_IsIPv4(IN CHAR *pcName, IN UINT uiLen);
+BS_STATUS Socket_SetSockOpt(IN INT iSocketId, IN INT iLevel, IN INT iOpt, IN VOID *pOpt, IN UINT uiOptLen);
 extern BS_STATUS Socket_Ioctl(IN INT iSocketId, INT lCmd, void *argp);
 /* 将字符串形式的IP 转换成网络序IP地址 */
 extern UINT Socket_Ipsz2IpNetWitchCheck(IN CHAR *pcIP);
@@ -104,7 +105,7 @@ extern BS_STATUS Socket_RecvFrom
 );
 extern BS_STATUS Socket_SetRecvBufSize(IN INT iSocketId, IN UINT ulBufLen);
 extern BS_STATUS Socket_SetSendBufSize(IN INT iSocketId, IN UINT ulBufLen);
-extern BS_STATUS _Socket_Pair(UINT uiType, OUT INT aiFd[2], char *filename, int line);
+extern BS_STATUS _Socket_Pair(UINT uiType, OUT INT aiFd[2], const char *filename, int line);
 extern BS_STATUS Socket_SetNoBlock(IN INT iSocketID, IN BOOL_T bNoBlock);
 extern BS_STATUS Socket_SetNoDelay(IN INT iSocketID, IN BOOL_T bNoDelay);
 extern int Socket_SetReuseAddr(int fd, int reuse);
@@ -116,11 +117,11 @@ extern INT Socket_Dup(IN INT iFd);
 /* 创建一个可继承的FD. linux本身就可以继承,返回原id即可,windows要复制一份,然后关闭原fd. 失败不关闭原fd */
 extern INT Socket_Inheritable(IN INT iFd);
 
-int _Socket_OpenUdp(UINT ip/*net order*/, USHORT port/*net order*/, char *file, int line);
-int _Socket_UdpClient(UINT ip/*网络序*/, USHORT port/*网络序*/, char *file, int line);
-int _Socket_TcpServer(UINT ip/* 网络序 */, USHORT port/* 网络序 */, char *file, int line);
-int _Socket_UnixServer(char *path, int type, char *file, int line);
-int _Socket_UnixClient(char *path, int type, int no_block, char *file, int line);
+int _Socket_OpenUdp(UINT ip/*net order*/, USHORT port/*net order*/, const char *file, int line);
+int _Socket_UdpClient(UINT ip/*网络序*/, USHORT port/*网络序*/, const char *file, int line);
+int _Socket_TcpServer(UINT ip/* 网络序 */, USHORT port/* 网络序 */, const char *file, int line);
+int _Socket_UnixServer(char *path, int type, const char *file, int line);
+int _Socket_UnixClient(char *path, int type, int no_block, const char *file, int line);
 
 #define Socket_Create(a,b) _Socket_Create(a,b,__FILE__,__LINE__)
 #define Socket_Pair(a,b) _Socket_Pair(a,b,__FILE__,__LINE__)

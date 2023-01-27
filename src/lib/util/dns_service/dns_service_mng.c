@@ -117,7 +117,7 @@ static DNS_SERVICE_LABEL_S * dns_service_MallocLabelNode(IN CHAR *pcLabel, IN UI
     pstNode->pcLabel = (CHAR*)(pstNode + 1);
     TXT_Strlcpy(pstNode->pcLabel, pcLabel, uiLen + 1);
 
-    pstNode->hLabelHash = HASH_CreateInstance(dns_service_GetHashBucketNumByLevel(uiLevel + 1), dns_service_GetLabelIndex);
+    pstNode->hLabelHash = HASH_CreateInstance(NULL, dns_service_GetHashBucketNumByLevel(uiLevel + 1), dns_service_GetLabelIndex);
     if (NULL == pstNode->hLabelHash)
     {
         MEM_Free(pstNode);
@@ -366,7 +366,7 @@ DNS_SERVICE_HANDLE DNS_Service_Create(IN BOOL_T bCreateMutex)
         MUTEX_Init(&pstService->stMutex);
     }
 
-    pstService->hLabelHash = HASH_CreateInstance(g_auiDnsServiceLevelHashBucket[0], dns_service_GetLabelIndex);
+    pstService->hLabelHash = HASH_CreateInstance(NULL, g_auiDnsServiceLevelHashBucket[0], dns_service_GetLabelIndex);
     if (NULL == pstService->hLabelHash)
     {
         MUTEX_Final(&pstService->stMutex);

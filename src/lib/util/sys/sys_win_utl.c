@@ -14,9 +14,9 @@
 
 #ifdef IN_WINDOWS
 
-CHAR * _SYS_OS_GetSelfFileName()
+char * _SYS_OS_GetSelfFileName(void)
 {
-    static CHAR szFileName[FILE_MAX_PATH_LEN + 1] = "";
+    static char szFileName[FILE_MAX_PATH_LEN + 1] = "";
     static BOOL_T bExist = FALSE;
     UINT uiLen;
 
@@ -38,7 +38,7 @@ CHAR * _SYS_OS_GetSelfFileName()
     return szFileName;
 }
 
-CHAR * _SYS_OS_GetSelfFilePath()
+char * _SYS_OS_GetSelfFilePath(void)
 {
     static CHAR szFileName[FILE_MAX_PATH_LEN + 1] = "";
     static BOOL_T bExist = FALSE;

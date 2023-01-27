@@ -12,8 +12,8 @@
     extern "C" {
 #endif /* __cplusplus */
 
-CHAR * _SYS_OS_GetSelfFileName();
-CHAR * _SYS_OS_GetSelfFilePath();
+char * _SYS_OS_GetSelfFileName(void);
+char * _SYS_OS_GetSelfFilePath(void);
 
 #ifdef __cplusplus
     }

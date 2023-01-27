@@ -33,6 +33,7 @@ typedef struct {
 
 int UFD_Init(INOUT UFD_S *ctx, UINT capacity);
 UFD_S * UFD_Create(UINT capacity);
+void UFD_Destroy(UFD_S *ctx);
 int UFD_Open(UFD_S *ctx, int type, void *data, PF_UFD_FREE free_func);
 int UFD_Ref(UFD_S *ctx, int fd, int ref_count);
 int UFD_IncRef(UFD_S *ctx, int fd);

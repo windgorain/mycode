@@ -33,17 +33,17 @@ static int elf_get_sec_by_scn(ELF_S *elf, Elf_Scn *scn, OUT ELF_SECTION_S *sec)
 	sec->sec_id = elf_ndxscn(scn);
 
 	if (gelf_getshdr(scn, shdr) != shdr) {
-        RETURN(BS_ERR);
+        return -1;
     }
 
 	sec->shname = elf_sym_str(elf, shdr->sh_name);
 	if (!sec->shname || !shdr->sh_size) {
-        RETURN(BS_ERR);
+        return -1;
     }
 
 	sec->data = elf_sec_data(scn);
 	if (!sec->data || elf_getdata(scn, sec->data) != NULL) {
-        RETURN(BS_ERR);
+        return -1;
     }
 
 	return 0;

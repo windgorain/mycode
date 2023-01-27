@@ -100,7 +100,7 @@ extern "C"
 /* IPv4 头的定义 */
 typedef struct 
 {
-#ifdef BS_BIG_ENDIAN
+#if BS_BIG_ENDIAN
     UCHAR    ucVer:4;              /* version */
     UCHAR    ucHLen:4;             /* header length */
 #else

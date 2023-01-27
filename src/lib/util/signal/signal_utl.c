@@ -9,7 +9,7 @@
 #include "utl/signal_utl.h"
 
 #ifdef IN_UNIXLIKE
-VOID * signal_Set(IN int iSigno, IN BOOL_T bRestart/*是否重启*/, IN VOID * pfFunc)
+static VOID * signal_Set(IN int iSigno, IN BOOL_T bRestart/*是否重启*/, IN VOID * pfFunc)
 {
     struct sigaction act, oact;
 
@@ -41,7 +41,7 @@ VOID * signal_Set(IN int iSigno, IN BOOL_T bRestart/*是否重启*/, IN VOID * p
 #endif
 
 #ifdef IN_WINDOWS
-VOID * signal_Set(IN int iSigno, IN BOOL_T bRestart/*是否重启*/, IN VOID * pfFunc)
+static VOID * signal_Set(IN int iSigno, IN BOOL_T bRestart/*是否重启*/, IN VOID * pfFunc)
 {
     return signal(iSigno, pfFunc);
 }

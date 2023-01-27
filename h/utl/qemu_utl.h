@@ -5,6 +5,8 @@
 ********************************************************/
 #ifndef _QEMU_UTL_H
 #define _QEMU_UTL_H
+#include "utl/txt_utl.h"
+#include "utl/qemu_func.h"
 #ifdef __cplusplus
 extern "C"
 {
@@ -15,13 +17,8 @@ static inline USHORT QEMU_GetBdf(PCIDevice *pci_dev)
     UCHAR bus = pci_dev_bus_num(pci_dev);
     UCHAR df = pci_dev->devfn;
     USHORT bdf = ((UINT)bus) << 8 | df;
-    return bdf;
-}
 
-static inline char * QEMU_Bdf2String(USHORT bdf, OUT char *buf, int buf_size)
-{
-    snprintf(buf, buf_size, "%02x:%02x.%u", bdf >> 8, (bdf & 0xff) >> 3, bdf & 7);
-    return buf;
+    return bdf;
 }
 
 /* 判断bar是否64位 */

@@ -39,6 +39,8 @@ int MYBPF_RunP3(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p
 
 /* 使用默认环境调用 */
 int MYBPF_DefultRun(MYBPF_CTX_S *ctx, U64 r1, U64 r2, U64 r3, U64 r4, U64 r5);
+/* 使用默认环境调用 */
+int MYBPF_DefultRunCode(void *code, OUT UINT64 *bpf_ret, U64 r1, U64 r2, U64 r3, U64 r4, U64 r5);
 
 #ifdef __cplusplus
 }

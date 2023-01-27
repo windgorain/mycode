@@ -16,7 +16,7 @@
 #ifdef IN_LINUX
 
 /* 带有文件名的路径 */
-CHAR * _SYS_OS_GetSelfFileName()
+char * _SYS_OS_GetSelfFileName(void)
 {
     static CHAR szFileName[FILE_MAX_PATH_LEN + 1] = "";
     static BOOL_T bExist = FALSE;
@@ -40,7 +40,7 @@ CHAR * _SYS_OS_GetSelfFileName()
 }
 
 /* 不带有文件名的路径 */
-CHAR * _SYS_OS_GetSelfFilePath()
+CHAR * _SYS_OS_GetSelfFilePath(void)
 {
     static CHAR szFilePath[FILE_MAX_PATH_LEN + 1] = "";
     static BOOL_T bExist = FALSE;
@@ -55,7 +55,7 @@ CHAR * _SYS_OS_GetSelfFilePath()
     n = readlink("/proc/self/exe", szFilePath, FILE_MAX_PATH_LEN);
     if (n < 0)
     {
-        return "";
+        return (char*)"";
     }
 
     szFilePath[n] = '\0';
@@ -64,7 +64,7 @@ CHAR * _SYS_OS_GetSelfFilePath()
     if (NULL == pcSplit)
     {
         szFilePath[0] = '\0';
-        return "";
+        return (char*)"";
     }
 
     *pcSplit = '\0';
@@ -78,7 +78,7 @@ CHAR * _SYS_OS_GetSelfFilePath()
 #include <mach-o/dyld.h>
 
 /* 带有文件名的路径 */
-CHAR * _SYS_OS_GetSelfFileName()
+char * _SYS_OS_GetSelfFileName(void)
 {
     static CHAR szFileName[FILE_MAX_PATH_LEN + 1] = "";
     static BOOL_T bExist = FALSE;
@@ -94,7 +94,7 @@ CHAR * _SYS_OS_GetSelfFileName()
 }
 
 /* 不带有文件名的路径 */
-CHAR * _SYS_OS_GetSelfFilePath()
+CHAR * _SYS_OS_GetSelfFilePath(void)
 {
     static CHAR szFilePath[FILE_MAX_PATH_LEN + 1] = "";
     static BOOL_T bExist = FALSE;

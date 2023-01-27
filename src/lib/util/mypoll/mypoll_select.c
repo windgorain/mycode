@@ -223,7 +223,7 @@ static MYPOLL_PROTO_S g_stMypollSelectProto =
     mypoll_select_Run
 };
 
-MYPOLL_PROTO_S * Mypoll_Select_GetProtoTbl()
+MYPOLL_PROTO_S * Mypoll_Select_GetProtoTbl(void)
 {
     return &g_stMypollSelectProto;
 }

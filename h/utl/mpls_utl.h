@@ -12,7 +12,7 @@ extern "C"
 
 typedef struct {
 
-#ifdef BS_BIG_ENDIAN
+#if BS_BIG_ENDIAN
     UINT label: 20;
     UINT exp: 3;
     UINT bottom: 1;

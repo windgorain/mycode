@@ -157,8 +157,8 @@ void PCIE_BuildCfgTLP(UCHAR fmt, UCHAR type, USHORT bdf, UINT addr, int size, OU
 void PCIE_BuildCfgReadTLP(int is_ep, USHORT bdf, UINT addr, int size, OUT PCIE_TLP_CFG_S *tlp);
 void PCIE_BuildCfgWriteTLP(int is_ep, USHORT bdf, UINT addr, int size, UINT val, OUT PCIE_TLP_CFG_S *tlp);
 void PCIE_BuildMemTLP(UCHAR fmt, UCHAR type, USHORT bdf, UINT64 addr, BOOL_T is64, int size, OUT PCIE_TLP_MEM_S *tlp);
-void PCIE_BuildEpMemReadTLP(USHORT bdf, UINT addr, BOOL_T is64, int size, OUT PCIE_TLP_MEM_S *tlp);
-void PCIE_BuildEpMemWriteTLP(USHORT bdf, UINT addr, BOOL_T is64, int size, void *data, OUT PCIE_TLP_MEM_S *tlp);
+void PCIE_BuildEpMemReadTLP(USHORT bdf, UINT64 addr, BOOL_T is64, int size, OUT PCIE_TLP_MEM_S *tlp);
+void PCIE_BuildEpMemWriteTLP(USHORT bdf, UINT64 addr, BOOL_T is64, int size, void *data, OUT PCIE_TLP_MEM_S *tlp);
 void PCIE_BuildCplTLP(USHORT comp_id, USHORT req_id, OUT PCIE_TLP_COMPLETE_S *tlp);
 void PCIE_BuildCpldTLP(USHORT comp_id, USHORT req_id, UINT byte_count,
         UINT low_addr, int size, void *data, OUT PCIE_TLP_COMPLETE_S *tlp);

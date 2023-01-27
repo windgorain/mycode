@@ -131,7 +131,7 @@ int MYBPF_PROG_GetByFuncName(MYBPF_RUNTIME_S *runtime, char *instance, char *fun
 
     MYBPF_LOADER_NODE_S *loader = MYBPF_LoaderGet(runtime, instance);
     if (! loader) {
-        return -1;
+        RETURNI(BS_NO_SUCH, "Can't get instance %s", instance);
     }
 
     for (i=0; i<loader->prog_count; i++) {
@@ -142,7 +142,7 @@ int MYBPF_PROG_GetByFuncName(MYBPF_RUNTIME_S *runtime, char *instance, char *fun
         }
     }
 
-    return -1;
+    RETURNI(BS_NO_SUCH, "Can't get function %s", func_name);
 }
 
 /* 根据instance:sec_name 获取prog fd. 找不到则返回<0 */

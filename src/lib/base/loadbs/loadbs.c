@@ -95,7 +95,7 @@ PLUG_API INT LoadBs_Init()
 
     bIsInit = TRUE;
 
-    FILE_SET_CURRENT_DIRECTORY(SYS_GetSelfFilePath());
+    FILE_ChangeCurrentDir(SYS_GetSelfFilePath());
 
 #ifdef IN_UNIXLIKE
     SIGNAL_Set(SIGPIPE, 0, (VOID *)SIG_IGN);

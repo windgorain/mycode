@@ -13,7 +13,7 @@
 #include "utl/socket_utl.h"
 #include <sys/un.h>
 
-static VOID socket_WindowInit()
+static VOID socket_WindowInit(void)
 {
 #ifdef IN_WINDOWS
     WORD wVersionRequested;
@@ -35,7 +35,7 @@ static VOID socket_WindowInit()
 #endif
 }
 
-static INT socket_GetLastErrno()
+static INT socket_GetLastErrno(void)
 {
     INT iErr = SOCKET_E_ERR;
 
@@ -595,7 +595,7 @@ BS_STATUS Socket_Close(IN INT iSocketId)
     return BS_OK;
 }
 
-int _Socket_Create(int iFamily, UINT ulType, char *filename, int line)
+int _Socket_Create(int iFamily, UINT ulType, const char *filename, int line)
 {
     INT s;
 
@@ -695,7 +695,7 @@ BS_STATUS Socket_RecvFrom
     return BS_OK;
 }
 
-BS_STATUS _Socket_Pair(UINT uiType, OUT INT aiFd[2], char *filename, int line)
+BS_STATUS _Socket_Pair(UINT uiType, OUT INT aiFd[2], const char *filename, int line)
 {
 #ifndef IN_WINDOWS
 	int fd[2];
@@ -845,7 +845,7 @@ INT Socket_Inheritable(IN INT iFd)
 #endif
 }
 
-int _Socket_OpenUdp(UINT ip/*net order*/, USHORT port/*net order*/, char *file, int line)
+int _Socket_OpenUdp(UINT ip/*net order*/, USHORT port/*net order*/, const char *file, int line)
 {
     int fd;
 
@@ -865,7 +865,7 @@ int _Socket_OpenUdp(UINT ip/*net order*/, USHORT port/*net order*/, char *file, 
     return fd;
 }
 
-int _Socket_UdpClient(UINT ip/*网络序*/, USHORT port/*网络序*/, char *file, int line)
+int _Socket_UdpClient(UINT ip/*网络序*/, USHORT port/*网络序*/, const char *file, int line)
 {
     int fd;
     int ret;
@@ -884,7 +884,7 @@ int _Socket_UdpClient(UINT ip/*网络序*/, USHORT port/*网络序*/, char *file
     return fd;
 }
 
-int _Socket_TcpServer(UINT ip/* 网络序 */, USHORT port/* 网络序 */, char *file, int line)
+int _Socket_TcpServer(UINT ip/* 网络序 */, USHORT port/* 网络序 */, const char *file, int line)
 {
     int fd;
     int ret;
@@ -903,7 +903,7 @@ int _Socket_TcpServer(UINT ip/* 网络序 */, USHORT port/* 网络序 */, char *
     return fd;
 }
 
-int _Socket_UnixServer(char *path, int type, char *file, int line)
+int _Socket_UnixServer(char *path, int type, const char *file, int line)
 {
 	struct sockaddr_un un;
     int fd;
@@ -936,7 +936,7 @@ int _Socket_UnixServer(char *path, int type, char *file, int line)
     return fd;
 }
 
-int _Socket_UnixClient(char *path, int type, int no_block, char *file, int line)
+int _Socket_UnixClient(char *path, int type, int no_block, const char *file, int line)
 {
     struct sockaddr_un un;
     int fd;

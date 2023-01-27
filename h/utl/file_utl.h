@@ -147,8 +147,10 @@ static inline FILE * FOPEN(IN CHAR *pcFileName, IN CHAR *pcMode)
 
 #endif
 
-#define FILE_SET_CURRENT_DIRECTORY(szPath) chdir(szPath)
-
+static inline int FILE_ChangeCurrentDir(char * path)
+{
+    return chdir(path);
+}
 
 #define FILE_PATH_TO_UNIX(pszFilePath)  \
     do {  \

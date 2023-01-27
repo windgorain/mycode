@@ -111,10 +111,6 @@
 #define __builtin_expect(x, expected_value) (x)
 #endif
 
-#if defined(__FLOAT_WORD_ORDER) && (__FLOAT_WORD_ORDER == __BIG_ENDIAN)
-#define BS_BIG_ENDIAN 1
-#endif
-
 #ifndef likely
 #define likely(x)	__builtin_expect((x),1)
 #define unlikely(x)	__builtin_expect((x),0)

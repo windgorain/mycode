@@ -45,7 +45,7 @@ typedef struct tagDNS_Header
 {
     USHORT    usTransID;    /* query identification number */
     
-#ifdef BS_BIG_ENDIAN
+#if BS_BIG_ENDIAN
     /* fields in third byte */
     USHORT    usQR: 1;          /* response flag */
     USHORT    usOpcode: 4;      /* purpose of message */

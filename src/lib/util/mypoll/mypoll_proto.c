@@ -13,10 +13,7 @@
 #include "mypoll_inner.h"
 #include "mypoll_proto.h"
 
-extern MYPOLL_PROTO_S * Mypoll_Select_GetProtoTbl();
-extern MYPOLL_PROTO_S * Mypoll_Epoll_GetProtoTbl();
-
-static MYPOLL_PROTO_S * mypoll_proto_GetProtoTbl()
+static MYPOLL_PROTO_S * mypoll_proto_GetProtoTbl(void)
 {
 #ifdef IN_LINUX
     return Mypoll_Epoll_GetProtoTbl();
@@ -74,7 +71,7 @@ BS_STATUS _Mypoll_Proto_Add
     if (((pstProto->uiFlag & MYPOLL_PROTO_FLAG_AT_ONCE) == 0)
         && ((pstMyPoll->uiFlag & _MYPOLL_FLAG_PROCESSING_EVENT) == 0)) {
         /* 不能立即生效的情况，需要触发一次调度 */
-        Socket_Write((UINT)pstMyPoll->iSocketSrc, "1", 1, 0);
+        Socket_Write((UINT)pstMyPoll->iSocketSrc, (char*)"1", 1, 0);
     }
 
     return BS_OK;
@@ -99,7 +96,7 @@ BS_STATUS _Mypoll_Proto_Set
     if (((pstProto->uiFlag & MYPOLL_PROTO_FLAG_AT_ONCE) == 0)
         && ((pstMyPoll->uiFlag & _MYPOLL_FLAG_PROCESSING_EVENT) == 0)) {
         /* 不能立即生效的情况，需要触发一次调度 */
-        Socket_Write((UINT)pstMyPoll->iSocketSrc, "1", 1, 0);
+        Socket_Write((UINT)pstMyPoll->iSocketSrc, (char*)"1", 1, 0);
     }
 
     return BS_OK;

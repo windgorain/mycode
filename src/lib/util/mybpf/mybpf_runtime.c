@@ -6,6 +6,7 @@
 #include "bs.h"
 #include "utl/map_utl.h"
 #include "utl/mybpf_runtime.h"
+#include "utl/mybpf_loader.h"
 
 int MYBPF_RuntimeInit(OUT MYBPF_RUNTIME_S *runtime, UINT ufd_capacity)
 {
@@ -27,4 +28,12 @@ int MYBPF_RuntimeInit(OUT MYBPF_RUNTIME_S *runtime, UINT ufd_capacity)
     return 0;
 }
 
+void MYBPF_RuntimeFini(OUT MYBPF_RUNTIME_S *runtime)
+{
+    MYBPF_LoaderUnloadAll(runtime);
+    UFD_Destroy(runtime->ufd_ctx);
+    runtime->ufd_ctx = NULL;
+    MAP_Destroy(runtime->loader_map, NULL, NULL);
+    runtime->loader_map = NULL;
+}
 

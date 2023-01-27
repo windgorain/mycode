@@ -13,48 +13,13 @@
 #include "utl/mybpf_loader.h"
 #include "utl/mybpf_runtime.h"
 #include "utl/mybpf_hookpoint.h"
+#include "utl/mybpf_elf.h"
 #include "utl/map_utl.h"
 #include "utl/exec_utl.h"
 #include "utl/ufd_utl.h"
 #include "utl/umap_utl.h"
 #include "mybpf_def.h"
 #include "mybpf_osbase.h"
-
-typedef struct {
-    int sec_id;
-    int map_def_size;
-    int map_count;
-    void *maps;
-}MYBPF_LOADER_MAPS_SEC_S;
-
-static int _mybpf_loader_get_maps_section(ELF_S *elf, OUT MYBPF_LOADER_MAPS_SEC_S *map_sec)
-{
-    ELF_SECTION_S sec;
-
-    map_sec->map_count = 0;
-    map_sec->map_def_size = 0;
-    map_sec->maps = NULL;
-
-    if (ELF_GetSecByName(elf, "maps", &sec) < 0) {
-        return 0;
-    }
-
-    map_sec->map_count = ELF_SecSymbolCount(elf, sec.sec_id, 0);
-    if (map_sec->map_count <= 0) {
-        return 0;
-    }
-
-    /* 计算map结构体的大小 */
-    map_sec->map_def_size = sec.data->d_size / map_sec->map_count;
-    if (map_sec->map_def_size < sizeof(UMAP_ELF_MAP_S)) {
-        RETURN(BS_ERR);
-    }
-
-    map_sec->maps = sec.data->d_buf;
-    map_sec->sec_id = sec.sec_id;
-
-    return 0;
-}
 
 static int _mybpf_loader_load_maps(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBPF_LOADER_NODE_S *node)
 {
@@ -63,15 +28,19 @@ static int _mybpf_loader_load_maps(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBPF_L
     int i;
     int ret;
     int map_def_offset;
-    MYBPF_LOADER_MAPS_SEC_S map_sec;
+    MYBPF_MAPS_SEC_S map_sec;
 
-    ret = _mybpf_loader_get_maps_section(elf, &map_sec);
+    ret = MYBPF_ELF_GetMapsSection(elf, &map_sec);
     if (ret < 0) {
         return ret;
     }
 
     if (map_sec.map_count == 0) {
         return 0;
+    }
+
+    if (map_sec.map_def_size < sizeof(UMAP_ELF_MAP_S)) {
+        RETURN(BS_ERR);
     }
 
     if (map_sec.map_count > MYBPF_LOADER_MAX_MAPS) {
@@ -126,13 +95,17 @@ static int _mybpf_loader_load_prog(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBPF_L
 
     prog = MYBPF_PROG_Alloc(sec->data->d_buf, sec->data->d_size, sec->shname, func_name);
     if (! prog) {
-        EXEC_OutInfo("Can't load %s:%s \r\n", node->param.filename, func_name);
-        RETURN(BS_NO_MEMORY);
+        RETURNI(BS_ERR, "Can't load %s:%s \r\n", node->param.filename, func_name);
     }
     prog->loader_node = node;
 
     ret = MYBPF_PROG_ReplaceMapFdWithMapPtr(runtime, prog);
-    ret |= MYBPF_PROG_ConvertCtxAccess(prog);
+    if (ret < 0) {
+        MYBPF_PROG_Free(runtime, prog);
+        return ret;
+    }
+
+    ret = MYBPF_PROG_ConvertCtxAccess(prog);
 //    ret |= MYBPF_PROG_FixupBpfCalls(prog);
     if (ret < 0) {
         MYBPF_PROG_Free(runtime, prog);
@@ -265,7 +238,7 @@ static int _mybpf_loader_parse_relo_and_apply(MYBPF_RUNTIME_S *runtime, ELF_S *e
 		}
 
 		if (! match) {
-			return -1;
+            RETURNI(BS_ERR, "Do you use staic or global var?");
 		}
 	}
 
@@ -274,6 +247,7 @@ static int _mybpf_loader_parse_relo_and_apply(MYBPF_RUNTIME_S *runtime, ELF_S *e
 
 static int _mybpf_loader_process_relo(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBPF_LOADER_NODE_S *node)
 {
+    int ret;
     void *iter = NULL;
     ELF_SECTION_S relo_sec, prog_sec;
 
@@ -291,7 +265,9 @@ static int _mybpf_loader_process_relo(MYBPF_RUNTIME_S *runtime, ELF_S *elf, MYBP
             continue;
         }
 
-        _mybpf_loader_parse_relo_and_apply(runtime, elf, node, &relo_sec, &prog_sec);
+        if ((ret = _mybpf_loader_parse_relo_and_apply(runtime, elf, node, &relo_sec, &prog_sec)) < 0) {
+            return ret;
+        }
     }
 
     return 0;
@@ -317,7 +293,10 @@ static int _mybpf_loader_load_by_file(MYBPF_RUNTIME_S *runtime, ELF_S *elf,
         }
     }
 
-    _mybpf_loader_process_relo(runtime, elf, node);
+    ret = _mybpf_loader_process_relo(runtime, elf, node);
+    if (ret < 0) {
+        return ret;
+    }
 
     ret = _mybpf_loader_load_progs(runtime, elf, node);
     if (ret < 0) {
@@ -334,13 +313,13 @@ static int _mybpf_loader_load_by_file(MYBPF_RUNTIME_S *runtime, ELF_S *elf,
 /* 校验是否可以replace时保留map, maps定义必须一致 */
 static BOOL_T _mybpf_loader_check_may_keep_map(MYBPF_RUNTIME_S *runtime, ELF_S *new_elf, MYBPF_LOADER_NODE_S *old_node)
 {
-    MYBPF_LOADER_MAPS_SEC_S map_sec;
+    MYBPF_MAPS_SEC_S map_sec;
     UMAP_ELF_MAP_S *elfmap;
     UMAP_HEADER_S *hdr;
     char *map;
     int i;
 
-    if (_mybpf_loader_get_maps_section(new_elf, &map_sec) < 0) {
+    if (MYBPF_ELF_GetMapsSection(new_elf, &map_sec) < 0) {
         return FALSE;
     }
 
@@ -425,6 +404,11 @@ static int _mybpf_loader_load_node(MYBPF_RUNTIME_S *runtime,
 static inline MYBPF_LOADER_NODE_S * _mybpf_loader_get_node(MYBPF_RUNTIME_S *runtime, char *instance)
 {
     return MAP_Get(runtime->loader_map, instance, strlen(instance));
+}
+
+static inline MYBPF_LOADER_NODE_S * _mybpf_loader_get_first_node(MYBPF_RUNTIME_S *runtime)
+{
+    return MAP_GetFirst(runtime->loader_map);
 }
 
 static void _mybpf_loader_free_node(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_NODE_S *node)
@@ -534,7 +518,7 @@ static int _mybpf_loader_load(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_PARAM_S *p,
 
     new_node = _mybpf_loader_create_node(runtime, p);
     if (! new_node) {
-        return BS_ERR;
+        RETURN(BS_ERR);
     }
 
     ret = _mybpf_loader_load_node(runtime, new_node, to_replace, p->flag);
@@ -645,6 +629,15 @@ void MYBPF_LoaderUnload(MYBPF_RUNTIME_S *runtime, char *instance)
 
     node = _mybpf_loader_get_node(runtime, instance);
     if (node) {
+        _mybpf_loader_unload_node(runtime, node);
+    }
+}
+
+void MYBPF_LoaderUnloadAll(MYBPF_RUNTIME_S *runtime)
+{
+    MYBPF_LOADER_NODE_S *node;
+
+    while ((node = _mybpf_loader_get_first_node(runtime))) {
         _mybpf_loader_unload_node(runtime, node);
     }
 }

@@ -34,7 +34,7 @@ typedef BS_WALK_RET_E (*PF_MYPOLL_EV_NOTIFY)(IN INT iSocketId, IN UINT uiEvent, 
 typedef BS_WALK_RET_E (*PF_MYPOLL_USER_EVENT_FUNC)(IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle);
 typedef BS_WALK_RET_E (*PF_MYPOLL_SIGNAL_FUNC)(IN int signum);
 
-MYPOLL_HANDLE MyPoll_Create();
+MYPOLL_HANDLE MyPoll_Create(void);
 VOID MyPoll_Destory(IN MYPOLL_HANDLE hMypoll);
 BS_STATUS MyPoll_SetEvent
 (

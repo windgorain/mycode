@@ -131,7 +131,7 @@ static SYS_OS_VER_E sys_GetOsWinVer()
     return eVer;
 }  
 
-static SYS_OS_BIT_E sys_GetOsWinBits()
+static SYS_OS_BIT_E sys_GetOsWinBits(void)
 {
     SYSTEM_INFO si;
 
@@ -151,7 +151,7 @@ static SYS_OS_BIT_E sys_GetOsWinBits()
 
 #endif
 
-SYS_OS_VER_E SYS_GetOsVer()
+SYS_OS_VER_E SYS_GetOsVer(void)
 {
     SYS_OS_VER_E eVer = SYS_OS_VER_OTHER;
 
@@ -163,7 +163,7 @@ SYS_OS_VER_E SYS_GetOsVer()
 }
 
 #ifdef IN_WINDOWS
-SYS_OS_BIT_E SYS_GetOsBit()
+SYS_OS_BIT_E SYS_GetOsBit(void)
 {
     return sys_GetOsWinBits();
 }
@@ -171,7 +171,7 @@ SYS_OS_BIT_E SYS_GetOsBit()
 
 #ifdef IN_WINDOWS
 /* 隐藏进程 */
-VOID SYS_HideProcess()
+VOID SYS_HideProcess(void)
 {
     HINSTANCE hInst = LoadLibrary("KERNEL32.DLL"); 
 	if(hInst) 
@@ -245,13 +245,13 @@ BS_STATUS SYS_SetSelfStart(IN CHAR *pcRegName, IN BOOL_T bSelfStart, IN char *ar
 }
 
 /* 带有文件名的路径 */
-CHAR * SYS_GetSelfFileName()
+CHAR * SYS_GetSelfFileName(void)
 {
     return _SYS_OS_GetSelfFileName();
 }
 
 /* 不带有文件名的路径 */
-CHAR * SYS_GetSelfFilePath()
+CHAR * SYS_GetSelfFilePath(void)
 {
     return _SYS_OS_GetSelfFilePath();
 }

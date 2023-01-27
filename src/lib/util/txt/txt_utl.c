@@ -1042,8 +1042,7 @@ BS_STATUS TXT_XAtoui(IN CHAR *pszBuf, OUT UINT *pulNum)
 {
     UINT ulNum = 0;
 
-    if ((pszBuf == NULL) || (pszBuf[0] == '\0'))
-    {
+    if ((pszBuf == NULL) || (pszBuf[0] == '\0')) {
         RETURN(BS_BAD_PTR);
     }
 
@@ -1052,6 +1051,12 @@ BS_STATUS TXT_XAtoui(IN CHAR *pszBuf, OUT UINT *pulNum)
     *pulNum = ulNum;
 
     return BS_OK;
+}
+
+long TXT_Strtol(char *str, int base)
+{
+    char * end;
+    return strtol(str, &end, base);
 }
 
 CHAR TXT_Random(void)

@@ -145,10 +145,10 @@ static void mypoll_Signal(IN int iSigno)
     }
 
     g_mypoll_signal->singal_processers[iSigno].uiCount ++;
-    Socket_Write((UINT)g_mypoll_signal->iSocketSrc, "0", 1, 0);
+    Socket_Write((UINT)g_mypoll_signal->iSocketSrc, (char*)"0", 1, 0);
 }
 
-MYPOLL_HANDLE MyPoll_Create()
+MYPOLL_HANDLE MyPoll_Create(void)
 {
     _MYPOLL_CTRL_S *pstCtrl;
     INT aiFd[2];
@@ -449,7 +449,7 @@ BS_STATUS MyPoll_PostUserEvent(IN MYPOLL_HANDLE hMypoll, IN UINT uiEvent)
 BS_STATUS MyPoll_Trigger(MYPOLL_HANDLE hMyPoll)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMyPoll;
-    Socket_Write((UINT)pstCtrl->iSocketSrc, "0", 1, 0);
+    Socket_Write((UINT)pstCtrl->iSocketSrc, (char*)"0", 1, 0);
 
     return 0;
 }
