@@ -97,7 +97,9 @@ void AddressPool_Destroy(ADDRESS_POOL_HANDLE pool)
 
     while ((head = ListRule_GetNextList(pool, NULL))) {
         int ret = _address_pool_del_ip_list(pool, head->pstListRule);
-        BS_DBGASSERT(ret == 0);
+        if (ret < 0) {
+            BS_DBGASSERT(0);
+        }
     }
 
     ListRule_Destroy(pool, NULL, NULL);

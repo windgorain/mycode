@@ -4,6 +4,7 @@
 *
 ================================================================*/
 #include "bs.h"
+#include "utl/mybpf_loader.h"
 #include "utl/mybpf_prog.h"
 #include "utl/umap_utl.h"
 #include "app/cioctl_pub.h"

@@ -29,12 +29,15 @@ char * UMAP_TypeName(unsigned int type)
     return g_umap_type_name[type];
 }
 
-/* map_def_offset: 当前map_def在maps字段中的偏移 */
-int UMAP_Open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap, int map_def_offset, char *map_name)
+int UMAP_Open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap, char *map_name)
 {
     UINT type = elfmap->type;
     int fd;
     UMAP_HEADER_S *hdr;
+
+    if (! map_name) {
+        map_name = "";
+    }
 
     if ((type <= 0) || (type >= BPF_MAP_TYPE_MAX)) {
 		return -EINVAL;
@@ -48,7 +51,6 @@ int UMAP_Open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap, int map_def_offset, char *map_
     hdr = UFD_GetFileData(ctx, fd);
 
     hdr->fd = fd;
-    hdr->map_def_offset = map_def_offset;
     strlcpy(hdr->map_name, map_name, sizeof(hdr->map_name));
 
     hdr->type = elfmap->type;
@@ -102,7 +104,7 @@ int UMAP_GetByName(UFD_S *ctx, char *map_name)
     return -1;
 }
 
-void * UMAP_LookupElem(void *map, void *key)
+void * UMAP_LookupElem(void *map, const void *key)
 {
     UMAP_HEADER_S *hdr = map;
 
@@ -113,7 +115,7 @@ void * UMAP_LookupElem(void *map, void *key)
     return g_umap_func_tbl[hdr->type]->lookup_elem_func(map, key);
 }
 
-long UMAP_DeleteElem(void *map, void *key)
+long UMAP_DeleteElem(void *map, const void *key)
 {
     UMAP_HEADER_S *hdr = map;
 
@@ -124,7 +126,7 @@ long UMAP_DeleteElem(void *map, void *key)
     return g_umap_func_tbl[hdr->type]->delete_elem_func(map, key);
 }
 
-long UMAP_UpdateElem(void *map, void *key, void *value, U32 flag)
+long UMAP_UpdateElem(void *map, const void *key, const void *value, U32 flag)
 {
     UMAP_HEADER_S *hdr = map;
 

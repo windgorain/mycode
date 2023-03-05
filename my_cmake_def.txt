@@ -1,8 +1,10 @@
 
 set(CMAKE_C_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -Wno-error=deprecated-declarations -Werror -g -ggdb")
 set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -Wno-error=deprecated-declarations -Werror -g -ggdb")
-set(CMAKE_C_FLAGS_RELEASE "$ENV{CXXFLAGS} -Wall -Wno-error=deprecated-declarations -Werror -O3")
-set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wno-error=deprecated-declarations -Wall -Werror")
+set(CMAKE_C_FLAGS_RELEASE "$ENV{CXXFLAGS} -Wall -Wno-error=deprecated-declarations -Werror -O3 -D__FILE__='\"$(@F:.c.o=.c)\"'")
+set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wno-error=deprecated-declarations -Wall -Werror -D__FILE__='\"$(@F:.c.o=.c)\"'")
+
+add_definitions(-Wno-builtin-macro-redefined)
 
 IF (UNIX AND NOT APPLE)
     set(CMAKE_EXE_LINKER_FLAGS "-Wl,-Map=output.map")
@@ -87,6 +89,10 @@ include_directories(${CMAKE_SOURCE_DIR}/../open/h)
 include_directories(${CMAKE_SOURCE_DIR}/../open/h/pcre)
 include_directories(${CMAKE_SOURCE_DIR}/../open/h/winpcap)
 ENDIF()
+
+if(EXISTS "/usr/include/lua5.3")
+include_directories(/usr/include/lua5.3)
+endif()
 
 IF (APPLE)
 

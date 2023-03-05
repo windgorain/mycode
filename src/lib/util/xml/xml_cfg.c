@@ -383,7 +383,11 @@ HANDLE XMLC_Open
     {
         if (ulFileSize != 0)
         {
-            fread(pstXmlHead->pucFileContent, 1, (UINT)ulFileSize, fp);
+            if (fread(pstXmlHead->pucFileContent, 1, (UINT)ulFileSize, fp) != ulFileSize) {
+                fclose(fp);
+                _XMLC_Close(pstXmlHead);
+                return NULL;
+            }
         }
         fclose(fp);
     }

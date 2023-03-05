@@ -167,6 +167,7 @@ VOID FILE_GetPathFromFilePath(IN CHAR *pszFilePath, OUT CHAR *szPath)
     return;
 }
 
+/* 不包含. */
 CHAR * FILE_GetExternNameFromPath(IN CHAR *pszPath, IN UINT uiPathLen)
 {
     UINT ulLen = uiPathLen;
@@ -838,7 +839,13 @@ FILE_MEM_S * FILE_Mem(IN CHAR *pszFilePath)
         return NULL;
     }
 
-    fread(pucFileContext, 1, (UINT)uiFileSize, fp);
+    if (uiFileSize != fread(pucFileContext, 1, (UINT)uiFileSize, fp)) {
+        fclose(fp);
+        MEM_Free(pstMemMap);
+        MEM_Free(pucFileContext);
+        return NULL;
+    }
+
     pucFileContext[uiFileSize] = '\0';
 
     fclose(fp);
@@ -888,7 +895,10 @@ UINT FILE_MemTo(IN CHAR *pszFilePath, OUT UCHAR *pucBuf, IN UINT uiBufLen/* 0表
         return 0;
     }
 
-    fread(pucBuf, 1, uiReadLen, fp);
+    if (uiReadLen != fread(pucBuf, 1, uiReadLen, fp)) {
+        fclose(fp);
+        return 0;
+    }
 
     fclose(fp);
 
@@ -915,11 +925,17 @@ static VOID file_ScanFile(IN FILE_SCANFILE_S *pstScanFile)
 
     if (uiCurrentScanDirLen != 0)
     {
-    	sprintf(pstScanFile->szScanPattern, "%s/%s%s", pstScanFile->szUserScanDir, pstScanFile->szCurrentScanDir, pstScanFile->pcPattern);
+    	if (snprintf(pstScanFile->szScanPattern, sizeof(pstScanFile->szScanPattern), "%s/%s%s",
+                    pstScanFile->szUserScanDir, pstScanFile->szCurrentScanDir, pstScanFile->pcPattern) < 0) {
+            return;
+        }
     }
     else
     {
-        sprintf(pstScanFile->szScanPattern, "%s/%s", pstScanFile->szUserScanDir, pstScanFile->pcPattern);
+        if (snprintf(pstScanFile->szScanPattern, sizeof(pstScanFile->szScanPattern),
+                    "%s/%s", pstScanFile->szUserScanDir, pstScanFile->pcPattern) < 0) {
+            return;
+        }
     }
 
     FILE_SCAN_START(pstScanFile->szScanPattern, pcFileName)
@@ -929,11 +945,17 @@ static VOID file_ScanFile(IN FILE_SCANFILE_S *pstScanFile)
 
     if (uiCurrentScanDirLen == 0)
     {
-        sprintf(pstScanFile->szScanPattern, "%s/*", pstScanFile->szUserScanDir);
+        if (snprintf(pstScanFile->szScanPattern, sizeof(pstScanFile->szScanPattern),
+                    "%s/*", pstScanFile->szUserScanDir) < 0) {
+            return;
+        }
     }
     else
     {
-        sprintf(pstScanFile->szScanPattern, "%s/%s*", pstScanFile->szUserScanDir, pstScanFile->szCurrentScanDir);
+        if (snprintf(pstScanFile->szScanPattern, sizeof(pstScanFile->szScanPattern),
+                    "%s/%s*", pstScanFile->szUserScanDir, pstScanFile->szCurrentScanDir) < 0) {
+            return;
+        }
     }
 
 	DIR_SCAN_START(pstScanFile->szScanPattern, pcSubDirName)

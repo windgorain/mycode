@@ -8,5 +8,5 @@ cmd, ulc-view, no load %STRING<1-63>(instance name), ULCAPP_CMD_NoLoadInstance
 cmd, ulc-view, show map, ULCAPP_CMD_ShowMap
 cmd, ulc-view, dump map %INT<0-4095>(map fd), ULCAPP_CMD_DumpMap
 cmd, ulc-view, show prog, ULCAPP_CMD_ShowProg
-
+cmd, ulc-view, testcmd [%OPTION], ULCAPP_CMD_TestCmd
 

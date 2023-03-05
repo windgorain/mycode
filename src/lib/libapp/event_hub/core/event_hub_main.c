@@ -38,7 +38,7 @@ static EHUB_EV_OB_S * ehub_reg(UINT event, char *name, PF_EHUB_FUNC func, void *
         return NULL;
     }
 
-    ob = RcuEngine_ZMalloc(sizeof(EHUB_EV_OB_S));
+    ob = MEM_RcuZMalloc(sizeof(EHUB_EV_OB_S));
     if (! ob) {
         return NULL;
     }
@@ -70,7 +70,7 @@ PLUG_API void EHUB_UnReg(EHUB_EV_OB_S *ob)
     DLL_DelIfInList(&ob->link_node);
     MUTEX_V(&g_ehub_mutex);
 
-    RcuEngine_Free(ob);
+    MEM_RcuFree(ob);
 }
 
 PLUG_API void EHUB_SetEnable(EHUB_EV_OB_S *ob, BOOL_T enable)

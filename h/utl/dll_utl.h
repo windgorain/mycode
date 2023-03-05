@@ -215,7 +215,7 @@ static inline void DLL_DEL(DLL_HEAD_S *pstDllHead, void *del_node) {
 
 #define DLL_IN_LIST(pstNode)  (DLL_GET_HEAD(pstNode) != NULL)
 
-typedef INT (*PF_DLL_CMP_FUNC)(DLL_NODE_S *pstNode1, DLL_NODE_S *pstNode2, HANDLE hUserHandle);
+typedef int (*PF_DLL_CMP_FUNC)(DLL_NODE_S *pstNode1, DLL_NODE_S *pstNode2, void *ud);
 
 static inline VOID * DLL_Get (IN DLL_HEAD_S *pstDllHead)
 {

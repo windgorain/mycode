@@ -6,8 +6,8 @@
 #include "bs.h"
 #include "utl/exec_utl.h"
 #include "utl/err_code.h"
-#include "utl/mybpf_prog.h"
 #include "utl/mybpf_loader.h"
+#include "utl/mybpf_prog.h"
 #include "utl/umap_utl.h"
 #include "utl/getopt2_utl.h"
 #include "../h/ulcapp_runtime.h"
@@ -21,7 +21,7 @@ static int _ulcapp_cmd_help(GETOPT2_NODE_S *opts)
 }
 
 /* load %STRING(instance) file %STRING */
-int ULCAPP_CMD_LoadFile(int argc, char **argv)
+PLUG_API int ULCAPP_CMD_LoadFile(int argc, char **argv)
 {
     char *instance = argv[1];
     char *filename = argv[3];
@@ -34,7 +34,7 @@ int ULCAPP_CMD_LoadFile(int argc, char **argv)
 }
 
 /* replace %STRING(instance) file %STRING %OPTION */
-int ULCAPP_CMD_ReplaceFile(int argc, char **argv)
+PLUG_API int ULCAPP_CMD_ReplaceFile(int argc, char **argv)
 {
     char *instance = argv[1];
     char *filename = argv[3];
@@ -63,28 +63,28 @@ int ULCAPP_CMD_ReplaceFile(int argc, char **argv)
 }
 
 /* unload %STRING(instance) */
-int ULCAPP_CMD_UnloadInstance(int argc, char **argv)
+PLUG_API int ULCAPP_CMD_UnloadInstance(int argc, char **argv)
 {
     ULCAPP_UnloadInstance(argv[1]);
     return 0;
 }
 
 /* no load %STRING(instance) */
-int ULCAPP_CMD_NoLoadInstance(int argc, char **argv)
+PLUG_API int ULCAPP_CMD_NoLoadInstance(int argc, char **argv)
 {
     ULCAPP_UnloadInstance(argv[2]);
     return 0;
 }
 
 /* show map */
-int ULCAPP_CMD_ShowMap(int argc, char **argv)
+PLUG_API int ULCAPP_CMD_ShowMap(int argc, char **argv)
 {
     ULCAPP_ShowMap();
     return 0;
 }
 
 /* dump map %INT */
-int ULCAPP_CMD_DumpMap(int argc, char **argv)
+PLUG_API int ULCAPP_CMD_DumpMap(int argc, char **argv)
 {
     int map_fd;
 
@@ -96,9 +96,20 @@ int ULCAPP_CMD_DumpMap(int argc, char **argv)
 }
 
 /* show prog */
-int ULCAPP_CMD_ShowProg(int argc, char **argv)
+PLUG_API int ULCAPP_CMD_ShowProg(int argc, char **argv)
 {
     ULCAPP_ShowProg();
+    return 0;
+}
+
+/* testcmd -- args */
+PLUG_API int ULCAPP_CMD_TestCmd(int argc, char **argv)
+{
+    if (argc < 2) {
+        return -1;
+    }
+
+    ULCAPP_Tcmd(argc-2, argv+2);
     return 0;
 }
 

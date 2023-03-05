@@ -12,8 +12,8 @@ extern "C"
 
 
 #define PWatcherRcu_Call RcuEngine_Call
-#define PWatcherRcu_Malloc RcuEngine_Malloc
-#define PWatcherRcu_Free RcuEngine_Free
+#define PWatcherRcu_Malloc MEM_RcuMalloc
+#define PWatcherRcu_Free MEM_RcuFree
 
 #ifdef __cplusplus
 }

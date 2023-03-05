@@ -6,8 +6,9 @@
 #include "bs.h"
 #include "utl/bfunc_utl.h"
 #include "utl/exec_utl.h"
-#include "utl/mybpf_prog.h"
 #include "utl/mybpf_loader.h"
+#include "utl/mybpf_prog.h"
+#include "comp/comp_bpffunc.h"
 
 #define BPFFUNC_MAX 1024
 
@@ -23,12 +24,12 @@ int BPFFUNC_RuntimeInit(void)
         return ret;
     }
 
-    g_bpffunc_ctx = BFUNC_Create(1024);
+    g_bpffunc_ctx = BFUNC_Create(&g_bpffunc_runtime, 1024);
     if (! g_bpffunc_ctx) {
         RETURN(BS_NO_MEMORY);
     }
 
-    return BFUNC_Load(&g_bpffunc_runtime, g_bpffunc_ctx, "conf_dft/plug/bpffunc/bpffunc_config.ini");
+    return BFUNC_Load(g_bpffunc_ctx, "conf_dft/plug/bpffunc/bpffunc_config.ini");
 }
 
 PLUG_API int BPFFUNC_ShowProg(void)
@@ -74,4 +75,9 @@ PLUG_API BFUNC_S * BPFFUNC_GetCtx(void)
     return g_bpffunc_ctx;
 }
 
+PLUG_API int BPFFUNC_Call(UINT id, UINT64 *bpf_ret,
+        UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+{
+    return BFUNC_Call(g_bpffunc_ctx, id, bpf_ret, p1, p2, p3, p4, p5);
+}
 

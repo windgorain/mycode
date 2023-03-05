@@ -239,9 +239,12 @@ aux_source_directory(./load_dbs SRC)
 IF (USE_XDP)
 aux_source_directory(./afxdp SRC)
 ENDIF()
+
+
 IF(USE_KLC)
 aux_source_directory(./klc SRC)
 ENDIF()
+
 add_library(util ${SRC})
 set_property(TARGET util PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(util PRIVATE USE_BS)

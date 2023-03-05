@@ -429,7 +429,9 @@ static BS_WALK_RET_E scm_Timeout(IN INT iSocketId, IN UINT uiEvent, IN USER_HAND
     SCM_NODE_S *pstNode, *pstTmp;
     ULONG now;
 
-    read(iSocketId, buf, sizeof(buf));
+    if (read(iSocketId, buf, sizeof(buf)) <= 0) {
+        BS_DBGASSERT(0);
+    }
 
     now = TM_SecondsFromInit();
 

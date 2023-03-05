@@ -66,7 +66,9 @@ char * fakecert_build_by_cert(void *cert, char *host_name)
     FakeCert_BuildByCert(&g_trusted_ctrl, cert);
     PKI_SaveCertToPemFile(cert, cert_name);
     sprintf(cert_name, "cat trusted_chain.crt >> trusted/%s.crt", host_name);
-    system(cert_name);
+    if (system(cert_name) < 0) {
+        return NULL;
+    }
 
     sprintf(cert_name, "untrusted/%s.crt", host_name);
     FakeCert_BuildByCert(&g_untrusted_ctrl, cert);
@@ -106,11 +108,10 @@ int fakecert_create_by_hostname(char *host_name)
     }
     PKI_SaveCertToPemFile(cert, cert_name);
     sprintf(cert_name, "cat trusted_chain.crt >> trusted/%s.crt", host_name);
-    system(cert_name);
-
+    int ret  = system(cert_name);
     X509_free(cert);
 
-    return 0;
+    return ret;
 }
 
 /* 获取得到realcert，再根据realcert伪造证书 */

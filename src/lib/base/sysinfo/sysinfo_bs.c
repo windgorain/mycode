@@ -75,7 +75,9 @@ BS_STATUS SYSINFO_Show(IN UINT ulArgc, IN UCHAR **argv)
     v = "Debug";
 #endif
 
-    FILE_GET_CURRENT_DIRECTORY(szWorkDir, sizeof(szWorkDir));
+    if (FILE_GET_CURRENT_DIRECTORY(szWorkDir, sizeof(szWorkDir)) == NULL) {
+        szWorkDir[0] = '\0';
+    }
     
     EXEC_OutInfo(
         "-------------------------------------------------------------\r\n"
@@ -120,7 +122,9 @@ BS_STATUS SYSINFO_SetArgv(IN UINT uiArgc, IN CHAR **ppcArgv)
 
 static void sysinfo_init()
 {
-    FILE_GET_CURRENT_DIRECTORY(g_szSysInfoInitWorkDir, sizeof(g_szSysInfoInitWorkDir) - 1);
+    if (FILE_GET_CURRENT_DIRECTORY(g_szSysInfoInitWorkDir, sizeof(g_szSysInfoInitWorkDir) - 1) == NULL) {
+        g_szSysInfoInitWorkDir[0] = '\0';
+    }
 }
 
 CONSTRUCTOR(init) {

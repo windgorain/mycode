@@ -41,8 +41,9 @@ struct s2ip_tcp_hdr {
     unsigned short tcp_urp;   /**< TCP urgent pointer, if any. */
 } __attribute__((__packed__));
 
-static inline unsigned short s2ip_get_16b_sum(unsigned short *ptr16, unsigned short nr)
+static inline unsigned short s2ip_get_16b_sum(void *ptr, unsigned short nr)
 {
+    unsigned short *ptr16 = ptr;
     unsigned int sum = 0;
     while (nr > 1)
     {
@@ -79,7 +80,7 @@ static inline void s2ip_fill_ip_hdr(S2IP_S *ctrl, struct s2ip_ipv4_hdr *ip, unsi
 	ip->src_addr = ctrl->sip;
 	ip->dst_addr = ctrl->dip;
 	ip->hdr_checksum = 0;
-    cksum = s2ip_get_16b_sum((unsigned short*)ip, (ip->version_ihl & 0xf) * 4);
+    cksum = s2ip_get_16b_sum(ip, (ip->version_ihl & 0xf) * 4);
     ip->hdr_checksum = (unsigned short)((cksum == 0xffff)?cksum:~cksum);
 }
 

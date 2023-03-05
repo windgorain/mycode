@@ -25,10 +25,12 @@ VOID RAND_Entropy(IN UINT uiEntropy);
 /* 生成一段随机内存 */
 void RAND_Mem(OUT UCHAR *buf, int len);
 
-static inline UINT RAND_FastGet(UINT *seed)
+static inline UINT RAND_FastGet(UINT *seedp)
 {
-    *seed = *seed * 214013 + 2531011;
-    return *seed;
+	*seedp ^= (*seedp << 13);
+	*seedp ^= (*seedp >> 17);
+	*seedp ^= (*seedp << 5);
+	return *seedp;
 }
 
 #ifdef __cplusplus

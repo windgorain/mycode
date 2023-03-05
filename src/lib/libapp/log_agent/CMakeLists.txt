@@ -8,4 +8,3 @@ aux_source_directory(./conf SRC)
 aux_source_directory(./cmd SRC)
 set(NAME logagent)
 INCLUDE(../my_libapp.txt)
-

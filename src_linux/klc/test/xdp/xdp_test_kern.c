@@ -24,7 +24,7 @@ static inline int _test_input(struct xdp_md *ctx, char *data, char *data_end)
 
     MLB_CFG_S *cfg = bpf_map_lookup_elem(&g_test_cfg_tbl, &id);
     if (! cfg) {
-        BPF_PrintSString("Cat't lookup elem \n");
+        BPF_Print("Cat't lookup elem \n");
         return XDP_PASS;
     }
 

@@ -28,8 +28,7 @@
 #define S_ISSOCK(m)	(((m) & S_IFMT) == S_IFSOCK)
 #endif
 
-typedef struct
-{
+typedef struct {
     UINT64 uiFileLen;   /* 文件长度 */
     UCHAR *pucFileData; /* 文件数据. 其内存长度比文件长度多1,最后添了一个'\0' */
 }FILE_MEM_S;

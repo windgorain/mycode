@@ -19,6 +19,7 @@ int ULCAPP_RuntimeSave(HANDLE hFile);
 void ULCAPP_ShowMap(void);
 void ULCAPP_DumpMap(int map_fd);
 void ULCAPP_ShowProg(void);
+void ULCAPP_Tcmd(int argc, char **argv);
 
 #ifdef __cplusplus
 }

@@ -23,6 +23,7 @@
 
 #define MEM_Malloc(uiSize)  _mem_Malloc(uiSize, __FILE__,  __LINE__)
 #define MEM_Free(pMem)  _mem_Free((VOID*)(pMem), __FILE__, __LINE__)
+#define MEM_FREE_NULL(pMem) do {if (pMem) {MEM_Free(pMem);(pMem) = NULL;}}while(0)
 #define MEM_ZMalloc(ulSize)  _mem_MallocWithZero(ulSize, __FILE__,  __LINE__)
 #define MEM_MallocAndCopy(pSrc,uiSrcLen,uiMallocLen) _mem_MallocAndCopy(pSrc,uiSrcLen,uiMallocLen,__FILE__,__LINE__)
 
@@ -108,6 +109,18 @@ static inline VOID * _mem_MallocAndCopy
     return pMem;
 }
 
+static inline int MEM_Cmp(IN UCHAR *pucMem1, IN UINT uiMem1Len, IN UCHAR *pucMem2, IN UINT uiMem2Len)
+{
+    UINT uiCmpLen = MIN(uiMem1Len, uiMem2Len);
+
+    int ret = memcmp(pucMem1, pucMem2, uiCmpLen);
+    if (ret) {
+        return ret;
+    }
+
+    return (int)uiMem1Len - (int)uiMem2Len;
+}
+
 void * _mem_rcu_malloc(IN UINT uiSize, const char *file, int line);
 #define MEM_RcuMalloc(size) _mem_rcu_malloc(size, __FILE__, __LINE__)
 
@@ -126,8 +139,6 @@ void * MEM_CaseFind(void *pMem, UINT ulMemLen, void *pMemToFind, UINT ulMemToFin
 void * MEM_FindOne(void *mem, UINT mem_len, UCHAR to_find);
 
 void * MEM_FindOneOf(void *mem, UINT mem_len, void *to_finds, UINT to_finds_len);
-
-INT MEM_Cmp(IN UCHAR *pucMem1, IN UINT uiMem1Len, IN UCHAR *pucMem2, IN UINT uiMem2Len);
 
 int MEM_CaseCmp(UCHAR *pucMem1, UINT uiMem1Len, UCHAR *pucMem2, UINT uiMem2Len);
 
@@ -159,10 +170,11 @@ int MEM_IsFF(void *data, int size);
 
 void MEM_ZeroByUlong(void *data, int count);
 
-int MEM_Sprint(IN UCHAR *pucMem, IN UINT uiLen, OUT char *buf, int buf_size);
-
+int MEM_SprintCFromat(void *mem, UINT len, OUT char *buf, int buf_size);
+int MEM_Sprint(void *pucMem, UINT uiLen, OUT char *buf, int buf_size);
 typedef void (*PF_MEM_PRINT_FUNC)(const char *fmt, ...);
-void MEM_Print(UCHAR *pucMem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */);
+void MEM_Print(void *pucMem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */);
+void MEM_PrintCFormat(void *mem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */);
 
 /* 将内存中的src字符替换为dst, 返回替换了多少个字符 */
 int MEM_ReplaceChar(void *data, int len, UCHAR src, UCHAR dst);

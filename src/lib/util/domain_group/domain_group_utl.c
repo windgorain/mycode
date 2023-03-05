@@ -76,7 +76,9 @@ void DomainGroup_Destroy(DOMAIN_GROUP_HANDLE pool)
 
     while ((head = ListRule_GetNextList(pool, NULL))) {
         int ret = _domain_group_del_list(pool, head->pstListRule);
-        BS_DBGASSERT(ret == 0);
+        if (ret < 0) {
+            BS_DBGASSERT(ret == 0);
+        }
     }
 
     ListRule_Destroy(pool, NULL, NULL);

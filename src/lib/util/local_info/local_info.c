@@ -143,7 +143,9 @@ PLUG_HIDE BS_STATUS LOCAL_INFO_ExpandToHostPath(CHAR *pszPath /* 相对路径 */
         return BS_ERR;
     }
 
-    sprintf(szLocalPath, "%s/%s", pszHostPath, pszPath);
+    if (SNPRINTF(szLocalPath, FILE_MAX_PATH_LEN + 1, "%s/%s", pszHostPath, pszPath) < 0) {
+        RETURN(BS_ERR);
+    }
 
     return BS_OK;
 }
@@ -163,7 +165,9 @@ PLUG_HIDE BS_STATUS LOCAL_INFO_ExpandToConfPath(CHAR *pszPath /* 相对路径 */
         return BS_ERR;
     }
 
-    sprintf(szPath, "%s/%s", pCfgPath, pszPath);
+    if (SNPRINTF(szPath, FILE_MAX_PATH_LEN + 1, "%s/%s", pCfgPath, pszPath) < 0) {
+        RETURN(BS_ERR);
+    }
 
     return BS_OK;
 }
@@ -183,7 +187,9 @@ PLUG_HIDE BS_STATUS LOCAL_INFO_ExpandToSavePath(CHAR *pszPath /* 相对路径 */
         return BS_ERR;
     }
 
-    sprintf(szPath, "%s/%s", path, pszPath);
+    if (SNPRINTF(szPath, FILE_MAX_PATH_LEN+1, "%s/%s", path, pszPath) < 0) {
+        RETURN(BS_ERR);
+    }
 
     return BS_OK;
 }

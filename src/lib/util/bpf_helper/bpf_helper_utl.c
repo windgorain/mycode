@@ -1,8 +1,9 @@
-/*================================================================
-*   Created by LiXingang
-*   Description: 
+/******************************************************************************
+* Copyright (C), Xingang.Li
+* Author:      Xingang.Li  Version: 1.0  Date: 2017-10-3
+* Description: 
 *
-================================================================*/
+******************************************************************************/
 #include "bs.h"
 #include "utl/time_utl.h"
 #include "utl/rand_utl.h"
@@ -10,7 +11,35 @@
 #include "utl/bpf_helper_utl.h"
 #include "utl/umap_utl.h"
 
-static long _bpf_helper_probe_read(void *dst, U32 size, const void *unsafe_ptr)
+#define BPF_BASE_HELPER_COUNT 256
+#define BPF_BASE_HELPER_END (BPF_BASE_HELPER_COUNT)
+
+#define BPF_SYS_HELPER_START 10000
+#define BPF_SYS_HELPER_COUNT 256
+#define BPF_SYS_HELPER_END (BPF_SYS_HELPER_START + BPF_SYS_HELPER_COUNT)
+
+#define BPF_USER_HELPER_START 20000
+#define BPF_USER_HELPER_COUNT 256
+#define BPF_USER_HELPER_END (BPF_USER_HELPER_START + BPF_USER_HELPER_COUNT)
+
+static void * g_bpf_user_helpers[BPF_USER_HELPER_COUNT];
+
+void * bpf_map_lookup_elem(void *map, const void *key)
+{
+    return UMAP_LookupElem(map, key);
+}
+
+long bpf_map_update_elem(void *map, const void *key, const void *value, u64 flags)
+{
+    return UMAP_UpdateElem(map, key, value, flags);
+}
+
+long bpf_map_delete_elem(void *map, const void *key)
+{
+    return UMAP_DeleteElem(map, key);
+}
+
+long bpf_probe_read(void *dst, U32 size, const void *unsafe_ptr)
 {
     if ((! dst) || (! unsafe_ptr)) {
         return -1;
@@ -21,43 +50,38 @@ static long _bpf_helper_probe_read(void *dst, U32 size, const void *unsafe_ptr)
     return 0;
 }
 
-static U64 _bpf_helper_ktime_get_ns(void)
+u64 bpf_ktime_get_ns(void)
 {
     return TM_NsFromInit();
 }
 
 /* macos-arm系统调用约定和arm标准不一致, 需要特殊处理 */
 #if ((defined IN_MAC) || (defined __ARM__))
-static long _bpf_helper_trace_printk(char *fmt, U32 fmt_size, void *p1, void *p2, void *p3)
+long bpf_trace_printk(const char *fmt, u32 fmt_size, void *p1, void *p2, void *p3)
 {
     printf(fmt, p1, p2, p3);
     return 0;
 }
 #else
-static long _bpf_helper_trace_printk(char *fmt, U32 fmt_size, ...)
+long bpf_trace_printk(const char *fmt, u32 fmt_size, ...)
 {
     va_list args;
 	int len;
-    char buf[1024];
 
 	va_start(args, fmt_size);
-    len = vsnprintf(buf, sizeof(buf), fmt, args);
+    len = vprintf(fmt, args);
 	va_end(args);
-
-    if (len > 0) {
-        printf("%s", buf);
-    }
 
 	return len;
 }
 #endif
 
-static U32 _bpf_helper_get_prandom_u32(void)
+u32 bpf_get_prandom_u32(void)
 {
     return RAND_Get();
 }
 
-static U32 _bpf_helper_get_smp_processor_id(void)
+u32 bpf_get_smp_processor_id(void)
 {
 #ifdef IN_LINUX
     return sched_getcpu();
@@ -66,51 +90,51 @@ static U32 _bpf_helper_get_smp_processor_id(void)
 #endif
 }
 
-static long _bpf_helper_skb_store_bytes(void *skb, U32 offset, void *from, U32 len, U64 flags)
+long bpf_skb_store_bytes(void *skb, u32 offset, const void *from, u32 len, u64 flags)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-static long _bpf_helper_l3_csum_replace(void *skb, U32 offset, U64 from, U64 to, U64 size)
+long bpf_l3_csum_replace(void *skb, u32 offset, u64 from, u64 to, u64 size)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-static long _bpf_helper_l4_csum_replace(void *skb, U32 offset, U64 from, U64 to, U64 flags)
+long bpf_l4_csum_replace(void *skb, u32 offset, u64 from, u64 to, u64 flags)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-static long _bpf_helper_tail_call(void *ctx, void *prog_array_map, U32 index)
+long bpf_tail_call(void *ctx, void *prog_array_map, u32 index)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-static long _bpf_helper_clone_redirect(void *skb, U32 ifindex, U64 flags)
+long bpf_clone_redirect(void *skb, u32 ifindex, u64 flags)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-static U64 _bpf_helper_get_current_pid_tgid(void)
+u64 bpf_get_current_pid_tgid(void)
 {
     UINT64 tgid = PROCESS_GetPid();
     UINT64 tid = PROCESS_GetTid();
     return (tgid << 32) | tid;
 }
 
-static U64 _bpf_helper_get_current_uid_gid(void)
+u64 bpf_get_current_uid_gid(void)
 {
     UINT64 gid = getgid();
     UINT64 uid = getuid();
     return (gid << 32) | uid;
 }
 
-static long _bpf_helper_get_current_comm(OUT void *buf, U32 size_of_buf)
+long bpf_get_current_comm(void *buf, u32 size_of_buf)
 {
     char *self_name = SYSINFO_GetSlefName();
     if (! self_name) {
@@ -122,77 +146,102 @@ static long _bpf_helper_get_current_comm(OUT void *buf, U32 size_of_buf)
     return 0;
 }
 
-static U32 _bpf_helper_get_cgroup_classid(void *skb)
+u32 bpf_get_cgroup_classid(void *skb)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-static long _bpf_helper_skb_vlan_push(void *skb, U16 vlan_proto, U16 vlan_tci)
+long bpf_skb_vlan_push(void *skb, u16 vlan_proto, u16 vlan_tci)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-static long _bpf_helper_skb_vlan_pop(void *skb)
+long bpf_skb_vlan_pop(void *skb)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
+long bpf_skb_get_tunnel_key(void *skb, void *key, u32 size, u64 flags)
+{
+    BS_WARNNING(("TODO"));
+    return -1;
+}
 
-void * g_bpf_user_helpers[BPF_USER_HELPER_COUNT];
+long bpf_skb_set_tunnel_key(void *skb, void *key, u32 size, u64 flags)
+{
+    BS_WARNNING(("TODO"));
+    return -1;
+}
 
-const void * g_bpf_base_helpers[BPF_BASE_HELPER_MAX] = {
+u64 bpf_perf_event_read(void *map, u64 flags)
+{
+    BS_WARNNING(("TODO"));
+    return -1;
+}
+
+long bpf_strtol(const char *buf, size_t buf_len, u64 flags, long *res)
+{
+    char *end;
+    *res = strtol(buf, &end, flags);
+    return end - buf;
+}
+
+static const void * g_bpf_base_helpers[BPF_BASE_HELPER_END] = {
     [0] = NULL,
     [1] = UMAP_LookupElem,
     [2] = UMAP_UpdateElem,
     [3] = UMAP_DeleteElem,
-    [4] = _bpf_helper_probe_read,
-    [5] = _bpf_helper_ktime_get_ns,
-    [6] = _bpf_helper_trace_printk,
-    [7] = _bpf_helper_get_prandom_u32,
-    [8] = _bpf_helper_get_smp_processor_id,
-    [9] = _bpf_helper_skb_store_bytes,
-    [10] = _bpf_helper_l3_csum_replace,
-    [11] = _bpf_helper_l4_csum_replace,
-    [12] = _bpf_helper_tail_call,
-    [13] = _bpf_helper_clone_redirect,
-    [14] = _bpf_helper_get_current_pid_tgid,
-    [15] = _bpf_helper_get_current_uid_gid,
-    [16] = _bpf_helper_get_current_comm,
-    [17] = _bpf_helper_get_cgroup_classid,
-    [18] = _bpf_helper_skb_vlan_push,
-    [19] = _bpf_helper_skb_vlan_pop,
+    [4] = bpf_probe_read,
+    [5] = bpf_ktime_get_ns,
+    [6] = bpf_trace_printk,
+    [7] = bpf_get_prandom_u32,
+    [8] = bpf_get_smp_processor_id,
+    [9] = bpf_skb_store_bytes,
+    [10] = bpf_l3_csum_replace,
+    [11] = bpf_l4_csum_replace,
+    [12] = bpf_tail_call,
+    [13] = bpf_clone_redirect,
+    [14] = bpf_get_current_pid_tgid,
+    [15] = bpf_get_current_uid_gid,
+    [16] = bpf_get_current_comm,
+    [17] = bpf_get_cgroup_classid,
+    [18] = bpf_skb_vlan_push,
+    [19] = bpf_skb_vlan_pop,
+    [20] = bpf_skb_get_tunnel_key,
+    [21] = bpf_skb_set_tunnel_key,
+    [22] = bpf_perf_event_read,
+    [105] = bpf_strtol,
 };
 
-/* 返回bpf helper的table指针 */
-void * BpfHelper_BaseHelper(void)
+static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
+    [0] = malloc,
+    [1] = free,
+    [2] = strncmp,
+};
+
+UINT64 BpfHelper_BaseHelper(UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
-    return g_bpf_base_helpers;
+    return 0;
 }
 
 /* 返回base helper table的size, 表示最多可以容纳多少个元素 */
 UINT BpfHelper_BaseSize(void)
 {
-    return BPF_BASE_HELPER_MAX;
-}
-
-/* 返回user helper table的size, 表示最多可以容纳多少个元素 */
-UINT BpfHelper_UserSize(void)
-{
-    return BPF_USER_HELPER_COUNT;
+    return BPF_BASE_HELPER_COUNT;
 }
 
 /* 根据id获取helper函数指针 */
 PF_BPF_HELPER_FUNC BpfHelper_GetFunc(UINT id)
 {
-    if (id < BPF_BASE_HELPER_MAX) {
+    if (id < BPF_BASE_HELPER_END) {
         return g_bpf_base_helpers[id];
-    }
-
-    if ((id >= BPF_USER_HELPER_MIN) && (id < BPF_USER_HELPER_MAX)) {
-        return g_bpf_user_helpers[id - BPF_USER_HELPER_MIN];
+    } else if ((id >= BPF_SYS_HELPER_START) && (id < BPF_SYS_HELPER_END)) {
+        return g_bpf_sys_helpers[id - BPF_SYS_HELPER_START];
+    } else if ((id >= BPF_USER_HELPER_START) && (id < BPF_USER_HELPER_END)) {
+        return g_bpf_user_helpers[id - BPF_USER_HELPER_START];
     }
 
     return NULL;
@@ -200,16 +249,11 @@ PF_BPF_HELPER_FUNC BpfHelper_GetFunc(UINT id)
 
 int BpfHelper_SetUserFunc(UINT id, void *func)
 {
-    /* 低空间留给base help, 不可以被set */
-    if (id < BPF_USER_HELPER_MIN) {
+    if ((BPF_USER_HELPER_START <= id) && (id < BPF_USER_HELPER_END)) {
+        g_bpf_user_helpers[id - BPF_USER_HELPER_START] = func;
+    } else {
         RETURN(BS_BAD_PARA);
     }
-
-    if (id >= BPF_USER_HELPER_MAX) { 
-        RETURN(BS_BAD_PARA);
-    }
-
-    g_bpf_user_helpers[id - BPF_USER_HELPER_MIN] = func;
 
     return 0;
 }

@@ -1,301 +1,298 @@
-/*================================================================
+/*********************************************************
 *   Created by LiXingang, Copyright LiXingang
 *   Date: 2017.10.2
 *   Description: 
 *
-================================================================*/
+********************************************************/
 #include "bs.h"
 #include "utl/ufd_utl.h"
 #include "utl/umap_utl.h"
+#include "utl/mybpf_loader.h"
 #include "utl/mybpf_prog.h"
+#include "utl/mybpf_insn.h"
 #include "utl/bpf_helper_utl.h"
+#include "utl/num_limits.h"
 #include "mybpf_osbase.h"
 #include "mybpf_def.h"
+#include "mybpf_verifier_inner.h"
 
-int MYBPF_PROG_ReplaceMapFdWithMapPtr(MYBPF_RUNTIME_S *runtime, MYBPF_PROG_NODE_S *prog)
+const struct tnum tnum_unknown = { .value = 0, .mask = -1 };
+
+/* Reset the min/max bounds of a register */
+static void __mark_reg_unbounded(struct bpf_reg_state *reg)
 {
-    struct bpf_insn *insn = (void*)prog->insn;
-    int insn_cnt = prog->insn_len / sizeof(*insn);
-    int i, j;
-    int fd;
+	reg->smin_value = S64_MIN;
+	reg->smax_value = S64_MAX;
+	reg->umin_value = 0;
+	reg->umax_value = U64_MAX;
 
-	for (i = 0; i < insn_cnt; i++, insn++) {
-		if (BPF_CLASS(insn->code) == BPF_LDX &&
-		    (BPF_MODE(insn->code) != BPF_MEM || insn->imm != 0)) {
-            RETURNI(BS_ERR, "pc=%d, code=0x%x, dst=%u, src=%u, off=%u, imm=%u",
-                    i, insn->code, insn->dst_reg, insn->src_reg, insn->off, insn->imm);
-        }
-        if (BPF_CLASS(insn->code) == BPF_STX &&
-                ((BPF_MODE(insn->code) != BPF_MEM &&
-                  BPF_MODE(insn->code) != BPF_XADD) || insn->imm != 0)) {
-            RETURNI(BS_ERR, "pc=%d, code=0x%x, dst=%u, src=%u, off=%u, imm=%u",
-                    i, insn->code, insn->dst_reg, insn->src_reg, insn->off, insn->imm);
-        }
-        if (insn[0].code == (BPF_LD | BPF_IMM | BPF_DW)) {
-            UMAP_HEADER_S *map;
-            U64 addr;
-
-			if (i == insn_cnt - 1 || insn[1].code != 0 ||
-			    insn[1].dst_reg != 0 || insn[1].src_reg != 0 ||
-			    insn[1].off != 0) {
-                RETURNI(BS_ERR, "pc=%d, code=0x%x, dst=%u, src=%u, off=%u, imm=%u",
-                        i, insn->code, insn->dst_reg, insn->src_reg, insn->off, insn->imm);
-			}
-
-			if (insn[0].src_reg == 0)
-				goto next_insn;
-
-            /* In final convert_pseudo_ld_imm64() step, this is
-             * converted into regular 64-bit imm load insn.
-             */
-            if ((insn[0].src_reg != BPF_PSEUDO_MAP_FD && insn[0].src_reg != BPF_PSEUDO_MAP_VALUE)
-                    || (insn[0].src_reg == BPF_PSEUDO_MAP_FD && insn[1].imm != 0)) {
-                RETURNI(BS_ERR, "pc=%d, code=0x%x, dst=%u, src=%u, off=%u, imm=%u",
-                        i, insn->code, insn->dst_reg, insn->src_reg, insn->off, insn->imm);
-			}
-
-            fd = insn->imm;
-
-            map = UMAP_RefByFd(runtime->ufd_ctx, fd);
-			if (! map) {
-                RETURNI(BS_ERR, "pc=%d, code=0x%x, dst=%u, src=%u, off=%u, imm=%u",
-                        i, insn->code, insn->dst_reg, insn->src_reg, insn->off, insn->imm);
-			}
-
-			if (insn->src_reg == BPF_PSEUDO_MAP_FD) {
-				addr = (unsigned long)map;
-			} else {
-				U32 off = insn[1].imm;
-
-				if (off >= BPF_MAX_VAR_OFF) {
-                    UFD_DecRef(runtime->ufd_ctx, fd);
-                    RETURNI(BS_ERR, "pc=%d, code=0x%x, dst=%u, src=%u, off=%u, imm=%u",
-                            i, insn->code, insn->dst_reg, insn->src_reg, insn->off, insn->imm);
-                }
-
-                int err = UMAP_DirectValue(map, &addr, off);
-                if (err) {
-                    UFD_DecRef(runtime->ufd_ctx, fd);
-					return err;
-				}
-
-				addr += off;
-			}
-
-			insn[0].imm = (U32)addr;
-			insn[1].imm = addr >> 32;
-
-			/* check whether we recorded this map already */
-			for (j = 0; j < prog->used_map_cnt; j++) {
-				if (prog->used_maps[j] == fd) {
-                    UFD_DecRef(runtime->ufd_ctx, fd);
-					goto next_insn;
-				}
-			}
-
-			if (prog->used_map_cnt >= MYBPF_PROG_MAX_MAPS) {
-                UFD_DecRef(runtime->ufd_ctx, fd);
-                RETURNI(BS_ERR, "pc=%d, code=0x%x, dst=%u, src=%u, off=%u, imm=%u",
-                        i, insn->code, insn->dst_reg, insn->src_reg, insn->off, insn->imm);
-            }
-
-            prog->used_maps[prog->used_map_cnt++] = fd;
-
-next_insn:
-            insn++;
-            i++;
-			continue;
-		}
-    }
-
-    return 0;
+	reg->s32_min_value = S32_MIN;
+	reg->s32_max_value = S32_MAX;
+	reg->u32_min_value = 0;
+	reg->u32_max_value = U32_MAX;
 }
 
-static UINT _mybpf_prog_xdp_convert_ctx_access(BOOL_T is_write,
-				  IN struct bpf_insn *si,
-				  OUT struct bpf_insn *insn_buf,
-				  OUT UINT *target_size)
+/* Mark a register as having a completely unknown (scalar) value. */
+static void __mark_reg_unknown(const struct bpf_verifier_env *env,
+			       struct bpf_reg_state *reg)
 {
-	struct bpf_insn *insn = insn_buf;
+	/*
+	 * Clear type, id, off, and union(map_ptr, range) and
+	 * padding between 'type' and union
+	 */
+	memset(reg, 0, offsetof(struct bpf_reg_state, var_off));
+	reg->type = SCALAR_VALUE;
+	reg->var_off = tnum_unknown;
+	reg->frameno = 0;
+	reg->precise = env->subprog_cnt > 1 || !env->bpf_capable;
+	__mark_reg_unbounded(reg);
+}
 
-	switch (si->off) {
-	case offsetof(struct xdp_md, data):
-		*insn++ = BPF_LDX_MEM(BPF_FIELD_SIZEOF(struct xdp_buff, data),
-				      si->dst_reg, si->src_reg,
-				      offsetof(struct xdp_buff, data));
-		break;
-	case offsetof(struct xdp_md, data_meta):
-		*insn++ = BPF_LDX_MEM(BPF_FIELD_SIZEOF(struct xdp_buff, data_meta),
-				      si->dst_reg, si->src_reg,
-				      offsetof(struct xdp_buff, data_meta));
-		break;
-	case offsetof(struct xdp_md, data_end):
-		*insn++ = BPF_LDX_MEM(BPF_FIELD_SIZEOF(struct xdp_buff, data_end),
-				      si->dst_reg, si->src_reg,
-				      offsetof(struct xdp_buff, data_end));
-		break;
-	case offsetof(struct xdp_md, ingress_ifindex):
-		*insn++ = BPF_LDX_MEM(BPF_FIELD_SIZEOF(struct xdp_buff, ingress_ifindex),
-				      si->dst_reg, si->src_reg,
-				      offsetof(struct xdp_buff, ingress_ifindex));
-		break;
-	case offsetof(struct xdp_md, rx_queue_index):
-		*insn++ = BPF_LDX_MEM(BPF_FIELD_SIZEOF(struct xdp_buff, rx_queue_index),
-				      si->dst_reg, si->src_reg,
-				      offsetof(struct xdp_buff, rx_queue_index));
-		break;
+/* This helper doesn't clear reg->id */
+static void ___mark_reg_known(struct bpf_reg_state *reg, u64 imm)
+{
+	reg->var_off = tnum_const(imm);
+	reg->smin_value = (s64)imm;
+	reg->smax_value = (s64)imm;
+	reg->umin_value = imm;
+	reg->umax_value = imm;
+
+	reg->s32_min_value = (s32)imm;
+	reg->s32_max_value = (s32)imm;
+	reg->u32_min_value = (u32)imm;
+	reg->u32_max_value = (u32)imm;
+}
+
+static void __mark_reg_known(struct bpf_reg_state *reg, u64 imm)
+{
+	/* Clear id, off, and union(map_ptr, range) */
+	memset(((u8 *)reg) + sizeof(reg->type), 0,
+	       offsetof(struct bpf_reg_state, var_off) - sizeof(reg->type));
+	___mark_reg_known(reg, imm);
+}
+
+static void __mark_reg_known_zero(struct bpf_reg_state *reg)
+{
+	__mark_reg_known(reg, 0);
+}
+
+static void mark_reg_known_zero(struct bpf_verifier_env *env,
+				struct bpf_reg_state *regs, u32 regno)
+{
+    BS_DBGASSERT(regno < MAX_BPF_REG);
+	__mark_reg_known_zero(regs + regno);
+}
+
+
+static void mark_reg_unknown(struct bpf_verifier_env *env,
+			     struct bpf_reg_state *regs, u32 regno)
+{
+    BS_DBGASSERT(regno < MAX_BPF_REG);
+	__mark_reg_unknown(env, regs + regno);
+}
+
+static void __mark_reg_not_init(const struct bpf_verifier_env *env,
+				struct bpf_reg_state *reg)
+{
+	__mark_reg_unknown(env, reg);
+	reg->type = NOT_INIT;
+}
+
+static void mark_reg_not_init(struct bpf_verifier_env *env,
+			      struct bpf_reg_state *regs, u32 regno)
+{
+    BS_DBGASSERT(regno < MAX_BPF_REG);
+	__mark_reg_not_init(env, regs + regno);
+}
+
+#define DEF_NOT_SUBREG	(0)
+static void init_reg_state(struct bpf_verifier_env *env,
+			   struct bpf_func_state *state)
+{
+	struct bpf_reg_state *regs = state->regs;
+	int i;
+
+	for (i = 0; i < MAX_BPF_REG; i++) {
+		mark_reg_not_init(env, regs, i);
+		regs[i].live = REG_LIVE_NONE;
+		regs[i].parent = NULL;
+		regs[i].subreg_def = DEF_NOT_SUBREG;
 	}
 
-	return insn - insn_buf;
+	/* frame pointer */
+	regs[BPF_REG_FP].type = PTR_TO_STACK;
+	mark_reg_known_zero(env, regs, BPF_REG_FP);
+	regs[BPF_REG_FP].frameno = state->frameno;
 }
 
-static void _mybpf_prog_init_reg_state(struct reg_state *regs)
+#define BPF_MAIN_FUNC (-1)
+static void init_func_state(struct bpf_verifier_env *env,
+			    struct bpf_func_state *state,
+			    int callsite, int frameno, int subprogno)
 {
-    int i;
-
-    for (i = 0; i < MAX_BPF_REG; i++) {
-        regs[i].type = NOT_INIT;
-        regs[i].imm = 0;
-        regs[i].map_ptr = NULL;
-    }
-
-    regs[BPF_REG_FP].type = FRAME_PTR;
-    regs[BPF_REG_1].type = PTR_TO_CTX;
+	state->callsite = callsite;
+	state->frameno = frameno;
+	state->subprogno = subprogno;
+	init_reg_state(env, state);
 }
 
-static void _mybpf_prog_mark_regs_alu(struct reg_state *regs, struct bpf_insn *insn)
+static int _mybpf_verifier_init_env(MYBPF_VERIFIER_ENV_S *env, int subprog)
 {
-    UCHAR op = BPF_OP(insn->code);
-    UCHAR src = BPF_SRC(insn->code);
+	MYBPF_VERIFIER_STATE_S *state;
+	struct bpf_reg_state *regs;
 
-    if ((op == BPF_MOV) && (src == BPF_X)) {
-        regs[insn->dst_reg].type = regs[insn->src_reg].type;
-    } else {
-        regs[insn->dst_reg].type = UNKNOWN_VALUE;
+	state = MEM_ZMalloc(sizeof(MYBPF_VERIFIER_STATE_S));
+	if (!state) {
+        RETURN(BS_NO_MEMORY);
     }
+
+	state->frame[0] = MEM_ZMalloc(sizeof(MYBPF_BPF_FUNC_STATE_S));
+	if (!state->frame[0]) {
+		MEM_Free(state);
+        RETURN(BS_NO_MEMORY);
+	}
+
+	env->cur_state = state;
+	init_func_state(env, state->frame[0], BPF_MAIN_FUNC, 0, subprog);
+
+	regs = state->frame[state->curframe]->regs;
+	if (subprog) {
+		for (int i = BPF_REG_1; i <= BPF_REG_5; i++) {
+			if (regs[i].type == PTR_TO_CTX)
+				mark_reg_known_zero(env, regs, i);
+			else if (regs[i].type == SCALAR_VALUE)
+				mark_reg_unknown(env, regs, i);
+			else if (base_type(regs[i].type) == PTR_TO_MEM) {
+				const u32 mem_size = regs[i].mem_size;
+				mark_reg_known_zero(env, regs, i);
+				regs[i].mem_size = mem_size;
+				regs[i].id = ++env->id_gen;
+			}
+		}
+	} else {
+		regs[BPF_REG_1].type = PTR_TO_CTX;
+		mark_reg_known_zero(env, regs, BPF_REG_1);
+	}
+
+    return 0;
 }
 
-/* 标记寄存器type */
-static void _mybpf_prog_mark_regs(struct reg_state *regs, struct bpf_insn *insn)
+static void free_func_state(struct bpf_func_state *state)
 {
-    UCHAR class = BPF_CLASS(insn->code);
-
-    switch (class) {
-        case BPF_ALU:
-        case BPF_ALU64:
-            _mybpf_prog_mark_regs_alu(regs, insn);
-            break;
-        case BPF_LD:
-        case BPF_LDX:
-            regs[insn->dst_reg].type = UNKNOWN_VALUE;
-            break;
-    }
+	if (!state)
+		return;
+	MEM_Free(state->refs);
+	MEM_Free(state->stack);
+	MEM_Free(state);
 }
 
-/* 是否dword指令 */
-static BOOL_T _mybpf_prog_is_dword_insn(struct bpf_insn *insn)
+static void clear_jmp_history(struct bpf_verifier_state *state)
 {
-    UCHAR class = BPF_CLASS(insn->code);
-
-    if ((class != BPF_LD) && (class != BPF_ST)) {
-        return FALSE;
-    }
-
-    UCHAR size = BPF_SIZE(insn->code);
-    if (size != BPF_DW) {
-        return FALSE;
-    }
-
-    return TRUE;
+	MEM_Free(state->jmp_history);
+	state->jmp_history = NULL;
+	state->jmp_history_cnt = 0;
 }
 
-static void _mybpf_prog_convert_ctx_access(MYBPF_PROG_NODE_S *prog, struct bpf_insn *insn, struct reg_state *regs)
+
+static void free_verifier_state(struct bpf_verifier_state *state,
+				bool free_self)
 {
-    BOOL_T is_write;
-    UINT target_size;
+	int i;
 
-    if (regs[insn->src_reg].type != PTR_TO_CTX) {
-        return;
-    }
-
-    if (insn->code == (BPF_LDX | BPF_MEM | BPF_B) ||
-            insn->code == (BPF_LDX | BPF_MEM | BPF_H) ||
-            insn->code == (BPF_LDX | BPF_MEM | BPF_W) ||
-            insn->code == (BPF_LDX | BPF_MEM | BPF_DW)) {
-        is_write = 0;
-    } else if (insn->code == (BPF_STX | BPF_MEM | BPF_B) ||
-            insn->code == (BPF_STX | BPF_MEM | BPF_H) ||
-            insn->code == (BPF_STX | BPF_MEM | BPF_W) ||
-            insn->code == (BPF_STX | BPF_MEM | BPF_DW)) {
-        is_write = 1;
-    } else {
-        return;
-    }
-
-    _mybpf_prog_xdp_convert_ctx_access(is_write, insn, insn, &target_size);
+	for (i = 0; i <= state->curframe; i++) {
+		free_func_state(state->frame[i]);
+		state->frame[i] = NULL;
+	}
+	clear_jmp_history(state);
+	if (free_self)
+		MEM_Free(state);
 }
 
-int MYBPF_PROG_ConvertCtxAccess(MYBPF_PROG_NODE_S *prog)
+static void free_states(struct bpf_verifier_env *env)
 {
-    struct bpf_insn *insn = (void*)prog->insn;
-    int insn_cnt = prog->insn_len / sizeof(*insn);
-    int i;
-    struct reg_state regs[MAX_BPF_REG];
+	struct bpf_verifier_state_list *sl, *sln;
+	int i;
 
-    _mybpf_prog_init_reg_state(regs);
+	sl = env->free_list;
+	while (sl) {
+		sln = sl->next;
+		free_verifier_state(&sl->state, false);
+		MEM_Free(sl);
+		sl = sln;
+	}
+	env->free_list = NULL;
 
-	for (i = 0; i < insn_cnt; i++, insn++) {
-        _mybpf_prog_mark_regs(regs, insn);
+	if (!env->explored_states)
+		return;
 
-        _mybpf_prog_convert_ctx_access(prog, insn, regs);
+	for (i = 0; i < env->insn_cnt; i++) {
+		sl = env->explored_states[i];
 
-        if (_mybpf_prog_is_dword_insn(insn)) {
-            i++; insn++;
-            continue;
+		while (sl) {
+			sln = sl->next;
+			free_verifier_state(&sl->state, false);
+			MEM_Free(sl);
+			sl = sln;
+		}
+		env->explored_states[i] = NULL;
+	}
+}
+
+static int _mybpf_verifier_do_check(MYBPF_VERIFIER_ENV_S *env, void *insts, int len)
+{
+	int prev_insn_idx = -1;
+	int insn_cnt = len / sizeof(MYBPF_INSN_S);
+	//MYBPF_INSN_S *insns = insts;
+
+    for (;;) {
+        //MYBPF_INSN_S *insn;
+        //u8 class;
+        //int err;
+
+        env->prev_insn_idx = prev_insn_idx;
+        if (env->insn_idx >= insn_cnt) {
+            RETURNI(BS_ERR, "invalid insn idx %d insn_cnt %d\n", env->insn_idx, insn_cnt);
         }
+
+        //insn = &insns[env->insn_idx];
+		//class = BPF_CLASS(insn->opcode);
+
+		if (++env->insn_processed > BPF_COMPLEXITY_LIMIT_INSNS) {
+			RETURNI(BS_OUT_OF_RANGE,
+				"BPF program is too large. Processed %d insn\n",
+				env->insn_processed);
+		}
+
+        //TODO
+
     }
 
     return 0;
 }
 
-UINT64 MYBPF_PROG_HelperBase(UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+int MYBPF_VERIFIER_DoCheck(void *insts, int len/* 字节数 */, int subprog)
 {
-    return 0;
-}
+    MYBPF_VERIFIER_ENV_S the_env = {0};
+    MYBPF_VERIFIER_ENV_S *env = &the_env;
+    int ret;
 
-/* 获取helper函数的offset */
-static UINT _mybpf_prog_get_helper_offset(UINT imm)
-{
-    PF_BPF_HELPER_FUNC helper_func = BpfHelper_GetFunc(imm);
-    if (! helper_func) {
-        return 0;
+    ret = _mybpf_verifier_init_env(env, subprog);
+    if (ret < 0) {
+        return ret;
     }
 
-    return helper_func - MYBPF_PROG_HelperBase;
-}
+    ret = _mybpf_verifier_do_check(env, insts, len);
 
-/* 如果使用MYBPF_Run,就不要调用这个函数. 如果使用MYBPF_RunBpfCode, 就需要调用这个函数 */
-int MYBPF_PROG_FixupBpfCalls(MYBPF_PROG_NODE_S *prog)
-{
-    struct bpf_insn *insn = (void*)prog->insn;
-    int insn_cnt = prog->insn_len / sizeof(struct bpf_insn);
-    int i;
-    int new_imm;
+	if (env->cur_state) {
+		free_verifier_state(env->cur_state, true);
+		env->cur_state = NULL;
+	}
 
-	for (i = 0; i < insn_cnt; i++, insn++) {
-		if (insn->code != (BPF_JMP | BPF_CALL))
-			continue;
-		if (insn->src_reg == BPF_PSEUDO_CALL)
-			continue;
+//	while (!pop_stack(env, NULL, NULL, false));
 
-		new_imm = _mybpf_prog_get_helper_offset(insn->imm);
-        if (! new_imm) {
-            BS_WARNNING(("Not support"));
-            RETURN(BS_NOT_SUPPORT); 
-        }
-		insn->imm = new_imm;
-    }
+	free_states(env);
 
-    return 0;
+	return ret;
+
 }
 

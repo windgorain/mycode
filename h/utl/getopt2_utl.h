@@ -25,6 +25,7 @@ typedef struct
     char opt_short_name; /* opt情况下是short opt name, param情况下无效 */
     char *opt_long_name; /* opt情况下是long opt name, param情况下,是param信息 */
 /*
+    0:  none
    'u': unsigned int 
    's': string, char *
    'b': bool, BOOL_T

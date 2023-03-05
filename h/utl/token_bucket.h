@@ -11,16 +11,14 @@ extern "C"
 #endif
 
 typedef struct {
-    UINT max_count; /* 最大令牌数目 */
-    UINT count;     /* 当前令牌数目 */
-    UINT reserved;
-    UINT64 ts;      /* 上次添加令牌的时间 */
+    uint64_t burst_limit; /* 最大bust数目 */
+    uint64_t speed;       /* 限速 */
+    uint64_t token_count; /* 令牌数目 */
+    uint64_t ts;      /* 上次添加令牌的时间 */
 }TOKEN_BUCKET_S;
 
-void TokenBucket_Init(INOUT TOKEN_BUCKET_S *bucket, UINT max_count);
-
-/* 成功返回TRUE, 失败返回FALSE */
-BOOL_T TokenBucket_Acquire(TOKEN_BUCKET_S *bucket, UINT n);
+void TokenBucket_Init(INOUT TOKEN_BUCKET_S *bucket, uint64_t burst, uint64_t speed);
+uint64_t TokenBucket_Acquire(TOKEN_BUCKET_S *bucket, uint64_t n);
 
 #ifdef __cplusplus
 }

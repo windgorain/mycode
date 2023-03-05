@@ -138,7 +138,10 @@ MCF_HANDLE MCF_Open
 
     if (uiFileSize != 0)
     {
-        fread(pstHead->pucFileContent, 1, (UINT)uiFileSize, fp);
+        if (fread(pstHead->pucFileContent, 1, (UINT)uiFileSize, fp) != uiFileSize) {
+            fclose(fp);
+            return NULL;
+        }
     }
     
     fclose(fp);

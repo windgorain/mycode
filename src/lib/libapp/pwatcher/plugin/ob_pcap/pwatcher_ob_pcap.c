@@ -49,7 +49,7 @@ static void pwatcher_ob_pcap_close(PWATCHER_PCAP_SVR_S *svr)
         svr->pcap_file = NULL;
     }
     if (svr->bpf) {
-        RcuEngine_Free(svr->bpf);
+        MEM_RcuFree(svr->bpf);
         svr->bpf = NULL;
     }
 }
@@ -197,13 +197,13 @@ static int pwatcher_pcap_set_filter(PWATCHER_PCAP_SVR_S *svr, char *cbpf_string)
     PWATCHER_PCPA_BPF_S *bpf = NULL;
 
     if(cbpf_string != NULL) {
-        bpf = RcuEngine_Malloc(sizeof(PWATCHER_PCPA_BPF_S));
+        bpf = MEM_RcuMalloc(sizeof(PWATCHER_PCPA_BPF_S));
         if (NULL == bpf) {
             RETURN(BS_NO_MEMORY);
         }
         if (BS_OK != UBPF_S2j(DLT_RAW, cbpf_string, &bpf->bpf)) {
             EXEC_OutString("Can't compile bpf string \r\n");
-            RcuEngine_Free(bpf);
+            MEM_RcuFree(bpf);
             RETURN(BS_ERR);
         }
     }

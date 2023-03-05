@@ -1,5 +1,4 @@
 /*================================================================
-*   Created by LiXingang
 *   Description: 
 *
 ================================================================*/
@@ -55,7 +54,7 @@ enum {
 
 #ifndef __bpf_call_base_args 
 #define __bpf_call_base_args \
-	((U64 (*)(U64, U64, U64, U64, U64, const struct bpf_insn *)) \
+	((U64 (*)(U64, U64, U64, U64, U64, const MYBPF_INSN_S *)) \
 	 __bpf_call_base)
 #endif
 
@@ -118,22 +117,12 @@ enum {
 	})
 
 #define BPF_LDX_MEM(SIZE, DST, SRC, OFF)			\
-	((struct bpf_insn) {					\
-		.code  = BPF_LDX | BPF_SIZE(SIZE) | BPF_MEM,	\
+	((MYBPF_INSN_S) {					\
+		.opcode  = BPF_LDX | BPF_SIZE(SIZE) | BPF_MEM,	\
 		.dst_reg = DST,					\
 		.src_reg = SRC,					\
 		.off   = OFF,					\
 		.imm   = 0 })
-
-#if 0
-struct bpf_insn {
-	UCHAR code;		/* opcode */
-	UCHAR dst_reg:4;	/* dest register */
-	UCHAR src_reg:4;	/* source register */
-	SHORT off;		/* signed offset */
-	INT imm;		/* signed immediate constant */
-};
-#endif
 
 struct xdp_md {
 	UINT data;
@@ -155,14 +144,57 @@ enum xdp_action {
 
 enum bpf_reg_type {
 	NOT_INIT = 0,		 /* nothing was written into register */
-	UNKNOWN_VALUE,		 /* reg doesn't contain a valid pointer */
+	SCALAR_VALUE,		 /* reg doesn't contain a valid pointer */
 	PTR_TO_CTX,		 /* reg points to bpf_context */
 	CONST_PTR_TO_MAP,	 /* reg points to struct bpf_map */
 	PTR_TO_MAP_VALUE,	 /* reg points to map element value */
-	PTR_TO_MAP_VALUE_OR_NULL,/* points to map elem value or NULL */
-	FRAME_PTR,		 /* reg == frame_pointer */
-	PTR_TO_STACK,		 /* reg == frame_pointer + imm */
-	CONST_IMM,		 /* constant integer value */
+	PTR_TO_MAP_KEY,		 /* reg points to a map element key */
+	PTR_TO_STACK,		 /* reg == frame_pointer + offset */
+	PTR_TO_PACKET_META,	 /* skb->data - meta_len */
+	PTR_TO_PACKET,		 /* reg points to skb->data */
+	PTR_TO_PACKET_END,	 /* skb->data + headlen */
+	PTR_TO_FLOW_KEYS,	 /* reg points to bpf_flow_keys */
+	PTR_TO_SOCKET,		 /* reg points to struct bpf_sock */
+	PTR_TO_SOCK_COMMON,	 /* reg points to sock_common */
+	PTR_TO_TCP_SOCK,	 /* reg points to struct tcp_sock */
+	PTR_TO_TP_BUFFER,	 /* reg points to a writable raw tp's buffer */
+	PTR_TO_XDP_SOCK,	 /* reg points to struct xdp_sock */
+	/* PTR_TO_BTF_ID points to a kernel struct that does not need
+	 * to be null checked by the BPF program. This does not imply the
+	 * pointer is _not_ null and in practice this can easily be a null
+	 * pointer when reading pointer chains. The assumption is program
+	 * context will handle null pointer dereference typically via fault
+	 * handling. The verifier must keep this in mind and can make no
+	 * assumptions about null or non-null when doing branch analysis.
+	 * Further, when passed into helpers the helpers can not, without
+	 * additional context, assume the value is non-null.
+	 */
+	PTR_TO_BTF_ID,
+	/* PTR_TO_BTF_ID_OR_NULL points to a kernel struct that has not
+	 * been checked for null. Used primarily to inform the verifier
+	 * an explicit null check is required for this struct.
+	 */
+	PTR_TO_MEM,		 /* reg points to valid memory region */
+	PTR_TO_BUF,		 /* reg points to a read/write buffer */
+	PTR_TO_PERCPU_BTF_ID,	 /* reg points to a percpu kernel variable */
+	PTR_TO_FUNC,		 /* reg points to a bpf program function */
+	__BPF_REG_TYPE_MAX,
+
+#define	PTR_MAYBE_NULL (0x100)
+#define MEM_RDONLY	   (0x200)
+#define BPF_TYPE_LIMIT		(MEM_RDONLY	| (MEM_RDONLY-1)) /* Max number of all types. */
+
+	/* Extended reg_types. */
+	PTR_TO_MAP_VALUE_OR_NULL	= PTR_MAYBE_NULL | PTR_TO_MAP_VALUE,
+	PTR_TO_SOCKET_OR_NULL		= PTR_MAYBE_NULL | PTR_TO_SOCKET,
+	PTR_TO_SOCK_COMMON_OR_NULL	= PTR_MAYBE_NULL | PTR_TO_SOCK_COMMON,
+	PTR_TO_TCP_SOCK_OR_NULL		= PTR_MAYBE_NULL | PTR_TO_TCP_SOCK,
+	PTR_TO_BTF_ID_OR_NULL		= PTR_MAYBE_NULL | PTR_TO_BTF_ID,
+
+	/* This must be the last entry. Its purpose is to ensure the enum is
+	 * wide enough to hold the higher bits reserved for bpf_type_flag.
+	 */
+	__BPF_REG_TYPE_LIMIT	= BPF_TYPE_LIMIT,
 };
 
 struct reg_state {

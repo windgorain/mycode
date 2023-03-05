@@ -15,6 +15,8 @@ extern "C"
 #define UMAP_UPDATE_NOEXIST	    1 /* create new element if it didn't exist */
 #define UMAP_UPDATE_EXIST	    2 /* update existing element */
 
+#define UMAP_ELF_MAP_MIN_SIZE 20 /* 最小的map size, 包含 type, size_key, size_value, max_elem, flag */
+
 /* 和bpf的map声明结构保持一致 */
 typedef struct {
 	unsigned int type;
@@ -25,9 +27,9 @@ typedef struct {
 }UMAP_ELF_MAP_S;
 
 typedef int (*PF_UMAP_OPEN)(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap);
-typedef void* (*PF_UMAP_LOOKUP_ELEM)(void *map, void *key);
-typedef long (*PF_UMAP_DELETE_ELEM)(void *map, void *key);
-typedef long (*PF_UMAP_UPDATE_ELEM)(void *map, void *key, void *value, U32 flag);
+typedef void* (*PF_UMAP_LOOKUP_ELEM)(void *map, const void *key);
+typedef long (*PF_UMAP_DELETE_ELEM)(void *map, const void *key);
+typedef long (*PF_UMAP_UPDATE_ELEM)(void *map, const void *key, const void *value, U32 flag);
 typedef void* (*PF_UMAP_GETNEXT_KEY)(void *map, void *key, OUT void **next_key);
 typedef long (*PF_UMAP_DIRECT_VALUE)(void *map, OUT U64 *addr, U32 off);
 
@@ -52,7 +54,6 @@ enum {
 
 typedef struct {
     int fd;
-    int map_def_offset; /* 这个map在maps section中的偏移 */
     char map_name[UMAP_NAME_SIZE];
 	UINT type;
 	UINT size_key;
@@ -63,15 +64,15 @@ typedef struct {
 
 char * UMAP_TypeName(unsigned int type);
 int UMAP_RegType(UINT type, UMAP_FUNC_TBL_S *ops);
-int UMAP_Open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap, int map_def_offset, char *map_name);
+int UMAP_Open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap, char *map_name);
 void UMAP_Close(UFD_S *ctx, int fd);
 int UMAP_GetByName(UFD_S *ctx, char *map_name);
 UMAP_HEADER_S * UMAP_GetByFd(UFD_S *ctx, int fd);
 UMAP_HEADER_S * UMAP_RefByFd(UFD_S *ctx, int fd);
 
-void * UMAP_LookupElem(void *map, void *key);
-long UMAP_DeleteElem(void *map, void *key);
-long UMAP_UpdateElem(void *map, void *key, void *value, U32 flag);
+void * UMAP_LookupElem(void *map, const void *key);
+long UMAP_DeleteElem(void *map, const void *key);
+long UMAP_UpdateElem(void *map, const void *key, const void *value, U32 flag);
 void * UMAP_LookupElemByFd(UFD_S *ctx, int fd, void *key);
 long UMAP_DeleteElemByFd(UFD_S *ctx, int fd, void *key);
 long UMAP_UpdataElemByFd(UFD_S *ctx, int fd, void *key, void *value, UINT flag);

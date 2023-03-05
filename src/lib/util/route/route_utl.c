@@ -209,7 +209,9 @@ static int _os_routecmd_Add(unsigned int dst/*net order*/, unsigned int prefix_l
     snprintf(cmd, sizeof(cmd), "ip route add %d.%d.%d.%d/%d via  %d.%d.%d.%d",
             dst_char[0], dst_char[1], dst_char[2], dst_char[3], prefix_len,
             nexthop_char[0], nexthop_char[1], nexthop_char[2], nexthop_char[3]);
-    system(cmd);
+    if (system(cmd)) {
+        RETURN(BS_ERR);
+    }
 
     return BS_OK;
 }
@@ -222,7 +224,9 @@ static int _os_routecmd_Del(unsigned int dst/*net order*/, unsigned int prefix_l
 
     snprintf(cmd, sizeof(cmd), "ip route del %d.%d.%d.%d/%d",
             dst_char[0], dst_char[1], dst_char[2], dst_char[3], prefix_len);
-    system(cmd);
+    if (system(cmd)) {
+        RETURN(BS_ERR);
+    }
 
     return BS_OK;
 }
@@ -387,11 +391,15 @@ static int _os_routecmd_Add(unsigned int dst/*net order*/, unsigned int prefix_l
     snprintf(cmd, sizeof(cmd), "route -n add -net %d.%d.%d.%d/%d %d.%d.%d.%d > /dev/null 2>&1",
             dst_char[0], dst_char[1], dst_char[2], dst_char[3], prefix_len,
             nexthop_char[0], nexthop_char[1], nexthop_char[2], nexthop_char[3]);
-    system(cmd);
+    if (system(cmd)) {
+        RETURN(BS_ERR);
+    }
     snprintf(cmd, sizeof(cmd), "route -n change -net %d.%d.%d.%d/%d %d.%d.%d.%d > /dev/null 2>&1",
             dst_char[0], dst_char[1], dst_char[2], dst_char[3], prefix_len,
             nexthop_char[0], nexthop_char[1], nexthop_char[2], nexthop_char[3]);
-    system(cmd);
+    if (system(cmd)) {
+        RETURN(BS_ERR);
+    }
 
     return BS_OK;
 }
@@ -403,7 +411,9 @@ static int _os_routecmd_Del(unsigned int dst/*net order*/, unsigned int prefix_l
 
     snprintf(cmd, sizeof(cmd), "route -n delete -net %d.%d.%d.%d/%d > /dev/null 2>&1",
             dst_char[0], dst_char[1], dst_char[2], dst_char[3], prefix_len);
-    system(cmd);
+    if (system(cmd)) {
+        RETURN(BS_ERR);
+    }
 
     return BS_OK;
 }

@@ -34,10 +34,16 @@ int ProcessIndex_Get(char *index_file)
         index = TXT_Str2Ui(buf);
     }
 
-    ftruncate(file,0); /* 清空文件内容 */
+    /* 清空文件内容 */
+    if (ftruncate(file,0) < 0) {
+    }
+
     lseek(file,0,SEEK_SET);
     sprintf(buf, "%d", index + 1);
-    write(file, buf, strlen(buf));
+    int len = strlen(buf);
+    if (write(file, buf, len) != len) {
+        index = -1;
+    }
     flock(file, LOCK_UN);
     close(file);
 

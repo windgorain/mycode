@@ -12,13 +12,15 @@
     extern "C" {
 #endif /* __cplusplus */
 
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define BS_BIG_ENDIAN 0
-#elif __BYTE_ORDER == __BIG_ENDIAN
+#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #define BS_BIG_ENDIAN 1
 #else
 #error "Error"
 #endif
+
+/* 3字节数据转网络序 */
 #if BS_BIG_ENDIAN
 #define ntoh3B(x) (x)
 #define hton3B(x) (x)
@@ -26,6 +28,7 @@
 #define ntoh3B(x) ((((x) & 0xff) << 16) | ((x) & 0x00ff00) | (((x) >> 16) & 0xff))
 #define hton3B(x) ntoh3B(x)
 #endif
+
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 static inline int HostIsLitter(void) {
     return 1;
@@ -44,19 +47,23 @@ static inline int HostIsLitter(void)
     return 0;
 }
 #endif
+
 static inline USHORT ENDIAN_ChangeOrder16(USHORT data)
 {
     return (data >> 8) | (data << 8);
 }
+
 static inline UINT ENDIAN_ChangeOrder32(UINT data)
 {
     return (data >> 24) | ((data >> 8) & 0xff00) | ((data & 0xff00) << 8) | (data << 24);
 }
+
 static inline UINT64 ENDIAN_ChangeOrder64(UINT64 data)
 {
     return (data >> 56) | ((data >> 40) & 0xff00) | ((data >> 24) & 0xff0000) | ((data >> 8) & 0xff000000)
         | ((data & 0xff000000) << 8) | ((data & 0xff0000) << 24) | ((data & 0xff00) << 40) | (data << 56);
 }
+
 static inline USHORT Host2Litter16(USHORT data)
 {
     if (HostIsLitter()) {
@@ -170,6 +177,7 @@ static inline UINT64 Big2Host64(UINT64 data)
 #define htobe64(x) Host2Big64(x)
 #define htole64(x) Host2Litter64(x)
 #endif
+
 #ifdef __cplusplus
     }
 #endif /* __cplusplus */

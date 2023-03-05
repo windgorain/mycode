@@ -72,7 +72,10 @@ BOOL_T _OS_PROCESS_IsPidExist(IN UINT pid)
         return FALSE;
     }
 
-    fgets(buff, sizeof(buff), ptr);
+    if (NULL == fgets(buff, sizeof(buff), ptr)) {
+        pclose(ptr);
+        return FALSE;
+    }
 
     if(strcmp(buff,"ABNORMAL")==0) {  /*ps command error*/
         pclose(ptr);
@@ -97,7 +100,10 @@ BOOL_T _OS_PROCESS_IsProcessNameExist(IN char *process)
         return FALSE;
     }
 
-    fgets(buff, sizeof(buff), ptr);
+    if (NULL == fgets(buff, sizeof(buff), ptr)) {
+        pclose(ptr);
+        return FALSE;
+    }
 
     printf("%s\r\n", buff);
 

@@ -41,7 +41,7 @@ static inline void _osbase_init_os_helper()
     OSBASSE_INIT_HELPER(9, "bpf_skb_store_bytes", -1);
     OSBASSE_INIT_HELPER(10, "bpf_l3_csum_replace", -1);
     OSBASSE_INIT_HELPER(11, "bpf_l4_csum_replace", -1);
-    _osbase_init_os_helper_one(12, NULL, -1);
+    _osbase_init_os_helper_one(12, NULL, -1); /* bpf_tail_call */
     OSBASSE_INIT_HELPER(13, "bpf_clone_redirect", -1);
     OSBASSE_INIT_HELPER(14, "bpf_get_current_pid_tgid", 0);
     OSBASSE_INIT_HELPER(15, "bpf_get_current_uid_gid", 0);

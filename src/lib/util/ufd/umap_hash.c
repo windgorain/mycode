@@ -39,14 +39,14 @@ static int _umap_hash_cmp(void *node, void *key)
 static void _umap_hash_free_node(UMAP_HASH_NODE_S *node)
 {
     if (node->key) {
-        RcuEngine_Free(node->key);
+        MEM_RcuFree(node->key);
         node->key = NULL;
     }
     if (node->value) {
-        RcuEngine_Free(node->value);
+        MEM_RcuFree(node->value);
         node->value = NULL;
     }
-    RcuEngine_Free(node);
+    MEM_RcuFree(node);
 }
 
 static void _umap_hash_hash_free_node(HASH_HANDLE hash_tbl, void *node, void *ud)
@@ -60,7 +60,7 @@ static void _umap_hash_destroy_map(void *ufd_ctx, void *f)
 
     HASH_DelAll(ctrl->hash_tbl, _umap_hash_hash_free_node, NULL);
     HASH_DestoryInstance(ctrl->hash_tbl);
-    RcuEngine_Free(ctrl);
+    MEM_RcuFree(ctrl);
 }
 
 static int _umap_hash_open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap)
@@ -71,7 +71,7 @@ static int _umap_hash_open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap)
 		return -EINVAL;
     }
 
-    UMAP_HASH_S *ctrl = RcuEngine_ZMalloc(sizeof(UMAP_HASH_S));
+    UMAP_HASH_S *ctrl = MEM_RcuZMalloc(sizeof(UMAP_HASH_S));
     if (! ctrl) {
         return -ENOMEM;
     }
@@ -80,20 +80,20 @@ static int _umap_hash_open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap)
 
     ctrl->hash_tbl = HASH_CreateInstance(RcuEngine_GetMemcap(), ctrl->buckets_num, _umap_hash_hash_index);
     if (! ctrl->hash_tbl) {
-        RcuEngine_Free(ctrl);
+        MEM_RcuFree(ctrl);
         return -ENOMEM;
     }
 
     fd = UFD_Open(ctx, UFD_FD_TYPE_MAP, ctrl, _umap_hash_destroy_map);
     if (fd < 0) {
-        RcuEngine_Free(ctrl);
+        MEM_RcuFree(ctrl);
         return fd;
     }
 
     return fd;
 }
 
-static void * _umap_hash_lookup_elem(void *map, void *key)
+static void * _umap_hash_lookup_elem(void *map, const void *key)
 {
     UMAP_HASH_S *ctrl = map;
     UMAP_HASH_NODE_S *found;
@@ -104,7 +104,7 @@ static void * _umap_hash_lookup_elem(void *map, void *key)
     }
 
     node.ctrl = ctrl;
-    node.key = key;
+    node.key = (void*)key;
 
     found = HASH_Find(ctrl->hash_tbl, _umap_hash_cmp, &node);
     if (! found) {
@@ -114,7 +114,7 @@ static void * _umap_hash_lookup_elem(void *map, void *key)
     return found->value;
 }
 
-static long _umap_hash_delete_elem(void *map, void *key)
+static long _umap_hash_delete_elem(void *map, const void *key)
 {
     UMAP_HASH_S *ctrl = map;
     UMAP_HASH_NODE_S *old;
@@ -130,7 +130,7 @@ static long _umap_hash_delete_elem(void *map, void *key)
     return 0;
 }
 
-static long _umap_hash_update_elem(void *map, void *key, void *value, U32 flag)
+static long _umap_hash_update_elem(void *map, const void *key, const void *value, U32 flag)
 {
     UMAP_HASH_S *ctrl = map;
     UMAP_HASH_NODE_S *node;
@@ -150,13 +150,13 @@ static long _umap_hash_update_elem(void *map, void *key, void *value, U32 flag)
 		return -EEXIST;
     }
 
-    node = RcuEngine_ZMalloc(sizeof(UMAP_HASH_NODE_S));
+    node = MEM_RcuZMalloc(sizeof(UMAP_HASH_NODE_S));
     if (! node) {
         return -ENOMEM;
     }
 
-    node->key = RcuEngine_MemDup(key, ctrl->hdr.size_key);
-    node->value = RcuEngine_MemDup(value, ctrl->hdr.size_value);
+    node->key = MEM_RcuDup((char*)key, ctrl->hdr.size_key);
+    node->value = MEM_RcuDup((char*)value, ctrl->hdr.size_value);
 
     if ((!node->key) || (!node->value)) {
         _umap_hash_free_node(node);

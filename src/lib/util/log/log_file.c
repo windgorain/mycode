@@ -116,7 +116,9 @@ void LogFile_OutStringByValist(IN HANDLE hLogHandle, IN CHAR *pszLogFmt, IN va_l
     pstLogCtrl->len += len;
 
     if ((pstLogCtrl->capacity != 0) && (pstLogCtrl->len >= pstLogCtrl->capacity)) {
-        ftruncate(fileno(pstLogCtrl->fp), 0);
+        if (ftruncate(fileno(pstLogCtrl->fp), 0) < 0) {
+            /* do nothing */
+        }
         rewind(pstLogCtrl->fp);
         pstLogCtrl->len = 0;
     }

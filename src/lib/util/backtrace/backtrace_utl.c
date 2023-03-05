@@ -15,7 +15,7 @@
 
 #define MAX_DEPTH 128
 
-typedef void (*PF_BACKTRACE_PRINT)(char *info, void *ud);
+typedef int (*PF_BACKTRACE_PRINT)(char *info, void *ud);
 
 static void _backtrace_call(PF_BACKTRACE_PRINT func, void *ud)
 {
@@ -42,21 +42,23 @@ static void _backtrace_call(PF_BACKTRACE_PRINT func, void *ud)
 #endif
 }
 
-static void _backtrace_print(char *info, void *ud)
+static int _backtrace_print(char *info, void *ud)
 {
     printf("%s", info);
+    return 0;
 }
 
-static void _backtrace_write_fp(char *info, void *ud)
+static int _backtrace_write_fp(char *info, void *ud)
 {
     FILE *fp = ud;
     fprintf(fp, "%s", info);
+    return 0;
 }
 
-static void _backtrace_write_fd(char *info, void *ud)
+static int _backtrace_write_fd(char *info, void *ud)
 {
     int fd = HANDLE_UINT(ud);
-    write(fd, info, strlen(info));
+    return write(fd, info, strlen(info));
 }
 
 void BackTrace_Print(void)

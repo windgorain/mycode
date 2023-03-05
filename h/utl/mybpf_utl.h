@@ -11,11 +11,18 @@ extern "C"
 #endif
 
 typedef struct {
-	UCHAR code;		/* opcode */
+    int sec_id;
+    int map_def_size;
+    int map_count;
+    void *maps;
+}MYBPF_MAPS_SEC_S;
+
+typedef struct {
+	UCHAR opcode;		/* opcode */
 	UCHAR dst_reg:4;	/* dest register */
 	UCHAR src_reg:4;	/* source register */
-	USHORT off;		/* signed offset */
-	UINT imm;		/* signed immediate constant */
+	short off;		/* signed offset */
+	int imm;		/* signed immediate constant */
 }MYBPF_INSN_S;
 
 #ifdef __cplusplus

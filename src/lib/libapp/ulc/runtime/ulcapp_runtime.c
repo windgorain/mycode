@@ -7,8 +7,8 @@
 #include "utl/exec_utl.h"
 #include "utl/map_utl.h"
 #include "utl/umap_utl.h"
-#include "utl/mybpf_prog.h"
 #include "utl/mybpf_loader.h"
+#include "utl/mybpf_prog.h"
 #include "utl/mybpf_runtime.h"
 #include "utl/mybpf_hookpoint.h"
 #include "comp/comp_precver.h"
@@ -138,5 +138,10 @@ void ULCAPP_ShowProg(void)
     ULCAPP_CfgLock();
     MYBPF_PROG_ShowProg(&g_ulcapp_runtime, EXEC_OutInfo);
     ULCAPP_CfgUnlock();
+}
+
+void ULCAPP_Tcmd(int argc, char **argv)
+{
+    MYBPF_HookPointCall(&g_ulcapp_runtime, MYBPF_HP_TCMD, argc, (long)argv, 0, 0, 0);
 }
 

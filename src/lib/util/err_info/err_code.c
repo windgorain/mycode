@@ -1,7 +1,7 @@
 /*================================================================
-*   Created：2018.09.22
-*   Description：
-*
+* Copyright (C), Xingang.Li
+* Author:      LiXingang  Version: 1.0  Date: 2018-09-22
+* Description: 
 ================================================================*/
 #include "bs.h"
 #include "utl/txt_utl.h"
@@ -68,7 +68,7 @@ char * ErrCode_Build(OUT char *buf, int buf_size)
 
     if (file) {
         len = scnprintf(buf, buf_size,
-                "Err: file:%s(%d):%d \r\n", file, line, code);
+                "ErrCode: %s(%d):%d \r\n", file, line, code);
     }
 
     if (errinfo && errinfo[0]) {
@@ -86,7 +86,7 @@ void ErrCode_Print(void)
     char *errinfo = ErrCode_GetInfo();
 
     if (file) {
-        fprintf(stderr, "Err: file:%s(%d):%d \r\n", file, line, code);
+        fprintf(stderr, "ErrCode: %s(%d):%d \r\n", file, line, code);
     }
 
     if (errinfo && errinfo[0]) {
@@ -102,7 +102,7 @@ void ErrCode_Output(PF_PRINT_FUNC output)
     char *errinfo = ErrCode_GetInfo();
 
     if (file) {
-        output("Err: file:%s(%d):%d \r\n", file, line, code);
+        output("ErrCode: %s(%d):%d \r\n", file, line, code);
     }
 
     if (errinfo && errinfo[0]) {

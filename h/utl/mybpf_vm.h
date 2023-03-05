@@ -14,12 +14,7 @@ extern "C"
 #endif
 
 typedef struct {
-    uint32_t base_func_max;
-    uint32_t user_func_min;
-    uint32_t user_func_max;
     int tail_call_index;
-    PF_BPF_HELPER_FUNC *base_helpers;
-    PF_BPF_HELPER_FUNC *user_helpers;
     PF_PRINT_FUNC print_func;
 }MYBPF_VM_S;
 
@@ -29,9 +24,11 @@ typedef struct {
     void *mem;        /* 可以访问的内存起始地址 */
     uint32_t mem_len; /* 可以访问的内存长度 */
     uint32_t mem_check: 1; /* 检查内存是否访问越界 */
+    uint32_t auto_stack: 1; /* 自动选择合适的栈空间大小 */
+    int stack_size;
+    char *stack;
 }MYBPF_CTX_S;
 
-int MYBPF_SetFunc(MYBPF_VM_S *vm, int idx, PF_BPF_HELPER_FUNC func);
 int MYBPF_SetTailCallIndex(MYBPF_VM_S *vm, unsigned int idx);
 bool MYBPF_Validate(MYBPF_VM_S *vm, void *insn, uint32_t num_insts);
 int MYBPF_Run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5);

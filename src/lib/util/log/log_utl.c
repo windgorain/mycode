@@ -74,7 +74,8 @@ static void _log_send_fail_write_file(LOG_UTL_S *pstLogCtrl,void* pData, UINT ui
     if (pstLogCtrl->log_file_fp) {
         if (_log_check_logfile_exceed(pstLogCtrl)) {
             fflush(pstLogCtrl->log_file_fp);
-            ftruncate(fileno(pstLogCtrl->log_file_fp), 0);
+            if (ftruncate(fileno(pstLogCtrl->log_file_fp), 0) < 0) {
+            }
             rewind(pstLogCtrl->log_file_fp);
         }
         _log_WriteFile(pstLogCtrl->log_file_fp, pData, uiLen);
@@ -94,7 +95,8 @@ static void _log_Output(LOG_UTL_S *pstLogCtrl, void *pData, UINT uiLen)
         if (pstLogCtrl->log_file_fp) {
             if (_log_check_logfile_exceed(pstLogCtrl)) {
                 fflush(pstLogCtrl->log_file_fp);
-                ftruncate(fileno(pstLogCtrl->log_file_fp), 0);
+                if (ftruncate(fileno(pstLogCtrl->log_file_fp), 0) < 0) {
+                }
                 rewind(pstLogCtrl->log_file_fp);
             }
             _log_WriteFile(pstLogCtrl->log_file_fp, pData, uiLen);

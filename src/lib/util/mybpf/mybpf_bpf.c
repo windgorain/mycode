@@ -1,5 +1,4 @@
 /*================================================================
-*   Created by LiXingang
 *   Date: 2017.10.2
 *   Description: 
 *
@@ -7,7 +6,9 @@
 #include "bs.h"
 #include "utl/asm_utl.h"
 #include "utl/endian_utl.h"
+#include "utl/mybpf_loader.h"
 #include "utl/mybpf_prog.h"
+#include "utl/bpf_helper_utl.h"
 #include "klc/klc_def.h"
 #include "klc/klc_namefunc.h"
 #include "mybpf_def.h"
@@ -173,8 +174,8 @@
 	INSN_3(LD, IMM, DW)
 
 #define _mybpf_bpf_call_base_args \
-	((u64 (*)(u64, u64, u64, u64, u64, const struct bpf_insn *)) \
-	 (void *)MYBPF_PROG_HelperBase)
+	((u64 (*)(u64, u64, u64, u64, u64, const MYBPF_INSN_S *)) \
+	 (void *)BpfHelper_BaseHelper)
 
 static U64 my_bpf_probe_read_kernel(void *dst, U32 size, const void *unsafe_ptr)
 {
@@ -203,9 +204,9 @@ static void my_helper_bpf_init_jumptable_dft(void *tbl[], void *dft_addr)
     }
 }
 
-static U64 _myhelper_run(U64 *regs, struct bpf_insn *insn_code, U64 *stack)
+static U64 _myhelper_run(U64 *regs, MYBPF_INSN_S *insn_code, U64 *stack)
 {
-    struct bpf_insn *insn = insn_code;
+    MYBPF_INSN_S *insn = insn_code;
 
 #define BPF_INSN_2_LBL(x, y)    [BPF_##x | BPF_##y] = &&x##_##y
 #define BPF_INSN_3_LBL(x, y, z) [BPF_##x | BPF_##y | BPF_##z] = &&x##_##y##_##z
@@ -235,7 +236,7 @@ static U64 _myhelper_run(U64 *regs, struct bpf_insn *insn_code, U64 *stack)
 #define CONT_JMP ({ insn++; goto select_insn; })
 
 select_insn:
-	goto *my_jumptable[insn->code];
+	goto *my_jumptable[insn->opcode];
 
 	/* ALU */
 #define ALU(OPCODE, OP)			\
@@ -365,7 +366,7 @@ select_insn:
         } else if (insn->imm == KLC_HELPER_INTERNAL) {
             BPF_R0 = my_helper_bpf_call_internal(BPF_R1, BPF_R2, BPF_R3, BPF_R4, BPF_R5);
         } else {
-            BPF_R0 = (MYBPF_PROG_HelperBase + insn->imm)(BPF_R1, BPF_R2, BPF_R3, BPF_R4, BPF_R5);
+            BPF_R0 = (BpfHelper_BaseHelper + insn->imm)(BPF_R1, BPF_R2, BPF_R3, BPF_R4, BPF_R5);
         }
 		CONT;
 
@@ -492,7 +493,7 @@ select_insn:
 
 #define ATOMIC_ALU_OP(BOP, KOP)						\
 		case BOP:						\
-			if (BPF_SIZE(insn->code) == BPF_W)		\
+			if (BPF_SIZE(insn->opcode) == BPF_W)		\
 				atomic_##KOP((u32) SRC, (atomic_t *)(unsigned long) \
 					     (DST + insn->off));	\
 			else						\
@@ -500,7 +501,7 @@ select_insn:
 					       (DST + insn->off));	\
 			break;						\
 		case BOP | BPF_FETCH:					\
-			if (BPF_SIZE(insn->code) == BPF_W)		\
+			if (BPF_SIZE(insn->opcode) == BPF_W)		\
 				SRC = (u32) atomic_fetch_##KOP(		\
 					(u32) SRC,			\
 					(atomic_t *)(unsigned long) (DST + insn->off)); \
@@ -520,7 +521,7 @@ select_insn:
 #undef ATOMIC_ALU_OP
 
 		case BPF_XCHG:
-			if (BPF_SIZE(insn->code) == BPF_W)
+			if (BPF_SIZE(insn->opcode) == BPF_W)
 				SRC = (u32) atomic_xchg(
 					(atomic_t *)(unsigned long) (DST + insn->off),
 					(u32) SRC);
@@ -530,7 +531,7 @@ select_insn:
 					(u64) SRC);
 			break;
 		case BPF_CMPXCHG:
-			if (BPF_SIZE(insn->code) == BPF_W)
+			if (BPF_SIZE(insn->opcode) == BPF_W)
 				BPF_R0 = (u32) atomic_cmpxchg(
 					(atomic_t *)(unsigned long) (DST + insn->off),
 					(u32) BPF_R0, (u32) SRC);
@@ -553,7 +554,7 @@ select_insn:
 		 * Note, verifier whitelists all opcodes in bpf_opcode_in_insntable().
 		 */
 		BS_PRINT_ERR("BPF interpreter: unknown opcode %02x (imm: 0x%x)\n",
-			insn->code, insn->imm);
+			insn->opcode, insn->imm);
 		BS_DBGASSERT(0);
 		return 0;
 }
@@ -561,7 +562,7 @@ select_insn:
 /* 运行原始code */
 U64 MYBPF_RunBpfCode(void *code, U64 r1, U64 r2, U64 r3, U64 r4, U64 r5)
 {
-    struct bpf_insn *insn = code;
+    MYBPF_INSN_S *insn = code;
     U64 stack[512 / sizeof(u64)]; 
     U64 regs[MAX_BPF_EXT_REG]; 
 

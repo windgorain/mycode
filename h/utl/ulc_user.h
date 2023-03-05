@@ -10,6 +10,10 @@ extern "C"
 {
 #endif
 
+#ifndef noinline
+#define noinline __attribute__((noinline))
+#endif
+
 #define SEC(NAME) __attribute__((section(NAME), used))
 
 #define BPF_Print(fmt, ...) ({ \
@@ -17,16 +21,22 @@ extern "C"
     bpf_trace_printk(msg, sizeof(msg), ##__VA_ARGS__); \
 })
 
-#define BPF_PrintString(str) do { \
-    char msg[] = "%s\n"; \
-    bpf_trace_printk(msg, sizeof(msg), str); \
-} while(0)
 
-#define BPF_PrintSString(str) do { \
-    char info[] = str; \
-    BPF_PrintString(info); \
-} while(0)
+#ifndef NULL
+#define NULL 0
+#endif
 
+#ifndef printf
+#define printf BPF_Print
+#endif
+
+#ifndef memset
+#define memset __builtin_memset
+#endif
+
+#ifndef memcpy
+#define memcpy __builtin_memcpy
+#endif
 
 enum bpf_map_type {
 	BPF_MAP_TYPE_UNSPEC,
@@ -60,7 +70,6 @@ struct xdp_md {
 	unsigned int egress_ifindex;  /* txq->dev->ifindex */
 };
 
-
 static void *(*bpf_map_lookup_elem)(void *map, const void *key) = (void *) 1;
 static long (*bpf_map_update_elem)(void *map, const void *key, const void *value, unsigned long long flags) = (void *) 2;
 static long (*bpf_map_delete_elem)(void *map, const void *key) = (void *) 3;
@@ -73,7 +82,7 @@ static unsigned int  (*bpf_get_smp_processor_id)(void) = (void *) 8;
 static unsigned long long (*bpf_get_current_pid_tgid)(void) = (void *) 14;
 static unsigned long long (*bpf_get_current_uid_gid)(void) = (void *) 15;
 static long (*bpf_get_current_comm)(void *buf, unsigned int size_of_buf) = (void *) 16;
-
+static long (*bpf_strtol)(const char *buf, int buf_len, unsigned long long flags, long *res) = (void *) 105;
 
 #ifdef __cplusplus
 }

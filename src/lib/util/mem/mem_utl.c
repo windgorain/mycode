@@ -103,26 +103,6 @@ void * MEM_CaseFind(void *pMem, UINT ulMemLen, void *pMemToFind, UINT ulMemToFin
     return NULL;
 }
 
-INT MEM_Cmp(IN UCHAR *pucMem1, IN UINT uiMem1Len, IN UCHAR *pucMem2, IN UINT uiMem2Len)
-{
-    UINT uiCmpLen = MIN(uiMem1Len, uiMem2Len);
-    UINT i;
-    INT iCmp;
-
-    for (i=0; i<uiCmpLen; i++)
-    {
-        iCmp = pucMem1[i] - pucMem2[i];
-        if (iCmp != 0)
-        {
-            return iCmp;
-        }
-    }
-
-    iCmp = uiMem1Len - uiMem2Len;
-
-    return iCmp;
-}
-
 int MEM_CaseCmp(UCHAR *pucMem1, UINT uiMem1Len, UCHAR *pucMem2, UINT uiMem2Len)
 {
     int c1;
@@ -151,69 +131,99 @@ int MEM_CaseCmp(UCHAR *pucMem1, UINT uiMem1Len, UCHAR *pucMem2, UINT uiMem2Len)
     return -1;
 }
 
-/* 打印内存字面值到buf中 */
-int MEM_Sprint(IN UCHAR *pucMem, IN UINT uiLen, OUT char *buf, int buf_size)
+/* 按照C输入格式打印内存字面值到buf中.
+return: 实际打印了多少字节内存的字面值 */
+int MEM_SprintCFromat(void *mem, UINT mem_len, OUT char *buf, int buf_size)
 {
-    int tmp_len1, tmp_len2;
-    UCHAR *d = pucMem;
-    char info[24];
+    UCHAR *d = mem;
+    char info[64];
+    int len;
+    int reserved_size = buf_size;
+    int copyed_len = 0;
+    int print_len = 0;
+
+    /* 6: length("0xaa,\n") */
+    while ((mem_len > print_len) && (reserved_size > 6)) {
+        sprintf(info, "0x%02x,", *d);
+        len = strlcpy(buf + copyed_len, info, reserved_size);
+        reserved_size -= len;
+        copyed_len += len;
+        print_len ++;
+        d ++;
+        if ((print_len) && ((print_len % 16) == 0)) {
+            len = strlcpy(buf + copyed_len, (char*)"\n", reserved_size);
+            reserved_size -= len;
+            copyed_len += len;
+        }
+    }
+
+    if ((print_len) && ((print_len % 16) != 0)) {
+        strlcpy(buf + copyed_len, (char*)"\n", reserved_size);
+    }
+
+    return print_len;
+}
+
+/* 打印内存字面值到buf中.
+return: 实际打印了多少字节内存的字面值 */
+int MEM_Sprint(void *mem, UINT mem_len, OUT char *buf, int buf_size)
+{
+    UCHAR *d = mem;
+    char info[64];
     int len = 0;
     int reserved_size = buf_size;
     int copyed_len = 0;
-    UINT mem_len = uiLen;
+    int print_len = 0;
 
-    while (mem_len > 0) {
-        tmp_len1 = MIN(16, mem_len);
-        mem_len -= tmp_len1;
-        while (tmp_len1 > 0) {
-            tmp_len2 = MIN(4, tmp_len1);
-            tmp_len1 -= tmp_len2;
-            DH_Data2Hex(d, tmp_len2, info);
-            info[tmp_len2 * 2] = ' ';
-            info[(tmp_len2 * 2) + 1] = '\0';
-            len = strlcpy(buf + copyed_len, info, reserved_size);
-            if (len >= reserved_size) {
-                RETURN(BS_OUT_OF_RANGE);
-            }
-            reserved_size -= len;
-            copyed_len += len;
-            d += tmp_len2;
-        }
-        len = strlcpy(buf + copyed_len, (char*)"\r\n", reserved_size);
-        if (len >= reserved_size) {
-            RETURN(BS_OUT_OF_RANGE);
-        }
+    /* 3: length("aa ") */
+    while ((mem_len > print_len) && (reserved_size > 3)) {
+        sprintf(info, "%02x ", *d);
+        len = strlcpy(buf + copyed_len, info, reserved_size);
         reserved_size -= len;
         copyed_len += len;
+        print_len ++;
+        d ++;
+        if ((print_len) && ((print_len % 16) == 0)) {
+            buf[copyed_len - 1] = '\n';
+        }
     }
 
-    return copyed_len;
+    if ((print_len) && ((print_len % 16) != 0)) {
+        buf[copyed_len - 1] = '\n';
+    }
+
+    return print_len;
 }
 
-void MEM_Print(UCHAR *pucMem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */)
+void MEM_Print(void *mem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */)
 {
-    int tmp_len1, tmp_len2;
-    UCHAR *d = pucMem;
-    char info[16];
+    char info[3*16+1];
     PF_MEM_PRINT_FUNC func = print_func;
+    int print_len = 0;
 
     if (! func) {
         func = (void*)printf;
     }
 
-    while (len > 0) {
-        tmp_len1 = MIN(16, len);
-        len -= tmp_len1;
-        while (tmp_len1 > 0) {
-            tmp_len2 = MIN(4, tmp_len1);
-            tmp_len1 -= tmp_len2;
-            DH_Data2Hex(d, tmp_len2, info);
-            info[tmp_len2 * 2] = ' ';
-            info[(tmp_len2 * 2) + 1] = '\0';
-            func(info);
-            d += tmp_len2;
-        }
-        func((char*)"\r\n");
+    while (len > print_len) {
+        print_len += MEM_Sprint(mem + print_len, len - print_len, info, sizeof(info));
+        func(info);
+    }
+}
+
+void MEM_PrintCFormat(void *mem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */)
+{
+    char info[5*16+2];
+    PF_MEM_PRINT_FUNC func = print_func;
+    int print_len = 0;
+
+    if (! func) {
+        func = (void*)printf;
+    }
+
+    while (len > print_len) {
+        print_len += MEM_SprintCFromat(mem + print_len, len - print_len, info, sizeof(info));
+        func(info);
     }
 }
 

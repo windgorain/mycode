@@ -1,6 +1,7 @@
 /*================================================================
-*   Created by LiXingang
-*   Description: 
+* Copyright (C), Xingang.Li
+* Author:      LiXingang  Version: 1.0  Date: 2017-10-1
+* Description: 
 *
 ================================================================*/
 #include "bs.h"
@@ -12,7 +13,7 @@ int MYBPF_RuntimeInit(OUT MYBPF_RUNTIME_S *runtime, UINT ufd_capacity)
 {
     memset(runtime, 0, sizeof(*runtime));
 
-    runtime->loader_map = MAP_HashCreate(NULL);
+    runtime->loader_map = MAP_ListCreate(NULL);
     if (! runtime->loader_map) {
         RETURN(BS_ERR);
     }
@@ -23,7 +24,10 @@ int MYBPF_RuntimeInit(OUT MYBPF_RUNTIME_S *runtime, UINT ufd_capacity)
         RETURN(BS_ERR);
     }
 
-    DLL_INIT(&runtime->xdp_list);
+    int i;
+    for (i=0; i<MYBPF_HP_MAX; i++) {
+        DLL_INIT(&runtime->hp_list[i]);
+    }
 
     return 0;
 }
@@ -37,3 +41,10 @@ void MYBPF_RuntimeFini(OUT MYBPF_RUNTIME_S *runtime)
     runtime->loader_map = NULL;
 }
 
+BOOL_T MYBPF_RuntimeIsInited(MYBPF_RUNTIME_S *runtime)
+{
+    if (runtime->loader_map) {
+        return TRUE;
+    }
+    return FALSE;
+}

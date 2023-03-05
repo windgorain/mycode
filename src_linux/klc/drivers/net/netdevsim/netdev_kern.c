@@ -331,12 +331,12 @@ static inline int _mod_data_init(NETDEVSIM_S *ctrl)
 
     KLC_FUNC_S *func = KLCHLP_GetLocalNameFunc("nsim_num_vf");
     if (! func) {
-        BPF_PrintString("Can't get function nsim_num_vf");
+        BPF_Print("Can't get function nsim_num_vf");
         return -1;
     }
 
     if (! KLCHLP_IsFuncJitted(func)) {
-        BPF_PrintString("Function not jitted");
+        BPF_Print("Function not jitted");
         return -1;
     }
 
@@ -376,7 +376,7 @@ static inline int nsim_fib_init(NETDEVSIM_S *ctrl)
 
 	err = DriverKlc_register_pernet_subsys(&ctrl->nsim_fib_net_ops);
 	if (err < 0) {
-		BPF_PrintString("Failed to register pernet subsystem\n");
+		BPF_Print("Failed to register pernet subsystem\n");
 		goto err_out;
 	}
 
@@ -386,7 +386,7 @@ static inline int nsim_fib_init(NETDEVSIM_S *ctrl)
 
 	err = KLCHLP_SysCall("register_fib_notifier", (long)&ctrl->nsim_fib_nb, (long)fn, 0);
 	if (err < 0) {
-		BPF_PrintString("Failed to register fib notifier\n");
+		BPF_Print("Failed to register fib notifier\n");
 		goto err_out;
 	}
 

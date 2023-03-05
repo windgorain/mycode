@@ -155,7 +155,7 @@ static int _wasm_load_import_id(UCHAR *bytes, UINT curpos, OUT WASM_MODULE_S *m)
         char *import_field = _wasm_read_string(bytes, &pos, &field_len);
         UINT external_kind = bytes[pos++];
         UINT type_index, fidx;
-        UCHAR global_type;
+        UCHAR global_type = 0;
 
         switch (external_kind) {
             case WASM_KIND_FUNCTION:

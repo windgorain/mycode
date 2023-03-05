@@ -133,7 +133,9 @@ static BS_STATUS _os_ipcmd_AddIP(char *ifname, UINT ip, UINT mask, UINT peer)
 		ifname, cip[0], cip[1], cip[2], cip[3], cmask[0], cmask[1], cmask[2], cmask[3], cpeer[0], cpeer[1], cpeer[2], cpeer[3]);
     }
     
-    system(cmd);
+    if (system(cmd) < 0) {
+        RETURN(BS_ERR);
+    }
 
     return BS_OK;
 }
@@ -161,7 +163,9 @@ static inline BS_STATUS _os_ipcmd_SetMtu(char *ifname, UINT mtu)
     char cmd[256];
 
     scnprintf(cmd, sizeof(cmd), "ifconfig %s mtu %d", ifname, mtu);
-    system(cmd);
+    if (system(cmd) < 0) {
+        RETURN(BS_ERR);
+    }
     return BS_OK;
 }
 

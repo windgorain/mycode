@@ -21,6 +21,24 @@ typedef enum
     _GETOPT2_RET_ERR        /* 失败 */
 }_GETOPT2_RET_E;
 
+static char * getopt2_opt_type_2_string(char type)
+{
+    switch (type) {
+        case 's':
+            return "STRING";
+        case 'u':
+            return "UINT";
+        case 'b':
+            return "BOOL";
+        case 'i':
+            return "IP";
+        case 'r':
+            return "RANGE";
+    }
+
+    return NULL;
+}
+
 static inline BOOL_T getopt2_is_opt_type(char type)
 {
     if ((type == 'o') || (type == 'O')) {
@@ -346,11 +364,29 @@ static int getopt2_build_param_help(GETOPT2_NODE_S *nodes, OUT char *buf, int bu
     return len;
 }
 
+static void getopt2_build_opt_one(GETOPT2_NODE_S *node, OUT char *buf, int buf_size)
+{
+    int len = 0;
+
+    if (node->opt_short_name) {
+        len += snprintf(buf+len, buf_size-len, "-%c ", node->opt_short_name);
+    }
+
+    if (node->opt_long_name) {
+        len += snprintf(buf+len, buf_size-len, "--%s ", node->opt_long_name);
+    }
+
+    if (node->value_type) {
+        len += snprintf(buf+len, buf_size-len, "%s ", getopt2_opt_type_2_string(node->value_type));
+    }
+}
+
 static int getopt2_build_opt_help(GETOPT2_NODE_S *nodes, OUT char *buf, int buf_size)
 {
     GETOPT2_NODE_S *node;
     int len = 0;
     int must;
+    char optbuf[128];
 
     if (getopt2_is_have_opt(nodes)) {
         len += snprintf(buf+len, buf_size-len, "Options:\r\n");
@@ -371,14 +407,9 @@ static int getopt2_build_opt_help(GETOPT2_NODE_S *nodes, OUT char *buf, int buf_
             len += snprintf(buf+len, buf_size-len, "  ");
         }
 
-        if (node->opt_short_name != 0) {
-            len += snprintf(buf+len, buf_size-len, "-%c ", node->opt_short_name);
-        }
-        if (node->opt_long_name != 0) {
-            len += snprintf(buf+len, buf_size-len, "--%-16s  ", node->opt_long_name);
-        }
+        getopt2_build_opt_one(node, optbuf, sizeof(optbuf));
 
-        len += snprintf(buf+len, buf_size-len, "%s\r\n", node->help_info == NULL ? "": node->help_info);
+        len += snprintf(buf+len, buf_size-len, "%-32s %s\r\n", optbuf, node->help_info == NULL ? "": node->help_info);
     }
 
     return len;

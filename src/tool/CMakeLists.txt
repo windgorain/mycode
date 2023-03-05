@@ -36,10 +36,13 @@ aux_source_directory(./runlua RUNLUA_SRC)
 add_executable(runlua ${RUNLUA_SRC})
 target_link_libraries(runlua sutil unixlike_util static_bs dl pthread m lua)
 
+aux_source_directory(./runbpf RUNBPF_SRC)
+add_executable(runbpf ${RUNBPF_SRC})
+target_link_libraries(runbpf sutil unixlike_util static_bs sutil static_bs dl pthread m elf)
+
 aux_source_directory(./json JSON_SRC)
 add_executable(json_tool ${JSON_SRC})
 target_link_libraries(json_tool sutil unixlike_util static_bs dl pthread m )
-
 
 aux_source_directory(./htons HTONS_SRC)
 add_executable(htons ${HTONS_SRC})
@@ -82,10 +85,7 @@ add_executable(equation ${SRC})
 target_link_libraries(equation sutil unixlike_util dl pthread)
 
 set(SRC "")
-aux_source_directory(./rm_comments SRC)
-add_executable(rm_comments ${SRC})
-target_link_libraries(rm_comments sutil unixlike_util dl pthread)
-set(SRC "")
 aux_source_directory(./hexprint SRC)
 add_executable(hexprint ${SRC})
 target_link_libraries(hexprint sutil unixlike_util dl pthread)
+

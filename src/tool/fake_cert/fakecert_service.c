@@ -87,7 +87,9 @@ static BS_WALK_RET_E _fakecert_service_timeout(IN INT iSocketId, IN UINT uiEvent
     FAKECERT_SERVICE_NODE_S *node, *nodetmp;
     time_t now;
 
-    read(iSocketId, buf, sizeof(buf));
+    if (read(iSocketId, buf, sizeof(buf)) <= 0) {
+        BS_DBGASSERT(0);
+    }
 
     fakecert_conf_init();
 

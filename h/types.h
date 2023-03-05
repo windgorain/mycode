@@ -161,6 +161,13 @@ typedef short S16;
 typedef int S32;
 typedef long long S64;
 
+typedef U8 u8;
+typedef U16 u16;
+typedef U32 u32;
+typedef U64 u64;
+typedef S32 s32;
+typedef S64 s64;
+
 typedef struct {
     char *pcData;
     UINT uiLen;

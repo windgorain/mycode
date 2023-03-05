@@ -415,6 +415,7 @@ int UBPF_Load(UBPF_VM_HANDLE vm, void *ebpf_code, int ebpf_len)
 
 	ret = ubpf_load(vm, ebpf_code, ebpf_len, &errmsg);
     if (errmsg) {
+        printf("%s \r\n", errmsg);
         free(errmsg);
     }
 

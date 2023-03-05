@@ -15,7 +15,7 @@ typedef struct {
 static void _umap_array_destroy_map(void *ufd_ctx, void *f)
 {
     UMAP_ARRAY_S *ctrl = f;
-    RcuEngine_Free(ctrl);
+    MEM_RcuFree(ctrl);
 }
 
 static int _umap_array_open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap)
@@ -29,21 +29,21 @@ static int _umap_array_open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap)
 
     len = sizeof(UMAP_ARRAY_S) + (elfmap->size_value * elfmap->max_elem);
 
-    UMAP_ARRAY_S *ctrl = RcuEngine_ZMalloc(len);
+    UMAP_ARRAY_S *ctrl = MEM_RcuZMalloc(len);
     if (! ctrl) {
         return -ENOMEM;
     }
 
     fd = UFD_Open(ctx, UFD_FD_TYPE_MAP, ctrl, _umap_array_destroy_map);
     if (fd < 0) {
-        RcuEngine_Free(ctrl);
+        MEM_RcuFree(ctrl);
         return fd;
     }
 
     return fd;
 }
 
-static void * _umap_array_lookup_elem(void *map, void *key)
+static void * _umap_array_lookup_elem(void *map, const void *key)
 {
     UMAP_ARRAY_S *ctrl = map;
     UCHAR *data;
@@ -66,12 +66,12 @@ static void * _umap_array_lookup_elem(void *map, void *key)
     return data;
 }
 
-static long _umap_array_delete_elem(void *map, void *key)
+static long _umap_array_delete_elem(void *map, const void *key)
 {
 	return -EINVAL;
 }
 
-static long _umap_array_update_elem(void *map, void *key, void *value, U32 flag)
+static long _umap_array_update_elem(void *map, const void *key, const void *value, U32 flag)
 {
     UMAP_ARRAY_S *ctrl = map;
     void *old;
