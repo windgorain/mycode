@@ -39,8 +39,7 @@ SVPN_TCPRELAY_NODE_S * SVPN_TcpRelayNode_New(IN CHAR *pcServer, IN USHORT usPort
 
 VOID SVPN_TcpRelayNode_Free(IN SVPN_TCPRELAY_NODE_S *pstNode)
 {
-    SVPN_DBG_OUTPUT(SVPN_DBG_ID_TCP_RELAY, SVPN_DBG_FLAG_TR_PROCESS,
-            ("Free node.\r\n"));
+    SVPN_DBG_OUTPUT(SVPN_DBG_ID_TCP_RELAY, SVPN_DBG_FLAG_TR_PROCESS, "Free node.\r\n");
     
     if (pstNode->hUpConn != NULL)
     {

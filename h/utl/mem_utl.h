@@ -22,10 +22,12 @@
 #endif
 
 #define MEM_Malloc(uiSize)  _mem_Malloc(uiSize, __FILE__,  __LINE__)
-#define MEM_Free(pMem)  _mem_Free((VOID*)(pMem), __FILE__, __LINE__)
-#define MEM_FREE_NULL(pMem) do {if (pMem) {MEM_Free(pMem);(pMem) = NULL;}}while(0)
 #define MEM_ZMalloc(ulSize)  _mem_MallocWithZero(ulSize, __FILE__,  __LINE__)
 #define MEM_MallocAndCopy(pSrc,uiSrcLen,uiMallocLen) _mem_MallocAndCopy(pSrc,uiSrcLen,uiMallocLen,__FILE__,__LINE__)
+
+#define MEM_Free(pMem)  _mem_Free((VOID*)(pMem), __FILE__, __LINE__)
+ /* 如果存在则free */
+#define MEM_ExistFree(pMem) do {if (pMem) {MEM_Free(pMem);}}while(0)
 
 #define MEM_ZMallocAndCopy(pSrc,uiSrcLen,uiMallocLen) ({ \
         char *_mem = MEM_MallocAndCopy(pSrc,uiSrcLen, uiMallocLen); \
@@ -183,7 +185,7 @@ int MEM_ReplaceChar(void *data, int len, UCHAR src, UCHAR dst);
 int MEM_ReplaceOneChar(void *data, int len, UCHAR src, UCHAR dst);
 
 /* 交换两块内存的内容 */
-void MEM_Exchange(void *buf1, void *buf2, int len);
+void MEM_Swap(void *buf1, void *buf2, int len);
 
 #ifdef __cplusplus
 }

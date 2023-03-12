@@ -35,20 +35,20 @@ void ErrCode_Output(PF_PRINT_FUNC output);
 void ErrCode_FatalError(char *format, ...);
 
 /* print file line */
-#define PRINTFL() PRINT_GREEN("%s(%d) \n", __FILE__, __LINE__)
+#define PRINTFL() PRINTLN_GREEN("%s(%d)", __FILE__, __LINE__)
 
 /* print file line msg */
 #define PRINTFLM_COLOR(_color, _fmt, ...) PRINT_COLOR(_color, "[%s:%s:%d] " _fmt, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
-#define PRINTFLM_COLOR_LN(_color, _fmt, ...) PRINT_COLOR_LN(_color, "[%s:%s:%d] " _fmt, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define PRINTFLM_COLOR_LN(_color, _fmt, ...) PRINTLN_COLOR(_color, "[%s:%s:%d] " _fmt, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
-#define PRINTFLM_BLACK(fmt, ...) PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_BLACK, fmt, ##__VA_ARGS__)
-#define PRINTFLM_GREEN(fmt, ...) PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_GREEN, fmt, ##__VA_ARGS__)
-#define PRINTFLM_RED(fmt, ...) PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_RED, fmt, ##__VA_ARGS__)
-#define PRINTFLM_YELLOW(fmt, ...) PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_YELLOW, fmt, ##__VA_ARGS__)
-#define PRINTFLM_CYAN(fmt, ...) PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_CYAN, fmt, ##__VA_ARGS__)
-#define PRINTFLM_PURPLE(fmt, ...) PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_PURPLE, fmt, ##__VA_ARGS__)
-#define PRINTFLM_BLUE(fmt, ...) PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_BLUE, fmt, ##__VA_ARGS__)
-#define PRINTFLM_WHITE(fmt, ...) PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_WHITE, fmt, ##__VA_ARGS__)
+#define PRINTFLM_BLACK(fmt, ...)    PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_BLACK, fmt, ##__VA_ARGS__)
+#define PRINTFLM_GREEN(fmt, ...)    PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_GREEN, fmt, ##__VA_ARGS__)
+#define PRINTFLM_RED(fmt, ...)      PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_RED, fmt, ##__VA_ARGS__)
+#define PRINTFLM_YELLOW(fmt, ...)   PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_YELLOW, fmt, ##__VA_ARGS__)
+#define PRINTFLM_CYAN(fmt, ...)     PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_CYAN, fmt, ##__VA_ARGS__)
+#define PRINTFLM_PURPLE(fmt, ...)   PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_PURPLE, fmt, ##__VA_ARGS__)
+#define PRINTFLM_BLUE(fmt, ...)     PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_BLUE, fmt, ##__VA_ARGS__)
+#define PRINTFLM_WHITE(fmt, ...)    PRINTFLM_COLOR_LN(SHELL_FONT_COLOR_WHITE, fmt, ##__VA_ARGS__)
 
 #define PRINTFLM(fmt, ...) PRINTFLM_WHITE(fmt, ##__VA_ARGS__)
 #define PRINTFLM_ERR(fmt, ...) PRINTFLM_RED(fmt, ##__VA_ARGS__)
@@ -83,9 +83,9 @@ static inline int _err_code_set(int code, char *info, char *file, const char *fu
 
 #define RETCODE(ulErrCode)  (ulErrCode)
 
-#define FATAL(...) do { \
+#define FATAL(_fmt, ...) do { \
     fprintf(stderr, "Error(%s:%d): ", __FILE__, __LINE__); \
-    fprintf(stderr, __VA_ARGS__); \
+    fprintf(stderr, _fmt, ##__VA_ARGS__); \
     exit(1); \
 } while(0)
 

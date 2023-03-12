@@ -8,7 +8,6 @@
 #ifndef __MAP_UTL_H_
 #define __MAP_UTL_H_
 
-#include "bs.h"
 #include "utl/hash_utl.h"
 #include "utl/avllib_utl.h"
 #include "utl/rb_tree.h"

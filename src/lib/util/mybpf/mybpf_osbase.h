@@ -124,24 +124,6 @@ enum {
 		.off   = OFF,					\
 		.imm   = 0 })
 
-struct xdp_md {
-	UINT data;
-	UINT data_end;
-	UINT data_meta;
-	/* Below access go through struct xdp_rxq_info */
-	UINT ingress_ifindex; /* rxq->dev->ifindex */
-	UINT rx_queue_index;  /* rxq->queue_index  */
-	UINT egress_ifindex;  /* txq->dev->ifindex */
-};
-
-enum xdp_action {
-	XDP_ABORTED = 0,
-	XDP_DROP,
-	XDP_PASS,
-	XDP_TX,
-	XDP_REDIRECT,
-};
-
 enum bpf_reg_type {
 	NOT_INIT = 0,		 /* nothing was written into register */
 	SCALAR_VALUE,		 /* reg doesn't contain a valid pointer */

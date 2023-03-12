@@ -1199,20 +1199,18 @@ VOID TXT_Strlwr(INOUT CHAR *pszString)
     }
 }
 
-char *TXT_Strdup(IN CHAR *pcStr)
+char * TXT_Strdup(IN CHAR *pcStr)
 {
     UINT uiLen;
     CHAR *pcDup;
 
-    if (NULL == pcStr)
-    {
+    if (NULL == pcStr) {
         return NULL;
     }
 
     uiLen = strlen(pcStr);
     pcDup = MEM_Malloc(uiLen + 1);
-    if (NULL == pcDup)
-    {
+    if (NULL == pcDup) {
         return NULL;
     }
     TXT_Strlcpy(pcDup, pcStr, uiLen + 1);

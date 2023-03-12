@@ -12,7 +12,7 @@
 #include "utl/mybpf_insn.h"
 #include "utl/bpf_helper_utl.h"
 #include "mybpf_osbase.h"
-#include "mybpf_def.h"
+#include "mybpf_def_inner.h"
 
 /* 获取helper函数的offset */
 static int _mybpf_prog_get_helper_offset(int imm, void *ud)
@@ -22,7 +22,8 @@ static int _mybpf_prog_get_helper_offset(int imm, void *ud)
         return 0;
     }
 
-    return helper_func - BpfHelper_BaseHelper;
+    PF_BPF_HELPER_FUNC base_func = (void*)BpfHelper_BaseHelper;
+    return helper_func - base_func;
 }
 
 

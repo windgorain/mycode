@@ -5,8 +5,8 @@
 ================================================================*/
 #include "bs.h"
 #include "utl/ubpf_utl.h"
-#include "utl/ubpf/ubpf_int.h"
 #include "utl/ubpf/ebpf.h"
+#include "ubpf_int.h"
 #include "pcap.h"
 
 /* cbpf string to cbpf code */

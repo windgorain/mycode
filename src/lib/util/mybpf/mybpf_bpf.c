@@ -11,7 +11,7 @@
 #include "utl/bpf_helper_utl.h"
 #include "klc/klc_def.h"
 #include "klc/klc_namefunc.h"
-#include "mybpf_def.h"
+#include "mybpf_def_inner.h"
 #include "mybpf_osbase.h"
 
 /* Registers */
@@ -366,7 +366,8 @@ select_insn:
         } else if (insn->imm == KLC_HELPER_INTERNAL) {
             BPF_R0 = my_helper_bpf_call_internal(BPF_R1, BPF_R2, BPF_R3, BPF_R4, BPF_R5);
         } else {
-            BPF_R0 = (BpfHelper_BaseHelper + insn->imm)(BPF_R1, BPF_R2, BPF_R3, BPF_R4, BPF_R5);
+            PF_BPF_HELPER_FUNC func = (void*)BpfHelper_BaseHelper;
+            BPF_R0 = (func + insn->imm)(BPF_R1, BPF_R2, BPF_R3, BPF_R4, BPF_R5);
         }
 		CONT;
 

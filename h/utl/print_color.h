@@ -48,26 +48,48 @@ extern "C"
 #define SHELL_FONT_COLOR_H_CYAN    "\033[96m"
 #define SHELL_FONT_COLOR_H_WHITE   "\033[97m"
 
-#define PRINT_COLOR(_color, _fmt, ...) printf(_color _fmt SHELL_COLOR_CLOSE, ##__VA_ARGS__)   
-#define PRINT_COLOR_LN(_color, _fmt, ...) printf(_color _fmt SHELL_COLOR_CLOSE "\n", ##__VA_ARGS__)   
+#define PRINT_COLOR(_color, _fmt, ...)      do { \
+    printf(_color _fmt SHELL_COLOR_CLOSE, ##__VA_ARGS__); \
+    fflush(stdout); } while(0)
 
-#define PRINT_BLACK(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_BLACK, _fmt, ##__VA_ARGS__)   
-#define PRINT_RED(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_RED, _fmt, ##__VA_ARGS__)   
-#define PRINT_GREEN(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_GREEN, _fmt, ##__VA_ARGS__)   
-#define PRINT_YELLOW(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_YELLOW, _fmt, ##__VA_ARGS__)   
-#define PRINT_BLUE(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_BLUE, _fmt, ##__VA_ARGS__)   
-#define PRINT_PURPLE(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_PURPLE, _fmt, ##__VA_ARGS__)   
-#define PRINT_CYAN(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_CYAN, _fmt, ##__VA_ARGS__)   
-#define PRINT_WHITE(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_WHITE, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_COLOR(_color, _fmt, ...)   printf(_color _fmt SHELL_COLOR_CLOSE "\n", ##__VA_ARGS__)   
 
-#define PRINT_HBLACK(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_H_BLACK, _fmt, ##__VA_ARGS__)   
-#define PRINT_HRED(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_H_RED, _fmt, ##__VA_ARGS__)   
-#define PRINT_HGREEN(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_H_GREEN, _fmt, ##__VA_ARGS__)   
-#define PRINT_HYELLOW(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_H_YELLOW, _fmt, ##__VA_ARGS__)   
-#define PRINT_HBLUE(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_H_BLUE, _fmt, ##__VA_ARGS__)   
-#define PRINT_HPURPLE(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_H_PURPLE, _fmt, ##__VA_ARGS__)   
-#define PRINT_HCYAN(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_H_CYAN, _fmt, ##__VA_ARGS__)   
-#define PRINT_HWHITE(_fmt, ...) PRINT_COLOR(SHELL_FONT_COLOR_H_WHITE, _fmt, ##__VA_ARGS__)   
+#define PRINT_BLACK(_fmt, ...)      PRINT_COLOR(SHELL_FONT_COLOR_BLACK, _fmt, ##__VA_ARGS__)   
+#define PRINT_RED(_fmt, ...)        PRINT_COLOR(SHELL_FONT_COLOR_RED, _fmt, ##__VA_ARGS__)   
+#define PRINT_GREEN(_fmt, ...)      PRINT_COLOR(SHELL_FONT_COLOR_GREEN, _fmt, ##__VA_ARGS__)   
+#define PRINT_YELLOW(_fmt, ...)     PRINT_COLOR(SHELL_FONT_COLOR_YELLOW, _fmt, ##__VA_ARGS__)   
+#define PRINT_BLUE(_fmt, ...)       PRINT_COLOR(SHELL_FONT_COLOR_BLUE, _fmt, ##__VA_ARGS__)   
+#define PRINT_PURPLE(_fmt, ...)     PRINT_COLOR(SHELL_FONT_COLOR_PURPLE, _fmt, ##__VA_ARGS__)   
+#define PRINT_CYAN(_fmt, ...)       PRINT_COLOR(SHELL_FONT_COLOR_CYAN, _fmt, ##__VA_ARGS__)   
+#define PRINT_WHITE(_fmt, ...)      PRINT_COLOR(SHELL_FONT_COLOR_WHITE, _fmt, ##__VA_ARGS__)   
+
+#define PRINT_HBLACK(_fmt, ...)     PRINT_COLOR(SHELL_FONT_COLOR_H_BLACK, _fmt, ##__VA_ARGS__)   
+#define PRINT_HRED(_fmt, ...)       PRINT_COLOR(SHELL_FONT_COLOR_H_RED, _fmt, ##__VA_ARGS__)   
+#define PRINT_HGREEN(_fmt, ...)     PRINT_COLOR(SHELL_FONT_COLOR_H_GREEN, _fmt, ##__VA_ARGS__)   
+#define PRINT_HYELLOW(_fmt, ...)    PRINT_COLOR(SHELL_FONT_COLOR_H_YELLOW, _fmt, ##__VA_ARGS__)   
+#define PRINT_HBLUE(_fmt, ...)      PRINT_COLOR(SHELL_FONT_COLOR_H_BLUE, _fmt, ##__VA_ARGS__)   
+#define PRINT_HPURPLE(_fmt, ...)    PRINT_COLOR(SHELL_FONT_COLOR_H_PURPLE, _fmt, ##__VA_ARGS__)   
+#define PRINT_HCYAN(_fmt, ...)      PRINT_COLOR(SHELL_FONT_COLOR_H_CYAN, _fmt, ##__VA_ARGS__)   
+#define PRINT_HWHITE(_fmt, ...)     PRINT_COLOR(SHELL_FONT_COLOR_H_WHITE, _fmt, ##__VA_ARGS__)   
+
+
+#define PRINTLN_BLACK(_fmt, ...)    PRINTLN_COLOR(SHELL_FONT_COLOR_BLACK, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_RED(_fmt, ...)      PRINTLN_COLOR(SHELL_FONT_COLOR_RED, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_GREEN(_fmt, ...)    PRINTLN_COLOR(SHELL_FONT_COLOR_GREEN, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_YELLOW(_fmt, ...)   PRINTLN_COLOR(SHELL_FONT_COLOR_YELLOW, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_BLUE(_fmt, ...)     PRINTLN_COLOR(SHELL_FONT_COLOR_BLUE, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_PURPLE(_fmt, ...)   PRINTLN_COLOR(SHELL_FONT_COLOR_PURPLE, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_CYAN(_fmt, ...)     PRINTLN_COLOR(SHELL_FONT_COLOR_CYAN, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_WHITE(_fmt, ...)    PRINTLN_COLOR(SHELL_FONT_COLOR_WHITE, _fmt, ##__VA_ARGS__)   
+
+#define PRINTLN_HBLACK(_fmt, ...)   PRINTLN_COLOR(SHELL_FONT_COLOR_H_BLACK, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_HRED(_fmt, ...)     PRINTLN_COLOR(SHELL_FONT_COLOR_H_RED, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_HGREEN(_fmt, ...)   PRINTLN_COLOR(SHELL_FONT_COLOR_H_GREEN, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_HYELLOW(_fmt, ...)  PRINTLN_COLOR(SHELL_FONT_COLOR_H_YELLOW, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_HBLUE(_fmt, ...)    PRINTLN_COLOR(SHELL_FONT_COLOR_H_BLUE, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_HPURPLE(_fmt, ...)  PRINTLN_COLOR(SHELL_FONT_COLOR_H_PURPLE, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_HCYAN(_fmt, ...)    PRINTLN_COLOR(SHELL_FONT_COLOR_H_CYAN, _fmt, ##__VA_ARGS__)   
+#define PRINTLN_HWHITE(_fmt, ...)   PRINTLN_COLOR(SHELL_FONT_COLOR_H_WHITE, _fmt, ##__VA_ARGS__)   
 
 void PrintColor_Black(const char *fmt, ...);
 void PrintColor_Red(const char *fmt, ...);

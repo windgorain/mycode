@@ -12,7 +12,7 @@
 #include "utl/mybpf_insn.h"
 #include "utl/bpf_helper_utl.h"
 #include "mybpf_osbase.h"
-#include "mybpf_def.h"
+#include "mybpf_def_inner.h"
 
 int MYBPF_INSN_GetCallsCount(void *insts, int insts_len /* 字节数 */)
 {
@@ -53,21 +53,6 @@ int MYBPF_INSN_GetCallsInfo(void *insts, int insts_len/* 字节数 */, MYBPF_INS
 
     return count;
 }
-
-/* 把bpf2bpf call变成相对imm偏移, 以8字节为一个单位 */
-void MYBPF_INSN_RelativeBpfCalls(INOUT void *insts, int insts_len /* 字节数 */)
-{
-    MYBPF_INSN_S *insn = insts;
-    int insn_cnt = insts_len / sizeof(*insn);
-    int i;
-
-	for (i = 0; i < insn_cnt; i++, insn++) {
-		if ((insn->opcode != (BPF_JMP | BPF_CALL)) || (insn->src_reg != BPF_PSEUDO_CALL))
-			continue;
-        insn->imm = (insn->imm / sizeof(MYBPF_INSN_S)) - i;
-    }
-}
-
 
 /* fixup extern calls
  * len: 字节数 */

@@ -6,6 +6,7 @@
 #ifndef _UMAP_UTL_H
 #define _UMAP_UTL_H
 #include "utl/ufd_utl.h"
+#include "utl/ulc_def.h"
 #ifdef __cplusplus
 extern "C"
 {
@@ -42,14 +43,6 @@ typedef struct {
     PF_UMAP_DIRECT_VALUE direct_value_func;
 }UMAP_FUNC_TBL_S;
 
-enum {
-	BPF_MAP_TYPE_UNSPEC,
-	BPF_MAP_TYPE_HASH,
-	BPF_MAP_TYPE_ARRAY,
-
-    BPF_MAP_TYPE_MAX
-};
-
 #define UMAP_NAME_SIZE 128
 
 typedef struct {
@@ -70,14 +63,14 @@ int UMAP_GetByName(UFD_S *ctx, char *map_name);
 UMAP_HEADER_S * UMAP_GetByFd(UFD_S *ctx, int fd);
 UMAP_HEADER_S * UMAP_RefByFd(UFD_S *ctx, int fd);
 
-void * UMAP_LookupElem(void *map, const void *key);
-long UMAP_DeleteElem(void *map, const void *key);
-long UMAP_UpdateElem(void *map, const void *key, const void *value, U32 flag);
+void * UMAP_LookupElem(UMAP_HEADER_S *map, const void *key);
+long UMAP_DeleteElem(UMAP_HEADER_S *map, const void *key);
+long UMAP_UpdateElem(UMAP_HEADER_S *map, const void *key, const void *value, U32 flag);
 void * UMAP_LookupElemByFd(UFD_S *ctx, int fd, void *key);
 long UMAP_DeleteElemByFd(UFD_S *ctx, int fd, void *key);
-long UMAP_UpdataElemByFd(UFD_S *ctx, int fd, void *key, void *value, UINT flag);
-void * UMAP_GetNextKey(void *map, void *curr_key, OUT void **next_key);
-int UMAP_DirectValue(void *map, OUT UINT64 *addr, UINT off);
+long UMAP_UpdateElemByFd(UFD_S *ctx, int fd, void *key, void *value, UINT flag);
+void * UMAP_GetNextKey(UMAP_HEADER_S *map, void *curr_key, OUT void **next_key);
+int UMAP_DirectValue(UMAP_HEADER_S *map, OUT UINT64 *addr, UINT off);
 
 void UMAP_ShowMap(UFD_S *ctx, PF_PRINT_FUNC print_func);
 void UMAP_DumpMap(UFD_S *ctx, int map_fd, PF_PRINT_FUNC print_func);

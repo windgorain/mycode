@@ -377,7 +377,7 @@ int MEM_ReplaceOneChar(void *data, int len, UCHAR src, UCHAR dst)
 }
 
 /* 交换两块内存的内容 */
-void MEM_Exchange(void *buf1, void *buf2, int len)
+void MEM_Swap(void *buf1, void *buf2, int len)
 {
     unsigned char *d1 = buf1;
     unsigned char *d2 = buf2;

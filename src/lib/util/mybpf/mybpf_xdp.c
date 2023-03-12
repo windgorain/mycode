@@ -11,7 +11,7 @@
 #include "utl/mybpf_vm.h"
 #include "utl/mybpf_hookpoint.h"
 #include "utl/ufd_utl.h"
-#include "mybpf_def.h"
+#include "mybpf_def_inner.h"
 #include "mybpf_osbase.h"
 
 static inline int _mybpf_process_xdp_fd(MYBPF_XDP_BUFF_S *xdp_buf, void *prog)

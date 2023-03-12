@@ -10,7 +10,7 @@ extern "C"
 {
 #endif
 
-void QSORT_Do(void *base, int count, int ele_size, PF_CMP_FUNC cmp_func, void *ud);
+void QSORT_Do(void *base, int num, int width, PF_CMP_FUNC cmp_func, void *ud);
 
 #ifdef __cplusplus
 }

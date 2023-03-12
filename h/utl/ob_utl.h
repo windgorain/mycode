@@ -32,7 +32,7 @@ typedef DLL_HEAD_S OB_LIST_S;
         _func_type func; \
         OB_SCAN_BEGIN(_pstObChainHead, _ob) {   \
             func = _ob->func; \
-            func(_ob, __VA_ARGS__); \
+            func(_ob, ##__VA_ARGS__); \
         }OB_SCAN_END();    \
     }while(0)
 

@@ -9,12 +9,12 @@
 
 #ifndef uint8_t 
 #define uint8_t unsigned char
-#endif
-#ifndef uint16_t 
 #define uint16_t unsigned short
-#endif
-#ifndef uint32_t 
 #define uint32_t unsigned int
+#define uint64_t unsigned long long 
+#define int16_t short
+#define int32_t int
+#define int64_t long long 
 #endif
 
 #ifndef NULL 

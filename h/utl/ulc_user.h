@@ -5,52 +5,35 @@
 ********************************************************/
 #ifndef _ULC_USER_H
 #define _ULC_USER_H
+
+#include "utl/ulc_def.h"
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+#ifdef IN_ULC_USER
+
 #ifndef noinline
 #define noinline __attribute__((noinline))
 #endif
 
+#undef SEC
 #define SEC(NAME) __attribute__((section(NAME), used))
 
-#define BPF_Print(fmt, ...) ({ \
-    char msg[] = fmt; \
-    bpf_trace_printk(msg, sizeof(msg), ##__VA_ARGS__); \
+#define BPF_Print(_fmt, ...) ({ \
+    char _msg[] = _fmt; \
+    bpf_trace_printk(_msg, sizeof(_msg), ##__VA_ARGS__); \
 })
-
-
-#ifndef NULL
-#define NULL 0
-#endif
 
 #ifndef printf
 #define printf BPF_Print
 #endif
 
-#ifndef memset
-#define memset __builtin_memset
+#ifndef NULL
+#define NULL 0
 #endif
-
-#ifndef memcpy
-#define memcpy __builtin_memcpy
-#endif
-
-enum bpf_map_type {
-	BPF_MAP_TYPE_UNSPEC,
-	BPF_MAP_TYPE_HASH,
-	BPF_MAP_TYPE_ARRAY,
-};
-
-enum xdp_action {
-	XDP_ABORTED = 0,
-	XDP_DROP,
-	XDP_PASS,
-	XDP_TX,
-	XDP_REDIRECT,
-};
 
 struct bpf_map_def {
 	unsigned int type;
@@ -58,16 +41,6 @@ struct bpf_map_def {
 	unsigned int value_size;
 	unsigned int max_entries;
 	unsigned int map_flags;
-};
-
-struct xdp_md {
-	unsigned int data;
-	unsigned int data_end;
-	unsigned int data_meta;
-	/* Below access go through struct xdp_rxq_info */
-	unsigned int ingress_ifindex; /* rxq->dev->ifindex */
-	unsigned int rx_queue_index;  /* rxq->queue_index  */
-	unsigned int egress_ifindex;  /* txq->dev->ifindex */
 };
 
 static void *(*bpf_map_lookup_elem)(void *map, const void *key) = (void *) 1;
@@ -84,6 +57,7 @@ static unsigned long long (*bpf_get_current_uid_gid)(void) = (void *) 15;
 static long (*bpf_get_current_comm)(void *buf, unsigned int size_of_buf) = (void *) 16;
 static long (*bpf_strtol)(const char *buf, int buf_len, unsigned long long flags, long *res) = (void *) 105;
 
+#endif
 #ifdef __cplusplus
 }
 #endif

@@ -106,6 +106,7 @@ static long _umap_array_direct_value(void *map, OUT U64 *value, U32 off)
     }
 
 	if (off >= ctrl->hdr.max_elem * ctrl->hdr.size_value) {
+        PRINTFLM_RED("off=%d, max_elem=%d, size_value=%d", off, ctrl->hdr.max_elem, ctrl->hdr.size_value);
 		return -E2BIG;
     }
 

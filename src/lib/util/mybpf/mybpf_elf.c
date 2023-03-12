@@ -6,6 +6,7 @@
 #include "bs.h"
 #include "utl/mybpf_utl.h"
 #include "utl/mybpf_elf.h"
+#include "utl/mybpf_dbg.h"
 
 ELF_SECTION_S * MYBPF_ELF_GetProg(ELF_S *elf, char *func_name, OUT ELF_SECTION_S *sec)
 {
@@ -54,32 +55,6 @@ int MYBPF_ELF_GetMapsSection(ELF_S *elf, OUT MYBPF_MAPS_SEC_S *map_sec)
     map_sec->sec_id = sec.sec_id;
 
     return 0;
-}
-
-int MYBPF_ELF_WalkProg(ELF_S *elf, PF_MYBPF_ELF_WALK_PROG walk_func, void *ud)
-{
-    void *iter = NULL;
-    ELF_SECTION_S sec;
-    int ret = 0;
-    char *func_name;
-
-    while ((iter = ELF_GetNextSection(elf, iter, &sec))) {
-        if (! ELF_IsProgSection(&sec)) {
-            continue;
-        }
-
-        func_name = ELF_GetSecSymbolName(elf, sec.sec_id, STT_FUNC, 0);
-        if (! func_name) {
-            continue;
-        }
-
-        ret = walk_func(sec.data->d_buf, sec.data->d_size, sec.shname, func_name, ud);
-        if (ret < 0) {
-            break;
-        }
-    }
-
-    return ret;
 }
 
 int MYBPF_ELF_WalkMap(ELF_S *elf, PF_MYBPF_ELF_WALK_MAP walk_func, void *ud)

@@ -5,6 +5,7 @@
 ================================================================*/
 #include "bs.h"
 #include "utl/elf_utl.h"
+#include "utl/qsort_utl.h"
 
 #define DATA_SEC ".data"
 #define BSS_SEC ".bss"
@@ -149,8 +150,6 @@ int ELF_Open(char *path, OUT ELF_S *elf)
     BS_DBGASSERT(elf);
     BS_DBGASSERT(path);
 
-    memset(elf, 0, sizeof(ELF_S));
-
     if (elf_version(EV_CURRENT) == EV_NONE) {
         RETURN(BS_NOT_READY);
     }
@@ -204,9 +203,9 @@ int ELF_SecCount(ELF_S *elf)
 }
 
 /* 获取第几个section, id就是section的序号 */
-int ELF_GetSecByID(ELF_S *elf, int id, OUT ELF_SECTION_S *sec)
+int ELF_GetSecByID(ELF_S *elf, int sec_id, OUT ELF_SECTION_S *sec)
 {
-    return elf_get_sec_by_id(elf, id, sec);
+    return elf_get_sec_by_id(elf, sec_id, sec);
 }
 
 int ELF_GetSecByName(ELF_S *elf, char *sec_name, OUT ELF_SECTION_S *sec)
@@ -360,7 +359,7 @@ BOOL_T ELF_IsRoDataSection(ELF_SECTION_S *sec)
         return FALSE;
     }
 
-    if (strcmp(sec->shname, RODATA_SEC) != 0) {
+    if (strncmp(sec->shname, RODATA_SEC, STR_LEN(RODATA_SEC)) != 0) {
         return FALSE;
     }
 
@@ -384,20 +383,20 @@ int ELF_GetGlobalData(ELF_S *elf, OUT ELF_GLOBAL_DATA_S *global_data)
 
     global_data->have_bss = 0;
     global_data->have_data = 0;
-    global_data->have_rodata = 0;
+    global_data->rodata_count = 0;
 
     while ((iter = ELF_GetNextSection(elf, iter, &the_sec))) {
-        if (ELF_IsDataSection(&the_sec)) {
+        if (ELF_IsBssSection(&the_sec)) {
+            global_data->bss_sec = the_sec;
+            global_data->have_bss = 1;
+            count ++;
+        } else if (ELF_IsDataSection(&the_sec)) {
             global_data->data_sec = the_sec;
             global_data->have_data = 1;
             count ++;
         } else if (ELF_IsRoDataSection(&the_sec)) {
-            global_data->rodata_sec = the_sec;
-            global_data->have_rodata = 1;
-            count ++;
-        } else if (ELF_IsBssSection(&the_sec)) {
-            global_data->bss_sec = the_sec;
-            global_data->have_bss = 1;
+            global_data->rodata_sec[global_data->rodata_count] = the_sec;
+            global_data->rodata_count ++;
             count ++;
         }
     }
@@ -487,7 +486,20 @@ void * ELF_DupProgs(ELF_S *elf)
     return mem;
 }
 
-int ELF_GetProgsInfo(ELF_S *elf, OUT ELF_PROG_INFO_S *progs, int max_prog_count)
+static int _elf_prog_info_cmp(void *n1, void *n2, void *ud)
+{
+    ELF_PROG_INFO_S *p1 = n1;
+    ELF_PROG_INFO_S *p2 = n2;
+
+    return (int)p1->offset - (int)p2->offset;
+}
+
+static void _elf_sort_progs_info(ELF_PROG_INFO_S *progs, int prog_count)
+{
+    QSORT_Do(progs, prog_count, sizeof(ELF_PROG_INFO_S), _elf_prog_info_cmp, NULL);
+}
+
+static int _elf_get_progs_info(ELF_S *elf, OUT ELF_PROG_INFO_S *progs, int max_prog_count)
 {
     ELF_SECTION_S sec;
     void *iter = NULL;
@@ -508,10 +520,12 @@ int ELF_GetProgsInfo(ELF_S *elf, OUT ELF_PROG_INFO_S *progs, int max_prog_count)
             }
             func_name = ELF_GetSecSymbolName(elf, sec.sec_id, STT_FUNC, i);
             Elf64_Sym *sym = ELF_GetSecSymbol(elf, sec.sec_id, STT_FUNC, i);
+            progs[count].sec_offset = prog_sec_off;
             progs[count].offset = sym->st_value + prog_sec_off;
             progs[count].size = sym->st_size;
             progs[count].sec_name = sec.shname;
             progs[count].func_name = func_name;
+            progs[count].sec_id = sec.sec_id;
             count++;
         }
 
@@ -519,5 +533,47 @@ int ELF_GetProgsInfo(ELF_S *elf, OUT ELF_PROG_INFO_S *progs, int max_prog_count)
     }
 
     return count;
+}
+
+int ELF_GetProgsInfo(ELF_S *elf, OUT ELF_PROG_INFO_S *progs, int max_prog_count)
+{
+    int count = _elf_get_progs_info(elf, progs, max_prog_count);
+    _elf_sort_progs_info(progs, count);
+    return count;
+}
+
+void ELF_ClearProgsInfo(ELF_PROG_INFO_S *progs, int prog_count)
+{
+    for (int i=0; i<prog_count; i++) {
+        MEM_ExistFree(progs[i].func_name);
+        MEM_ExistFree(progs[i].sec_name);
+    }
+}
+
+int ELF_WalkProgs(ELF_S *elf, PF_ELF_WALK_PROG walk_func, void *ud)
+{
+    ELF_SECTION_S sec;
+    void *iter = NULL;
+    char *func_name;
+    int ret = 0;
+    int i;
+
+    while ((iter = ELF_GetNextSection(elf, iter, &sec))) {
+        if (! ELF_IsProgSection(&sec)) {
+            continue;
+        }
+
+        int func_count = ELF_SecSymbolCount(elf, sec.sec_id, STT_FUNC);
+        for (i=0; i<func_count; i++) {
+            func_name = ELF_GetSecSymbolName(elf, sec.sec_id, STT_FUNC, i);
+            Elf64_Sym *sym = ELF_GetSecSymbol(elf, sec.sec_id, STT_FUNC, i);
+            ret = walk_func(sec.data->d_buf + sym->st_value, sym->st_size, sec.shname, func_name, ud);
+            if (ret < 0) {
+                break;
+            }
+        }
+    }
+
+    return ret;
 }
 

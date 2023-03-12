@@ -104,37 +104,31 @@ int UMAP_GetByName(UFD_S *ctx, char *map_name)
     return -1;
 }
 
-void * UMAP_LookupElem(void *map, const void *key)
+void * UMAP_LookupElem(UMAP_HEADER_S *map, const void *key)
 {
-    UMAP_HEADER_S *hdr = map;
-
-    if (! hdr) {
+    if (! map) {
         return NULL;
     }
 
-    return g_umap_func_tbl[hdr->type]->lookup_elem_func(map, key);
+    return g_umap_func_tbl[map->type]->lookup_elem_func(map, key);
 }
 
-long UMAP_DeleteElem(void *map, const void *key)
+long UMAP_DeleteElem(UMAP_HEADER_S *map, const void *key)
 {
-    UMAP_HEADER_S *hdr = map;
-
-    if (! hdr) {
+    if (! map) {
 		return -EINVAL;
     }
 
-    return g_umap_func_tbl[hdr->type]->delete_elem_func(map, key);
+    return g_umap_func_tbl[map->type]->delete_elem_func(map, key);
 }
 
-long UMAP_UpdateElem(void *map, const void *key, const void *value, U32 flag)
+long UMAP_UpdateElem(UMAP_HEADER_S *map, const void *key, const void *value, U32 flag)
 {
-    UMAP_HEADER_S *hdr = map;
-
-    if (! hdr) {
+    if (! map) {
 		return -EINVAL;
     }
 
-    return g_umap_func_tbl[hdr->type]->update_elem_func(map, key, value, flag);
+    return g_umap_func_tbl[map->type]->update_elem_func(map, key, value, flag);
 }
 
 void * UMAP_LookupElemByFd(UFD_S *ctx, int fd, void *key)
@@ -161,7 +155,7 @@ long UMAP_DeleteElemByFd(UFD_S *ctx, int fd, void *key)
     return UMAP_DeleteElem(hdr, key);
 }
 
-long UMAP_UpdataElemByFd(UFD_S *ctx, int fd, void *key, void *value, UINT flag)
+long UMAP_UpdateElemByFd(UFD_S *ctx, int fd, void *key, void *value, UINT flag)
 {
     UMAP_HEADER_S *hdr;
 
@@ -174,26 +168,23 @@ long UMAP_UpdataElemByFd(UFD_S *ctx, int fd, void *key, void *value, UINT flag)
 }
 
 /* 获取数组map的数组地址 */
-int UMAP_DirectValue(void *map, OUT U64 *addr, UINT off)
+int UMAP_DirectValue(UMAP_HEADER_S *map, OUT U64 *addr, UINT off)
 {
-    UMAP_HEADER_S *hdr = map;
-
-    if (! hdr) {
+    if (! map) {
         RETURN(BS_ERR);
     }
 
-    if (! g_umap_func_tbl[hdr->type]->direct_value_func) {
+    if (! g_umap_func_tbl[map->type]->direct_value_func) {
         RETURN(BS_ERR);
     }
 
-    return g_umap_func_tbl[hdr->type]->direct_value_func(map, addr, off);
+    return g_umap_func_tbl[map->type]->direct_value_func(map, addr, off);
 }
 
 /* 注意: 调用者的*next_key和接受返回值不要用同一个变量, 因为在array map中*next_key有存储id的作用 */
-void * UMAP_GetNextKey(void *map, void *curr_key, OUT void **next_key)
+void * UMAP_GetNextKey(UMAP_HEADER_S *map, void *curr_key, OUT void **next_key)
 {
-    UMAP_HEADER_S *hdr = map;
-    return g_umap_func_tbl[hdr->type]->get_next_key(hdr, curr_key, next_key);
+    return g_umap_func_tbl[map->type]->get_next_key(map, curr_key, next_key);
 }
 
 void UMAP_ShowMap(UFD_S *ctx, PF_PRINT_FUNC print_func)

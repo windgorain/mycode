@@ -8,108 +8,114 @@
 
 #include "utl/dbg_utl.h"
 
-
-VOID DBG_UTL_SetDebugFlag(IN DBG_UTL_CTRL_S *pstCtrl, IN UINT uiModuleID, IN UINT uiFlag)
+void DBG_UTL_Init(DBG_UTL_CTRL_S *ctrl, const char *name, UINT *dbg_flags, DBG_UTL_DEF_S *dbg_defs, int max_id)
 {
-    pstCtrl->puiDbgFlags[pstCtrl->pstDefs[uiModuleID].uiDbgID] |= uiFlag;
+    ctrl->product_name = name;
+    ctrl->debug_flags = dbg_flags;
+    ctrl->debug_defs = dbg_defs;
+    ctrl->max_module_id = max_id;
 }
 
-VOID DBG_UTL_ClrDebugFlag(IN DBG_UTL_CTRL_S *pstCtrl, IN UINT uiModuleID, IN UINT uiFlag)
+void DBG_UTL_SetDebugFlag(IN DBG_UTL_CTRL_S *pstCtrl, IN UINT uiModuleID, IN UINT uiFlag)
 {
-    pstCtrl->puiDbgFlags[pstCtrl->pstDefs[uiModuleID].uiDbgID] &= ~uiFlag;
+    pstCtrl->debug_flags[pstCtrl->debug_defs[uiModuleID].uiDbgID] |= uiFlag;
 }
 
-VOID DBG_UTL_DebugCmd(IN DBG_UTL_CTRL_S *pstCtrl, IN CHAR *pcModuleName, IN CHAR *pcDbgName)
+void DBG_UTL_ClrDebugFlag(IN DBG_UTL_CTRL_S *pstCtrl, IN UINT uiModuleID, IN UINT uiFlag)
 {
-    UINT i;
+    pstCtrl->debug_flags[pstCtrl->debug_defs[uiModuleID].uiDbgID] &= ~uiFlag;
+}
+
+void DBG_UTL_SetAllDebugFlags(DBG_UTL_CTRL_S *ctrl)
+{
+    for (int i=0; i<ctrl->max_module_id; i++) {
+        ctrl->debug_flags[i] = 0xffffffff;
+    }
+}
+
+void DBG_UTL_ClrAllDebugFlags(DBG_UTL_CTRL_S *ctrl)
+{
+    for (int i=0; i<ctrl->max_module_id; i++) {
+        ctrl->debug_flags[i] = 0;
+    }
+}
+
+void DBG_UTL_DebugCmd(IN DBG_UTL_CTRL_S *pstCtrl, IN CHAR *pcModuleName, IN CHAR *pcDbgName)
+{
     BOOL_T bModuleWild = FALSE; /* 模块名是否通配 */
     BOOL_T bFlagWild = FALSE;   /* debug falg name是否通配 */
+    DBG_UTL_DEF_S *def = pstCtrl->debug_defs;
 
-    if (strcmp(pcModuleName, "all") == 0)
-    {
+    if (strcmp(pcModuleName, "all") == 0) {
         bModuleWild = TRUE;
     }
 
-    if (strcmp(pcDbgName, "all") == 0)
-    {
+    if (strcmp(pcDbgName, "all") == 0) {
         bFlagWild = TRUE;
     }
 
-    for (i=0; i<pstCtrl->uiDefsCount; i++)
-    {
-        if ((bModuleWild == FALSE) && (strcmp(pstCtrl->pstDefs[i].pcModuleName, pcModuleName) != 0))
-        {
+    for (; def->pcModuleName; def++) {
+        if ((! bModuleWild) && (strcmp(def->pcModuleName, pcModuleName) != 0)) {
             continue;
         }
-
-        if ((bFlagWild == FALSE) && (strcmp(pstCtrl->pstDefs[i].pcDbgFlagName, pcDbgName) != 0))
-        {
+        if ((! bFlagWild) && (strcmp(def->pcDbgFlagName, pcDbgName) != 0)) {
             continue;
         }
-
-        pstCtrl->puiDbgFlags[pstCtrl->pstDefs[i].uiDbgID] |= pstCtrl->pstDefs[i].uiDbgFlag;
+        pstCtrl->debug_flags[def->uiDbgID] |= def->uiDbgFlag;
     }
 }
 
-VOID DBG_UTL_NoDebugCmd(IN DBG_UTL_CTRL_S *pstCtrl, IN CHAR *pcModuleName, IN CHAR *pcDbgName)
+void DBG_UTL_NoDebugCmd(IN DBG_UTL_CTRL_S *pstCtrl, IN CHAR *pcModuleName, IN CHAR *pcDbgName)
 {
-    UINT i;
     BOOL_T bModuleWild = FALSE; /* 模块名是否通配 */
     BOOL_T bFlagWild = FALSE;   /* debug falg name是否通配 */
+    DBG_UTL_DEF_S *def = pstCtrl->debug_defs;
 
-    if (strcmp(pcModuleName, "all") == 0)
-    {
+    if (strcmp(pcModuleName, "all") == 0) {
         bModuleWild = TRUE;
     }
 
-    if (strcmp(pcDbgName, "all") == 0)
-    {
+    if (strcmp(pcDbgName, "all") == 0) {
         bFlagWild = TRUE;
     }
 
-    for (i=0; i<pstCtrl->uiDefsCount; i++)
-    {
-        if ((bModuleWild == FALSE) && (strcmp(pstCtrl->pstDefs[i].pcModuleName, pcModuleName) != 0))
-        {
+    for (; def->pcModuleName; def++) {
+        if ((! bModuleWild) && (strcmp(def->pcModuleName, pcModuleName) != 0)) {
             continue;
         }
 
-        if ((bFlagWild == FALSE) && (strcmp(pstCtrl->pstDefs[i].pcDbgFlagName, pcDbgName) != 0))
-        {
+        if ((! bFlagWild) && (strcmp(def->pcDbgFlagName, pcDbgName) != 0)) {
             continue;
         }
 
-        pstCtrl->puiDbgFlags[pstCtrl->pstDefs[i].uiDbgID] &= (~pstCtrl->pstDefs[i].uiDbgFlag);
+        pstCtrl->debug_flags[def->uiDbgID] &= (~(def->uiDbgFlag));
     }
 }
 
 static DBG_UTL_DEF_S * _dbg_utl_GetDef(IN DBG_UTL_CTRL_S *pstCtrl, IN UINT uiDbgID, IN UINT uiFlag)
 {
-    UINT i;
+    DBG_UTL_DEF_S *def = pstCtrl->debug_defs;
 
-    for (i=0; i<pstCtrl->uiDefsCount; i++)
-    {
-        if ((pstCtrl->pstDefs[i].uiDbgID == uiDbgID) && (pstCtrl->pstDefs[i].uiDbgFlag == uiFlag))
-        {
-            return &pstCtrl->pstDefs[i];
+    for (; def->pcModuleName; def++) {
+        if ((def->uiDbgID == uiDbgID) && (def->uiDbgFlag == uiFlag)) {
+            return def;
         }
     }
 
     return NULL;
 }
 
-VOID DBG_UTL_OutputHeader(IN DBG_UTL_CTRL_S *pstCtrl, IN UINT uiDbgID, IN UINT uiFlag)
+void DBG_UTL_OutputHeader(IN DBG_UTL_CTRL_S *pstCtrl, IN UINT uiDbgID, IN UINT uiFlag)
 {
     DBG_UTL_DEF_S *pstDef;
 
     pstDef = _dbg_utl_GetDef(pstCtrl, uiDbgID, uiFlag);
-    if (NULL == pstDef)
-    {
+    if (NULL == pstDef) {
         BS_DBGASSERT(0);
         return;
     }
 
-    IC_Info(DBG_UTL_HEADER_FMT, pstCtrl->pcProductName, pstDef->pcModuleName, pstDef->pcDbgFlagName);
+    IC_Info(DBG_UTL_HEADER_FMT, pstCtrl->product_name, pstDef->pcModuleName, pstDef->pcDbgFlagName);
 }
 
 

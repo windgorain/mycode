@@ -13,7 +13,7 @@
 #include "utl/bpf_helper_utl.h"
 #include "utl/num_limits.h"
 #include "mybpf_osbase.h"
-#include "mybpf_def.h"
+#include "mybpf_def_inner.h"
 #include "mybpf_verifier_inner.h"
 
 const struct tnum tnum_unknown = { .value = 0, .mask = -1 };

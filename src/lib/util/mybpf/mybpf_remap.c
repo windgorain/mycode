@@ -11,16 +11,15 @@
 #include "utl/mybpf_prog.h"
 #include "utl/bpf_helper_utl.h"
 #include "mybpf_osbase.h"
-#include "mybpf_def.h"
+#include "mybpf_def_inner.h"
 
-int MYBPF_PROG_ReplaceMapFdWithMapPtr(MYBPF_RUNTIME_S *runtime, int *map_fds, MYBPF_LOADER_NODE_S *n)
+int MYBPF_PROG_ReplaceMapFdWithMapPtr(MYBPF_RUNTIME_S *runtime, UMAP_HEADER_S **maps, MYBPF_LOADER_NODE_S *n)
 {
     MYBPF_INSN_S *insn = n->insts;
     int insn_cnt = n->insts_len / sizeof(*insn);
     int i, j;
-    int fd;
     int used_map_cnt = 0; 
-    int used_maps[MYBPF_PROG_MAX_MAPS];
+    void * used_maps[MYBPF_PROG_MAX_MAPS];
 
 	for (i = 0; i < insn_cnt; i++, insn++) {
 		if (BPF_CLASS(insn->opcode) == BPF_LDX &&
@@ -57,13 +56,7 @@ int MYBPF_PROG_ReplaceMapFdWithMapPtr(MYBPF_RUNTIME_S *runtime, int *map_fds, MY
                         i, insn->opcode, insn->dst_reg, insn->src_reg, insn->off, insn->imm);
 			}
 
-            fd = map_fds[insn->imm];
-
-            map = UMAP_GetByFd(runtime->ufd_ctx, fd);
-			if (! map) {
-                RETURNI(BS_ERR, "pc=%d, opcode=0x%x, dst=%u, src=%u, off=%u, imm=%u",
-                        i, insn->opcode, insn->dst_reg, insn->src_reg, insn->off, insn->imm);
-			}
+            map = maps[insn->imm];
 
 			if (insn->src_reg == BPF_PSEUDO_MAP_FD) {
 				addr = (unsigned long)map;
@@ -77,7 +70,8 @@ int MYBPF_PROG_ReplaceMapFdWithMapPtr(MYBPF_RUNTIME_S *runtime, int *map_fds, MY
 
                 int err = UMAP_DirectValue(map, &addr, off);
                 if (err) {
-                    return err;
+                    RETURNI(BS_ERR, "pc=%d, opcode=0x%x, dst=%u, src=%u, off=%u, imm=%u",
+                            i, insn->opcode, insn->dst_reg, insn->src_reg, insn->off, insn->imm);
                 }
 
                 addr += off;
@@ -88,7 +82,7 @@ int MYBPF_PROG_ReplaceMapFdWithMapPtr(MYBPF_RUNTIME_S *runtime, int *map_fds, MY
 
 			/* check whether we recorded this map already */
 			for (j = 0; j < used_map_cnt; j++) {
-				if (used_maps[j] == fd) {
+				if (used_maps[j] == map) {
 					goto next_insn;
 				}
 			}
@@ -98,7 +92,7 @@ int MYBPF_PROG_ReplaceMapFdWithMapPtr(MYBPF_RUNTIME_S *runtime, int *map_fds, MY
                         i, insn->opcode, insn->dst_reg, insn->src_reg, insn->off, insn->imm);
             }
 
-            used_maps[used_map_cnt++] = fd;
+            used_maps[used_map_cnt++] = map;
 
 next_insn:
             insn++;

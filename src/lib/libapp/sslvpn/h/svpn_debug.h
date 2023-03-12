@@ -44,7 +44,7 @@ extern DBG_UTL_CTRL_S g_stSvpnDbgCtrl;
 
 #define SVPN_DBG_IS_SWITCH_ON(_DbgID, _DbgFlag) DBG_UTL_IS_SWITCH_ON(&g_stSvpnDbgCtrl, _DbgID, _DbgFlag)
 
-#define SVPN_DBG_OUTPUT(_DbgID, _DbgFlag, _X) DBG_UTL_OUTPUT(&g_stSvpnDbgCtrl, _DbgID, _DbgFlag, _X)
+#define SVPN_DBG_OUTPUT(_DbgID, _DbgFlag, _fmt, ...) DBG_UTL_OUTPUT(&g_stSvpnDbgCtrl, _DbgID, _DbgFlag, _fmt, ##__VA_ARGS__)
 
 
 #ifdef __cplusplus

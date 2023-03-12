@@ -14,6 +14,8 @@ extern "C"
 {
 #endif
 
+#define ELF_DBG_PROCESS 0x1
+
 typedef struct {
     int fd;
     Elf *elf_info;
@@ -30,21 +32,25 @@ typedef struct {
 	Elf_Data *data;
 }ELF_SECTION_S;
 
+#define ELF_MAX_GLOBAL_DATA_SEC_NUM 32
+
 typedef struct {
     UINT sec_count: 8; /* global data sec count */
-    UINT have_data:1;
-    UINT have_rodata:1;
+    UINT rodata_count: 8;
     UINT have_bss:1;
-    ELF_SECTION_S data_sec;
-    ELF_SECTION_S rodata_sec;
+    UINT have_data:1;
     ELF_SECTION_S bss_sec;
+    ELF_SECTION_S data_sec;
+    ELF_SECTION_S rodata_sec[ELF_MAX_GLOBAL_DATA_SEC_NUM];
 }ELF_GLOBAL_DATA_S;
 
 typedef struct {
     char *sec_name;
     char *func_name;
-    UINT offset; /* 在 progs 中的字节为单位的offset */
+    UINT sec_offset; /* 所在的sec在progs中的offset, 以字节为单位 */
+    UINT offset; /* 在 整个progs 中的字节为单位的offset */
     UINT size; /* prog 大小, 字节为单位 */
+    int  sec_id; /* 在elf中的sec id */
 }ELF_PROG_INFO_S;
 
 int ELF_Open(char *path, OUT ELF_S *elf);
@@ -72,6 +78,10 @@ int ELF_GetProgsCount(ELF_S *elf);
 int ELF_CopyProgs(ELF_S *elf, OUT void *mem, int mem_size);
 void * ELF_DupProgs(ELF_S *elf);
 int ELF_GetProgsInfo(ELF_S *elf, OUT ELF_PROG_INFO_S *progs, int max_prog_count);
+void ELF_ClearProgsInfo(ELF_PROG_INFO_S *progs, int prog_count);
+/* return <0: err and stop walk; return 0: continue */
+typedef int (*PF_ELF_WALK_PROG)(void *data, int len, char *sec_name, char *func_name, void *ud);
+int ELF_WalkProgs(ELF_S *elf, PF_ELF_WALK_PROG walk_func, void *ud);
 
 #ifdef __cplusplus
 }

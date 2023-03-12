@@ -163,7 +163,7 @@ static BS_WALK_RET_E svpn_tcprelay_DownEvent(IN INT iSocketId, IN UINT uiEvent, 
     BS_STATUS eRet = BS_OK;
 
     SVPN_DBG_OUTPUT(SVPN_DBG_ID_TCP_RELAY, SVPN_DBG_FLAG_TR_EVENT,
-            ("Down socket(%d) event 0x%x.\r\n", iSocketId, uiEvent));
+            "Down socket(%d) event 0x%x.\r\n", iSocketId, uiEvent);
 
     if (uiEvent & MYPOLL_EVENT_ERR)
     {   
@@ -204,7 +204,7 @@ static BS_WALK_RET_E svpn_tcprelay_UpEvent(IN INT iSocketId, IN UINT uiEvent, IN
     BS_STATUS eRet = BS_OK;
 
     SVPN_DBG_OUTPUT(SVPN_DBG_ID_TCP_RELAY, SVPN_DBG_FLAG_TR_EVENT,
-            ("Up socket(%d) event 0x%x.\r\n", iSocketId, uiEvent));
+            "Up socket(%d) event 0x%x.\r\n", iSocketId, uiEvent);
 
     if (uiEvent & MYPOLL_EVENT_ERR)
     {
@@ -262,7 +262,7 @@ static BS_WALK_RET_E svpn_tcprelay_ConnectEvent(IN INT iSocketId, IN UINT uiEven
     SVPN_TCPRELAY_NODE_S *pstNode = pstUserHandle->ahUserHandle[0];
 
     SVPN_DBG_OUTPUT(SVPN_DBG_ID_TCP_RELAY, SVPN_DBG_FLAG_TR_EVENT,
-            ("Up socket(%d) event 0x%x.\r\n", iSocketId, uiEvent));
+            "Up socket(%d) event 0x%x.\r\n", iSocketId, uiEvent);
 
     if (uiEvent & MYPOLL_EVENT_ERR)
     {
@@ -356,7 +356,7 @@ static BS_STATUS svpn_tcprelay_ConnectServer(IN SVPN_TCPRELAY_NODE_S *pstNode)
     }
 
     SVPN_DBG_OUTPUT(SVPN_DBG_ID_TCP_RELAY, SVPN_DBG_FLAG_TR_PROCESS,
-            ("Connect socket(%d) to server %s:%d.\r\n", iSocket, pstNode->szServer, pstNode->usPort));
+            "Connect socket(%d) to server %s:%d.\r\n", iSocket, pstNode->szServer, pstNode->usPort);
 
     Socket_SetNoBlock(iSocket, TRUE);
 
@@ -424,13 +424,13 @@ static VOID svpn_tcprelay_RecvHeadOK(IN WS_TRANS_HANDLE hWsTrans)
     }
 
     SVPN_DBG_OUTPUT(SVPN_DBG_ID_TCP_RELAY, SVPN_DBG_FLAG_TR_PACKET,
-        ("Recv request %s:%d.\r\n", szServer, usPort));
+        "Recv request %s:%d.\r\n", szServer, usPort);
 
     /* 权限检查 */
     if (TRUE != svpn_tcprelay_CheckPermit(hWsTrans, szServer, usPort))
     {
         SVPN_DBG_OUTPUT(SVPN_DBG_ID_TCP_RELAY, SVPN_DBG_FLAG_TR_PACKET,
-            ("CheckPermit: Drop request %s:%d.\r\n", szServer, usPort));
+            "CheckPermit: Drop request %s:%d.\r\n", szServer, usPort);
         CONN_WriteString(hDownConn, "HTTP/1.1 901 ERROR\r\ninfo: Not permit to access\r\n\r\n");
         CONN_Free(hDownConn);
         return;
@@ -440,7 +440,7 @@ static VOID svpn_tcprelay_RecvHeadOK(IN WS_TRANS_HANDLE hWsTrans)
     if (NULL == pstNode)
     {
         SVPN_DBG_OUTPUT(SVPN_DBG_ID_TCP_RELAY, SVPN_DBG_FLAG_TR_ERROR,
-            ("Memory: Drop request %s:%d.\r\n", szServer, usPort));
+            "Memory: Drop request %s:%d.\r\n", szServer, usPort);
         CONN_WriteString(hDownConn, "HTTP/1.1 900 ERROR\r\ninfo: Alloc memory failed\r\n\r\n");
         CONN_Free(hDownConn);
         return;
@@ -452,7 +452,7 @@ static VOID svpn_tcprelay_RecvHeadOK(IN WS_TRANS_HANDLE hWsTrans)
     if (BS_OK != svpn_tcprelay_ConnectServer(pstNode))
     {
         SVPN_DBG_OUTPUT(SVPN_DBG_ID_TCP_RELAY, SVPN_DBG_FLAG_TR_ERROR,
-            ("Connect %s:%d failed.\r\n", szServer, usPort));
+            "Connect %s:%d failed.\r\n", szServer, usPort);
         CONN_WriteString(hDownConn, "HTTP/1.1 900 ERROR\r\ninfo: Connect server failed\r\n\r\n");
         SVPN_TcpRelayNode_Free(pstNode);
         return;

@@ -11,17 +11,6 @@
 #include "utl/bpf_helper_utl.h"
 #include "utl/umap_utl.h"
 
-#define BPF_BASE_HELPER_COUNT 256
-#define BPF_BASE_HELPER_END (BPF_BASE_HELPER_COUNT)
-
-#define BPF_SYS_HELPER_START 10000
-#define BPF_SYS_HELPER_COUNT 256
-#define BPF_SYS_HELPER_END (BPF_SYS_HELPER_START + BPF_SYS_HELPER_COUNT)
-
-#define BPF_USER_HELPER_START 20000
-#define BPF_USER_HELPER_COUNT 256
-#define BPF_USER_HELPER_END (BPF_USER_HELPER_START + BPF_USER_HELPER_COUNT)
-
 static void * g_bpf_user_helpers[BPF_USER_HELPER_COUNT];
 
 void * bpf_map_lookup_elem(void *map, const void *key)
@@ -216,21 +205,58 @@ static const void * g_bpf_base_helpers[BPF_BASE_HELPER_END] = {
     [105] = bpf_strtol,
 };
 
-static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
-    [0] = malloc,
-    [1] = free,
-    [2] = strncmp,
-};
-
-UINT64 BpfHelper_BaseHelper(UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+static void * _bpf_sys_malloc(int size)
 {
-    return 0;
+    return malloc(size);
 }
 
-/* 返回base helper table的size, 表示最多可以容纳多少个元素 */
-UINT BpfHelper_BaseSize(void)
+static void * _bpf_sys_calloc(int nitems, int size)
 {
-    return BPF_BASE_HELPER_COUNT;
+    return calloc(nitems, size);
+}
+
+static void _bpf_sys_free(void *m)
+{
+    free(m);
+}
+
+static int _bpf_sys_strncmp(void *a, void *b, int len)
+{
+    return strncmp(a, b, len);
+}
+
+static void _bpf_sys_memcpy(void *d, void *s, int len)
+{
+    memcpy(d, s, len);
+}
+
+static void _bpf_sys_memset(void *d, int c, int len)
+{
+    memset(d, c, len);
+}
+
+static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
+    [0] = _bpf_sys_malloc, /* 10000 */
+    [1] = _bpf_sys_calloc,
+    [2] = _bpf_sys_free,
+    [3] = _bpf_sys_strncmp,
+    [4] = _bpf_sys_memcpy,
+    [5] = _bpf_sys_memset,
+};
+
+const void ** BpfHelper_BaseHelper(void)
+{
+    return g_bpf_base_helpers;
+}
+
+const void ** BpfHelper_SysHelper(void)
+{
+    return g_bpf_sys_helpers;
+}
+
+const void ** BpfHelper_UserHelper(void)
+{
+    return (const void **)g_bpf_user_helpers;
 }
 
 /* 根据id获取helper函数指针 */

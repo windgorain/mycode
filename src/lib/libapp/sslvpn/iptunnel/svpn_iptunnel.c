@@ -42,7 +42,7 @@ static VOID _svpn_iptunnel_SendPacket2Up(IN SVPN_IPTUN_NODE_S *pstNode, IN UCHAR
     MBUF_S *pstMbuf;
 
     SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_PACKET,
-        ("Recv packet from iptunnel, packet length:%d.\r\n", uiPktLen));
+        "Recv packet from iptunnel, packet length:%d.\r\n", uiPktLen);
 
     pstMbuf = MBUF_CreateByCopyBuf(300, pucPktData, uiPktLen, MBUF_DATA_DATA);
     if (NULL == pstMbuf)
@@ -100,7 +100,7 @@ static BS_STATUS _svpn_iptunnel_ConnInput(IN SVPN_IPTUN_NODE_S *pstNode)
             if (iLen <= 0)
             {
                 SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_ERROR,
-                    ("Close connection because read error, errno:%d.\r\n", iLen));
+                    "Close connection because read error, errno:%d.\r\n", iLen);
                 _svpn_iptunnel_ConnErr(pstNode);
                 return BS_STOP;
             }
@@ -154,7 +154,7 @@ static VOID _svpn_iptunnel_ConnOutput(IN SVPN_IPTUN_NODE_S *pstNode)
     if (iLen <= 0)
     {
         SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_ERROR,
-            ("Close connection because write error, errno:%d.\r\n", iLen));
+            "Close connection because write error, errno:%d.\r\n", iLen);
         _svpn_iptunnel_ConnErr(pstNode);
         return;
     }
@@ -177,14 +177,14 @@ static BS_WALK_RET_E _svpn_iptunnel_ConnEvent(IN INT iSocketId, IN UINT uiEvent,
 
     if (uiEvent & MYPOLL_EVENT_ERR)
     {
-        SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_EVENT, ("Recv connection error event.\r\n"));
+        SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_EVENT, "Recv connection error event.\r\n");
         _svpn_iptunnel_ConnErr(pstNode);
         return BS_WALK_CONTINUE;
     }
 
     if (uiEvent & MYPOLL_EVENT_IN)
     {
-        SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_EVENT, ("Recv connection in event.\r\n"));
+        SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_EVENT, "Recv connection in event.\r\n");
         if (BS_OK != _svpn_iptunnel_ConnInput(pstNode))
         {
             return BS_WALK_CONTINUE;
@@ -193,7 +193,7 @@ static BS_WALK_RET_E _svpn_iptunnel_ConnEvent(IN INT iSocketId, IN UINT uiEvent,
 
     if (uiEvent & MYPOLL_EVENT_OUT)
     {
-        SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_EVENT, ("Recv connection out event.\r\n"));
+        SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_EVENT, "Recv connection out event.\r\n");
         _svpn_iptunnel_ConnOutput(pstNode);
     }
 
@@ -214,7 +214,7 @@ static BS_STATUS _svpn_iptunnel_Handshake(IN SVPN_IPTUN_NODE_S *pstNode)
         "IP: %pI4\r\n"
         "\r\n", &pstNode->uiVirtualIP);
 
-    SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_HSK, ("Reply %s.", szString));
+    SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_HSK, "Reply %s.", szString);
 
     CONN_WriteString(pstNode->hDownConn, szString);
 
@@ -240,7 +240,7 @@ static VOID svpn_iptunnel_RecvHeadOK(IN WS_TRANS_HANDLE hWsTrans)
         return;
     }
 
-    SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_HSK, ("Recv request.\r\n"));
+    SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_HSK, "Recv request.\r\n");
 
     hSvpnContext = SVPN_Context_GetContextByWsTrans(hWsTrans);
 
@@ -249,7 +249,7 @@ static VOID svpn_iptunnel_RecvHeadOK(IN WS_TRANS_HANDLE hWsTrans)
 
     if (NULL == hSvpnContext)
     {
-        SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_ERROR, ("Can't get svpn context.\r\n"));
+        SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_ERROR, "Can't get svpn context.\r\n");
         CONN_WriteString(hDownConn, "HTTP/1.1 900 ERROR\r\ninfo: Can not get context\r\n\r\n");
         CONN_Free(hDownConn);
         return;
@@ -258,7 +258,7 @@ static VOID svpn_iptunnel_RecvHeadOK(IN WS_TRANS_HANDLE hWsTrans)
     uiIp = SVPN_IPPOOL_AllocIP(hSvpnContext);
     if (uiIp == 0)
     {
-        SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_ERROR, ("Can't alloc memory.\r\n"));
+        SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_ERROR, "Can't alloc memory.\r\n");
         CONN_WriteString(hDownConn, "HTTP/1.1 900 ERROR\r\ninfo: Alloc IP failed\r\n\r\n");
         CONN_Free(hDownConn);
         return;
@@ -268,7 +268,7 @@ static VOID svpn_iptunnel_RecvHeadOK(IN WS_TRANS_HANDLE hWsTrans)
     pstNode = SVPN_IpTunNode_New(hSvpnContext, hDownConn, uiIp);
     if (NULL == pstNode)
     {
-        SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_ERROR, ("Can't create ip tunnel node.\r\n"));
+        SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_ERROR, "Can't create ip tunnel node.\r\n");
         SVPN_IPPOOL_FreeIP(pstNode->hSvpnContext, uiIp);
         CONN_WriteString(hDownConn, "HTTP/1.1 900 ERROR\r\ninfo: Alloc memory failed\r\n\r\n");
         CONN_Free(hDownConn);
@@ -332,7 +332,7 @@ static VOID _svpn_iptun_ProcessLinkOutput(IN MBUF_S *pstMbuf)
         || (BS_OK != MBUF_MakeContinue(pstMbuf, MBUF_TOTAL_DATA_LEN(pstMbuf))))
     {
         SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_ERROR,
-            ("Failed to add ip tunnel header to packet.\r\n"));
+            "Failed to add ip tunnel header to packet.\r\n");
         MBUF_Free(pstMbuf);
         return;
     }
@@ -358,9 +358,9 @@ static BS_STATUS _svpn_iptunnel_LinkOutput
     pstIpHeader = MBUF_MTOD(pstMbuf);
 
     SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_PACKET,
-        ("Packet link output,srcIP:%pI4,dstIP:%pI4,packet length:%d.\r\n",
+        "Packet link output,srcIP:%pI4,dstIP:%pI4,packet length:%d.\r\n",
         &pstIpHeader->unSrcIp.uiIp, &pstIpHeader->unDstIp.uiIp,
-        MBUF_TOTAL_DATA_LEN(pstMbuf)));
+        MBUF_TOTAL_DATA_LEN(pstMbuf));
 
     uiPhase = RcuEngine_Lock();
     _svpn_iptun_ProcessLinkOutput(pstMbuf);

@@ -20,9 +20,19 @@ extern "C" {
 #define	OUT     /*OUT*/
 #define	INOUT   /*INOUT*/
 
+#ifndef noinline
+#define noinline __attribute__((noinline))
+#endif
+
+#ifndef always_inline 
+#define always_inline __always_inline
+#endif
+
 #ifndef CHAR_BIT
 #define CHAR_BIT 8
 #endif
+
+#define SEC(x)
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -35,7 +45,7 @@ extern "C" {
 
 /* 出错返回-1 */
 #define SNPRINTF(buf,size, ...) ({ \
-        int _nlen = snprintf((buf), (size), __VA_ARGS__); \
+        int _nlen = snprintf((buf), (size), ##__VA_ARGS__); \
         if (_nlen >= (size)) _nlen = -1; \
         _nlen; })
 
@@ -269,6 +279,63 @@ typedef enum {
     BS_PART_MATCH,  /* 部分匹配 */
     BS_NOT_MATCH    /* 不匹配 */
 }BS_MATCH_RET_E;
+
+typedef enum
+{
+    BS_NO_WAIT = 0,
+    BS_WAIT
+}BS_WAIT_E;
+
+#define BS_WAIT_FOREVER	0
+
+#define BS_OFFSET(type,item) ((ULONG)&(((type *) 0)->item))
+#define BS_ENTRY(pAddr, item, type) ((type *) ((UCHAR*)(pAddr) - BS_OFFSET (type, item)))
+
+#ifndef offsetof
+#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+#endif
+
+#ifndef container_of
+#define container_of(ptr, type, member) ({			\
+	const typeof(((type *)0)->member) * __mptr = (ptr);	\
+	(type *)((char *)__mptr - offsetof(type, member)); })
+#endif
+
+#define BS_PRINT_ERR(_fmt, ...) fprintf(stderr, _fmt, ##__VA_ARGS__)
+
+#ifdef IN_DEBUG
+#define BS_DBGASSERT(X)  do { \
+    if (! (X)) { \
+        BackTrace_Print(); \
+        assert(0); \
+    } \
+} while(0)
+#else
+#define BS_DBGASSERT(X)
+#endif
+
+#define DBGASSERT(X) BS_DBGASSERT(X)
+
+#define BS_DBG_OUTPUT(_ulFlag,_ulSwitch,_X)  \
+    do {if ((_ulFlag) & (_ulSwitch)){IC_DbgInfo _X;}}while(0)
+
+#define BS_WARNNING(X)  \
+    do {    \
+        PRINTLN_HYELLOW("Warnning:%s(%d): ", __FILE__, __LINE__); \
+        printf X;   \
+        printf ("\n");    \
+    }while(0)
+
+#ifdef IN_DEBUG
+#define BS_DBG_WARNNING(X) BS_WARNNING(X)
+#else
+#define BS_DBG_WARNNING(X)
+#endif
+
+typedef struct
+{
+    HANDLE ahUserHandle[4];
+}USER_HANDLE_S;
 
 #ifdef __cplusplus
 }

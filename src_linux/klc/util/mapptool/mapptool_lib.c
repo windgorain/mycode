@@ -324,7 +324,7 @@ static int _mapptool_detach_instance_all(MAPPTOOL_ATTACH_FD_S *fds)
 /* 从文件中获取attr信息 */
 static int _mapptool_get_obj_attr_sec(char *file, OUT MAPP_ATTR_S *attr)
 {
-    ELF_S elf;
+    ELF_S elf = {0};
     ELF_SECTION_S sec;
     int ret;
 
@@ -349,7 +349,7 @@ static int _mapptool_get_obj_attr_sec(char *file, OUT MAPP_ATTR_S *attr)
 static int _mapptool_load_mapp_attr(char *file, char *instance, char *description)
 {
     int ret;
-    ELF_S elf;
+    ELF_S elf = {0};
     ELF_SECTION_S sec;
     MAPP_ATTR_S attr = {0};
 

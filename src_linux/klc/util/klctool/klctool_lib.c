@@ -981,7 +981,7 @@ static int _klctool_load_by_file(NETLINK_S *nl, int cmd, KLCTOOL_LOAD_S *load, E
 static int _klctool_load_by_filename(NETLINK_S *nl, int cmd, KLCTOOL_LOAD_S *load)
 {
     int ret;
-    ELF_S elf;
+    ELF_S elf = {0};
 
     ret = ELF_Open(load->file, &elf);
     if (ret < 0) {

@@ -13,16 +13,16 @@
 #include "utl/mybpf_elf.h"
 #include "utl/mybpf_file.h"
 
-int MYBPF_WalkProg(char *file, PF_MYBPF_ELF_WALK_PROG walk_func, void *ud)
+int MYBPF_WalkProg(char *file, PF_ELF_WALK_PROG walk_func, void *ud)
 {
-    ELF_S elf;
+    ELF_S elf = {0};
 
     int ret = ELF_Open(file, &elf);
     if (ret < 0) {
         RETURNI(BS_CAN_NOT_OPEN, "Can't open file %s \r\n", file);
     }
 
-    ret = MYBPF_ELF_WalkProg(&elf, walk_func, ud);
+    ret = ELF_WalkProgs(&elf, walk_func, ud);
 
     ELF_Close(&elf);
 
@@ -31,7 +31,7 @@ int MYBPF_WalkProg(char *file, PF_MYBPF_ELF_WALK_PROG walk_func, void *ud)
 
 int MYBPF_WalkMap(char *file, PF_MYBPF_ELF_WALK_MAP walk_func, void *ud)
 {
-    ELF_S elf;
+    ELF_S elf = {0};
 
     int ret = ELF_Open(file, &elf);
     if (ret < 0) {
@@ -73,7 +73,7 @@ static inline int _mybpf_run_file(MYBPF_RUNTIME_S *runtime, MYBPF_FILE_CTX_S *ct
     return ret;
 }
 
-int MYBPF_RunFile(MYBPF_FILE_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+int MYBPF_RunFileExt(MYBPF_FILE_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
     MYBPF_RUNTIME_S runtime;
     int ret;
@@ -87,5 +87,15 @@ int MYBPF_RunFile(MYBPF_FILE_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3, UINT64
     MYBPF_RuntimeFini(&runtime);
 
     return ret;
+}
+
+int MYBPF_RunFile(char *filename, char *sec_prefix, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+{
+    MYBPF_FILE_CTX_S ctx = {0};
+
+    ctx.file = filename;
+    ctx.sec_prefix = sec_prefix;
+
+    return MYBPF_RunFileExt(&ctx, p1, p2, p3, p4, p5);
 }
 

@@ -14,13 +14,6 @@
 #include "utl/num_list.h"
 #include "utl/getopt2_utl.h"
 
-typedef enum
-{
-    _GETOPT2_RET_OK = 0,    /* 成功 */
-    _GETOPT2_RET_SKIP1,     /* 成功并跳过一个参数 */
-    _GETOPT2_RET_ERR        /* 失败 */
-}_GETOPT2_RET_E;
-
 static char * getopt2_opt_type_2_string(char type)
 {
     switch (type) {
@@ -120,7 +113,7 @@ static int getopt2_parse_value_r(GETOPT2_NODE_S *pstNode, CHAR *pcValue)
     return NumList_ParseElement(&lstr, &r->min, &r->max);
 }
 
-static BS_STATUS getopt2_ParseValue(GETOPT2_NODE_S *pstNode, CHAR *pcValue)
+static int getopt2_ParseValue(GETOPT2_NODE_S *pstNode, CHAR *pcValue)
 {
     switch (pstNode->value_type) {
         case 'u':
@@ -138,68 +131,116 @@ static BS_STATUS getopt2_ParseValue(GETOPT2_NODE_S *pstNode, CHAR *pcValue)
     RETURN(BS_NOT_SUPPORT);
 }
 
-static _GETOPT2_RET_E getopt2_ParseOpt(UINT uiArgc, CHAR **ppcArgv, GETOPT2_NODE_S *pstNodes, UINT uiOptIndex, int is_long_opt)
+static GETOPT2_NODE_S * getopt2_find_by_long_opt(GETOPT2_NODE_S *pstNodes, char *opt)
 {
-    CHAR cOpt = ppcArgv[uiOptIndex][1];
     GETOPT2_NODE_S *pstNode;
-    _GETOPT2_RET_E eRet = _GETOPT2_RET_OK;
-    char *pcOptName = &ppcArgv[uiOptIndex][1];
+
+    for (pstNode=pstNodes; pstNode->opt_type != 0; pstNode++) {
+        if ((getopt2_is_opt_type(pstNode->opt_type)) && (0 == strcmp(opt, pstNode->opt_long_name))) {
+            return pstNode;
+        }
+    }
+
+    return NULL;
+}
+
+
+static int getopt2_parse_long_opt(UINT uiArgc, CHAR **ppcArgv, GETOPT2_NODE_S *pstNodes, UINT uiOptIndex)
+{
+    GETOPT2_NODE_S *pstNode;
+    char *pcOptName = &ppcArgv[uiOptIndex][2];
     char *pcSplit;
     char *pcValue = NULL;
 
-    if (*pcOptName == '-') {
-        pcOptName ++;
+    pcSplit = strchr(pcOptName, '=');
+    if (NULL != pcSplit) {
+        *pcSplit = '\0';
+        pcValue = pcSplit + 1;
     }
 
-    if (is_long_opt) {
-        pcSplit = strchr(pcOptName, '=');
-        if (NULL != pcSplit) {
-            *pcSplit = '\0';
-            pcValue = pcSplit + 1;
-        }
+    pstNode = getopt2_find_by_long_opt(pstNodes, pcOptName);
+    if (! pstNode) {
+        RETURN(BS_NOT_FOUND);
     }
+
+    BIT_SET(pstNode->flag, GETOPT2_OUT_FLAG_ISSET);
+
+    if (! pstNode->value_type) {
+        return 0;
+    }
+
+    if (pcValue == NULL) {
+        if (uiOptIndex + 1 >= uiArgc) {
+            RETURN(BS_OUT_OF_RANGE);
+        }
+        pcValue = ppcArgv[uiOptIndex + 1];
+    }
+
+    if (BS_OK != getopt2_ParseValue(pstNode, pcValue)) {
+        RETURN(BS_BAD_PARA);
+    }
+
+    return 1;
+}
+
+static GETOPT2_NODE_S * getopt2_find_by_short_opt(GETOPT2_NODE_S *pstNodes, char opt)
+{
+    GETOPT2_NODE_S *pstNode;
 
     for (pstNode=pstNodes; pstNode->opt_type != 0; pstNode++) {
-        if (! getopt2_is_opt_type(pstNode->opt_type)) {
-            continue;
+        if ((getopt2_is_opt_type(pstNode->opt_type)) && (opt == pstNode->opt_short_name)) {
+            return pstNode;
         }
+    }
 
-        if (is_long_opt) {
-            if (0 != strcmp(pcOptName, pstNode->opt_long_name)) {
-                continue;
-            }
-        } else {
-            if (cOpt != pstNode->opt_short_name) {
-                continue;
-            }
-        }
+    return NULL;
+}
 
-        if (pstNode->value_type != 0) {
-            if (pcValue == NULL) {
-                if (uiOptIndex + 1 < uiArgc) {
-                    pcValue = ppcArgv[uiOptIndex + 1];
-                    eRet = _GETOPT2_RET_SKIP1;
-                }
-            }
+static int getopt2_parse_short_opts(UINT uiArgc, CHAR **ppcArgv, GETOPT2_NODE_S *pstNodes, UINT uiOptIndex)
+{
+    GETOPT2_NODE_S *pstNode;
+    char *pcValue = NULL;
+    char value_processed = 0;
+    char *opt = &ppcArgv[uiOptIndex][1];
+    int consume_count = 0; /* 消耗了多少个arg */
+    int ret;
 
-            if (pcValue == NULL) {
-                return _GETOPT2_RET_ERR;
-            }
-
-            if (BS_OK != getopt2_ParseValue(pstNode, pcValue)) {
-                return _GETOPT2_RET_ERR;
-            }
+    for (; *opt != 0; opt++) {
+        pstNode = getopt2_find_by_short_opt(pstNodes, *opt);
+        if (! pstNode) {
+            RETURN(BS_NOT_FOUND);
         }
 
         BIT_SET(pstNode->flag, GETOPT2_OUT_FLAG_ISSET);
 
-        return eRet;
+        if (pstNode->value_type == 0) {
+            continue;
+        }
+
+        if (value_processed) {
+            /* 当多个短名连在一起的时候,仅支持其中一个携带value */
+            RETURN(BS_REACH_MAX);
+        }
+
+        value_processed = 1;
+
+        if (uiOptIndex + 1 >= uiArgc) {
+            RETURN(BS_BAD_PARA);
+        }
+
+        pcValue = ppcArgv[uiOptIndex + 1];
+
+        if ((ret = getopt2_ParseValue(pstNode, pcValue)) < 0) {
+            return ret;
+        }
+
+        consume_count ++;
     }
 
-    return _GETOPT2_RET_ERR;
+    return consume_count;
 }
 
-static _GETOPT2_RET_E getopt2_ParseParam (CHAR *pcParam, GETOPT2_NODE_S *pstNodes)
+static int getopt2_ParseParam(CHAR *pcParam, GETOPT2_NODE_S *pstNodes)
 {
     GETOPT2_NODE_S *pstNode;
 
@@ -213,15 +254,15 @@ static _GETOPT2_RET_E getopt2_ParseParam (CHAR *pcParam, GETOPT2_NODE_S *pstNode
         }
 
         if (BS_OK != getopt2_ParseValue(pstNode, pcParam)) {
-            return _GETOPT2_RET_ERR;
+            RETURN(BS_BAD_PARA);
         }
 
         BIT_SET(pstNode->flag, GETOPT2_OUT_FLAG_ISSET);
 
-        return _GETOPT2_RET_OK;
+        return 0;
     }
 
-    return _GETOPT2_RET_ERR;
+    RETURN(BS_NOT_FOUND);
 }
 
 
@@ -236,23 +277,13 @@ static void getopt2_init(GETOPT2_NODE_S *pstNodes)
 
 static BOOL_T _getopt2_is_long_opt(char *opt)
 {
-    if (opt[0] != '-') {
+    if ((opt[0] != '-') || (opt[1] != '-')){
         return FALSE;
     }
 
-    opt ++;
-
-    if (*opt == '\0') {
-        return FALSE;
-    }
-
-    if (*opt == '-') {
-        return TRUE;
-    }
-
-    opt ++;
-
-    if ((*opt == '\0') || (*opt == ' ') || (*opt == '\t')) {
+    opt += 2;
+    if (*opt == 0) {
+        /* 只有-- */
         return FALSE;
     }
 
@@ -262,8 +293,8 @@ static BOOL_T _getopt2_is_long_opt(char *opt)
 /* 从开始就已经是需要处理的参数/选项 */
 int GETOPT2_ParseFromArgv0(UINT uiArgc, CHAR **ppcArgv, INOUT GETOPT2_NODE_S *opts)
 {
-    UINT i;
-    _GETOPT2_RET_E eRet;
+    int i;
+    int consume_count;
 
     getopt2_init(opts);
 
@@ -272,19 +303,19 @@ int GETOPT2_ParseFromArgv0(UINT uiArgc, CHAR **ppcArgv, INOUT GETOPT2_NODE_S *op
         if (ppcArgv[i][0] == '-') {
             /* 判断是否long option */
             if (_getopt2_is_long_opt(ppcArgv[i])) {
-                eRet = getopt2_ParseOpt(uiArgc, ppcArgv, opts, i, 1);
+                consume_count = getopt2_parse_long_opt(uiArgc, ppcArgv, opts, i);
             } else {
-                eRet = getopt2_ParseOpt(uiArgc, ppcArgv, opts, i, 0);
+                consume_count = getopt2_parse_short_opts(uiArgc, ppcArgv, opts, i);
             }
         } else {
-            eRet = getopt2_ParseParam(ppcArgv[i], opts);
+            consume_count = getopt2_ParseParam(ppcArgv[i], opts);
         }
-        
-        if (eRet == _GETOPT2_RET_SKIP1) {
-            i++;
-        } else if (eRet == _GETOPT2_RET_ERR) {
-            return -1;
+
+        if (consume_count < 0) {
+            return consume_count;
         }
+
+        i += consume_count;
     }
 
     if (GETOPT2_IsHaveError(opts)) {

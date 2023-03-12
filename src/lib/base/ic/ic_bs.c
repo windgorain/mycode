@@ -43,11 +43,9 @@ void IC_OutString(UINT event, char *msg)
         }
     }
 
-#ifdef IN_DEBUG
-    if (event & (IC_LEVEL_WARNING | IC_LEVEL_ERR | IC_LEVEL_FATAL)) {
-        /* 可能出现了bug,进行提醒,可能需要修复 */
-        fprintf(stderr, "%s", msg);
-    }
+#ifndef USE_BS
+    /* 可能出现了bug,进行提醒,可能需要修复 */
+    PRINT_COLOR(SHELL_FONT_COLOR_GREEN, "%s", msg);
 #endif
 
     return;

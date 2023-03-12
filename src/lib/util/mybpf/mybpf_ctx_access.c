@@ -12,7 +12,7 @@
 #include "utl/mybpf_verifier.h"
 #include "utl/bpf_helper_utl.h"
 #include "mybpf_osbase.h"
-#include "mybpf_def.h"
+#include "mybpf_def_inner.h"
 
 static UINT _mybpf_prog_xdp_convert_ctx_access(BOOL_T is_write,
 				  IN MYBPF_INSN_S *si,

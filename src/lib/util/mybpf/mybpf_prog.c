@@ -12,6 +12,7 @@
 #include "utl/mybpf_prog.h"
 #include "utl/mybpf_vm.h"
 #include "utl/mybpf_jit.h"
+#include "mybpf_prog_inner.h"
 
 static void _mybpf_prog_free_prog_rcu(void *pstRcuNode)
 {
@@ -30,6 +31,7 @@ static inline int _mybpf_prog_run_bpf_code(MYBPF_PROG_NODE_S *prog, OUT UINT64 *
 {
 #if 1
     MYBPF_CTX_S ctx = {0};
+    ctx.prog = prog;
     ctx.insts = prog->insn;
     ctx.auto_stack = 1;
 
@@ -46,41 +48,69 @@ static inline int _mybpf_prog_run_bpf_code(MYBPF_PROG_NODE_S *prog, OUT UINT64 *
     return 0;
 }
 
-static inline UINT64 _mybpf_prog_agent_fix_p1(MYBPF_PROG_NODE_S *prog, UINT64 p1)
+static inline UINT64 _mybpf_prog_agent_fix_p1(MYBPF_PREJIT_PROG_CTX_S *ctx, UINT64 p1)
 {
-    MYBPF_LOADER_NODE_S *n = prog->loader_node;
+    MYBPF_LOADER_NODE_S *n = ctx->loader_node;
     MYBPF_RUNTIME_S *d = n->runtime;
-    return (long)UMAP_GetByFd(d->ufd_ctx, n->map_fd[p1]);
+    return (long)UMAP_GetByFd(d->ufd_ctx, n->map_fds[p1]);
 }
 
-static UINT64 _mybpf_prog_agent_func(UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5, UINT64 fid, void *ud)
+static inline UINT64 _mybpf_prog_agent_call_helper_func(UINT64 p1, UINT64 p2, UINT64 p3,
+        UINT64 p4, UINT64 p5, UINT64 fid, void *ud)
 {
-    UINT id = fid;
-
-    PF_BPF_HELPER_FUNC func = BpfHelper_GetFunc(id);
+    PF_BPF_HELPER_FUNC func = BpfHelper_GetFunc(fid);
     if (! func) {
         return -1;
     }
 
-    if (id <= 3) {
+    if (fid <= 3) {
         /* 对map操作,把map index转为map ptr */
         p1 = _mybpf_prog_agent_fix_p1(ud, p1);
         if (! p1) {
-            return (id == 1) ? 0 : -1;
+            return (fid == 1) ? 0 : -1;
         }
     }
 
     return func(p1, p2, p3, p4, p5);
 }
 
-typedef UINT64 (*PF_BPF_JITTED_FUNC)(UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5, void *func, void *ud);
+static UINT64 _mybpf_prog_agent_func(UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5, UINT64 fid, void *ud)
+{
+    return _mybpf_prog_agent_call_helper_func(p1, p2, p3, p4, p5, fid, ud);
+}
+
+typedef UINT64 (*PF_BPF_JITTED_FUNC)(UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5, void *ctx);
 
 static inline int _mybpf_prog_run_jitted_code(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret,
         UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
     PF_BPF_JITTED_FUNC func = prog->insn;
-    *bpf_ret = func(p1, p2, p3, p4, p5, _mybpf_prog_agent_func, prog);
+    MYBPF_LOADER_NODE_S *n = prog->loader_node;
+    MYBPF_PREJIT_PROG_CTX_S ctx = {0};
+
+    ctx.agent_func = _mybpf_prog_agent_func;
+    ctx.base_helpers = BpfHelper_BaseHelper();
+    ctx.sys_helpers = BpfHelper_SysHelper();
+    ctx.user_helpers = BpfHelper_UserHelper();
+    ctx.maps = n->maps;
+    ctx.global_map_data = n->global_data;
+    ctx.loader_node = n;
+
+    *bpf_ret = func(p1, p2, p3, p4, p5, &ctx);
+
     return 0;
+}
+
+static inline int _mybpf_prog_run(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret,
+        UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+{
+    MYBPF_LOADER_NODE_S *n = prog->loader_node;
+
+    if (n->jitted) {
+        return _mybpf_prog_run_jitted_code(prog, bpf_ret, p1, p2, p3, p4, p5);
+    }
+
+    return _mybpf_prog_run_bpf_code(prog, bpf_ret, p1, p2, p3, p4, p5);
 }
 
 /* len: prog 长度. 字节为单位 */
@@ -261,13 +291,7 @@ MYBPF_PROG_NODE_S * MYBPF_PROG_GetNext(MYBPF_RUNTIME_S *runtime, char *instance,
 
 int MYBPF_PROG_Run(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
-    MYBPF_LOADER_NODE_S *n = prog->loader_node;
-
-    if (n->jitted) {
-        return _mybpf_prog_run_jitted_code(prog, bpf_ret, p1, p2, p3, p4, p5);
-    }
-
-    return _mybpf_prog_run_bpf_code(prog, bpf_ret, p1, p2, p3, p4, p5);
+    return _mybpf_prog_run(prog, bpf_ret, p1, p2, p3, p4, p5);
 }
 
 int MYBPF_PROG_RunByFd(MYBPF_RUNTIME_S *runtime, int fd, OUT UINT64 *bpf_ret,
@@ -280,12 +304,6 @@ int MYBPF_PROG_RunByFd(MYBPF_RUNTIME_S *runtime, int fd, OUT UINT64 *bpf_ret,
         RETURN(BS_NOT_FOUND);
     }
 
-    MYBPF_LOADER_NODE_S *n = prog->loader_node;
-
-    if (n->jitted) {
-        return _mybpf_prog_run_jitted_code(prog, bpf_ret, p1, p2, p3, p4, p5);
-    }
-
-    return _mybpf_prog_run_bpf_code(prog, bpf_ret, p1, p2, p3, p4, p5);
+    return _mybpf_prog_run(prog, bpf_ret, p1, p2, p3, p4, p5);
 }
 

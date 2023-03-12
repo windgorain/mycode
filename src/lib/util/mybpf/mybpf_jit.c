@@ -4,7 +4,6 @@
 *   Description: 
 *
 ********************************************************/
-#include <sys/mman.h>
 #include "bs.h"
 #include "utl/ufd_utl.h"
 #include "utl/umap_utl.h"
@@ -14,6 +13,7 @@
 #include "utl/mybpf_vm.h"
 #include "utl/mybpf_jit.h"
 #include "utl/mybpf_insn.h"
+#include "utl/mybpf_file.h"
 #include "mybpf_jit_inner.h"
 
 static char * g_mybpf_jit_arch_name[] = {
@@ -40,10 +40,10 @@ static MYBPF_JIT_ARCH_S * _mybpf_jit_get_arch(int arch_type)
 
 static void _mybpf_jit_fini_res(MYBPF_JIT_RES_S *res)
 {
-    MEM_FREE_NULL(res->locs);
-    MEM_FREE_NULL(res->jitted_buf);
-    MEM_FREE_NULL(res->calls);
-    MEM_FREE_NULL(res->progs);
+    MEM_ExistFree(res->locs);
+    MEM_ExistFree(res->jitted_buf);
+    MEM_ExistFree(res->calls);
+    MEM_ExistFree(res->progs);
 }
 
 static int _mybpf_jit_init_res(MYBPF_JIT_INSN_S *jit_insn, OUT MYBPF_JIT_RES_S *res)
@@ -85,69 +85,73 @@ static void _mybpf_recacl_locs(OUT UINT *locs, int num, int offset)
 }
 
 /* 返回jitted_size. 失败返回<0 */
-static int _mybpf_prog_jit_progs(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_insn, MYBPF_JIT_RES_S *res, UINT flag)
+static int _mybpf_prog_jit_progs(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_insn,
+        MYBPF_JIT_RES_S *res, MYBPF_JIT_CFG_S *cfg)
 {
-    MYBPF_JIT_CTX_S ctx = {0};
+    MYBPF_JIT_CTX_S jit_ctx = {0};
     MYBPF_JIT_VM_S vm = {0};
     int i;
     int ret;
     int totle_jitted_size = 0;
 
     /* 不使用 imm = imm + base方式, 将base addr设置为0 */
-    if (flag & MYBPF_JIT_FLAG_BPF_BASE) {
+    if (cfg->helper_mode == MYBPF_JIT_HELPER_MODE_BASE) {
         vm.base_func_addr = (uintptr_t)BpfHelper_BaseHelper;
-        vm.tail_call_func = BpfHelper_GetFunc(12) - BpfHelper_BaseHelper;
+        vm.tail_call_func = BpfHelper_GetFunc(12) - (PF_BPF_HELPER_FUNC) BpfHelper_BaseHelper;
     }
 
-    ctx.max_jitted_size = res->max_jitted_size;
-    ctx.locs = res->locs;
+    jit_ctx.max_jitted_size = res->max_jitted_size;
+    jit_ctx.locs = res->locs;
 
-    if (flag & MYBPF_JIT_FLAG_USE_AGENT)
-        ctx.call_ext_agent = 1;
+    jit_ctx.jit_cfg = cfg;
 
     for (i=0; i<jit_insn->progs_count; i++) {
         vm.insts = (void*)((char*)jit_insn->insts + res->progs[i].offset);
         vm.num_insts = res->progs[i].size / sizeof(MYBPF_INSN_S);
-        ctx.jitted_buf = (char*)res->jitted_buf + totle_jitted_size;
-        ctx.max_jitted_size = res->max_jitted_size - totle_jitted_size;
-        ctx.stack_size = MYBPF_INSN_GetStackSize(vm.insts, res->progs[i].size);
-        ctx.jitted_size = 0;
+        jit_ctx.jitted_buf = (char*)res->jitted_buf + totle_jitted_size;
+        jit_ctx.max_jitted_size = res->max_jitted_size - totle_jitted_size;
+        jit_ctx.stack_size = MYBPF_INSN_GetStackSize(vm.insts, res->progs[i].size);
+        jit_ctx.jitted_size = 0;
 
-        if (flag & MYBPF_JIT_FLAG_USE_AGENT) {
-            ctx.save_ext_agent = 1;
-            if (strcmp(res->progs[i].sec_name, ".text") == 0) {
-                ctx.save_ext_agent = 0;
-            }
+        if (strcmp(res->progs[i].sec_name, ".text") == 0) {
+            jit_ctx.is_main_prog = 0;
+        } else {
+            jit_ctx.is_main_prog = 1;
         }
 
-        ret = arch->jit_func(&vm, &ctx);
+#if 1
+        ret = MYBPF_RunFile("mybpf_jit_arm64.o", "api/jit", (long)&vm, (long)&jit_ctx, 0, 0, 0);
+#else
+        ret = arch->jit_func(&vm, &jit_ctx);
+#endif
         if (ret < 0) {
             return ret;
         }
 
-        _mybpf_recacl_locs(ctx.locs, vm.num_insts, totle_jitted_size);
+        _mybpf_recacl_locs(jit_ctx.locs, vm.num_insts, totle_jitted_size);
         res->progs[i].offset = totle_jitted_size;
-        res->progs[i].size = ctx.jitted_size;
-        totle_jitted_size += ctx.jitted_size;
-        ctx.locs += vm.num_insts;
+        res->progs[i].size = jit_ctx.jitted_size;
+        totle_jitted_size += jit_ctx.jitted_size;
+        jit_ctx.locs += vm.num_insts;
     }
 
     return totle_jitted_size;
 }
 
-static int _mybpf_jit_do(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_insn, MYBPF_JIT_RES_S *res, UINT flag)
+static int _mybpf_jit_do(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_insn,
+        MYBPF_JIT_RES_S *res, MYBPF_JIT_CFG_S *cfg)
 {
     int ret;
     int jitted_size;
 
-    ret = jitted_size = _mybpf_prog_jit_progs(arch, jit_insn, res, flag);
+    ret = jitted_size = _mybpf_prog_jit_progs(arch, jit_insn, res, cfg);
     if (ret < 0) {
         return ret;
     }
 
     arch->fix_bpf_calls(res);
 
-    void *jitted_code = MYBPF_JIT_Mmap(res->jitted_buf, jitted_size);
+    void *jitted_code = MEM_Dup(res->jitted_buf, jitted_size);
     if (! jitted_code) {
         RETURNI(BS_ERR, "mmap error");
     }
@@ -161,7 +165,7 @@ static int _mybpf_jit_do(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_insn, MYB
     return 0;
 }
 
-static int _mybpf_prog_jit(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_insn, UINT flag)
+static int _mybpf_prog_jit(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_insn, MYBPF_JIT_CFG_S *cfg)
 {
     MYBPF_JIT_RES_S res = {0};
     int ret;
@@ -171,30 +175,11 @@ static int _mybpf_prog_jit(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_insn, U
         return ret;
     }
 
-    ret = _mybpf_jit_do(arch, jit_insn, &res, flag);
+    ret = _mybpf_jit_do(arch, jit_insn, &res, cfg);
 
     _mybpf_jit_fini_res(&res);
 
     return ret;
-}
-
-void * MYBPF_JIT_Mmap(void *jitted_buf, int jitted_size)
-{
-    void *jitted_code = NULL;
-
-    jitted_code = mmap(0, jitted_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if (jitted_code == MAP_FAILED) {
-        return NULL;
-    }
-
-    memcpy(jitted_code, jitted_buf, jitted_size);
-
-    if (mprotect(jitted_code, jitted_size, PROT_READ | PROT_EXEC) < 0) {
-        munmap(jitted_code, jitted_size);
-        return NULL;
-    }
-
-    return jitted_code;
 }
 
 /* 根据jit arch name获取jit arch type */
@@ -229,8 +214,14 @@ char * MYBPF_JIT_GetArchName(int arch_type)
     return g_mybpf_jit_arch_name[arch_type];
 }
 
-int MYBPF_JitArch(int arch_type, MYBPF_JIT_INSN_S *jit_insn, UINT flag)
+int MYBPF_Jit(MYBPF_JIT_INSN_S *jit_insn, MYBPF_JIT_CFG_S *cfg)
 {
+    int arch_type = cfg->jit_arch;
+
+    if (arch_type == MYBPF_JIT_ARCH_NONE) {
+        arch_type = MYBPF_JIT_LocalArch();
+    }
+
     if ((arch_type <= 0) || (arch_type >= MYBPF_JIT_ARCH_MAX)) {
         RETURN(BS_BAD_PARA);
     }
@@ -240,11 +231,6 @@ int MYBPF_JitArch(int arch_type, MYBPF_JIT_INSN_S *jit_insn, UINT flag)
         RETURN(BS_ERR);
     }
 
-    return _mybpf_prog_jit(arch, jit_insn, flag);
-}
-
-int MYBPF_JitLocal(MYBPF_JIT_INSN_S *jit_insn, UINT flag)
-{
-    return MYBPF_JitArch(MYBPF_JIT_LocalArch(), jit_insn, flag);
+    return _mybpf_prog_jit(arch, jit_insn, cfg);
 }
 

@@ -9,7 +9,7 @@
 #include "utl/mybpf_prog.h"
 #include "utl/mybpf_hookpoint.h"
 #include "utl/ufd_utl.h"
-#include "mybpf_def.h"
+#include "mybpf_def_inner.h"
 #include "mybpf_osbase.h"
 
 static inline int _mybpf_hookpoint_process(void *prog, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)

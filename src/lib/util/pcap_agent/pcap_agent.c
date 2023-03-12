@@ -41,11 +41,12 @@ static UINT g_auiPcapAgentDbgFlag[1] = {0};
 
 static DBG_UTL_DEF_S g_astPcapAgentDbgDef[] = 
 {
-    {"pcap", "packet", 0, PCAP_AGENT_DBG_FLAG_PACKET}
+    {"pcap", "packet", 0, PCAP_AGENT_DBG_FLAG_PACKET},
+    {0}
 };
 
 static DBG_UTL_CTRL_S g_stPcapAgentDbgCtrl
-    = DBG_INIT_VALUE("PcapAgent",g_auiPcapAgentDbgFlag, g_astPcapAgentDbgDef, sizeof(g_astPcapAgentDbgDef)/sizeof(DBG_UTL_DEF_S));
+    = DBG_INIT_VALUE("PcapAgent", g_auiPcapAgentDbgFlag, g_astPcapAgentDbgDef, 1);
 
 static VOID pcap_agent_PktInput(IN UCHAR *pucPktData, IN PKTCAP_PKT_INFO_S *pstPktInfo, IN HANDLE hUserHandle)
 {
@@ -64,7 +65,7 @@ static VOID pcap_agent_PktInput(IN UCHAR *pucPktData, IN PKTCAP_PKT_INFO_S *pstP
     }
 
     DBG_UTL_OUTPUT(&g_stPcapAgentDbgCtrl, 0, PCAP_AGENT_DBG_FLAG_PACKET,
-        ("Recv %d bytes packet, eth type=%d\r\n", pstPktInfo->uiPktRawLen, stEthInfo.usType));
+        "Recv %d bytes packet, eth type=%d\r\n", pstPktInfo->uiPktRawLen, stEthInfo.usType);
 
     MUTEX_P(&pstAgent->stMutex);
     DLL_SCAN(&pstAgent->stServiceList, pstService)
@@ -448,7 +449,7 @@ BS_STATUS PCAP_AGENT_SendPkt
     eRet = _pcap_agent_SendPkt(hPcapAgent, uiIndex, pstMbuf);
 
     DBG_UTL_OUTPUT(&g_stPcapAgentDbgCtrl, 0, PCAP_AGENT_DBG_FLAG_PACKET,
-        ("Send %d bytes packet result %d\r\n", MBUF_TOTAL_DATA_LEN(pstMbuf), eRet));
+        "Send %d bytes packet result %d\r\n", MBUF_TOTAL_DATA_LEN(pstMbuf), eRet);
 
     return eRet;
 }

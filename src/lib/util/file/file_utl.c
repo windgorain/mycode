@@ -868,41 +868,32 @@ VOID FILE_MemFree(IN FILE_MEM_S *pstMemMap)
     }
 }
 
-/* 将文件内容拷贝到指定缓冲区 */
-UINT FILE_MemTo(IN CHAR *pszFilePath, OUT UCHAR *pucBuf, IN UINT uiBufLen/* 0表示不限制长度 */)
+/* 将文件内容拷贝到指定缓冲区. 返回实际copy长度,出错返回 <0 */
+int FILE_MemTo(IN CHAR *pszFilePath, OUT void *buf, int buf_size)
 {
     FILE *fp;
     UINT64 uiFileSize;
-    UINT uiReadLen;
+    int read_len;
 
-    if (BS_OK != FILE_GetSize(pszFilePath, &uiFileSize))
-    {
-        return 0;
+    if (BS_OK != FILE_GetSize(pszFilePath, &uiFileSize)) {
+        RETURN(BS_CAN_NOT_OPEN);
     }
 
-    if (uiBufLen == 0)
-    {
-        uiReadLen = MIN(uiBufLen, (UINT)uiFileSize);
-    }
-    else
-    {
-        uiReadLen = (UINT)uiFileSize;
-    }
+    read_len = MIN(buf_size, (UINT)uiFileSize);
 
     fp = FILE_Open(pszFilePath, FALSE, "rb");
-    if (NULL == fp)
-    {
-        return 0;
+    if (NULL == fp) {
+        RETURN(BS_CAN_NOT_OPEN);
     }
 
-    if (uiReadLen != fread(pucBuf, 1, uiReadLen, fp)) {
+    if (read_len != fread(buf, 1, read_len, fp)) {
         fclose(fp);
-        return 0;
+        RETURN(BS_ERR);
     }
 
     fclose(fp);
 
-    return uiReadLen;
+    return read_len;
 }
 
 typedef struct

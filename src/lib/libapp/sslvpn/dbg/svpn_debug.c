@@ -25,10 +25,12 @@ static DBG_UTL_DEF_S g_astSvpnDbgDef[] =
 
     {"web-proxy", "packet", SVPN_DBG_ID_WEB_PROXY, SVPN_DBG_FLAG_WEBPROXY_PACKET},
     {"web-proxy", "error", SVPN_DBG_ID_WEB_PROXY, SVPN_DBG_FLAG_WEBPROXY_ERROR},
+
+    {0}
 };
 
 DBG_UTL_CTRL_S g_stSvpnDbgCtrl
-    = DBG_INIT_VALUE("SVPN",g_auiSvpnDbgFlag, g_astSvpnDbgDef, sizeof(g_astSvpnDbgDef)/sizeof(DBG_UTL_DEF_S));
+    = DBG_INIT_VALUE("SVPN",g_auiSvpnDbgFlag, g_astSvpnDbgDef, SVPN_DBG_ID_MAX);
 
 /* debug (module-name) (xxx) */
 PLUG_API VOID SVPN_Debug_Cmd(IN UINT ulArgc, IN CHAR **argv)
