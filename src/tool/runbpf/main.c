@@ -5,6 +5,7 @@
 ================================================================*/
 #include "bs.h"
 #include "utl/args_utl.h"
+#include "utl/time_utl.h"
 #include "utl/subcmd_utl.h"
 #include "utl/getopt2_utl.h"
 #include "utl/mybpf_loader.h"
@@ -16,6 +17,7 @@
 #include "utl/mybpf_jit.h"
 #include "utl/mybpf_simple.h"
 #include "utl/mybpf_dbg.h"
+#include "utl/mybpf_asm.h"
 #include "utl/ubpf_utl.h"
 #include "utl/file_utl.h"
 
@@ -55,14 +57,14 @@ static void _runbpf_opt_help(GETOPT2_NODE_S *opt)
 }
 
 #if (RUNBPF_ALL_CAPABILITY)
-static int _runbpf_run_file(char *file, char *sec_prefix, int jit, char *params)
+static int _runbpf_run_file(char *file, char *sec_name, int jit, char *params)
 {
     char *argv[32];
     int argc = 0;
     MYBPF_FILE_CTX_S ctx = {0};
 
-    if (! sec_prefix) {
-        sec_prefix = "tcmd";
+    if (! sec_name) {
+        sec_name = "tcmd/";
     }
 
     if (params) {
@@ -70,7 +72,7 @@ static int _runbpf_run_file(char *file, char *sec_prefix, int jit, char *params)
     }
 
     ctx.file = file;
-    ctx.sec_prefix = sec_prefix;
+    ctx.sec_name = sec_name;
     ctx.jit = jit;
 
     int ret = MYBPF_RunFileExt(&ctx, argc, (long)argv, 0, 0, 0);
@@ -87,10 +89,10 @@ static int _runbpf_file(int argc, char **argv)
 {
     static char *filename=NULL;
     static char *params = NULL;
-    static char *sec_prefix = NULL;
+    static char *sec_name= NULL;
     static GETOPT2_NODE_S opt[] = {
         {'P', 0, "filename", 's', &filename, "bpf file name", 0},
-        {'o', 's', "section", 's', &sec_prefix, "section prefix", 0},
+        {'o', 's', "section", 's', &sec_name, "section prefix", 0},
         {'o', 'j', "jit", 0, NULL, "jit", 0},
         {'o', 'p', "params", 's', &params, "params", 0},
         {'o', 'd', "debug", 0, NULL, "print debug info", 0},
@@ -116,41 +118,57 @@ static int _runbpf_file(int argc, char **argv)
         MYBPF_DBG_SetAllDebugFlags();
     }
 
-    return _runbpf_run_file(filename, sec_prefix, jit, params);
+    return _runbpf_run_file(filename, sec_name, jit, params);
 }
 
-static int _walk_prog_dump(void *data, int len, char *sec_name, char *func_name, void *ud)
+static void _walk_prog_dump_mem(void *data, int len)
 {
-    struct bpf_insn *code = data;
-    int count = len / sizeof(struct bpf_insn);
-    char *func = ud;
-    int i;
+    int size = len;
+    int print_size;
+    char *d = data;
+
+    while (size > 0) {
+        print_size = MIN(8, size);
+        MEM_PrintCFormat(d, print_size, NULL);
+        d += print_size;
+        size -= print_size;
+    }
+}
+
+static int _walk_prog_dump(void *data, int offset, int len, char *sec_name, char *func_name, void *ud)
+{
+    USER_HANDLE_S *uh = ud;
+    char *func = uh->ahUserHandle[0];
+    UINT flag = HANDLE_UINT(uh->ahUserHandle[1]);
 
     if ((func) && (strcmp(func, func_name) != 0)) {
         return BS_WALK_CONTINUE;
     }
 
-    printf("%s: %s : \r\n", sec_name, func_name);
+    printf("sec:%s, name:%s, offset:%d \n", sec_name, func_name, offset);
 
-    for (i=0; i<count; i++) {
-        UCHAR *d = (void*)&code[i];
-        MEM_PrintCFormat(d, 8, NULL);
+    if (flag == 0) {
+        _walk_prog_dump_mem(data, len);
+    } else {
+        MYBPF_ASM_DumpAsm(data, len, flag);
     }
+
+    printf("\n");
 
     return BS_WALK_CONTINUE;
 }
 
-static int _dump_elf_prog(char *filename, char *function)
+static int _dump_elf_prog(char *filename, void *ud)
 {
-    if (MYBPF_WalkProg(filename, _walk_prog_dump, function) < 0) {
-        printf("Can't process file %s \r\n", filename);
+    if (MYBPF_ELF_WalkProgByFile(filename, _walk_prog_dump, ud) < 0) {
+        printf("Can't process file \r\n");
         return -1;
     }
 
     return 0;
 }
 
-static int _dump_spf_prog(char *filename, char *function)
+static int _dump_spf_prog(char *filename, void *ud)
 {
     void *m = MYBPF_SIMPLE_OpenFile(filename);
     if (! m) {
@@ -158,7 +176,7 @@ static int _dump_spf_prog(char *filename, char *function)
         return -1;
     }
 
-    MYBPF_SIMPLE_WalkProg(m, _walk_prog_dump, function);
+    MYBPF_SIMPLE_WalkProg(m, _walk_prog_dump, ud);
 
     MYBPF_SIMPLE_Close(m);
 
@@ -171,24 +189,56 @@ static int _dump_prog(int argc, char **argv)
     static char *function = NULL;
     static GETOPT2_NODE_S opt[] = {
         {'o', 'f', "function", 's', &function, "function name", 0},
+        {'o', 'd', "disassemble", 0, NULL, "show disassemble", 0},
+        {'o', 'e', "expression", 0, NULL, "show expression", 0},
+        {'o', 'r', "raw", 0, NULL, "show raw data", 0},
+        {'o', 'l', "line", 0, NULL, "show line number", 0},
         {'P', 0, "filename", 's', &filename, "bpf file name", 0},
         {0} };
+    USER_HANDLE_S uh;
+    UINT flag = 0;
 
     if (BS_OK != GETOPT2_Parse(argc, argv, opt)) {
         _runbpf_opt_help(opt);
         return -1;
     }
 
+    if (GETOPT2_IsOptSetted(opt, 'l', NULL)) {
+        flag |= MYBPF_DUMP_FLAG_LINE;
+    }
+
+    if (GETOPT2_IsOptSetted(opt, 'd', NULL)) {
+        flag |= MYBPF_DUMP_FLAG_ASM;
+    }
+
+    if (GETOPT2_IsOptSetted(opt, 'e', NULL)) {
+        flag |= MYBPF_DUMP_FLAG_EXP;
+    }
+
+    if (GETOPT2_IsOptSetted(opt, 'r', NULL)) {
+        flag |= MYBPF_DUMP_FLAG_RAW;
+    }
+
+    uh.ahUserHandle[0] = function;
+    uh.ahUserHandle[1] = UINT_HANDLE(flag);
+
     if (_is_spf_file(filename)) {
-        return _dump_spf_prog(filename, function);
+        return _dump_spf_prog(filename, &uh);
     } else {
-        return _dump_elf_prog(filename, function);
+        return _dump_elf_prog(filename, &uh);
     }
 }
 
-static int _walk_prog_show(void *data, int len, char *sec_name, char *func_name, void *ud)
+static int _walk_map_show(int id, UMAP_ELF_MAP_S *map, int len, char *map_name, void *ud)
 {
-    printf("prog:%s, sec:%s, size:%d \n", func_name, sec_name, len);
+    printf("map_id:%d, type:%d, key_size:%d, value_size:%d, max_elem:%d, name:%s \n",
+            id, map->type, map->size_key, map->size_value, map->max_elem, map_name);
+    return BS_WALK_CONTINUE;
+}
+
+static int _walk_prog_show(void *data, int offset, int len, char *sec_name, char *func_name, void *ud)
+{
+    printf("prog:%s, sec:%s, offset:%d, size:%d \n", func_name, sec_name, offset, len);
     return BS_WALK_CONTINUE;
 }
 
@@ -196,10 +246,8 @@ static int _show_elf_file(char *filename)
 {
     printf("file_type:elf \n");
 
-    if (MYBPF_WalkProg(filename, _walk_prog_show, NULL) < 0) {
-        printf("Can't process file %s \r\n", filename);
-        return -1;
-    }
+    MYBPF_ELF_WalkMapByFile(filename, _walk_map_show, NULL);
+    MYBPF_ELF_WalkProgByFile(filename, _walk_prog_show, NULL);
 
     return 0;
 }
@@ -244,7 +292,7 @@ static int _show_file(int argc, char **argv)
     }
 }
 
-static int _walk_prog_export(void *data, int len, char *sec_name, char *func_name, void *ud)
+static int _walk_prog_export(void *data, int offset, int len, char *sec_name, char *func_name, void *ud)
 {
     char *func = ud;
     FILE *fp;
@@ -254,7 +302,19 @@ static int _walk_prog_export(void *data, int len, char *sec_name, char *func_nam
         return BS_WALK_CONTINUE;
     }
 
-    snprintf(buf, sizeof(buf), "%s.bpf", func_name);
+    if (TXT_IS_EMPTY(func_name)) {
+        if (TXT_IS_EMPTY(sec_name)) {
+            snprintf(buf, sizeof(buf), "noname_%u.bpf", offset);
+        } else {
+            while (*sec_name == '.') {
+                sec_name ++;
+            }
+            snprintf(buf, sizeof(buf), "%s_%u.bpf", sec_name, offset);
+            TXT_ReplaceChar(buf, '/', '_');
+        }
+    } else {
+        snprintf(buf, sizeof(buf), "%s.bpf", func_name);
+    }
 
     fp = FILE_Open(buf, TRUE, "wb+");
     if (! fp) {
@@ -271,7 +331,7 @@ static int _walk_prog_export(void *data, int len, char *sec_name, char *func_nam
 
 static int _export_elf_prog(char *filename, char *function)
 {
-    if (MYBPF_WalkProg(filename, _walk_prog_export, function) < 0) {
+    if (MYBPF_ELF_WalkProgByFile(filename, _walk_prog_export, function) < 0) {
         printf("Can't process file %s \n", filename);
         return -1;
     }
@@ -314,6 +374,7 @@ static int _export_prog(int argc, char **argv)
         return _export_elf_prog(filename, function);
     }
 }
+
 #endif
 
 static MYBPF_SIMPLE_CONVERT_CALL_MAP_S * _build_convert_calls_map(char *file)
@@ -357,14 +418,14 @@ static MYBPF_SIMPLE_CONVERT_CALL_MAP_S * _build_convert_calls_map(char *file)
         }
 
         if (strcmp(buf, "offset") == 0) {
-            ele_index = 0; /* 重置了offset, ele index重新计数 */
+            ele_index = 0; 
             base_offset = strtol(split + 1, NULL, 16);
             continue;
         }
 
         int imm = strtol(buf, NULL, 10);
         if (imm) {
-            /* imm == 0 是空位 */
+            
             map[index].imm = imm;
             map[index].new_imm = base_offset + ele_index * ele_size;
             index ++;
@@ -373,7 +434,7 @@ static MYBPF_SIMPLE_CONVERT_CALL_MAP_S * _build_convert_calls_map(char *file)
         ele_index ++;
     }
 
-    /* 最后一个写0表示结束 */
+    
     map[index].imm = 0;
 
     fclose(fp);
@@ -431,13 +492,13 @@ static int _convert_simple(int argc, char **argv)
     }
 
     p.with_map_name = 0;
-    p.with_func_name = 0;
+    p.with_func_name = 1;
 
     if (convert_map_file) {
         if (! (p.helper_map = _build_convert_calls_map(convert_map_file))) {
             return -1;
         }
-        /* 在map file中, 将func id 转换成了 func, 所以使用raw方式 */
+        
         p.helper_mode = MYBPF_JIT_HELPER_MODE_RAW;
     } else {
         p.helper_mode = MYBPF_JIT_HELPER_MODE_ARRAY;

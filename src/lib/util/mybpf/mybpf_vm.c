@@ -19,28 +19,15 @@
 #define MYBPF_MAX_INSTS 1000000
 
 static int _mybpf_run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5);
-
-static inline uint32_t _mybpf_vm_to_u32(uint64_t x)
-{
-    return x;
-}
-
-static inline bool _mybpf_bounds_check(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, void *addr, int size,
-        const char *type, uint16_t cur_pc, void *mem, size_t mem_len)
-{
-    if (! ctx->mem_check)
-        return true;
-
-    if (mem && (addr >= mem && ((char*)addr + size) <= ((char*)mem + mem_len))) {
-        return true; /* Context access */
-    } else if ((char*)addr >= ctx->stack && ((char*)addr + size) <= (ctx->stack + ctx->stack_size)) {
-        return true; /* Stack access */
-    } else {
-        vm->print_func("uBPF error: out of bounds memory %s at PC %u, addr %p, size %d\nmem %p/%d stack %p/%d\n",
-                type, cur_pc, addr, size, mem, mem_len, ctx->stack, ctx->stack_size);
-        return false;
-    }
-}
+static inline bool _mybpf_bounds_check(
+        MYBPF_VM_S *vm,
+        MYBPF_CTX_S *ctx,
+        void *addr,
+        int size,
+        const char *type,
+        uint16_t cur_pc,
+        void *mem,
+        size_t mem_len);
 
 int MYBPF_SetTailCallIndex(MYBPF_VM_S *vm, unsigned int id)
 {
@@ -52,18 +39,23 @@ int MYBPF_SetTailCallIndex(MYBPF_VM_S *vm, unsigned int id)
     return 0;
 }
 
-static inline void * _mybpf_get_helper(MYBPF_VM_S *vm, int imm)
+static inline void * _mybpf_get_helper(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, int imm)
 {
-    if (imm == (UINT)(-1)) {
+    if (imm == -1) {
         return NULL;
     }
 
-    return BpfHelper_BaseHelper + imm;
+    if ((ctx) && (ctx->helper_fixed)) {
+        return BpfHelper_BaseHelper + imm;
+    }
+
+    return BpfHelper_GetFunc(imm);
 }
 
-static inline UINT64 _mybpf_call(MYBPF_VM_S *vm, int imm, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+static inline UINT64 _mybpf_call(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, int imm,
+        UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
-    PF_BPF_HELPER_FUNC func = _mybpf_get_helper(vm, imm);
+    PF_BPF_HELPER_FUNC func = _mybpf_get_helper(vm, ctx, imm);
 
     if (! func) {
         return -1;
@@ -74,25 +66,90 @@ static inline UINT64 _mybpf_call(MYBPF_VM_S *vm, int imm, UINT64 p1, UINT64 p2, 
 
 static ELF_PROG_INFO_S * _mybpf_vm_get_sub_prog(MYBPF_CTX_S *ctx, void *insn)
 {
-    MYBPF_PROG_NODE_S *prog = ctx->prog;
+    MYBPF_PROG_NODE_S *prog = ctx->mybpf_prog;
     if (! prog) {
-        PRINTFL();
         return NULL;
     }
 
     MYBPF_LOADER_NODE_S *n = prog->loader_node;
     if (! n) {
-        PRINTFL();
         return NULL;
     }
 
     for (int i=0; i<n->progs_count; i++) {
-        if (((char*)n->insts + n->progs[i].offset) == (char*)insn) {
+        if (((char*)n->insts + n->progs[i].prog_offset) == (char*)insn) {
             return &n->progs[i];
         }
     }
 
     return NULL;
+}
+
+#define u32 _ubpf_to_u32
+#define i32 _ubpf_to_i32
+
+static uint32_t 
+u32(uint64_t x)
+{
+    return x;
+}
+
+static int32_t
+i32(uint64_t x)
+{
+    return x;
+}
+
+#define IS_ALIGNED(x, a) (((uintptr_t)(x) & ((a)-1)) == 0)
+
+inline static uint64_t
+ubpf_mem_load(uint64_t address, size_t size)
+{
+    if (!IS_ALIGNED(address, size)) {
+        // Fill the result with 0 to avoid leaking uninitialized memory.
+        uint64_t value = 0;
+        memcpy(&value, (void*)address, size);
+        return value;
+    }
+
+    switch (size) {
+    case 1:
+        return *(uint8_t*)address;
+    case 2:
+        return *(uint16_t*)address;
+    case 4:
+        return *(uint32_t*)address;
+    case 8:
+        return *(uint64_t*)address;
+    default:
+        abort();
+    }
+}
+
+inline static void
+ubpf_mem_store(uint64_t address, uint64_t value, size_t size)
+{
+    if (!IS_ALIGNED(address, size)) {
+        memcpy((void*)address, &value, size);
+        return;
+    }
+
+    switch (size) {
+    case 1:
+        *(uint8_t*)address = value;
+        break;
+    case 2:
+        *(uint16_t*)address = value;
+        break;
+    case 4:
+        *(uint32_t*)address = value;
+        break;
+    case 8:
+        *(uint64_t*)address = value;
+        break;
+    default:
+        abort();
+    }
 }
 
 static inline UINT64 _mybpf_call_sub_prog(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, 
@@ -102,6 +159,534 @@ static inline UINT64 _mybpf_call_sub_prog(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx,
     _mybpf_run(vm, ctx, p1, p2, p3, p4, p5);
 
     return ctx->bpf_ret;
+}
+
+static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
+{
+    uint16_t pc = 0;
+    struct ebpf_inst *insts = ctx->insts;
+    uint64_t reg[16];
+
+    if (!insts) {
+        /* Code must be loaded before we can execute */
+        RETURN(BS_ERR);
+    }
+
+    reg[1] = p1;
+    reg[2] = p2;
+    reg[3] = p3;
+    reg[4] = p4;
+    reg[5] = p5;
+    reg[10] = (unsigned long)(ctx->stack + ctx->stack_size);
+
+    while (1) {
+        const uint16_t cur_pc = pc;
+        struct ebpf_inst inst = insts[pc++];
+
+        switch (inst.opcode) {
+        case EBPF_OP_ADD_IMM:
+            reg[inst.dst_reg] += inst.imm;
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_ADD_REG:
+            reg[inst.dst_reg] += reg[inst.src_reg];
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_SUB_IMM:
+            reg[inst.dst_reg] -= inst.imm;
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_SUB_REG:
+            reg[inst.dst_reg] -= reg[inst.src_reg];
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_MUL_IMM:
+            reg[inst.dst_reg] *= inst.imm;
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_MUL_REG:
+            reg[inst.dst_reg] *= reg[inst.src_reg];
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_DIV_IMM:
+            reg[inst.dst_reg] = u32(inst.imm) ? u32(reg[inst.dst_reg]) / u32(inst.imm) : 0;
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_DIV_REG:
+            reg[inst.dst_reg] = reg[inst.src_reg] ? u32(reg[inst.dst_reg]) / u32(reg[inst.src_reg]) : 0;
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_OR_IMM:
+            reg[inst.dst_reg] |= inst.imm;
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_OR_REG:
+            reg[inst.dst_reg] |= reg[inst.src_reg];
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_AND_IMM:
+            reg[inst.dst_reg] &= inst.imm;
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_AND_REG:
+            reg[inst.dst_reg] &= reg[inst.src_reg];
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_LSH_IMM:
+            reg[inst.dst_reg] <<= inst.imm;
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_LSH_REG:
+            reg[inst.dst_reg] <<= reg[inst.src_reg];
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_RSH_IMM:
+            reg[inst.dst_reg] = u32(reg[inst.dst_reg]) >> inst.imm;
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_RSH_REG:
+            reg[inst.dst_reg] = u32(reg[inst.dst_reg]) >> reg[inst.src_reg];
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_NEG:
+            reg[inst.dst_reg] = -(int64_t)reg[inst.dst_reg];
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_MOD_IMM:
+            reg[inst.dst_reg] = u32(inst.imm) ? u32(reg[inst.dst_reg]) % u32(inst.imm) : u32(reg[inst.dst_reg]);
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_MOD_REG:
+            reg[inst.dst_reg] = u32(reg[inst.src_reg]) ? u32(reg[inst.dst_reg]) % u32(reg[inst.src_reg]) : u32(reg[inst.dst_reg]);
+            break;
+        case EBPF_OP_XOR_IMM:
+            reg[inst.dst_reg] ^= inst.imm;
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_XOR_REG:
+            reg[inst.dst_reg] ^= reg[inst.src_reg];
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_MOV_IMM:
+            reg[inst.dst_reg] = inst.imm;
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_MOV_REG:
+            reg[inst.dst_reg] = reg[inst.src_reg];
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_ARSH_IMM:
+            reg[inst.dst_reg] = (int32_t)reg[inst.dst_reg] >> inst.imm;
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+        case EBPF_OP_ARSH_REG:
+            reg[inst.dst_reg] = (int32_t)reg[inst.dst_reg] >> u32(reg[inst.src_reg]);
+            reg[inst.dst_reg] &= UINT32_MAX;
+            break;
+
+        case EBPF_OP_LE:
+            if (inst.imm == 16) {
+                reg[inst.dst_reg] = htole16(reg[inst.dst_reg]);
+            } else if (inst.imm == 32) {
+                reg[inst.dst_reg] = htole32(reg[inst.dst_reg]);
+            } else if (inst.imm == 64) {
+                reg[inst.dst_reg] = htole64(reg[inst.dst_reg]);
+            }
+            break;
+        case EBPF_OP_BE:
+            if (inst.imm == 16) {
+                reg[inst.dst_reg] = htobe16(reg[inst.dst_reg]);
+            } else if (inst.imm == 32) {
+                reg[inst.dst_reg] = htobe32(reg[inst.dst_reg]);
+            } else if (inst.imm == 64) {
+                reg[inst.dst_reg] = htobe64(reg[inst.dst_reg]);
+            }
+            break;
+        case EBPF_OP_ADD64_IMM:
+            reg[inst.dst_reg] += inst.imm;
+            break;
+        case EBPF_OP_ADD64_REG:
+            reg[inst.dst_reg] += reg[inst.src_reg];
+            break;
+        case EBPF_OP_SUB64_IMM:
+            reg[inst.dst_reg] -= inst.imm;
+            break;
+        case EBPF_OP_SUB64_REG:
+            reg[inst.dst_reg] -= reg[inst.src_reg];
+            break;
+        case EBPF_OP_MUL64_IMM:
+            reg[inst.dst_reg] *= inst.imm;
+            break;
+        case EBPF_OP_MUL64_REG:
+            reg[inst.dst_reg] *= reg[inst.src_reg];
+            break;
+        case EBPF_OP_DIV64_IMM:
+            reg[inst.dst_reg] = inst.imm ? reg[inst.dst_reg] / inst.imm : 0;
+            break;
+        case EBPF_OP_DIV64_REG:
+            reg[inst.dst_reg] = reg[inst.src_reg] ? reg[inst.dst_reg] / reg[inst.src_reg] : 0;
+            break;
+        case EBPF_OP_OR64_IMM:
+            reg[inst.dst_reg] |= inst.imm;
+            break;
+        case EBPF_OP_OR64_REG:
+            reg[inst.dst_reg] |= reg[inst.src_reg];
+            break;
+        case EBPF_OP_AND64_IMM:
+            reg[inst.dst_reg] &= inst.imm;
+            break;
+        case EBPF_OP_AND64_REG:
+            reg[inst.dst_reg] &= reg[inst.src_reg];
+            break;
+        case EBPF_OP_LSH64_IMM:
+            reg[inst.dst_reg] <<= inst.imm;
+            break;
+        case EBPF_OP_LSH64_REG:
+            reg[inst.dst_reg] <<= reg[inst.src_reg];
+            break;
+        case EBPF_OP_RSH64_IMM:
+            reg[inst.dst_reg] >>= inst.imm;
+            break;
+        case EBPF_OP_RSH64_REG:
+            reg[inst.dst_reg] >>= reg[inst.src_reg];
+            break;
+        case EBPF_OP_NEG64:
+            reg[inst.dst_reg] = -reg[inst.dst_reg];
+            break;
+        case EBPF_OP_MOD64_IMM:
+            reg[inst.dst_reg] = inst.imm ? reg[inst.dst_reg] % inst.imm : reg[inst.dst_reg];
+            break;
+        case EBPF_OP_MOD64_REG:
+            reg[inst.dst_reg] = reg[inst.src_reg] ? reg[inst.dst_reg] % reg[inst.src_reg] : reg[inst.dst_reg];
+            break;
+        case EBPF_OP_XOR64_IMM:
+            reg[inst.dst_reg] ^= inst.imm;
+            break;
+        case EBPF_OP_XOR64_REG:
+            reg[inst.dst_reg] ^= reg[inst.src_reg];
+            break;
+        case EBPF_OP_MOV64_IMM:
+            reg[inst.dst_reg] = inst.imm;
+            break;
+        case EBPF_OP_MOV64_REG:
+            reg[inst.dst_reg] = reg[inst.src_reg];
+            break;
+        case EBPF_OP_ARSH64_IMM:
+            reg[inst.dst_reg] = (int64_t)reg[inst.dst_reg] >> inst.imm;
+            break;
+        case EBPF_OP_ARSH64_REG:
+            reg[inst.dst_reg] = (int64_t)reg[inst.dst_reg] >> reg[inst.src_reg];
+            break;
+
+#define BOUNDS_CHECK_LOAD(size) \
+    do { \
+        if (!_mybpf_bounds_check(vm, ctx, (char *)reg[inst.src_reg] + inst.off, size, "load", cur_pc, ctx->mem, ctx->mem_len)) { \
+            return -1; \
+        } \
+    } while (0)
+
+#define BOUNDS_CHECK_STORE(size) \
+    do { \
+        if (!_mybpf_bounds_check(vm, ctx, (char *)reg[inst.dst_reg] + inst.off, size, "store", cur_pc, ctx->mem, ctx->mem_len)) { \
+            return -1; \
+        } \
+    } while (0)
+
+        case EBPF_OP_LDXW:
+            BOUNDS_CHECK_LOAD(4);
+            reg[inst.dst_reg] = ubpf_mem_load(reg[inst.src_reg] + inst.off, 4);
+            break;
+        case EBPF_OP_LDXH:
+            BOUNDS_CHECK_LOAD(2);
+            reg[inst.dst_reg] = ubpf_mem_load(reg[inst.src_reg] + inst.off, 2);
+            break;
+        case EBPF_OP_LDXB:
+            BOUNDS_CHECK_LOAD(1);
+            reg[inst.dst_reg] = ubpf_mem_load(reg[inst.src_reg] + inst.off, 1);
+            break;
+        case EBPF_OP_LDXDW:
+            BOUNDS_CHECK_LOAD(8);
+            reg[inst.dst_reg] = ubpf_mem_load(reg[inst.src_reg] + inst.off, 8);
+            break;
+
+        case EBPF_OP_STW:
+            BOUNDS_CHECK_STORE(4);
+            ubpf_mem_store(reg[inst.dst_reg] + inst.off, inst.imm, 4);
+            break;
+        case EBPF_OP_STH:
+            BOUNDS_CHECK_STORE(2);
+            ubpf_mem_store(reg[inst.dst_reg] + inst.off, inst.imm, 2);
+            break;
+        case EBPF_OP_STB:
+            BOUNDS_CHECK_STORE(1);
+            ubpf_mem_store(reg[inst.dst_reg] + inst.off, inst.imm, 1);
+            break;
+        case EBPF_OP_STDW:
+            BOUNDS_CHECK_STORE(8);
+            ubpf_mem_store(reg[inst.dst_reg] + inst.off, inst.imm, 8);
+            break;
+
+        case EBPF_OP_STXW:
+            BOUNDS_CHECK_STORE(4);
+            ubpf_mem_store(reg[inst.dst_reg] + inst.off, reg[inst.src_reg], 4);
+            break;
+        case EBPF_OP_STXH:
+            BOUNDS_CHECK_STORE(2);
+            ubpf_mem_store(reg[inst.dst_reg] + inst.off, reg[inst.src_reg], 2);
+            break;
+        case EBPF_OP_STXB:
+            BOUNDS_CHECK_STORE(1);
+            ubpf_mem_store(reg[inst.dst_reg] + inst.off, reg[inst.src_reg], 1);
+            break;
+        case EBPF_OP_STXDW:
+            BOUNDS_CHECK_STORE(8);
+            ubpf_mem_store(reg[inst.dst_reg] + inst.off, reg[inst.src_reg], 8);
+            break;
+
+        case EBPF_OP_LDDW:
+            reg[inst.dst_reg] = u32(inst.imm) | ((uint64_t)insts[pc++].imm << 32);
+            break;
+
+        case EBPF_OP_JA:
+            pc += inst.off;
+            break;
+        case EBPF_OP_JEQ_IMM:
+            if (reg[inst.dst_reg] == inst.imm) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JEQ_REG:
+            if (reg[inst.dst_reg] == reg[inst.src_reg]) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JEQ32_IMM:
+            if (u32(reg[inst.dst_reg]) == u32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JEQ32_REG:
+            if (u32(reg[inst.dst_reg]) == reg[inst.src_reg]) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JGT_IMM:
+            if (reg[inst.dst_reg] > u32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JGT_REG:
+            if (reg[inst.dst_reg] > reg[inst.src_reg]) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JGT32_IMM:
+            if (u32(reg[inst.dst_reg]) > u32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JGT32_REG:
+            if (u32(reg[inst.dst_reg]) > u32(reg[inst.src_reg])) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JGE_IMM:
+            if (reg[inst.dst_reg] >= u32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JGE_REG:
+            if (reg[inst.dst_reg] >= reg[inst.src_reg]) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JGE32_IMM:
+            if (u32(reg[inst.dst_reg]) >= u32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JGE32_REG:
+            if (u32(reg[inst.dst_reg]) >= u32(reg[inst.src_reg])) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JLT_IMM:
+            if (reg[inst.dst_reg] < u32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JLT_REG:
+            if (reg[inst.dst_reg] < reg[inst.src_reg]) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JLT32_IMM:
+            if (u32(reg[inst.dst_reg]) < u32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JLT32_REG:
+            if (u32(reg[inst.dst_reg]) < u32(reg[inst.src_reg])) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JLE_IMM:
+            if (reg[inst.dst_reg] <= u32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JLE_REG:
+            if (reg[inst.dst_reg] <= reg[inst.src_reg]) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JLE32_IMM:
+            if (u32(reg[inst.dst_reg]) <= u32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JLE32_REG:
+            if (u32(reg[inst.dst_reg]) <= u32(reg[inst.src_reg])) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSET_IMM:
+            if (reg[inst.dst_reg] & inst.imm) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSET_REG:
+            if (reg[inst.dst_reg] & reg[inst.src_reg]) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSET32_IMM:
+            if (u32(reg[inst.dst_reg]) & u32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSET32_REG:
+            if (u32(reg[inst.dst_reg]) & u32(reg[inst.src_reg])) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JNE_IMM:
+            if (reg[inst.dst_reg] != inst.imm) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JNE_REG:
+            if (reg[inst.dst_reg] != reg[inst.src_reg]) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JNE32_IMM:
+            if (u32(reg[inst.dst_reg]) != u32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JNE32_REG:
+            if (u32(reg[inst.dst_reg]) != u32(reg[inst.src_reg])) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSGT_IMM:
+            if ((int64_t)reg[inst.dst_reg] > inst.imm) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSGT_REG:
+            if ((int64_t)reg[inst.dst_reg] > (int64_t)reg[inst.src_reg]) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSGT32_IMM:
+            if (i32(reg[inst.dst_reg]) > i32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSGT32_REG:
+            if (i32(reg[inst.dst_reg]) > i32(reg[inst.src_reg])) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSGE_IMM:
+            if ((int64_t)reg[inst.dst_reg] >= inst.imm) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSGE_REG:
+            if ((int64_t)reg[inst.dst_reg] >= (int64_t)reg[inst.src_reg]) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSGE32_IMM:
+            if (i32(reg[inst.dst_reg]) >= i32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSGE32_REG:
+            if (i32(reg[inst.dst_reg]) >= i32(reg[inst.src_reg])) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSLT_IMM:
+            if ((int64_t)reg[inst.dst_reg] < inst.imm) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSLT_REG:
+            if ((int64_t)reg[inst.dst_reg] < (int64_t)reg[inst.src_reg]) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSLT32_IMM:
+            if (i32(reg[inst.dst_reg]) < i32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSLT32_REG:
+            if (i32(reg[inst.dst_reg]) < i32(reg[inst.src_reg])) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSLE_IMM:
+            if ((int64_t)reg[inst.dst_reg] <= inst.imm) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSLE_REG:
+            if ((int64_t)reg[inst.dst_reg] <= (int64_t)reg[inst.src_reg]) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSLE32_IMM:
+            if (i32(reg[inst.dst_reg]) <= i32(inst.imm)) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_JSLE32_REG:
+            if (i32(reg[inst.dst_reg]) <= i32(reg[inst.src_reg])) {
+                pc += inst.off;
+            }
+            break;
+        case EBPF_OP_EXIT:
+            ctx->bpf_ret = reg[0];
+            return 0;
+        case EBPF_OP_CALL:
+            if (inst.src_reg == BPF_PSEUDO_CALL) {
+                struct ebpf_inst *n = &insts[pc];
+                reg[0] = _mybpf_call_sub_prog(vm, ctx, n + inst.imm, reg[1], reg[2], reg[3], reg[4], reg[5]);
+            } else {
+                reg[0] = _mybpf_call(vm, ctx, inst.imm, reg[1], reg[2], reg[3], reg[4], reg[5]);
+                if ((inst.imm == vm->tail_call_index) && (reg[0] == 0)) {
+                    ctx->bpf_ret = reg[0];
+                    return 0;
+                }
+            }
+            break;
+        }
+    }
 }
 
 BOOL_T MYBPF_Validate(MYBPF_VM_S *vm, void *insn, UINT num_insts)
@@ -195,6 +780,10 @@ BOOL_T MYBPF_Validate(MYBPF_VM_S *vm, void *insn, UINT num_insts)
             break;
 
         case EBPF_OP_LDDW:
+            if (inst.src_reg != 0) {
+                vm->print_func("invalid source register for LDDW at PC %d", i);
+                return false;
+            }
             if (i + 1 >= num_insts || insts[i+1].opcode != 0) {
                 vm->print_func("incomplete lddw at PC %d", i);
                 return false;
@@ -225,6 +814,28 @@ BOOL_T MYBPF_Validate(MYBPF_VM_S *vm, void *insn, UINT num_insts)
         case EBPF_OP_JSLT_REG:
         case EBPF_OP_JSLE_IMM:
         case EBPF_OP_JSLE_REG:
+        case EBPF_OP_JEQ32_IMM:
+        case EBPF_OP_JEQ32_REG:
+        case EBPF_OP_JGT32_IMM:
+        case EBPF_OP_JGT32_REG:
+        case EBPF_OP_JGE32_IMM:
+        case EBPF_OP_JGE32_REG:
+        case EBPF_OP_JSET32_REG:
+        case EBPF_OP_JSET32_IMM:
+        case EBPF_OP_JNE32_IMM:
+        case EBPF_OP_JNE32_REG:
+        case EBPF_OP_JSGT32_IMM:
+        case EBPF_OP_JSGT32_REG:
+        case EBPF_OP_JSGE32_IMM:
+        case EBPF_OP_JSGE32_REG:
+        case EBPF_OP_JLT32_IMM:
+        case EBPF_OP_JLT32_REG:
+        case EBPF_OP_JLE32_IMM:
+        case EBPF_OP_JLE32_REG:
+        case EBPF_OP_JSLT32_IMM:
+        case EBPF_OP_JSLT32_REG:
+        case EBPF_OP_JSLE32_IMM:
+        case EBPF_OP_JSLE32_REG:
             if (inst.off == -1) {
                 vm->print_func("infinite loop at PC %d", i);
                 return false;
@@ -240,7 +851,7 @@ BOOL_T MYBPF_Validate(MYBPF_VM_S *vm, void *insn, UINT num_insts)
             break;
 
         case EBPF_OP_CALL:
-            if (NULL == _mybpf_get_helper(vm, inst.imm)) {
+            if (NULL == _mybpf_get_helper(vm, NULL, inst.imm)) {
                 vm->print_func("invalid call immediate at PC %d", i);
                 return false;
             }
@@ -278,438 +889,27 @@ BOOL_T MYBPF_Validate(MYBPF_VM_S *vm, void *insn, UINT num_insts)
     return true;
 }
 
-#define MYBPF_BOUNDS_CHECK_LOAD(size) \
-    do { \
-        if (!_mybpf_bounds_check(vm, ctx, (char *)reg[inst.src_reg] + inst.off, size, \
-                    "load", cur_pc, ctx->mem, ctx->mem_len)) { \
-            return -1; \
-        } \
-    } while (0)
-
-#define MYBPF_BOUNDS_CHECK_STORE(size) \
-    do { \
-        if (!_mybpf_bounds_check(vm, ctx, (char *)reg[inst.dst_reg] + inst.off, size,\
-                    "store", cur_pc, ctx->mem, ctx->mem_len)) { \
-            return -1; \
-        } \
-    } while (0)
-
-static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
+static inline bool _mybpf_bounds_check(
+        MYBPF_VM_S *vm,
+        MYBPF_CTX_S *ctx,
+        void *addr,
+        int size,
+        const char *type,
+        uint16_t cur_pc,
+        void *mem,
+        size_t mem_len)
 {
-    uint16_t pc = 0;
-    struct ebpf_inst *insts = ctx->insts;
-    uint64_t reg[16];
+    if (! ctx->mem_check)
+        return true;
 
-    if (!insts) {
-        /* Code must be loaded before we can execute */
-        RETURN(BS_ERR);
-    }
-
-    reg[1] = p1;
-    reg[2] = p2;
-    reg[3] = p3;
-    reg[4] = p4;
-    reg[5] = p5;
-    reg[10] = (unsigned long)(ctx->stack + ctx->stack_size);
-
-    while (1) {
-        const uint16_t cur_pc = pc;
-        struct ebpf_inst inst = insts[pc++];
-
-        switch (inst.opcode) {
-        case EBPF_OP_ADD_IMM:
-            reg[inst.dst_reg] += inst.imm;
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_ADD_REG:
-            reg[inst.dst_reg] += reg[inst.src_reg];
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_SUB_IMM:
-            reg[inst.dst_reg] -= inst.imm;
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_SUB_REG:
-            reg[inst.dst_reg] -= reg[inst.src_reg];
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_MUL_IMM:
-            reg[inst.dst_reg] *= inst.imm;
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_MUL_REG:
-            reg[inst.dst_reg] *= reg[inst.src_reg];
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_DIV_IMM:
-            reg[inst.dst_reg] = _mybpf_vm_to_u32(reg[inst.dst_reg]) / _mybpf_vm_to_u32(inst.imm);
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_DIV_REG:
-            if (reg[inst.src_reg] == 0) {
-                vm->print_func("uBPF error: division by zero at PC %u\n", cur_pc);
-                RETURN(BS_ERR);
-            }
-            reg[inst.dst_reg] = _mybpf_vm_to_u32(reg[inst.dst_reg]) / _mybpf_vm_to_u32(reg[inst.src_reg]);
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_OR_IMM:
-            reg[inst.dst_reg] |= inst.imm;
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_OR_REG:
-            reg[inst.dst_reg] |= reg[inst.src_reg];
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_AND_IMM:
-            reg[inst.dst_reg] &= inst.imm;
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_AND_REG:
-            reg[inst.dst_reg] &= reg[inst.src_reg];
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_LSH_IMM:
-            reg[inst.dst_reg] <<= inst.imm;
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_LSH_REG:
-            reg[inst.dst_reg] <<= reg[inst.src_reg];
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_RSH_IMM:
-            reg[inst.dst_reg] = _mybpf_vm_to_u32(reg[inst.dst_reg]) >> inst.imm;
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_RSH_REG:
-            reg[inst.dst_reg] = _mybpf_vm_to_u32(reg[inst.dst_reg]) >> reg[inst.src_reg];
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_NEG:
-            reg[inst.dst_reg] = -(int64_t)reg[inst.dst_reg];
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_MOD_IMM:
-            reg[inst.dst_reg] = _mybpf_vm_to_u32(reg[inst.dst_reg]) % _mybpf_vm_to_u32(inst.imm);
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_MOD_REG:
-            if (reg[inst.src_reg] == 0) {
-                vm->print_func("uBPF error: division by zero at PC %u\n", cur_pc);
-                RETURN(BS_ERR);
-            }
-            reg[inst.dst_reg] = _mybpf_vm_to_u32(reg[inst.dst_reg]) % _mybpf_vm_to_u32(reg[inst.src_reg]);
-            break;
-        case EBPF_OP_XOR_IMM:
-            reg[inst.dst_reg] ^= inst.imm;
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_XOR_REG:
-            reg[inst.dst_reg] ^= reg[inst.src_reg];
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_MOV_IMM:
-            reg[inst.dst_reg] = inst.imm;
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_MOV_REG:
-            reg[inst.dst_reg] = reg[inst.src_reg];
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_ARSH_IMM:
-            reg[inst.dst_reg] = (int32_t)reg[inst.dst_reg] >> inst.imm;
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-        case EBPF_OP_ARSH_REG:
-            reg[inst.dst_reg] = (int32_t)reg[inst.dst_reg] >> _mybpf_vm_to_u32(reg[inst.src_reg]);
-            reg[inst.dst_reg] &= UINT32_MAX;
-            break;
-
-        case EBPF_OP_LE:
-            if (inst.imm == 16) {
-                reg[inst.dst_reg] = htole16(reg[inst.dst_reg]);
-            } else if (inst.imm == 32) {
-                reg[inst.dst_reg] = htole32(reg[inst.dst_reg]);
-            } else if (inst.imm == 64) {
-                reg[inst.dst_reg] = htole64(reg[inst.dst_reg]);
-            }
-            break;
-        case EBPF_OP_BE:
-            if (inst.imm == 16) {
-                reg[inst.dst_reg] = htobe16(reg[inst.dst_reg]);
-            } else if (inst.imm == 32) {
-                reg[inst.dst_reg] = htobe32(reg[inst.dst_reg]);
-            } else if (inst.imm == 64) {
-                reg[inst.dst_reg] = htobe64(reg[inst.dst_reg]);
-            }
-            break;
-        case EBPF_OP_ADD64_IMM:
-            reg[inst.dst_reg] += inst.imm;
-            break;
-        case EBPF_OP_ADD64_REG:
-            reg[inst.dst_reg] += reg[inst.src_reg];
-            break;
-        case EBPF_OP_SUB64_IMM:
-            reg[inst.dst_reg] -= inst.imm;
-            break;
-        case EBPF_OP_SUB64_REG:
-            reg[inst.dst_reg] -= reg[inst.src_reg];
-            break;
-        case EBPF_OP_MUL64_IMM:
-            reg[inst.dst_reg] *= inst.imm;
-            break;
-        case EBPF_OP_MUL64_REG:
-            reg[inst.dst_reg] *= reg[inst.src_reg];
-            break;
-        case EBPF_OP_DIV64_IMM:
-            reg[inst.dst_reg] /= inst.imm;
-            break;
-        case EBPF_OP_DIV64_REG:
-            if (reg[inst.src_reg] == 0) {
-                vm->print_func("uBPF error: division by zero at PC %u\n", cur_pc);
-                RETURN(BS_ERR);
-            }
-            reg[inst.dst_reg] /= reg[inst.src_reg];
-            break;
-        case EBPF_OP_OR64_IMM:
-            reg[inst.dst_reg] |= inst.imm;
-            break;
-        case EBPF_OP_OR64_REG:
-            reg[inst.dst_reg] |= reg[inst.src_reg];
-            break;
-        case EBPF_OP_AND64_IMM:
-            reg[inst.dst_reg] &= inst.imm;
-            break;
-        case EBPF_OP_AND64_REG:
-            reg[inst.dst_reg] &= reg[inst.src_reg];
-            break;
-        case EBPF_OP_LSH64_IMM:
-            reg[inst.dst_reg] <<= inst.imm;
-            break;
-        case EBPF_OP_LSH64_REG:
-            reg[inst.dst_reg] <<= reg[inst.src_reg];
-            break;
-        case EBPF_OP_RSH64_IMM:
-            reg[inst.dst_reg] >>= inst.imm;
-            break;
-        case EBPF_OP_RSH64_REG:
-            reg[inst.dst_reg] >>= reg[inst.src_reg];
-            break;
-        case EBPF_OP_NEG64:
-            reg[inst.dst_reg] = -reg[inst.dst_reg];
-            break;
-        case EBPF_OP_MOD64_IMM:
-            reg[inst.dst_reg] %= inst.imm;
-            break;
-        case EBPF_OP_MOD64_REG:
-            if (reg[inst.src_reg] == 0) {
-                vm->print_func("uBPF error: division by zero at PC %u\n", cur_pc);
-                RETURN(BS_ERR);
-            }
-            reg[inst.dst_reg] %= reg[inst.src_reg];
-            break;
-        case EBPF_OP_XOR64_IMM:
-            reg[inst.dst_reg] ^= inst.imm;
-            break;
-        case EBPF_OP_XOR64_REG:
-            reg[inst.dst_reg] ^= reg[inst.src_reg];
-            break;
-        case EBPF_OP_MOV64_IMM:
-            reg[inst.dst_reg] = inst.imm;
-            break;
-        case EBPF_OP_MOV64_REG:
-            reg[inst.dst_reg] = reg[inst.src_reg];
-            break;
-        case EBPF_OP_ARSH64_IMM:
-            reg[inst.dst_reg] = (int64_t)reg[inst.dst_reg] >> inst.imm;
-            break;
-        case EBPF_OP_ARSH64_REG:
-            reg[inst.dst_reg] = (int64_t)reg[inst.dst_reg] >> reg[inst.src_reg];
-            break;
-        case EBPF_OP_LDXW:
-            MYBPF_BOUNDS_CHECK_LOAD(4);
-            reg[inst.dst_reg] = *(uint32_t *)(uintptr_t)(reg[inst.src_reg] + inst.off);
-            break;
-        case EBPF_OP_LDXH:
-            MYBPF_BOUNDS_CHECK_LOAD(2);
-            reg[inst.dst_reg] = *(uint16_t *)(uintptr_t)(reg[inst.src_reg] + inst.off);
-            break;
-        case EBPF_OP_LDXB:
-            MYBPF_BOUNDS_CHECK_LOAD(1);
-            reg[inst.dst_reg] = *(uint8_t *)(uintptr_t)(reg[inst.src_reg] + inst.off);
-            break;
-        case EBPF_OP_LDXDW:
-            MYBPF_BOUNDS_CHECK_LOAD(8);
-            reg[inst.dst_reg] = *(uint64_t *)(uintptr_t)(reg[inst.src_reg] + inst.off);
-            break;
-
-        case EBPF_OP_STW:
-            MYBPF_BOUNDS_CHECK_STORE(4);
-            *(uint32_t *)(uintptr_t)(reg[inst.dst_reg] + inst.off) = inst.imm;
-            break;
-        case EBPF_OP_STH:
-            MYBPF_BOUNDS_CHECK_STORE(2);
-            *(uint16_t *)(uintptr_t)(reg[inst.dst_reg] + inst.off) = inst.imm;
-            break;
-        case EBPF_OP_STB:
-            MYBPF_BOUNDS_CHECK_STORE(1);
-            *(uint8_t *)(uintptr_t)(reg[inst.dst_reg] + inst.off) = inst.imm;
-            break;
-        case EBPF_OP_STDW:
-            MYBPF_BOUNDS_CHECK_STORE(8);
-            *(uint64_t *)(uintptr_t)(reg[inst.dst_reg] + inst.off) = inst.imm;
-            break;
-
-        case EBPF_OP_STXW:
-            MYBPF_BOUNDS_CHECK_STORE(4);
-            *(uint32_t *)(uintptr_t)(reg[inst.dst_reg] + inst.off) = reg[inst.src_reg];
-            break;
-        case EBPF_OP_STXH:
-            MYBPF_BOUNDS_CHECK_STORE(2);
-            *(uint16_t *)(uintptr_t)(reg[inst.dst_reg] + inst.off) = reg[inst.src_reg];
-            break;
-        case EBPF_OP_STXB:
-            MYBPF_BOUNDS_CHECK_STORE(1);
-            *(uint8_t *)(uintptr_t)(reg[inst.dst_reg] + inst.off) = reg[inst.src_reg];
-            break;
-        case EBPF_OP_STXDW:
-            MYBPF_BOUNDS_CHECK_STORE(8);
-            *(uint64_t *)(uintptr_t)(reg[inst.dst_reg] + inst.off) = reg[inst.src_reg];
-            break;
-
-        case EBPF_OP_LDDW:
-            reg[inst.dst_reg] = (uint32_t)inst.imm | ((uint64_t)insts[pc++].imm << 32);
-            break;
-
-        case EBPF_OP_JA:
-            pc += inst.off;
-            break;
-        case EBPF_OP_JEQ_IMM:
-            if (reg[inst.dst_reg] == inst.imm) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JEQ_REG:
-            if (reg[inst.dst_reg] == reg[inst.src_reg]) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JGT_IMM:
-            if (reg[inst.dst_reg] > (uint32_t)inst.imm) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JGT_REG:
-            if (reg[inst.dst_reg] > reg[inst.src_reg]) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JGE_IMM:
-            if (reg[inst.dst_reg] >= (uint32_t)inst.imm) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JGE_REG:
-            if (reg[inst.dst_reg] >= reg[inst.src_reg]) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JLT_IMM:
-            if (reg[inst.dst_reg] < (uint32_t)inst.imm) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JLT_REG:
-            if (reg[inst.dst_reg] < reg[inst.src_reg]) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JLE_IMM:
-            if (reg[inst.dst_reg] <= (uint32_t)inst.imm) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JLE_REG:
-            if (reg[inst.dst_reg] <= reg[inst.src_reg]) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JSET_IMM:
-            if (reg[inst.dst_reg] & inst.imm) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JSET_REG:
-            if (reg[inst.dst_reg] & reg[inst.src_reg]) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JNE_IMM:
-            if (reg[inst.dst_reg] != inst.imm) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JNE_REG:
-            if (reg[inst.dst_reg] != reg[inst.src_reg]) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JSGT_IMM:
-            if ((int64_t)reg[inst.dst_reg] > inst.imm) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JSGT_REG:
-            if ((int64_t)reg[inst.dst_reg] > (int64_t)reg[inst.src_reg]) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JSGE_IMM:
-            if ((int64_t)reg[inst.dst_reg] >= inst.imm) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JSGE_REG:
-            if ((int64_t)reg[inst.dst_reg] >= (int64_t)reg[inst.src_reg]) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JSLT_IMM:
-            if ((int64_t)reg[inst.dst_reg] < inst.imm) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JSLT_REG:
-            if ((int64_t)reg[inst.dst_reg] < (int64_t)reg[inst.src_reg]) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JSLE_IMM:
-            if ((int64_t)reg[inst.dst_reg] <= inst.imm) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_JSLE_REG:
-            if ((int64_t)reg[inst.dst_reg] <= (int64_t)reg[inst.src_reg]) {
-                pc += inst.off;
-            }
-            break;
-        case EBPF_OP_EXIT:
-            ctx->bpf_ret = reg[0];
-            return 0;
-        case EBPF_OP_CALL:
-            if (inst.src_reg == BPF_PSEUDO_CALL) {
-                struct ebpf_inst *n = &insts[pc];
-                reg[0] = _mybpf_call_sub_prog(vm, ctx, n + inst.imm, reg[1], reg[2], reg[3], reg[4], reg[5]);
-            } else {
-                reg[0] = _mybpf_call(vm, inst.imm, reg[1], reg[2], reg[3], reg[4], reg[5]);
-                if ((inst.imm == vm->tail_call_index) && (reg[0] == 0)) {
-                    ctx->bpf_ret = reg[0];
-                    return 0;
-                }
-            }
-            break;
-        }
+    if (mem && (addr >= mem && ((char*)addr + size) <= ((char*)mem + mem_len))) {
+        return true; /* Context access */
+    } else if ((char*)addr >= ctx->stack && ((char*)addr + size) <= (ctx->stack + ctx->stack_size)) {
+        return true; /* Stack access */
+    } else {
+        vm->print_func("uBPF error: out of bounds memory %s at PC %u, addr %p, size %d\nmem %p/%d stack %p/%d\n",
+                type, cur_pc, addr, size, mem, mem_len, ctx->stack, ctx->stack_size);
+        return false;
     }
 }
 
@@ -795,20 +995,20 @@ static noinline int _mybpf_run_stack4096(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p
 
 static int _mybpf_run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
 {
+    int stack_size = 512;
     ELF_PROG_INFO_S *info = _mybpf_vm_get_sub_prog(ctx, ctx->insts);
-    if (! info) {
-        return -1;
+
+    if (info) {
+        MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_VM, MYBPF_DBG_FLAG_VM_PROCESS,
+                "call %s:%s, prog_offset:%d, prog_addr:0x%x \n",
+                info->sec_name, info->func_name, info->prog_offset, ctx->insts);
+        if (ctx->auto_stack) {
+            stack_size = MYBPF_INSN_GetStackSize(ctx->insts, info->size);
+        }
+    } else {
+        MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_VM, MYBPF_DBG_FLAG_VM_PROCESS,
+                "call insn_idx:%d, prog_addr:0x%x \n", ((char *)ctx->insts - (char*)ctx->start_addr) / 8, ctx->insts);
     }
-
-    MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_VM, MYBPF_DBG_FLAG_VM_PROCESS,
-            "call %s:%s, offset:%d, addr:0x%x \n",
-            info->sec_name, info->func_name, info->offset, ctx->insts);
-
-    if (! ctx->auto_stack) {
-        return _mybpf_run_stack512(vm, ctx, p1, p2, p3, p4, p5);
-    }
-
-    int stack_size = MYBPF_INSN_GetStackSize(ctx->insts, info->size);
 
     if (stack_size <= 8) {
         return _mybpf_run_stack8(vm, ctx, p1, p2, p3, p4, p5);
@@ -838,14 +1038,13 @@ static int _mybpf_run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, 
 
 int MYBPF_Run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
-    /* 注意: 它需要已经调用过MYBPF_PROG_FixupBpfCalls */
+    
     return _mybpf_run(vm, ctx, p1, p2, p3, p4, p5);
 }
 
-/* 以3个ebpf参数方式运行 */
+
 int MYBPF_RunP3(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3)
 {
     return _mybpf_run(vm, ctx, p1, p2, p3, 0, 0);
 }
-
 

@@ -23,12 +23,10 @@ static char * g_mybpf_jit_arch_name[] = {
 
 static MYBPF_JIT_ARCH_S g_mybpf_jit_arch[] = {
     [MYBPF_JIT_ARCH_ARM64] = {
-        .jit_func = MYBPF_JitArm64_Jit,
-        .fix_bpf_calls = MYBPF_JitArm64_FixBpfCalls,
+        .filename = "mybpf_jit_arm64.o"
     },
 };
 
-/* 获取jit runtime */
 static MYBPF_JIT_ARCH_S * _mybpf_jit_get_arch(int arch_type)
 {
     if ((arch_type <= 0) || (arch_type >= MYBPF_JIT_ARCH_MAX)) {
@@ -75,7 +73,6 @@ static int _mybpf_jit_init_res(MYBPF_JIT_INSN_S *jit_insn, OUT MYBPF_JIT_RES_S *
     return 0;
 }
 
-/* 校正locs */
 static void _mybpf_recacl_locs(OUT UINT *locs, int num, int offset)
 {
     int i;
@@ -84,7 +81,6 @@ static void _mybpf_recacl_locs(OUT UINT *locs, int num, int offset)
     }
 }
 
-/* 返回jitted_size. 失败返回<0 */
 static int _mybpf_prog_jit_progs(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_insn,
         MYBPF_JIT_RES_S *res, MYBPF_JIT_CFG_S *cfg)
 {
@@ -94,7 +90,6 @@ static int _mybpf_prog_jit_progs(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_i
     int ret;
     int totle_jitted_size = 0;
 
-    /* 不使用 imm = imm + base方式, 将base addr设置为0 */
     if (cfg->helper_mode == MYBPF_JIT_HELPER_MODE_BASE) {
         vm.base_func_addr = (uintptr_t)BpfHelper_BaseHelper;
         vm.tail_call_func = BpfHelper_GetFunc(12) - (PF_BPF_HELPER_FUNC) BpfHelper_BaseHelper;
@@ -106,7 +101,7 @@ static int _mybpf_prog_jit_progs(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_i
     jit_ctx.jit_cfg = cfg;
 
     for (i=0; i<jit_insn->progs_count; i++) {
-        vm.insts = (void*)((char*)jit_insn->insts + res->progs[i].offset);
+        vm.insts = (void*)((char*)jit_insn->insts + res->progs[i].prog_offset);
         vm.num_insts = res->progs[i].size / sizeof(MYBPF_INSN_S);
         jit_ctx.jitted_buf = (char*)res->jitted_buf + totle_jitted_size;
         jit_ctx.max_jitted_size = res->max_jitted_size - totle_jitted_size;
@@ -119,17 +114,14 @@ static int _mybpf_prog_jit_progs(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_i
             jit_ctx.is_main_prog = 1;
         }
 
-#if 1
-        ret = MYBPF_RunFile("mybpf_jit_arm64.o", "api/jit", (long)&vm, (long)&jit_ctx, 0, 0, 0);
-#else
-        ret = arch->jit_func(&vm, &jit_ctx);
-#endif
+        //ret = arch->jit_func(&vm, &jit_ctx);
+        ret = MYBPF_RunFile(arch->filename, "api/MYBPF_Jit_Do", (long)&vm, (long)&jit_ctx, 0, 0, 0);
         if (ret < 0) {
             return ret;
         }
 
         _mybpf_recacl_locs(jit_ctx.locs, vm.num_insts, totle_jitted_size);
-        res->progs[i].offset = totle_jitted_size;
+        res->progs[i].prog_offset = totle_jitted_size;
         res->progs[i].size = jit_ctx.jitted_size;
         totle_jitted_size += jit_ctx.jitted_size;
         jit_ctx.locs += vm.num_insts;
@@ -149,7 +141,7 @@ static int _mybpf_jit_do(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_insn,
         return ret;
     }
 
-    arch->fix_bpf_calls(res);
+    MYBPF_RunFile(arch->filename, "api/MYBPF_Jit_FixBpfCalls", (long)res, 0, 0, 0, 0);
 
     void *jitted_code = MEM_Dup(res->jitted_buf, jitted_size);
     if (! jitted_code) {
@@ -159,7 +151,6 @@ static int _mybpf_jit_do(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_insn,
     jit_insn->insts = jitted_code;
     jit_insn->insts_len = jitted_size;
 
-    /* 更新progs info */
     memcpy(jit_insn->progs, res->progs, sizeof(jit_insn->progs[0]) * jit_insn->progs_count);
 
     return 0;
@@ -182,7 +173,6 @@ static int _mybpf_prog_jit(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_insn, M
     return ret;
 }
 
-/* 根据jit arch name获取jit arch type */
 int MYBPF_JIT_GetJitTypeByName(char *jit_arch_name)
 {
     if (! jit_arch_name) {
@@ -196,7 +186,6 @@ int MYBPF_JIT_GetJitTypeByName(char *jit_arch_name)
     return MYBPF_JIT_ARCH_NONE;
 }
 
-/* 获取本地架构的jit arch type */
 int MYBPF_JIT_LocalArch(void)
 {
 #ifdef __ARM64__

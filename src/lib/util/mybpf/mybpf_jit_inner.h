@@ -23,13 +23,12 @@ typedef struct MYBPF_JIT_RES_S {
 typedef struct {
     MYBPF_JIT_CFG_S *jit_cfg;
 
-    UINT is_main_prog: 1; /* 是否main prog */
-
+    UINT is_main_prog: 1;
     IN int stack_size;
     IN UINT max_jitted_size;
     OUT UINT jitted_size;
     INOUT void *jitted_buf;
-    UINT * locs; /* insn index to jitted offset */
+    UINT * locs;
 }MYBPF_JIT_CTX_S;
 
 int MYBPF_JitArm64_Jit(MYBPF_JIT_VM_S *vm, OUT MYBPF_JIT_CTX_S *jit_ctx);
@@ -39,8 +38,7 @@ typedef int (*PF_MYBPF_ARCH_Jit)(MYBPF_JIT_VM_S *vm, OUT MYBPF_JIT_CTX_S *jit_ct
 typedef int (*PF_MYBPF_ARCH_FixBpfCalls)(MYBPF_JIT_RES_S *res);
 
 typedef struct {
-    PF_MYBPF_ARCH_Jit jit_func;
-    PF_MYBPF_ARCH_FixBpfCalls fix_bpf_calls;
+    char *filename;
 }MYBPF_JIT_ARCH_S;
 
 #ifdef __cplusplus

@@ -235,6 +235,10 @@ static void _bpf_sys_memset(void *d, int c, int len)
     memset(d, c, len);
 }
 
+static void _bpf_err_code_set(int err_code, char *info, const char *file_name, const char *func_name, int line)
+{
+    ErrCode_Set(err_code, info, file_name, func_name, line);
+}
 static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
     [0] = _bpf_sys_malloc, /* 10000 */
     [1] = _bpf_sys_calloc,
@@ -242,6 +246,7 @@ static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
     [3] = _bpf_sys_strncmp,
     [4] = _bpf_sys_memcpy,
     [5] = _bpf_sys_memset,
+    [6] = _bpf_err_code_set,
 };
 
 const void ** BpfHelper_BaseHelper(void)
@@ -259,10 +264,9 @@ const void ** BpfHelper_UserHelper(void)
     return (const void **)g_bpf_user_helpers;
 }
 
-/* 根据id获取helper函数指针 */
 PF_BPF_HELPER_FUNC BpfHelper_GetFunc(UINT id)
 {
-    if (id < BPF_BASE_HELPER_END) {
+    if ((id > 0) && (id < BPF_BASE_HELPER_END)) {
         return g_bpf_base_helpers[id];
     } else if ((id >= BPF_SYS_HELPER_START) && (id < BPF_SYS_HELPER_END)) {
         return g_bpf_sys_helpers[id - BPF_SYS_HELPER_START];

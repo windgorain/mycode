@@ -78,7 +78,7 @@ int MYBPF_ELF_WalkMap(ELF_S *elf, PF_MYBPF_ELF_WALK_MAP walk_func, void *ud)
 
     for (i=0; i<map_sec.map_count; i++) {
         map_name = ELF_GetSecSymbolName(elf, map_sec.sec_id, 0, i);
-        ret = walk_func(map, map_sec.map_def_size, map_name, ud);
+        ret = walk_func(i, (void*)map, map_sec.map_def_size, map_name, ud);
         if (ret < 0) {
             break;
         }
@@ -88,3 +88,34 @@ int MYBPF_ELF_WalkMap(ELF_S *elf, PF_MYBPF_ELF_WALK_MAP walk_func, void *ud)
     return ret;
 }
 
+int MYBPF_ELF_WalkMapByFile(char *file, PF_MYBPF_ELF_WALK_MAP walk_func, void *ud)
+{
+    ELF_S elf = {0};
+
+    int ret = ELF_Open(file, &elf);
+    if (ret < 0) {
+        RETURNI(BS_CAN_NOT_OPEN, "Can't open file %s \r\n", file);
+    }
+
+    ret = MYBPF_ELF_WalkMap(&elf, walk_func, ud);
+
+    ELF_Close(&elf);
+
+    return ret;
+}
+
+int MYBPF_ELF_WalkProgByFile(char *file, PF_ELF_WALK_PROG walk_func, void *ud)
+{
+    ELF_S elf = {0};
+
+    int ret = ELF_Open(file, &elf);
+    if (ret < 0) {
+        RETURNI(BS_CAN_NOT_OPEN, "Can't open file %s \r\n", file);
+    }
+
+    ret = ELF_WalkProgs(&elf, walk_func, ud);
+
+    ELF_Close(&elf);
+
+    return ret;
+}

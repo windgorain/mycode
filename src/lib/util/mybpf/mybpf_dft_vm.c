@@ -33,6 +33,7 @@ int MYBPF_DefultRunCode(void *code, OUT UINT64 *bpf_ret, U64 r1, U64 r2, U64 r3,
 {
     MYBPF_CTX_S ctx = {0};
     ctx.insts = code;
+    ctx.start_addr = code;
 
     int ret = MYBPF_Run((void*)&g_mybpf_default_vm, &ctx, r1, r2, r3, r4, r5);
     if (ret < 0) {

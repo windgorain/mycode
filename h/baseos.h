@@ -106,7 +106,6 @@
     #define Sleep(x/*ms*/)    usleep((x)*1000)
 #endif
 
-
 #if !defined(__GNUC__) || (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
 #define __builtin_expect(x, expected_value) (x)
 #endif

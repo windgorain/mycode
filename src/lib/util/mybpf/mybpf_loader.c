@@ -120,7 +120,7 @@ static int _mybpf_loader_load_progs(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_NODE_
         }
 
         ret = _mybpf_loader_load_one_prog(runtime, prog->func_name, node,
-                prog->offset, prog->size, prog->sec_name);
+                prog->prog_offset, prog->size, prog->sec_name);
         if (ret < 0) {
             break;
         }
@@ -161,7 +161,6 @@ static int _mybpf_loader_auto_attach_prog(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER
     return 0;
 }
 
-/* 校验是否可以replace时保留map, maps定义必须一致 */
 static BOOL_T _mybpf_loader_check_may_keep_map(MYBPF_RUNTIME_S *runtime,
         MYBPF_MAPS_SEC_S *map_sec, MYBPF_LOADER_NODE_S *old_node)
 {
@@ -452,7 +451,6 @@ static int _mybpf_loader_load_elf_maps(MYBPF_RUNTIME_S *runtime, ELF_S *elf,
     MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_LOADER, MYBPF_DBG_FLAG_LOADER_PROCESS,
             "global_map_count:%d, bpf_map_count:%d \n", global_data.sec_count, map_sec.map_count);
 
-    /* 不存在map */
     if (map_count <= 0) {
         return 0;
     }
@@ -550,7 +548,7 @@ static int _mybpf_loader_load_elf_progs(MYBPF_RUNTIME_S *runtime, ELF_S *elf,
             ELF_PROG_INFO_S *p = &node->progs[i];
             MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_LOADER, MYBPF_DBG_FLAG_LOADER_PROGS,
                     "sec_name:%s funcname:%s offset:%d addr:0x%p \n",
-                    p->sec_name, p->func_name, p->offset, (char*)node->insts + p->offset);
+                    p->sec_name, p->func_name, p->prog_offset, (char*)node->insts + p->prog_offset);
         }
     }
 
@@ -613,7 +611,6 @@ static int _mybpf_loader_load_by_elf(MYBPF_RUNTIME_S *runtime, ELF_S *elf,
     return _mybpf_loader_load_ok(runtime, node, old);
 }
 
-/* 校验是否可以replace时保留map, maps定义必须一致 */
 static BOOL_T _mybpf_loader_check_may_keep_map_elf(MYBPF_RUNTIME_S *runtime,
         ELF_S *new_elf, MYBPF_LOADER_NODE_S *old_node)
 {
@@ -626,7 +623,6 @@ static BOOL_T _mybpf_loader_check_may_keep_map_elf(MYBPF_RUNTIME_S *runtime,
     return _mybpf_loader_check_may_keep_map(runtime, &map_sec, old_node);
 }
 
-/* 检查是否允许替换 */
 static int _mybpf_loader_check_may_replace_elf(MYBPF_RUNTIME_S *runtime,
         MYBPF_LOADER_PARAM_S *p, MYBPF_LOADER_NODE_S *old_node)
 {
@@ -634,14 +630,12 @@ static int _mybpf_loader_check_may_replace_elf(MYBPF_RUNTIME_S *runtime,
     int ret;
     BOOL_T check = TRUE;
 
-    /* 判断能否打开文件 */
     ret = ELF_Open(p->filename, &elf);
     if (ret < 0) {
         RETURNI(BS_CAN_NOT_OPEN, "Can't open file %s", p->filename);
     }
 
     if (p->flag & MYBPF_LOADER_FLAG_KEEP_MAP) {
-        /* 判断map def是否一致 */
         check = _mybpf_loader_check_may_keep_map_elf(runtime, &elf, old_node);
     }
 
@@ -723,7 +717,6 @@ static int _mybpf_loader_load_simple_maps(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER
         map = (void*)((char*)map + map_sec.map_def_size);
     }
 
-    /* 向global data map中填充数据 */
     int map_data_count = MYBPF_SIMPLE_GetTypeSecCount(node->param.simple_mem, MYBPF_SIMPLE_SEC_TYPE_GLOBAL_DATA);
     for (i=0; i<map_data_count; i++) {
         MYBPF_SIMPLE_MAP_DATA_S *sec = MYBPF_SIMPLE_GetSec(node->param.simple_mem, MYBPF_SIMPLE_SEC_TYPE_GLOBAL_DATA, i);
@@ -811,7 +804,7 @@ static int _mybpf_loader_load_simple_progs(MYBPF_RUNTIME_S *runtime, MYBPF_LOADE
             ELF_PROG_INFO_S *p = &node->progs[i];
             MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_LOADER, MYBPF_DBG_FLAG_LOADER_PROGS,
                     "sec_name:%s funcname:%s offset:%d addr:0x%p \n",
-                    p->sec_name, p->func_name, p->offset, (char*)node->insts + p->offset);
+                    p->sec_name, p->func_name, p->prog_offset, (char*)node->insts + p->prog_offset);
         }
     }
 
@@ -840,7 +833,6 @@ static int _mybpf_loader_load_simple(MYBPF_RUNTIME_S *runtime,
     return _mybpf_loader_load_ok(runtime, node, old);
 }
 
-/* 校验是否可以replace时保留map, maps定义必须一致 */
 static BOOL_T _mybpf_loader_check_may_keep_map_simple(MYBPF_RUNTIME_S *runtime, FILE_MEM_S *f, MYBPF_LOADER_NODE_S *old)
 {
     MYBPF_MAPS_SEC_S map_sec;
@@ -861,7 +853,6 @@ static int _mybpf_loader_check_may_replace_simple(MYBPF_RUNTIME_S *r, MYBPF_LOAD
     BS_DBGASSERT(f);
 
     if (p->flag & MYBPF_LOADER_FLAG_KEEP_MAP) {
-        /* 判断map def是否一致 */
         check = _mybpf_loader_check_may_keep_map_simple(r, f, old);
     }
 
@@ -1047,7 +1038,6 @@ MYBPF_LOADER_NODE_S * MYBPF_LoaderGet(MYBPF_RUNTIME_S *runtime, char *instance)
     return _mybpf_loader_get_node(runtime, instance);
 }
 
-/* *iter=NULL表示获取第一个, return NULL表示结束 */
 MYBPF_LOADER_NODE_S * MYBPF_LoaderGetNext(MYBPF_RUNTIME_S *runtime, INOUT void **iter)
 {
     MAP_ELE_S *ele;

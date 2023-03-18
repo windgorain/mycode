@@ -31,9 +31,12 @@ static inline int _mybpf_prog_run_bpf_code(MYBPF_PROG_NODE_S *prog, OUT UINT64 *
 {
 #if 1
     MYBPF_CTX_S ctx = {0};
-    ctx.prog = prog;
+    MYBPF_LOADER_NODE_S *n = prog->loader_node;
+    ctx.start_addr = n->insts;
+    ctx.mybpf_prog = prog;
     ctx.insts = prog->insn;
     ctx.auto_stack = 1;
+    ctx.helper_fixed = 1;
 
     int ret = MYBPF_DefultRun(&ctx, p1, p2, p3, p4, p5);
     if (ret < 0) {
@@ -64,7 +67,6 @@ static inline UINT64 _mybpf_prog_agent_call_helper_func(UINT64 p1, UINT64 p2, UI
     }
 
     if (fid <= 3) {
-        /* 对map操作,把map index转为map ptr */
         p1 = _mybpf_prog_agent_fix_p1(ud, p1);
         if (! p1) {
             return (fid == 1) ? 0 : -1;
@@ -113,7 +115,6 @@ static inline int _mybpf_prog_run(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret,
     return _mybpf_prog_run_bpf_code(prog, bpf_ret, p1, p2, p3, p4, p5);
 }
 
-/* len: prog 长度. 字节为单位 */
 MYBPF_PROG_NODE_S * MYBPF_PROG_Alloc(void *insn, int len, char *sec_name, char *prog_name)
 {
     MYBPF_PROG_NODE_S *node;
@@ -206,7 +207,6 @@ int MYBPF_PROG_GetByFuncName(MYBPF_RUNTIME_S *runtime, char *instance, char *fun
     RETURNI(BS_NO_SUCH, "Can't get function %s", func_name);
 }
 
-/* 根据instance:sec_name 获取prog fd. 找不到则返回<0 */
 int MYBPF_PROG_GetBySecName(MYBPF_RUNTIME_S *runtime, char *instance, char *sec_name)
 {
     int i;
@@ -229,21 +229,33 @@ int MYBPF_PROG_GetBySecName(MYBPF_RUNTIME_S *runtime, char *instance, char *sec_
 }
 
 static MYBPF_PROG_NODE_S * _mybpf_prog_get_first(MYBPF_RUNTIME_S *runtime,
-        MYBPF_LOADER_NODE_S *loader, char *sec_prefix)
+        MYBPF_LOADER_NODE_S *loader, char *sec_name)
 {
-    int sec_prefix_len = 0;
+    int sec_name_len = 0;
+    int wildcard = 0;
 
     if (! loader) {
         return NULL;
     }
 
-    if (sec_prefix) {
-        sec_prefix_len = strlen(sec_prefix);
+    if (sec_name) {
+        sec_name_len = strlen(sec_name);
+        if (sec_name_len == 0) {
+            sec_name = NULL;
+        } else if (sec_name[sec_name_len - 1] == '/') {
+            wildcard = 1;
+        }
     }
 
     for (int i=0; i<loader->main_prog_count; i++) {
         MYBPF_PROG_NODE_S * prog = MYBPF_PROG_GetByFD(runtime, loader->main_prog_fd[i]);
-        if ((!sec_prefix) || (0 == strncmp(sec_prefix, prog->sec_name, sec_prefix_len))) {
+        if (! sec_name) {
+            return prog;
+        }
+        if ((wildcard) && (0 == strncmp(sec_name, prog->sec_name, sec_name_len))) {
+            return prog;
+        }
+        if ((! wildcard) && (0 == strcmp(sec_name, prog->sec_name))) {
             return prog;
         }
     }
@@ -252,12 +264,18 @@ static MYBPF_PROG_NODE_S * _mybpf_prog_get_first(MYBPF_RUNTIME_S *runtime,
 }
 
 static MYBPF_PROG_NODE_S * _mybpf_prog_get_next(MYBPF_RUNTIME_S *runtime,
-        MYBPF_LOADER_NODE_S *loader, char *sec_prefix, MYBPF_PROG_NODE_S *current)
+        MYBPF_LOADER_NODE_S *loader, char *sec_name, MYBPF_PROG_NODE_S *current)
 {
-    int sec_prefix_len = 0;
+    int sec_name_len = 0;
+    int wildcard = 0;
 
-    if (sec_prefix) {
-        sec_prefix_len = strlen(sec_prefix);
+    if (sec_name) {
+        sec_name_len = strlen(sec_name);
+        if (sec_name_len == 0) {
+            sec_name = NULL;
+        } else if (sec_name[sec_name_len - 1] == '/') {
+            wildcard = 1;
+        }
     }
 
     int reach_cur = 0;
@@ -265,7 +283,13 @@ static MYBPF_PROG_NODE_S * _mybpf_prog_get_next(MYBPF_RUNTIME_S *runtime,
     for (int i=0; i<loader->main_prog_count; i++) {
         if (reach_cur) {
             MYBPF_PROG_NODE_S * prog = MYBPF_PROG_GetByFD(runtime, loader->main_prog_fd[i]);
-            if ((!sec_prefix) || (0 == strncmp(sec_prefix, prog->sec_name, sec_prefix_len))) {
+            if (!sec_name) {
+                return prog;
+            }
+            if ((wildcard) && (0 == strncmp(sec_name, prog->sec_name, sec_name_len))) {
+                return prog;
+            }
+            if ((! wildcard) && (0 == strcmp(sec_name, prog->sec_name))) {
                 return prog;
             }
         } else if (loader->main_prog_fd[i] == current->fd) {
@@ -276,17 +300,14 @@ static MYBPF_PROG_NODE_S * _mybpf_prog_get_next(MYBPF_RUNTIME_S *runtime,
     return NULL;
 }
 
-/* 获取下一个prog, 如果current=NULL,则获取第一个.
- * sec_prefix: 匹配sec前缀, 例如 xdp/
- */
-MYBPF_PROG_NODE_S * MYBPF_PROG_GetNext(MYBPF_RUNTIME_S *runtime, char *instance, char *sec_prefix,
+MYBPF_PROG_NODE_S * MYBPF_PROG_GetNext(MYBPF_RUNTIME_S *runtime, char *instance, char *sec_name,
         MYBPF_PROG_NODE_S *current)
 {
     if (! current) {
-        return _mybpf_prog_get_first(runtime, MYBPF_LoaderGet(runtime, instance), sec_prefix);
+        return _mybpf_prog_get_first(runtime, MYBPF_LoaderGet(runtime, instance), sec_name);
     }
 
-    return _mybpf_prog_get_next(runtime, current->loader_node, sec_prefix, current);
+    return _mybpf_prog_get_next(runtime, current->loader_node, sec_name, current);
 }
 
 int MYBPF_PROG_Run(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)

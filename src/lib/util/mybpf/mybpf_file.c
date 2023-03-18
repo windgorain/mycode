@@ -13,38 +13,6 @@
 #include "utl/mybpf_elf.h"
 #include "utl/mybpf_file.h"
 
-int MYBPF_WalkProg(char *file, PF_ELF_WALK_PROG walk_func, void *ud)
-{
-    ELF_S elf = {0};
-
-    int ret = ELF_Open(file, &elf);
-    if (ret < 0) {
-        RETURNI(BS_CAN_NOT_OPEN, "Can't open file %s \r\n", file);
-    }
-
-    ret = ELF_WalkProgs(&elf, walk_func, ud);
-
-    ELF_Close(&elf);
-
-    return ret;
-}
-
-int MYBPF_WalkMap(char *file, PF_MYBPF_ELF_WALK_MAP walk_func, void *ud)
-{
-    ELF_S elf = {0};
-
-    int ret = ELF_Open(file, &elf);
-    if (ret < 0) {
-        RETURNI(BS_CAN_NOT_OPEN, "Can't open file %s \r\n", file);
-    }
-
-    ret = MYBPF_ELF_WalkMap(&elf, walk_func, ud);
-
-    ELF_Close(&elf);
-
-    return ret;
-}
-
 static inline int _mybpf_run_file(MYBPF_RUNTIME_S *runtime, MYBPF_FILE_CTX_S *ctx,
         UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
@@ -63,7 +31,7 @@ static inline int _mybpf_run_file(MYBPF_RUNTIME_S *runtime, MYBPF_FILE_CTX_S *ct
     }
 
     MYBPF_PROG_NODE_S *prog = NULL;
-    while ((prog = MYBPF_PROG_GetNext(runtime, "runfile", ctx->sec_prefix, prog))) {
+    while ((prog = MYBPF_PROG_GetNext(runtime, "runfile", ctx->sec_name, prog))) {
         ret = MYBPF_PROG_Run(prog, &ctx->bpf_ret, p1, p2, p3, p4, p5);
         if (ret == MYBPF_HP_RET_STOP) {
             break;
@@ -89,12 +57,12 @@ int MYBPF_RunFileExt(MYBPF_FILE_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3, UIN
     return ret;
 }
 
-int MYBPF_RunFile(char *filename, char *sec_prefix, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+int MYBPF_RunFile(char *filename, char *sec_name, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
     MYBPF_FILE_CTX_S ctx = {0};
 
     ctx.file = filename;
-    ctx.sec_prefix = sec_prefix;
+    ctx.sec_name = sec_name;
 
     return MYBPF_RunFileExt(&ctx, p1, p2, p3, p4, p5);
 }

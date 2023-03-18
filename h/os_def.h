@@ -82,7 +82,7 @@ extern "C"
 #  define Q_OS_UNIXWARE   
 #  define Q_OS_UNIXWARE7   
 #else   
-#  error "error"
+//#  error "error"
 #endif   
   
 #if defined(Q_OS_MAC9) || defined(Q_OS_MACX)   

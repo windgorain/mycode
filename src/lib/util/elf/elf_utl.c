@@ -182,8 +182,7 @@ void ELF_Close(ELF_S *elf)
     }
 }
 
-/* 返回 iter, NULL表示结束 */
-void * ELF_GetNextSection(ELF_S *elf, void *iter/* NULL表示获取第一个 */, OUT ELF_SECTION_S *sec)
+void * ELF_GetNextSection(ELF_S *elf, void *iter, OUT ELF_SECTION_S *sec)
 {
 	Elf_Scn *scn = iter;
 
@@ -198,11 +197,9 @@ void * ELF_GetNextSection(ELF_S *elf, void *iter/* NULL表示获取第一个 */,
 
 int ELF_SecCount(ELF_S *elf)
 {
-    /* sec从1开始, 所以需要减掉1 */
     return elf->ehdr.e_shnum - 1;
 }
 
-/* 获取第几个section, id就是section的序号 */
 int ELF_GetSecByID(ELF_S *elf, int sec_id, OUT ELF_SECTION_S *sec)
 {
     return elf_get_sec_by_id(elf, sec_id, sec);
@@ -221,7 +218,6 @@ int ELF_GetSecByName(ELF_S *elf, char *sec_name, OUT ELF_SECTION_S *sec)
     return -1;
 }
 
-/* 返回对应sec的id */
 int ELF_GetSecIDByName(ELF_S *elf, char *sec_name)
 {
     ELF_SECTION_S sec;
@@ -233,11 +229,14 @@ int ELF_GetSecIDByName(ELF_S *elf, char *sec_name)
     return sec.sec_id;
 }
 
-/* 获取指定SecID中指定类型的symbols数目, 如果type为0则忽略type */
 int ELF_SecSymbolCount(ELF_S *elf, int sec_id, int type)
 {
 	int i, count = 0;
 	Elf_Data *symbols = elf->symbols;
+
+    if (! symbols) {
+        return 0;
+    }
 
 	int nr_syms = symbols->d_size / sizeof(Elf64_Sym);
 
@@ -262,7 +261,6 @@ int ELF_SecSymbolCount(ELF_S *elf, int sec_id, int type)
     return count;
 }
 
-/* 根据id获取symbol */
 Elf64_Sym * ELF_GetSymbol(ELF_S *elf, int id)
 {
 	Elf_Data *symbols = elf->symbols;
@@ -270,7 +268,6 @@ Elf64_Sym * ELF_GetSymbol(ELF_S *elf, int id)
     return elf_sym_by_id(symbols, id);
 }
 
-/* 获取指定Sec中的symbol. index表示是第几个section中匹配的symbol的索引, type为0则表示忽略 */
 Elf64_Sym * ELF_GetSecSymbol(ELF_S *elf, int sec_id, int type, int index)
 {
 	int i, count = 0;
@@ -317,7 +314,6 @@ char * ELF_GetSymbolName(ELF_S *elf, Elf64_Sym * sym)
     return elf_sym_str(elf, sym->st_name);
 }
 
-/* 通过指定的重定位索引获取重定位项 */
 GElf_Rel * ELF_GetRel(Elf_Data *relo_data, int id, OUT GElf_Rel *rel)
 {
     return gelf_getrel(relo_data, id, rel);
@@ -374,7 +370,6 @@ BOOL_T ELF_IsBssSection(ELF_SECTION_S *sec)
     return FALSE;
 }
 
-/* 获取data sections */
 int ELF_GetGlobalData(ELF_S *elf, OUT ELF_GLOBAL_DATA_S *global_data)
 {
     void *iter = NULL;
@@ -422,7 +417,6 @@ int ELF_GetProgsCount(ELF_S *elf)
     return count;
 }
 
-/* 获取ELF中所有的prog的size之和 */
 int ELF_GetProgsSize(ELF_S *elf)
 {
     void *iter = NULL;
@@ -439,9 +433,6 @@ int ELF_GetProgsSize(ELF_S *elf)
     return size;
 }
 
-/* 把elf中的progs copy到mem; 如果mem_size不够会返回错误,
- 成功: 返回copy了多长. 
- 失败: return < 0 */
 int ELF_CopyProgs(ELF_S *elf, OUT void *mem, int mem_size)
 {
     ELF_SECTION_S sec;
@@ -467,7 +458,6 @@ int ELF_CopyProgs(ELF_S *elf, OUT void *mem, int mem_size)
     return offset;
 }
 
-/* 申请内存并copy progs */
 void * ELF_DupProgs(ELF_S *elf)
 {
     int size = ELF_GetProgsSize(elf);
@@ -491,7 +481,7 @@ static int _elf_prog_info_cmp(void *n1, void *n2, void *ud)
     ELF_PROG_INFO_S *p1 = n1;
     ELF_PROG_INFO_S *p2 = n2;
 
-    return (int)p1->offset - (int)p2->offset;
+    return (int)p1->prog_offset - (int)p2->prog_offset;
 }
 
 static void _elf_sort_progs_info(ELF_PROG_INFO_S *progs, int prog_count)
@@ -521,7 +511,7 @@ static int _elf_get_progs_info(ELF_S *elf, OUT ELF_PROG_INFO_S *progs, int max_p
             func_name = ELF_GetSecSymbolName(elf, sec.sec_id, STT_FUNC, i);
             Elf64_Sym *sym = ELF_GetSecSymbol(elf, sec.sec_id, STT_FUNC, i);
             progs[count].sec_offset = prog_sec_off;
-            progs[count].offset = sym->st_value + prog_sec_off;
+            progs[count].prog_offset = sym->st_value + prog_sec_off;
             progs[count].size = sym->st_size;
             progs[count].sec_name = sec.shname;
             progs[count].func_name = func_name;
@@ -557,6 +547,7 @@ int ELF_WalkProgs(ELF_S *elf, PF_ELF_WALK_PROG walk_func, void *ud)
     char *func_name;
     int ret = 0;
     int i;
+    int sec_offset = 0;
 
     while ((iter = ELF_GetNextSection(elf, iter, &sec))) {
         if (! ELF_IsProgSection(&sec)) {
@@ -564,14 +555,18 @@ int ELF_WalkProgs(ELF_S *elf, PF_ELF_WALK_PROG walk_func, void *ud)
         }
 
         int func_count = ELF_SecSymbolCount(elf, sec.sec_id, STT_FUNC);
+        int offset = 0;
         for (i=0; i<func_count; i++) {
             func_name = ELF_GetSecSymbolName(elf, sec.sec_id, STT_FUNC, i);
             Elf64_Sym *sym = ELF_GetSecSymbol(elf, sec.sec_id, STT_FUNC, i);
-            ret = walk_func(sec.data->d_buf + sym->st_value, sym->st_size, sec.shname, func_name, ud);
+            ret = walk_func(sec.data->d_buf + sym->st_value, sec_offset + offset,
+                    sym->st_size, sec.shname, func_name, ud);
             if (ret < 0) {
                 break;
             }
         }
+
+        sec_offset += sec.data->d_size;
     }
 
     return ret;

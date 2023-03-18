@@ -279,7 +279,7 @@ static int _mybpf_simple_write_maps_name_sec(FILE *fp, ELF_S *elf, ELF_GLOBAL_DA
     return ret;
 }
 
-static void _mybpf_simple_file_relo_map(int sec_id, int type, int offset, int value, OUT MYBPF_RELO_MAP_S *relo_map)
+static void _mybpf_simple_fill_relo_map(int sec_id, int type, int offset, int value, OUT MYBPF_RELO_MAP_S *relo_map)
 {
     relo_map->sec_id = sec_id;
     relo_map->type = type;
@@ -287,13 +287,34 @@ static void _mybpf_simple_file_relo_map(int sec_id, int type, int offset, int va
     relo_map->value = value;
 }
 
+static void _mybpf_simple_build_relo_maps(ELF_GLOBAL_DATA_S *data, MYBPF_MAPS_SEC_S *map_sec,
+        OUT MYBPF_RELO_MAP_S *maps_relo)
+{
+    int index = 0;
+    int i;
+    if (data->have_bss) {
+        _mybpf_simple_fill_relo_map(data->bss_sec.sec_id, MYBPF_RELO_MAP_BSS, 0, index, &maps_relo[index]);
+        index ++;
+    }
+    if (data->have_data) {
+        _mybpf_simple_fill_relo_map(data->data_sec.sec_id, MYBPF_RELO_MAP_DATA, 0, index, &maps_relo[index]);
+        index ++;
+    }
+    for (i=0; i<data->rodata_count; i++) {
+        _mybpf_simple_fill_relo_map(data->rodata_sec[i].sec_id, MYBPF_RELO_MAP_RODATA, 0, index, &maps_relo[index]);
+        index ++;
+    }
+    for (i=0; i<map_sec->map_count; i++) {
+        int offset = map_sec->map_def_size * i;
+        _mybpf_simple_fill_relo_map(map_sec->sec_id, MYBPF_RELO_MAP_BPFMAP, offset, index, &maps_relo[index]);
+        index ++;
+    }
+}
 static int _mybpf_simple_write_maps(FILE *fp, ELF_S *elf, OUT MYBPF_RELO_MAP_S *maps_relo, MYBPF_SIMPLE_CONVERT_PARAM_S *p)
 {
     MYBPF_MAPS_SEC_S map_sec = {0};
     ELF_GLOBAL_DATA_S global_data = {0};
-    int i;
     int map_count;
-    int index;
 
     ELF_GetGlobalData(elf, &global_data);
 
@@ -324,32 +345,7 @@ static int _mybpf_simple_write_maps(FILE *fp, ELF_S *elf, OUT MYBPF_RELO_MAP_S *
         }
     }
 
-    /* 构建重定位用的maps relo表 */
-
-    index = 0;
-
-    /* global data 表，使用type来区分data类型, 使用sec_id来作为sym查找用的key */
-    if (global_data.have_bss) {
-        _mybpf_simple_file_relo_map(global_data.bss_sec.sec_id, MYBPF_RELO_MAP_BSS, 0, index, &maps_relo[index]);
-        index ++;
-    }
-
-    if (global_data.have_data) {
-        _mybpf_simple_file_relo_map(global_data.data_sec.sec_id, MYBPF_RELO_MAP_DATA, 0, index, &maps_relo[index]);
-        index ++;
-    }
-
-    for (i=0; i<global_data.rodata_count; i++) {
-        _mybpf_simple_file_relo_map(global_data.rodata_sec[i].sec_id, MYBPF_RELO_MAP_RODATA, 0, index, &maps_relo[index]);
-        index ++;
-    }
-
-    for (i=0; i<map_sec.map_count; i++) {
-        /* bpf map表，使用sec_id + offset来作为sym查找用的key */
-        _mybpf_simple_file_relo_map(map_sec.sec_id, MYBPF_RELO_MAP_BPFMAP,
-                map_sec.map_def_size * i, index, &maps_relo[index]);
-        index ++;
-    }
+    _mybpf_simple_build_relo_maps(&global_data, &map_sec, maps_relo);
 
     return map_count;
 }
@@ -427,7 +423,7 @@ static int _mybpf_simple_write_prog_info(FILE *fp, ELF_PROG_INFO_S *progs, int c
 
     /* 写入func info */
     for (i=0; i<count; i++) {
-        info.offset = htonl(progs[i].offset);
+        info.offset = htonl(progs[i].prog_offset);
         info.len = htonl(progs[i].size);
         ret |= _mybpf_simple_write(fp, &info, sizeof(info));
     }
@@ -1120,7 +1116,7 @@ int MYBPF_SIMPLE_GetProgInfo(FILE_MEM_S *m, int id, OUT ELF_PROG_INFO_S *progs)
         return BS_NO_SUCH;
     }
 
-    progs->offset = ntohl(offs[id].offset);
+    progs->prog_offset = ntohl(offs[id].offset);
     progs->size = ntohl(offs[id].len);
     progs->sec_name = _mybpf_simple_get_prog_sec_name(m, id);
     progs->func_name = _mybpf_simple_get_prog_func_name(m, id);
@@ -1139,7 +1135,7 @@ int MYBPF_SIMPLE_GetProgsInfo(FILE_MEM_S *m, OUT ELF_PROG_INFO_S *progs, int max
     count = MIN(count, max_prog_count);
 
     for (i=0; i<count; i++) {
-        progs[i].offset = ntohl(offs[i].offset);
+        progs[i].prog_offset = ntohl(offs[i].offset);
         progs[i].size = ntohl(offs[i].len);
         sec_name = _mybpf_simple_get_prog_sec_name(m, i);
         func_name = _mybpf_simple_get_prog_func_name(m, i);
@@ -1201,7 +1197,7 @@ int MYBPF_SIMPLE_GetMainProgsInfo(FILE_MEM_S *m, OUT ELF_PROG_INFO_S *progs, int
             continue;
         }
 
-        progs[index].offset = ntohl(offs[i].offset);
+        progs[index].prog_offset = ntohl(offs[i].offset);
         progs[index].size = ntohl(offs[i].len);
         progs[index].sec_name = sec_name;
         progs[index].func_name = _mybpf_simple_get_prog_func_name(m, i);
@@ -1221,13 +1217,13 @@ int MYBPF_SIMPLE_WalkProg(FILE_MEM_S *m, PF_ELF_WALK_PROG walk_func, void *ud)
 
     for (int i=0; i<count; i++) {
         MYBPF_SIMPLE_GetProgInfo(m, i, &info);
-        walk_func(progs + info.offset, info.size, info.sec_name, info.func_name, ud);
+        walk_func(progs + info.prog_offset, info.prog_offset, info.size, info.sec_name, info.func_name, ud);
     }
 
     return 0;
 }
 
-/* 获取整个simple文件大小 */
+ 
 UINT MYBPF_SIMPLE_GetSimpleSizeByHdr(void *hdr)
 {
     MYBPF_SIMPLE_HDR_S *h = hdr;

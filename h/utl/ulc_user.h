@@ -58,6 +58,7 @@ static long (*bpf_get_current_comm)(void *buf, unsigned int size_of_buf) = (void
 static long (*bpf_strtol)(const char *buf, int buf_len, unsigned long long flags, long *res) = (void *) 105;
 
 #endif
+
 #ifdef __cplusplus
 }
 #endif
