@@ -65,6 +65,16 @@ void ErrCode_Set(int err_code, char *info, const char *file_name, const char *fu
     }
 }
 
+void ErrCode_SetInfo(char *info)
+{
+    ERR_CODE_S *err_code_ctrl = &g_err_code;
+
+    err_code_ctrl->info[0] = '\0';
+    if (info) {
+        strlcpy(err_code_ctrl->info, info, ERR_INFO_SIZE);
+    }
+}
+
 void ErrCode_Clear(void)
 {
     ERR_CODE_S *err_code_ctrl = &g_err_code;

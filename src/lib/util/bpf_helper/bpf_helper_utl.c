@@ -205,48 +205,75 @@ static const void * g_bpf_base_helpers[BPF_BASE_HELPER_END] = {
     [105] = bpf_strtol,
 };
 
-static void * _bpf_sys_malloc(int size)
+void * ulc_sys_malloc(int size)
 {
     return malloc(size);
 }
 
-static void * _bpf_sys_calloc(int nitems, int size)
+void * ulc_sys_calloc(int nitems, int size)
 {
     return calloc(nitems, size);
 }
 
-static void _bpf_sys_free(void *m)
+void ulc_sys_free(void *m)
 {
     free(m);
 }
 
-static int _bpf_sys_strncmp(void *a, void *b, int len)
+int ulc_sys_strncmp(void *a, void *b, int len)
 {
     return strncmp(a, b, len);
 }
 
-static void _bpf_sys_memcpy(void *d, void *s, int len)
+void ulc_sys_memcpy(void *d, void *s, int len)
 {
     memcpy(d, s, len);
 }
 
-static void _bpf_sys_memset(void *d, int c, int len)
+void ulc_sys_memset(void *d, int c, int len)
 {
     memset(d, c, len);
 }
 
-static void _bpf_err_code_set(int err_code, char *info, const char *file_name, const char *func_name, int line)
+static void ulc_err_code_set(int err_code, const char *file_name, const char *func_name, int line)
 {
-    ErrCode_Set(err_code, info, file_name, func_name, line);
+    ErrCode_Set(err_code, NULL, file_name, func_name, line);
 }
+
+/* macos-arm系统调用约定和arm标准不一致, 需要特殊处理 */
+#if ((defined IN_MAC) || (defined __ARM__))
+static void ulc_err_info_set(const char *fmt, void *p1, void *p2, void *p3, void *p4)
+{
+    char buf[256];
+    snprintf(buf, sizeof(buf), fmt, p1, p2, p3, p4);
+    ErrCode_SetInfo(buf);
+    return;
+}
+#else
+static void ulc_err_info_set(const char *fmt, ...)
+{
+    va_list args;
+    char buf[256];
+
+	va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
+	va_end(args);
+
+    ErrCode_SetInfo(buf);
+
+	return;
+}
+#endif
+
 static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
-    [0] = _bpf_sys_malloc, /* 10000 */
-    [1] = _bpf_sys_calloc,
-    [2] = _bpf_sys_free,
-    [3] = _bpf_sys_strncmp,
-    [4] = _bpf_sys_memcpy,
-    [5] = _bpf_sys_memset,
-    [6] = _bpf_err_code_set,
+    [0] = ulc_sys_malloc, /* 10000 */
+    [1] = ulc_sys_calloc,
+    [2] = ulc_sys_free,
+    [3] = ulc_sys_strncmp,
+    [4] = ulc_sys_memcpy,
+    [5] = ulc_sys_memset,
+    [6] = ulc_err_code_set,
+    [7] = ulc_err_info_set,
 };
 
 const void ** BpfHelper_BaseHelper(void)

@@ -24,6 +24,7 @@ typedef struct {
 }ERR_CODE_S;
 
 void ErrCode_Set(int err_code, char *info, const char *file_name, const char *func_name, int line);
+void ErrCode_SetInfo(char *info);
 void ErrCode_Clear(void);
 const char * ErrCode_GetFileName(void);
 int ErrCode_GetLine(void);

@@ -52,10 +52,15 @@ int HeavyKeep_Topn_Create(INOUT HEAVYKEEP_TOPN_S *topn, int hash_size, int key_s
         RETURN(BS_BAD_PARA);
     }
 
+    if (cycle > HEAVYKEEP_TOPN_HASH_NUM) {
+        cycle = HEAVYKEEP_TOPN_HASH_NUM;
+    }
+
     mem = MEM_ZMalloc(HEAVYKEEP_TOPN_CTRL_MEM_SIZE(key_size, hash_size));
     if (! mem) {
         RETURN(BS_NO_MEMORY);
     }
+
     topn->hash = mem;
     topn->hash_size = hash_size;
     topn->key_size = key_size;
@@ -114,14 +119,42 @@ static inline HEAVYKEEP_TOPN_NODE_S * _heavykeep_get_node(HEAVYKEEP_TOPN_S *topn
     return (void*) (ptr + (sizeof(HEAVYKEEP_TOPN_NODE_S) + topn->key_size) * index);
 }
 
-static inline void _heavykeep_build_hash(UINT mask, UINT hash_factor, OUT UINT *hash)
+static inline void _heavykeep_build_hash_8(UINT mask, UINT hash_factor, OUT UINT *hash)
+{
+    hash[0] = hash_factor & mask;
+    hash[1] = (hash_factor >> 8) & mask;
+    hash[2] = (hash_factor >> 16) & mask;
+    hash[3] = (hash_factor >> 24) & mask;
+}
+
+static inline void _heavykeep_build_hash_16(UINT mask, UINT hash_factor, OUT UINT *hash, void *key, int key_len)
+{
+    UINT jhash = JHASH_GeneralBuffer(key, key_len, 1);
+    hash[0] = hash_factor & mask;
+    hash[1] = (hash_factor >> 16) & mask;
+    hash[2] = jhash & mask;
+    hash[3] = (jhash >> 16) & mask;
+}
+
+static inline void _heavykeep_build_hash_32(UINT mask, UINT hash_factor, OUT UINT *hash, void *key, int key_len)
+{
+    hash[0] = hash_factor & mask;
+    hash[1] = JHASH_GeneralBuffer(key, key_len, 1) & mask;
+    hash[2] = JHASH_GeneralBuffer(key, key_len, 2) & mask;
+    hash[3] = JHASH_GeneralBuffer(key, key_len, 3) & mask;
+}
+
+static inline void _heavykeep_build_hash(UINT mask, UINT hash_factor, OUT UINT *hash, void *key, int key_len)
 {
     BS_DBGASSERT(HEAVYKEEP_TOPN_HASH_NUM == 4);
 
-    hash[0] = hash_factor & mask;
-    hash[1] = (hash_factor >> 16) & mask;
-    hash[2] = (hash_factor ^ (hash_factor >> 8)) & mask;
-    hash[3] = (hash_factor ^ (hash_factor >> 16)) & mask;
+    if (mask <= 0xff) {
+        _heavykeep_build_hash_8(mask, hash_factor, hash);
+    } else if (mask <= 0xffff) {
+        _heavykeep_build_hash_16(mask, hash_factor, hash, key, key_len);
+    } else {
+        _heavykeep_build_hash_32(mask, hash_factor, hash, key, key_len);
+    }
 }
 
 /* score with hash factor */
@@ -135,7 +168,7 @@ void HeavyKeep_Topn_FScore(HEAVYKEEP_TOPN_S *topn, void *key, int key_len, UINT 
 
     BS_DBGASSERT(key_len == topn->key_size);
 
-    _heavykeep_build_hash(mask, hash_factor, hash_index);
+    _heavykeep_build_hash(mask, hash_factor, hash_index, key, key_len);
 
     for(i=0; i<topn->cycle; i++) {
         index = hash_index[i];
