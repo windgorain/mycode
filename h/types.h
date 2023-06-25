@@ -24,15 +24,26 @@ extern "C" {
 #define noinline __attribute__((noinline))
 #endif
 
-#ifndef always_inline 
-#define always_inline __always_inline
+#ifndef ALWAYS_INLINE 
+    #ifdef IN_LINUX
+        #define ALWAYS_INLINE __always_inline
+    #else
+        #define ALWAYS_INLINE inline
+    #endif
+#endif
+
+
+#ifndef __always_inline 
+#define __always_inline inline
 #endif
 
 #ifndef CHAR_BIT
 #define CHAR_BIT 8
 #endif
 
+#ifndef SEC
 #define SEC(x)
+#endif
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -89,10 +100,6 @@ extern "C" {
 #ifndef false
 #define true 1
 #define false 0
-#endif
-
-#ifndef bool
-typedef char bool;
 #endif
 
 #ifndef STATIC
@@ -165,18 +172,10 @@ typedef unsigned char       U8;
 typedef unsigned short      U16;
 typedef unsigned int        U32;
 typedef unsigned long long  U64;
-
 typedef char S8;
 typedef short S16;
 typedef int S32;
 typedef long long S64;
-
-typedef U8 u8;
-typedef U16 u16;
-typedef U32 u32;
-typedef U64 u64;
-typedef S32 s32;
-typedef S64 s64;
 
 typedef struct {
     char *pcData;
