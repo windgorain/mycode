@@ -6,41 +6,40 @@
 #include "bs.h"
 #include "utl/level_topn.h"
 
-/* 根据分数获取其对应的级别 */
-static inline int _level_topn_get_level_by_score(LEVEL_TOPN_S *topn, U64 score)
+/* 获取对应级别的录取分数线 */
+static inline U64 _level_topn_get_level_score(LEVEL_TOPN_S *topn, int level)
 {
-    int i;
+    return topn->score_step * level;
+}
 
-    for (i=topn->level_count - 1; i>=topn->low_level; i--) {
-        if (score >= topn->level_scores[i]) {
-            return i;
-        }
-    }
-
-    return -1;
+/* 根据分数获取其对应的级别 */
+static inline int _level_topn_get_score_level(LEVEL_TOPN_S *topn, U64 score)
+{
+    int level = score / topn->score_step;
+    return MIN(level, (topn->level_count - 1));
 }
 
 /* 计算low level */
 static inline void _level_topn_cacl_low_level(LEVEL_TOPN_S *topn)
 {
-    while (topn->level_admissions[topn->low_level] < 0) {
-        topn->low_level ++;
+    while (topn->level_admissions[topn->cur_low_level] < 0) {
+        topn->cur_low_level ++;
     }
 }
 
 /* 还未录取满,直接录取 */
 static inline void _level_topn_not_full_process(LEVEL_TOPN_S *topn, int level, int value)
 {
-    int index = topn->admit_count;
+    int index = topn->admited_count;
     LEVEL_TOPN_NODE_S *node = &topn->admissions[index];
 
     node->value = value;
     node->next = topn->level_admissions[level];
     topn->level_admissions[level] = index;
 
-    topn->admit_count ++;
+    topn->admited_count ++;
 
-    if (topn->admit_count < topn->n) {
+    if (topn->admited_count < topn->n) {
         /* 还没录取满,直接返回 */
         return;
     }
@@ -53,8 +52,8 @@ static inline void _level_topn_not_full_process(LEVEL_TOPN_S *topn, int level, i
 static inline void _level_topn_full_process(LEVEL_TOPN_S *topn, int level, int value)
 {
     /* 从low level中拿一个出来 */
-    int index = topn->level_admissions[topn->low_level];
-    topn->level_admissions[topn->low_level] = topn->admissions[index].next;
+    int index = topn->level_admissions[topn->cur_low_level];
+    topn->level_admissions[topn->cur_low_level] = topn->admissions[index].next;
 
     /* 将这个新的通知书加入level中 */
     topn->admissions[index].next = topn->level_admissions[level];
@@ -64,28 +63,26 @@ static inline void _level_topn_full_process(LEVEL_TOPN_S *topn, int level, int v
     _level_topn_cacl_low_level(topn);
 }
 
-void LevelTopn_Init(OUT LEVEL_TOPN_S *topn, int n, int level_count,
-        U64 *level_scores, int *level_admissions,LEVEL_TOPN_NODE_S *admissions)
+void LevelTopn_Init(OUT LEVEL_TOPN_S *topn, int n, int level_count, U64 score_step,
+        int *level_admissions, LEVEL_TOPN_NODE_S *admissions)
 {
     topn->n = n;
     topn->level_count = level_count;
-    topn->level_scores = level_scores;
+    topn->score_step = score_step;
     topn->level_admissions = level_admissions;
     topn->admissions = admissions;
 
     LevelTopn_Reset(topn);
 }
 
-LEVEL_TOPN_S * LevelTopn_Create(int n, int level_count)
+LEVEL_TOPN_S * LevelTopn_Create(int n, int level_count, U64 score_step /* 每个级别之间的分数差 */)
 {
     LEVEL_TOPN_S *topn;
     int mem_size;
-    U64 *level_scores;
     int *level_admission;
     LEVEL_TOPN_NODE_S *nodes;
 
     mem_size = sizeof(LEVEL_TOPN_S) 
-        + (sizeof(U64) * level_count)
         + (sizeof(int) * level_count)
         + (sizeof(LEVEL_TOPN_NODE_S) * n);
 
@@ -94,11 +91,10 @@ LEVEL_TOPN_S * LevelTopn_Create(int n, int level_count)
         return NULL;
     }
 
-    level_scores = (void*)(topn + 1);
-    level_admission = (void*)(level_scores + level_count);
+    level_admission = (void*)(topn + 1);
     nodes = (void*)(level_admission + level_count);
 
-    LevelTopn_Init(topn, n, level_count, level_scores, level_admission, nodes);
+    LevelTopn_Init(topn, n, level_count, score_step, level_admission, nodes);
 
     return topn;
 }
@@ -110,20 +106,6 @@ void LevelTopn_Destroy(LEVEL_TOPN_S *topn)
     }
 }
 
-/* 设置对应级别的分数线 */
-void LevelTopn_SetLevel(LEVEL_TOPN_S *topn, int level, U64 score)
-{
-    if (! topn) {
-        return;
-    }
-
-    if (level >= topn->level_count) {
-        return;
-    }
-
-    topn->level_scores[level] = score;
-}
-
 /* 复位录取状态 */
 void LevelTopn_Reset(LEVEL_TOPN_S *topn)
 {
@@ -133,31 +115,30 @@ void LevelTopn_Reset(LEVEL_TOPN_S *topn)
         return;
     }
 
-    topn->admit_count = 0;
-    topn->low_level = 0;
+    topn->admited_count = 0;
+    topn->cur_low_level = 0;
 
     for (i=0; i<topn->level_count; i++) {
         topn->level_admissions[i] = -1;
     }
 }
 
-/* 还没有录取满, 取一个空的录取通知书 */
 void LevelTopn_Input(LEVEL_TOPN_S *topn, U64 score, int value)
 {
-    if (score < topn->level_scores[topn->low_level]) {
+    if (score < _level_topn_get_level_score(topn, topn->cur_low_level)) {
         return; /* 不予录取 */
     }
 
-    int level = _level_topn_get_level_by_score(topn, score);
+    int level = _level_topn_get_score_level(topn, score);
 
     /* 还没有录取满,直接录取 */
-    if (topn->admit_count < topn->n) {
+    if (topn->admited_count < topn->n) {
         _level_topn_not_full_process(topn, level, value);
         return;
     }
 
     /* 已经录取满了,看是否需要淘汰掉一个 */
-    if (topn->low_level < level) {
+    if (topn->cur_low_level < level) {
         _level_topn_full_process(topn, level, value);
         return;
     }
@@ -169,12 +150,12 @@ void LevelTopn_PrintLevel(LEVEL_TOPN_S *topn, int level)
 {
     int index;
 
-    printf("level %d score %llu\n", level, topn->level_scores[level]);
+    printf("[level %d] \n", level);
 
     index = topn->level_admissions[level];
 
     while (index >= 0) {
-        printf("%d ", topn->admissions[index].value);
+        printf(" %d ", topn->admissions[index].value);
         index = topn->admissions[index].next;
     }
 
