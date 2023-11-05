@@ -15,4 +15,4 @@ int ProcessIndex_Get(char *index_file);
 #ifdef __cplusplus
 }
 #endif
-#endif //PROCESS_INDEX_H_
+#endif 

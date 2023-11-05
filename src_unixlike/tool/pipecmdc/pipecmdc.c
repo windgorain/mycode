@@ -36,17 +36,17 @@ static int _pipecmdc_Connect(const char *name)
 	int					fd, len, err, rval;
 	struct sockaddr_un	un;
 
-	/* create a UNIX domain stream socket */
+	
 	if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
 		return(-1);
 
-	/* fill socket address structure with our address */
+	
 	memset(&un, 0, sizeof(un));
 	un.sun_family = AF_UNIX;
 	sprintf(un.sun_path, "/var/tmp/%05d", getpid());
 	len = OFFSET(struct sockaddr_un, sun_path) + strlen(un.sun_path);
 
-	unlink(un.sun_path);		/* in case it already exists */
+	unlink(un.sun_path);		
 	if (bind(fd, (struct sockaddr *)&un, len) < 0) {
 		rval = -2;
 		goto errout;
@@ -56,7 +56,7 @@ static int _pipecmdc_Connect(const char *name)
 		goto errout;
 	}
 
-	/* fill socket address structure with server's address */
+	
 	memset(&un, 0, sizeof(un));
 	un.sun_family = AF_UNIX;
 	strcpy(un.sun_path, name);
@@ -66,7 +66,7 @@ static int _pipecmdc_Connect(const char *name)
 		goto errout;
 	}
 
-    int rcv_buf = 0x10000000; /* 10M */
+    int rcv_buf = 0x10000000; 
     setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rcv_buf, sizeof(int));
 
 	return(fd);
@@ -87,7 +87,7 @@ static int _pipecmdc_Recv(int fd)
     struct timeval tv_out;
 
     tv_out.tv_sec = 0;
-    tv_out.tv_usec = 10000000; /* 10s */
+    tv_out.tv_usec = 10000000; 
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv_out, sizeof(tv_out));
 
     while(1) {
@@ -161,7 +161,7 @@ static int _pipecmdc_SendFile(int fd, char *filename)
     return ret;
 }
 
-/* pipecmdc [options] cmds */
+
 int main(int argc, char **argv)
 {
     char *cmd = NULL;
@@ -170,10 +170,10 @@ int main(int argc, char **argv)
     int ret = 0;
 
     GETOPT2_NODE_S opts[] = {
-        {'o', 'h', "help", 0, NULL, NULL, 0},
-        {'o', 'n', "name", 's', &socket_name, "domain socket name", 0},
-        {'o', 'r', "read", 's', &filename, "read file", 0},
-        {'p', 0, "CMD", 's', &cmd, "Command line", 0},
+        {'o', 'h', "help", GETOPT2_V_NONE, NULL, NULL, 0},
+        {'o', 'n', "name", GETOPT2_V_STRING, &socket_name, "domain socket name", 0},
+        {'o', 'r', "read", GETOPT2_V_STRING, &filename, "read file", 0},
+        {'p', 0, "CMD", GETOPT2_V_STRING, &cmd, "Command line", 0},
         {0}
     };
 

@@ -6,7 +6,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef enum
 {
@@ -31,8 +31,8 @@ BS_STATUS VNETS_TP_Output(IN UINT uiTpId, IN MBUF_S *pstMbuf);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_TP_H_*/
+#endif 
 
 

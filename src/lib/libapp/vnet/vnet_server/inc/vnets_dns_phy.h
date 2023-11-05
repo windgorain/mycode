@@ -9,7 +9,7 @@ BS_STATUS VNETS_DNS_PHY_Init(IN CHAR *pcServerName);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_DNS_PHY_H_*/
+#endif 
 

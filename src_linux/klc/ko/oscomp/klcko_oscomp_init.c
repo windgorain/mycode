@@ -4,20 +4,18 @@
 *
 ================================================================*/
 #include "klcko_lib.h"
-#include "ko/utl/kutl_modinit.h"
+#include "ko/utl/kmodinit_utl.h"
+#include "ko/ko_utl.h"
 
 static KUTL_MODINIT_S g_klcko_oscomp_init[] = {
-    {.name="oscomp", .init=KlcKoComp_Init, .fini=NULL},
-    {.name="timer", .init=KlcKoTimer_Init, .fini=KlcKoTimer_Fini},
     {.name="netlink", .init=KlcKoNl_Init, .fini=KlcKoNl_Fini},
-    {.name="netfilter", .init = KlcKoNf_Init, .fini = KlcKoNf_Fini},
     {.name="inline", .init=KlcKoInline_Init, .fini=NULL},
     {.name=NULL}
 };
 
 static int __init klcko_oscomp_init(void)
 {
-    if (KUtlModinit_Init(g_klcko_oscomp_init) < 0) {
+    if (KModinit_Init(g_klcko_oscomp_init) < 0) {
         KO_Print("Load ko error \n");
         return -1;
     }
@@ -27,7 +25,9 @@ static int __init klcko_oscomp_init(void)
 
 static void __exit klcko_oscomp_exit(void)
 {
-    KUtlModinit_Fini(g_klcko_oscomp_init);
+    KModinit_Fini(g_klcko_oscomp_init);
+    synchronize_rcu();
+    rcu_barrier(); 
 }
 
 module_init(klcko_oscomp_init)

@@ -86,7 +86,7 @@ static void ipimg_free_ip(void *data, void *ud)
     MEM_Free(data);
 }
 
-/* max_property: 具有的属性种类数目 */
+
 IPIMG_HANDLE IPIMG_Create(int max_property)
 {
     IPIMG_S *ctrl = MEM_ZMalloc(sizeof(IPIMG_S));
@@ -128,14 +128,14 @@ void IPIMG_Destroy(IPIMG_HANDLE hIpImg)
     MEM_Free(ipimg);
 }
 
-/* 设置ID容量 */
+
 void IPIMG_SetIDCapacity(IPIMG_HANDLE hIpImg, UINT64 capacity)
 {
     IPIMG_S *ipimg = hIpImg;
     IDKEY_SetCapacity(ipimg->id_tbl, capacity);
 }
 
-/* 设置IP容量 */
+
 void IPIMG_SetIPCapacity(IPIMG_HANDLE hIpImg, UINT capacity)
 {
     IPIMG_S *ipimg = hIpImg;

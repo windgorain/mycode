@@ -16,4 +16,4 @@ int fakecert_acl_is_permit(char *hostname);
 #ifdef __cplusplus
 }
 #endif
-#endif //FAKECERT_ACL_H_
+#endif 

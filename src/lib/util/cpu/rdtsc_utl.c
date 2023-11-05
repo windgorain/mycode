@@ -29,11 +29,11 @@ uint64_t get_tsc_freq_arch(void)
 static uint32_t check_model_wsm_nhm(uint8_t model)
 {
 	switch (model) {
-	/* Westmere */
+	
 	case 0x25:
 	case 0x2C:
 	case 0x2F:
-	/* Nehalem */
+	
 	case 0x1E:
 	case 0x1F:
 	case 0x1A:
@@ -47,9 +47,9 @@ static uint32_t check_model_wsm_nhm(uint8_t model)
 static uint32_t check_model_gdm_dnv(uint8_t model)
 {
 	switch (model) {
-	/* Goldmont */
+	
 	case 0x5C:
-	/* Denverton */
+	
 	case 0x5F:
 		return 1;
 	}
@@ -84,16 +84,13 @@ uint64_t get_tsc_freq_arch(void)
 	uint8_t mult, model;
 	int32_t ret;
 
-	/*
-	 * Time Stamp Counter and Nominal Core Crystal Clock
-	 * Information Leaf
-	 */
+	
 	maxleaf = __get_cpuid_max(0, NULL);
 
 	if (maxleaf >= 0x15) {
 		__cpuid(0x15, a, b, c, d);
 
-		/* EBX : TSC/Crystal ratio, ECX : Crystal Hz */
+		
 		if (b && c)
 			return c * (b / a);
 	}
@@ -121,7 +118,7 @@ uint64_t get_tsc_freq(void)
 #define NS_PER_SEC 1E9
 #define CYC_PER_10MHZ 1E7
 
-	struct timespec sleeptime = {.tv_nsec = NS_PER_SEC / 10 }; /* 1/10 second */
+	struct timespec sleeptime = {.tv_nsec = NS_PER_SEC / 10 }; 
 
 	struct timespec t_start, t_end;
 	uint64_t tsc_hz;
@@ -136,7 +133,7 @@ uint64_t get_tsc_freq(void)
 
 		double secs = (double)ns/NS_PER_SEC;
 		tsc_hz = (uint64_t)((end - start)/secs);
-		/* Round up to 10Mhz. 1E7 ~ 10Mhz */
+		
 		return NUM_NEAR_ALIGN(tsc_hz, CYC_PER_10MHZ);
 	}
 #endif
@@ -146,10 +143,10 @@ uint64_t get_tsc_freq(void)
 static uint64_t estimate_tsc_freq(void)
 {
 #define CYC_PER_10MHZ 1E7
-	/* assume that the sleep(1) will sleep for 1 second */
+	
 	uint64_t start = RDTSC_Get();
 	sleep(1);
-	/* Round up to 10Mhz. 1E7 ~ 10Mhz */
+	
 	return NUM_NEAR_ALIGN(RDTSC_Get() - start, CYC_PER_10MHZ);
 }
 

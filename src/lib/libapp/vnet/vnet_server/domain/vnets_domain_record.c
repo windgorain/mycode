@@ -80,12 +80,7 @@ static inline BS_STATUS vnets_domainrecord_Add
     return BS_OK;
 }
 
-static BS_WALK_RET_E _vnets_domainrecord_WalkDomain
-(
-    IN HASH_HANDLE hHashId,
-    IN VOID *pNode,
-    IN VOID * pUserHandle
-)
+static int _vnets_domainrecord_WalkDomain(HASH_HANDLE hHashId, VOID *pNode, VOID *pUserHandle)
 {
     USER_HANDLE_S *pstUserHandle = (USER_HANDLE_S*)pUserHandle;
     VNETS_DOMAIN_RECORD_NODE_S *pstNode = pNode;
@@ -312,7 +307,7 @@ UINT _VNETS_DomainRecord_GetSesCount(IN UINT uiDomainId)
     return _VNETS_DomainNode_GetCount(&pstNode->stSesIDList);
 }
 
-UINT _VNETS_DomainRecord_GetNextNode(IN UINT uiDomainId, IN UINT uiCurrentNodeId/* 如果为0,则表示得到第一个 */)
+UINT _VNETS_DomainRecord_GetNextNode(IN UINT uiDomainId, IN UINT uiCurrentNodeId)
 {
     VNETS_DOMAIN_RECORD_NODE_S *pstNode;
 

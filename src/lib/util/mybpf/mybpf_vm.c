@@ -10,6 +10,7 @@
 #include "utl/mybpf_loader.h"
 #include "utl/mybpf_prog.h"
 #include "utl/mybpf_utl.h"
+#include "utl/mybpf_asmdef.h"
 #include "utl/mybpf_dbg.h"
 #include "utl/ubpf/ebpf.h"
 #include "utl/endian_utl.h"
@@ -106,7 +107,7 @@ inline static uint64_t
 ubpf_mem_load(uint64_t address, size_t size)
 {
     if (!IS_ALIGNED(address, size)) {
-        // Fill the result with 0 to avoid leaking uninitialized memory.
+        
         uint64_t value = 0;
         memcpy(&value, (void*)address, size);
         return value;
@@ -161,14 +162,97 @@ static inline UINT64 _mybpf_call_sub_prog(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx,
     return ctx->bpf_ret;
 }
 
+static inline UINT64 _mybpf_call_func_ptr(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, 
+        void *insn, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+{
+    ctx->insts = insn;
+    _mybpf_run(vm, ctx, p1, p2, p3, p4, p5);
+
+    return ctx->bpf_ret;
+}
+
+static int _mybpf_run_atomic32(MYBPF_INSN_S *insn, U64 *regs)
+{
+    int imm = insn->imm;
+    int src = insn->src_reg;
+    int dst = insn->dst_reg;
+    int off = insn->off;
+
+    int *ptr = (void*)(long)(regs[dst] + off);
+    int val = regs[src];
+
+	if (imm == BPF_ADD) {
+        __sync_fetch_and_add(ptr, val);
+    } else if (imm == BPF_AND) {
+        __sync_fetch_and_and(ptr, val);
+    } else if (imm == BPF_OR) {
+        __sync_fetch_and_or(ptr, val);
+    } else if (imm == BPF_XOR) {
+        __sync_fetch_and_xor(ptr, val);
+    } else if (imm == (BPF_ADD | BPF_FETCH)) {
+        regs[src] = __sync_fetch_and_add(ptr, val);
+    } else if (imm == (BPF_AND | BPF_FETCH)) {
+        regs[src] = __sync_fetch_and_and(ptr, val);
+    } else if (imm == (BPF_OR | BPF_FETCH)) {
+        regs[src] = __sync_fetch_and_or(ptr, val);
+    } else if (imm == (BPF_XOR | BPF_FETCH)) {
+        regs[src] = __sync_fetch_and_xor(ptr, val);
+    } else if (imm == BPF_XCHG) {
+        regs[src] = atomic_xchg((void*)ptr, val);
+    } else if (imm == BPF_CMPXCHG) {
+        regs[0] = atomic_cmpxchg((void*)ptr, regs[0], val);
+    } else {
+        return -1;
+    }
+
+    return 0;
+}
+
+static int _mybpf_run_atomic64(MYBPF_INSN_S *insn, U64 *regs)
+{
+    int imm = insn->imm;
+    int src = insn->src_reg;
+    int dst = insn->dst_reg;
+    int off = insn->off;
+
+    S64 *ptr = (void*)(long)(regs[dst] + off);
+    S64 val = regs[src];
+
+	if (imm == BPF_ADD) {
+        __sync_fetch_and_add(ptr, val);
+    } else if (imm == BPF_AND) {
+        __sync_fetch_and_and(ptr, val);
+    } else if (imm == BPF_OR) {
+        __sync_fetch_and_or(ptr, val);
+    } else if (imm == BPF_XOR) {
+        __sync_fetch_and_xor(ptr, val);
+    } else if (imm == (BPF_ADD | BPF_FETCH)) {
+        regs[src] = __sync_fetch_and_add(ptr, val);
+    } else if (imm == (BPF_AND | BPF_FETCH)) {
+        regs[src] = __sync_fetch_and_and(ptr, val);
+    } else if (imm == (BPF_OR | BPF_FETCH)) {
+        regs[src] = __sync_fetch_and_or(ptr, val);
+    } else if (imm == (BPF_XOR | BPF_FETCH)) {
+        regs[src] = __sync_fetch_and_xor(ptr, val);
+    } else if (imm == BPF_XCHG) {
+        regs[src] = atomic_xchg((void*)ptr, val);
+    } else if (imm == BPF_CMPXCHG) {
+        regs[0] = atomic_cmpxchg((void*)ptr, regs[0], val);
+    } else {
+        return -1;
+    }
+
+    return 0;
+}
+
 static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
 {
     uint16_t pc = 0;
-    struct ebpf_inst *insts = ctx->insts;
-    uint64_t reg[16];
+    MYBPF_INSN_S *insts = ctx->insts;
+    U64 reg[16];
 
     if (!insts) {
-        /* Code must be loaded before we can execute */
+        
         RETURN(BS_ERR);
     }
 
@@ -181,7 +265,7 @@ static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 
 
     while (1) {
         const uint16_t cur_pc = pc;
-        struct ebpf_inst inst = insts[pc++];
+        MYBPF_INSN_S inst = insts[pc++];
 
         switch (inst.opcode) {
         case EBPF_OP_ADD_IMM:
@@ -444,7 +528,13 @@ static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 
             break;
 
         case EBPF_OP_LDDW:
-            reg[inst.dst_reg] = u32(inst.imm) | ((uint64_t)insts[pc++].imm << 32);
+            if (inst.src_reg == BPF_PSEUDO_FUNC_PTR) {
+                unsigned char *ptr = ctx->start_addr;
+                reg[inst.dst_reg] = (unsigned long)(ptr + inst.imm);
+                pc ++;
+            } else {
+                reg[inst.dst_reg] = u32(inst.imm) | ((uint64_t)insts[pc++].imm << 32);
+            }
             break;
 
         case EBPF_OP_JA:
@@ -675,7 +765,7 @@ static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 
             return 0;
         case EBPF_OP_CALL:
             if (inst.src_reg == BPF_PSEUDO_CALL) {
-                struct ebpf_inst *n = &insts[pc];
+                MYBPF_INSN_S *n = &insts[pc];
                 reg[0] = _mybpf_call_sub_prog(vm, ctx, n + inst.imm, reg[1], reg[2], reg[3], reg[4], reg[5]);
             } else {
                 reg[0] = _mybpf_call(vm, ctx, inst.imm, reg[1], reg[2], reg[3], reg[4], reg[5]);
@@ -685,13 +775,25 @@ static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 
                 }
             }
             break;
+        case EBPF_OP_CALLX:
+            reg[0] = _mybpf_call_func_ptr(vm, ctx, (void*)reg[inst.imm], reg[1], reg[2], reg[3], reg[4], reg[5]);
+            break;
+        case EPBF_OP_LOCK_STXW:
+            _mybpf_run_atomic32(&inst, reg);
+            break;
+        case EPBF_OP_LOCK_STXDW:
+            _mybpf_run_atomic64(&inst, reg);
+            break;
+        default:
+            PRINTFLM_RED("Not support insn %d, opcode=0x%02x", cur_pc, inst.opcode);
+            break;
         }
     }
 }
 
 BOOL_T MYBPF_Validate(MYBPF_VM_S *vm, void *insn, UINT num_insts)
 {
-    struct ebpf_inst *insts = insn;
+    MYBPF_INSN_S *insts = insn;
 
     if (num_insts > MYBPF_MAX_INSTS) {
         vm->print_func("too many instructions (max %u)", MYBPF_MAX_INSTS);
@@ -700,7 +802,7 @@ BOOL_T MYBPF_Validate(MYBPF_VM_S *vm, void *insn, UINT num_insts)
 
     int i;
     for (i = 0; i < num_insts; i++) {
-        struct ebpf_inst inst = insts[i];
+        MYBPF_INSN_S inst = insts[i];
         bool store = false;
 
         switch (inst.opcode) {
@@ -788,7 +890,7 @@ BOOL_T MYBPF_Validate(MYBPF_VM_S *vm, void *insn, UINT num_insts)
                 vm->print_func("incomplete lddw at PC %d", i);
                 return false;
             }
-            i++; /* Skip next instruction */
+            i++; 
             break;
 
         case EBPF_OP_JA:
@@ -903,9 +1005,9 @@ static inline bool _mybpf_bounds_check(
         return true;
 
     if (mem && (addr >= mem && ((char*)addr + size) <= ((char*)mem + mem_len))) {
-        return true; /* Context access */
+        return true; 
     } else if ((char*)addr >= ctx->stack && ((char*)addr + size) <= (ctx->stack + ctx->stack_size)) {
-        return true; /* Stack access */
+        return true; 
     } else {
         vm->print_func("uBPF error: out of bounds memory %s at PC %u, addr %p, size %d\nmem %p/%d stack %p/%d\n",
                 type, cur_pc, addr, size, mem, mem_len, ctx->stack, ctx->stack_size);
@@ -999,14 +1101,14 @@ static int _mybpf_run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, 
     ELF_PROG_INFO_S *info = _mybpf_vm_get_sub_prog(ctx, ctx->insts);
 
     if (info) {
-        MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_VM, MYBPF_DBG_FLAG_VM_PROCESS,
+        MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_VM, DBG_UTL_FLAG_PROCESS,
                 "call %s:%s, prog_offset:%d, prog_addr:0x%x \n",
                 info->sec_name, info->func_name, info->prog_offset, ctx->insts);
         if (ctx->auto_stack) {
             stack_size = MYBPF_INSN_GetStackSize(ctx->insts, info->size);
         }
     } else {
-        MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_VM, MYBPF_DBG_FLAG_VM_PROCESS,
+        MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_VM, DBG_UTL_FLAG_PROCESS,
                 "call insn_idx:%d, prog_addr:0x%x \n", ((char *)ctx->insts - (char*)ctx->start_addr) / 8, ctx->insts);
     }
 

@@ -8,8 +8,8 @@
 #include "utl/txt_utl.h"
 #include "utl/exec_utl.h"
 
-static char g_process_key[256] = ""; /* 基于进程的唯一关键字 */
-static int g_process_index = -1;  /* 基于进程的唯一index */
+static char g_process_key[256] = ""; 
+static int g_process_index = -1;  
 
 PLUG_API void ProcessKey_SetKey(char *key)
 {

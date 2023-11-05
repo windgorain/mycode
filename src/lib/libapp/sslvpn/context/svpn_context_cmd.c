@@ -16,7 +16,7 @@
 
 #include "svpn_context_inner.h"
 
-/* context %STRING */
+
 PLUG_API BS_STATUS SVPN_ContextCmd_EnterView(int argc, char **argv, VOID *pEnv)
 {
     if (argc < 2)
@@ -34,7 +34,7 @@ PLUG_API BS_STATUS SVPN_ContextCmd_EnterView(int argc, char **argv, VOID *pEnv)
     return BS_OK;
 }
 
-/* no context %STRING */
+
 PLUG_API BS_STATUS SVPN_ContextCmd_NoContext(int argc, char **argv, VOID *pEnv)
 {
     if (argc < 2)
@@ -49,7 +49,7 @@ PLUG_API BS_STATUS SVPN_ContextCmd_NoContext(int argc, char **argv, VOID *pEnv)
     return BS_OK;
 }
 
-/* bind ws-service %STRING */
+
 PLUG_API BS_STATUS SVPN_ContextCmd_BindService(int argc, char **argv, VOID *pEnv)
 {
     SVPN_CfgLock_WLock();
@@ -62,7 +62,7 @@ PLUG_API BS_STATUS SVPN_ContextCmd_BindService(int argc, char **argv, VOID *pEnv
     return BS_OK;
 }
 
-/* description %STRING */
+
 PLUG_API BS_STATUS SVPN_ContextCmd_Description(int argc, char **argv, VOID *pEnv)
 {
     SVPN_CfgLock_WLock();

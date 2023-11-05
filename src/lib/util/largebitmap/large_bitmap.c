@@ -25,17 +25,17 @@ typedef struct tagLBitMap_LEAF_S
 typedef struct
 {
     UCHAR ucLevel;
-    LBITMAP_BITS_S stBits; /* 对于叶子节点,表示对应位. 对于非叶子节点,表示对应的下一级是否已经full */
+    LBITMAP_BITS_S stBits; 
 }LBITMAP_COMMON_S;
 
-/* 1-3级使用的结构 */
+
 typedef struct
 {
     LBITMAP_COMMON_S stCommon;
-    LBITMAP_COMMON_S *apstNextLevel[LBITMAP_NODE_NUM]; /* 指向下一级 */
+    LBITMAP_COMMON_S *apstNextLevel[LBITMAP_NODE_NUM]; 
 }LBITMAP_LEVEL_S;
 
-/* 第4级是叶子节点, 使用这个结构 */
+
 typedef struct
 {
     LBITMAP_COMMON_S stCommon;
@@ -381,7 +381,7 @@ static BS_STATUS lbitmap_Get
     }
 }
 
-/* 获取对应Index的Leaf */
+
 static LBITMAP_LEAF_S * lbitmap_GetIndexLeaf(IN LBITMAP_COMMON_S *pstCommon, IN UINT uiIndex)
 {
     UINT uiOffset = 0;
@@ -407,7 +407,7 @@ static LBITMAP_LEAF_S * lbitmap_GetIndexLeaf(IN LBITMAP_COMMON_S *pstCommon, IN 
     return lbitmap_GetIndexLeaf(pstLevel->apstNextLevel[uiIndexTmp], uiIndex & uiMask);
 }
 
-/* 清除对应的位, 并返回是节点是否全空了 */
+
 static BOOL_T lbitmap_ClearBit(LBITMAP_CTRL_S *pstCtrl, LBITMAP_COMMON_S *pstCommon, UINT uiIndex)
 {
     UINT uiOffset = 0;
@@ -441,7 +441,7 @@ static BOOL_T lbitmap_ClearBit(LBITMAP_CTRL_S *pstCtrl, LBITMAP_COMMON_S *pstCom
     return FALSE;
 }
 
-/* 设置对应Index的Bit */
+
 BS_STATUS lbitmap_SetIndexBit(LBITMAP_CTRL_S *ctrl, LBITMAP_COMMON_S *pstCommon, UINT uiIndex)
 {
     UINT uiOffset = 0;
@@ -494,7 +494,7 @@ static VOID lbitmap_Reset(LBITMAP_CTRL_S *ctrl, LBITMAP_COMMON_S *pstCommon)
     return;
 }
 
-LBITMAP_HANDLE LBitMap_Create(LBITMAP_PARAM_S *p /* NULL为默认参数 */)
+LBITMAP_HANDLE LBitMap_Create(LBITMAP_PARAM_S *p )
 {
     static LBITMAP_PARAM_S lbitmap_default_param = {0};
     LBITMAP_CTRL_S *pstCtrl;
@@ -529,7 +529,7 @@ void LBitMap_Reset(LBITMAP_HANDLE hLBitMap)
     lbitmap_Reset(pstCtrl, &pstCtrl->level1.stCommon);
 }
 
-/* 从指定区间找到一个空闲位, 但不设置上它 */
+
 BS_STATUS LBitMap_TryByRange
 (
     IN LBITMAP_HANDLE hLBitMap,
@@ -552,7 +552,7 @@ BS_STATUS LBitMap_TryByRange
 }
 
 
-/* 从指定区间分配一个位 */
+
 BS_STATUS LBitMap_AllocByRange
 (
     IN LBITMAP_HANDLE hLBitMap,

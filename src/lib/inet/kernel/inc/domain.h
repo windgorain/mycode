@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct domain_s
 {
@@ -21,7 +21,7 @@ typedef struct domain_s
     PROTOSW_S *pstProtoswStart;
     PROTOSW_S *pstProtoswEnd;
     struct domain_s *pstDomNext;
-    void    (*dom_dispose)(MBUF_S *); /* dispose of internalized rights */
+    void    (*dom_dispose)(MBUF_S *); 
 }DOMAIN_S;
 
 extern int max_hdr;
@@ -31,8 +31,8 @@ PROTOSW_S * DOMAIN_FindType(IN UINT uiFamily, IN USHORT usType);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__DOMAIN_H_*/
+#endif 
 
 

@@ -70,9 +70,9 @@ VOID IPFWD_Destory(IN IPFWD_HANDLE hIpFwd)
 BS_STATUS IPFWD_BuildIpHeader
 (
     IN IPFWD_HANDLE hIpFwd,
-    IN MBUF_S *pstMbuf, /* 不带IP头 */
-    IN UINT uiDstIp,    /* 网络序 */
-    IN UINT uiSrcIp,    /* 网络序 */
+    IN MBUF_S *pstMbuf, 
+    IN UINT uiDstIp,    
+    IN UINT uiSrcIp,    
     IN UCHAR ucProto
 )
 {
@@ -85,11 +85,11 @@ BS_STATUS IPFWD_BuildIpHeader
     return IP_BuildIPHeader(pstMbuf, uiDstIp, uiSrcIp, ucProto, usIdentification);
 }
 
-/* 相比于OutPut, 不再填写IP头的东西,认为上面已经填写好了 */
+
 BS_STATUS IPFWD_PreSend
 (
     IN IPFWD_HANDLE hIpFwd,
-    IN MBUF_S *pstMbuf /* 带IP头 */
+    IN MBUF_S *pstMbuf 
 )
 {
     IP_HEAD_S *pstIpHead;
@@ -97,7 +97,7 @@ BS_STATUS IPFWD_PreSend
     FIB_NODE_S stFibNode;
     IPFWD_CTRL_S *pstCtrl = hIpFwd;
 
-    /* 是否指定了出接口 */
+    
     ulIfIndex = MBUF_GET_SEND_IF_INDEX(pstMbuf);
     if (0 != ulIfIndex)
     {
@@ -122,11 +122,11 @@ BS_STATUS IPFWD_PreSend
 }
 
 
-/* 相比于OutPut, 不再填写IP头的东西,认为上面已经填写好了 */
+
 BS_STATUS IPFWD_Send
 (
     IN IPFWD_HANDLE hIpFwd,
-    IN MBUF_S *pstMbuf /* 带IP头 */
+    IN MBUF_S *pstMbuf 
 )
 {
     IPFWD_CTRL_S *pstCtrl = hIpFwd;
@@ -140,13 +140,13 @@ BS_STATUS IPFWD_Send
     return pstCtrl->pfLinkOutput(MBUF_GET_SEND_IF_INDEX(pstMbuf), pstMbuf, htons(ETH_P_IP));
 }
 
-/* 填写IP头并发送数据 */
+
 BS_STATUS IPFWD_Output
 (
     IN IPFWD_HANDLE hIpFwd,
-    IN MBUF_S *pstMbuf, /* 不带IP头 */
-    IN UINT uiDstIp,    /* 网络序 */
-    IN UINT uiSrcIp,    /* 网络序 */
+    IN MBUF_S *pstMbuf, 
+    IN UINT uiDstIp,    
+    IN UINT uiSrcIp,    
     IN UCHAR ucProto
 )
 {
@@ -190,7 +190,7 @@ BS_STATUS IPFWD_Input (IN IPFWD_HANDLE hIpFwd, IN MBUF_S *pstMbuf)
         }
     }
 
-    /* 判断该报文是否是全1、全0广播地址 */
+    
     if ((pstIpHead->unDstIp.uiIp == 0xffffffff) || (pstIpHead->unDstIp.uiIp == 0))
     {
         BS_DBG_OUTPUT(pstCtrl->uiDbgFlag, IP_FWD_DBG_PACKET,

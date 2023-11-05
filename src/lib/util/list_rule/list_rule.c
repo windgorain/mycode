@@ -109,7 +109,7 @@ void ListRule_Reset(IN LIST_RULE_HANDLE ctx, IN PF_RULE_FREE pfFunc, IN VOID *pU
     return;
 }
 
-/* 创建一个list, 但是不加入list表 */
+
 LIST_RULE_LIST_S * ListRule_CreateList(LIST_RULE_HANDLE ctx, char *list_name, int user_data_size)
 {
     LIST_RULE_LIST_S *pstList;
@@ -137,7 +137,7 @@ VOID ListRule_DestroyList(IN LIST_RULE_HANDLE ctx, LIST_RULE_LIST_S *pstList, IN
     }
 }
 
-/* 将一个List添加到表中, 返回ListID */
+
 UINT ListRule_AttachList(LIST_RULE_HANDLE ctx, LIST_RULE_LIST_S *list)
 {
     LIST_RULE_HEAD_S *pstListHead;
@@ -154,7 +154,7 @@ UINT ListRule_AttachList(LIST_RULE_HANDLE ctx, LIST_RULE_LIST_S *list)
     return list->list_id;
 }
 
-/* 根据ListID Detach一个List,  */
+
 LIST_RULE_LIST_S * ListRule_DetachList(LIST_RULE_HANDLE ctx, UINT list_id)
 {
     LIST_RULE_HEAD_S *pstListHead;
@@ -173,7 +173,7 @@ LIST_RULE_LIST_S * ListRule_DetachList(LIST_RULE_HANDLE ctx, UINT list_id)
     return list;
 }
 
-/* 创建一个list并加入list表 */
+
 UINT ListRule_AddList(IN LIST_RULE_HANDLE ctx, char *list_name, int user_data_size)
 {
     LIST_RULE_LIST_S *pstList;
@@ -221,7 +221,7 @@ LIST_RULE_LIST_S *ListRule_GetListByID(IN LIST_RULE_HANDLE ctx, IN UINT uiListID
     return pstListHead->pstListRule;
 }
 
-/* 返回成功, 自动释放Old List; 返回失败, 需要调用者释放New List */
+
 int ListRule_ReplaceList(LIST_RULE_HANDLE ctx, UINT uiListID,
         PF_RULE_FREE pfFunc, void *ud, LIST_RULE_LIST_S *pstListNew)
 {
@@ -249,7 +249,7 @@ int ListRule_ReplaceList(LIST_RULE_HANDLE ctx, UINT uiListID,
     return BS_OK;
 }
 
-/* 增加List的引用计数 */
+
 BS_STATUS ListRule_IncListRef(IN LIST_RULE_HANDLE ctx, IN UINT uiListID)
 {
     LIST_RULE_LIST_S *pstList;
@@ -264,7 +264,7 @@ BS_STATUS ListRule_IncListRef(IN LIST_RULE_HANDLE ctx, IN UINT uiListID)
     return BS_OK;
 }
 
-/* 减少List的引用计数 */
+
 BS_STATUS ListRule_DecListRef(IN LIST_RULE_HANDLE ctx, IN UINT uiListID)
 {
     LIST_RULE_LIST_S *pstList;
@@ -279,7 +279,7 @@ BS_STATUS ListRule_DecListRef(IN LIST_RULE_HANDLE ctx, IN UINT uiListID)
     return BS_OK;
 }
 
-/* 获取List的引用计数 */
+
 UINT ListRule_GetListRef(IN LIST_RULE_HANDLE ctx, IN UINT uiListID)
 {
     LIST_RULE_LIST_S *pstList;
@@ -292,7 +292,7 @@ UINT ListRule_GetListRef(IN LIST_RULE_HANDLE ctx, IN UINT uiListID)
     return pstList->uiRefCount;
 }
 
-/* 判断是否存在至少一个被应用的list */
+
 BOOL_T ListRule_IsAnyListRefed(IN LIST_RULE_HANDLE ctx)
 {
     LIST_RULE_HEAD_S *head = NULL;
@@ -355,7 +355,7 @@ LIST_RULE_LIST_S * ListRule_GetListByName(IN LIST_RULE_HANDLE ctx, IN CHAR *list
     return NULL;
 }
 
-LIST_RULE_HEAD_S * ListRule_GetNextList(IN LIST_RULE_HANDLE ctx, IN LIST_RULE_HEAD_S *curr/* NULL表示获取第一个 */)
+LIST_RULE_HEAD_S * ListRule_GetNextList(IN LIST_RULE_HANDLE ctx, IN LIST_RULE_HEAD_S *curr)
 {
     UINT index = NAP_INVALID_INDEX;
 
@@ -374,7 +374,7 @@ LIST_RULE_HEAD_S * ListRule_GetNextList(IN LIST_RULE_HANDLE ctx, IN LIST_RULE_HE
     return NAP_GetNodeByIndex(ctx->hListNap, index);
 }
 
-UINT ListRule_GetNextListID(IN LIST_RULE_HANDLE ctx, IN UINT ulCurrentListID /* 0表示获取第一个 */)
+UINT ListRule_GetNextListID(IN LIST_RULE_HANDLE ctx, IN UINT ulCurrentListID )
 {
     return NAP_GetNextID(ctx->hListNap, ulCurrentListID);
 }
@@ -415,7 +415,7 @@ int ListRule_AddRule(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UINT uiRuleI
     return ListRule_AddRule2List(pstList, uiRuleID, pstRule);
 }
 
-/* 查找并从表上摘掉Rule, 返回找到的Rule指针 */
+
 RULE_NODE_S *ListRule_DelRule(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UINT uiRuleID)
 {
     LIST_RULE_LIST_S *pstList;
@@ -429,8 +429,8 @@ RULE_NODE_S *ListRule_DelRule(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UIN
     return RuleList_Del(&pstList->stRuleList, uiRuleID);
 }
 
-/* 按顺序重新安排所有rule的ID号 */
-VOID ListRule_ResetRuleID(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UINT step /* 两条表项间的间隔 */)
+
+VOID ListRule_ResetRuleID(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UINT step )
 {
     LIST_RULE_LIST_S *pstList;
 
@@ -485,7 +485,7 @@ BS_STATUS ListRule_IncreaseID(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UIN
     return RuleList_IncreaseID(&pstList->stRuleList, uiStart, uiEnd, uiStep);
 }
 
-/* 移动rule */
+
 BS_STATUS ListRule_MoveRule(
     IN LIST_RULE_HANDLE hCtx,
     IN UINT uiListID,
@@ -503,7 +503,7 @@ BS_STATUS ListRule_MoveRule(
     return RuleList_MoveRule(&pstList->stRuleList, uiOldRuleID, uiNewRuleID);
 }
 
-/* uiCurrentRuleID=RULE_ID_INVALID 表示从头开始 */
+
 RULE_NODE_S *ListRule_GetNextRule(LIST_RULE_HANDLE hCtx, UINT uiListID, UINT uiCurrentRuleID)
 {
     LIST_RULE_LIST_S *pstList;

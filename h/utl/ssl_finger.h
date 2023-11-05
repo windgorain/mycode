@@ -35,9 +35,9 @@ SSL_FINGER_NODE_S * SSLFinger_Match(SSL_FINGER_S*ssl_finger,
 BS_STATUS SSLFinger_ParseFingerFile(SSL_FINGER_S* ssl_finger, char *file, UINT base_id);
 BS_STATUS SSLFinger_LoadASNFile(SSL_FINGER_S *ctrl, char *file);
 cJSON * SSLFinger_Analysis(SSL_FINGER_S *ctrl, SSL_FINGER_NODE_S *node,
-        UINT ip/*主机序*/, USHORT port, char *hostname, OUT double *out_score);
+        UINT ip, USHORT port, char *hostname, OUT double *out_score);
 
 #ifdef __cplusplus
 }
 #endif
-#endif //SSL_FINGER_H_
+#endif 

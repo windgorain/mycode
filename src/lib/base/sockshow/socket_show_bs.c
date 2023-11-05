@@ -4,7 +4,7 @@
 * Description: 显示系统用到的Socket
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_SOCKET_SHOW
 
 #include "bs.h"
@@ -161,7 +161,7 @@ static VOID _sshow_Show (IN UINT uiTypeBit)
         {
             iAddrLen = sizeof(int);
             if (0 != getsockopt(i, SOL_SOCKET, SO_TYPE, (CHAR*)&iType, &iAddrLen)) {
-//                continue;
+
             }
             if ((uiTypeBit & sshow_GetTypeBitBySocketType(iType)) == 0) {
                 continue;

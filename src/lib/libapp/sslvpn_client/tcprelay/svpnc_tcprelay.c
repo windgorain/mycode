@@ -74,7 +74,7 @@ static VOID svpnc_tcprelay_ParseJsonString(IN CHAR *pcString)
 
 BS_STATUS SVPNC_TcpRelay_Start()
 {
-    /* 获取TcpRelay的配置 */
+    
     CONN_HANDLE hConn;
     CHAR szString[4096];
     INT iLen;
@@ -106,7 +106,7 @@ BS_STATUS SVPNC_TcpRelay_Start()
 
     svpnc_tcprelay_ParseJsonString(szString);
 
-    /* 触发写文件 */
+    
     SVPNC_TR_Write2File();
 
     return BS_OK;

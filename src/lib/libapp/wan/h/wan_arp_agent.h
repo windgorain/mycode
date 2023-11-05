@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WAN_ArpAgent_Init();
-BOOL_T WAN_ArpAgent_IsAgentOn(IN IF_INDEX ifIndex, IN UINT uiIP/* 主机序 */);
+BOOL_T WAN_ArpAgent_IsAgentOn(IN IF_INDEX ifIndex, IN UINT uiIP);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_ARP_AGENT_H_*/
+#endif 
 
 

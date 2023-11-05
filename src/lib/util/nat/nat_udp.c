@@ -19,8 +19,8 @@
 
 #define _NAT_UDP_HASH_BUCKET_NUM 1024
 
-#define _NAT_UDP_TIME_OUT_TIME_SYN 5000        /* 处于SYN状态的最大时间 5s. 防攻击用. 第一个UDP报文被认为是SYN,只有收到第二个报文后,才认为不是SYN了 */
-#define _NAT_UDP_TIME_OUT_TIME_DFT 30000       /* 处于SYN状态的最大时间 30s */
+#define _NAT_UDP_TIME_OUT_TIME_SYN 5000        
+#define _NAT_UDP_TIME_OUT_TIME_DFT 30000       
 
 
 typedef struct
@@ -136,8 +136,8 @@ static INT  nat_udp_CmpForPrivate(IN VOID * pstHashNode1, IN VOID * pstNodeToFin
 static _NAT_UDP_MAP_NODE_S *nat_udp_PrivateGetMapNode
 (
     IN _NAT_UDP_CTRL_S *pstCtrl,
-    IN UINT uiIp/* 网络序 */,
-    IN USHORT usPort/* 网络序 */,
+    IN UINT uiIp,
+    IN USHORT usPort,
     IN UINT uiDomainId
 )
 {
@@ -158,7 +158,7 @@ static _NAT_UDP_MAP_NODE_S *nat_udp_PrivateGetMapNode
     return pstNode;
 }
 
-/* 返回网络序Port */
+
 static USHORT nat_udp_GetPort(IN _NAT_UDP_CTRL_S *pstCtrl)
 {
     UINT uiIndexFrom1;
@@ -178,7 +178,7 @@ static USHORT nat_udp_GetPort(IN _NAT_UDP_CTRL_S *pstCtrl)
     return htons(usPort);
 }
 
-static VOID nat_udp_FreePort(IN _NAT_UDP_CTRL_S *pstCtrl, IN USHORT usPort/* 网络序 */)
+static VOID nat_udp_FreePort(IN _NAT_UDP_CTRL_S *pstCtrl, IN USHORT usPort)
 {
     UINT uiIndexFrom1;
 
@@ -214,8 +214,8 @@ static VOID nat_udp_TimeOut(IN HANDLE hTimer, IN USER_HANDLE_S *pstUserHandle)
 static _NAT_UDP_MAP_NODE_S *nat_udp_AddMapNode
 (
     IN _NAT_UDP_CTRL_S *pstCtrl,
-    IN UINT uiPrivateIp/* 网络序 */,
-    IN USHORT usPrivatePort/* 网络序 */,
+    IN UINT uiPrivateIp,
+    IN USHORT usPrivatePort,
     IN UINT uiDomainId
 )
 {
@@ -360,8 +360,8 @@ static INT  nat_udp_CmpForPub(IN VOID * pstHashNode1, IN VOID * pstNodeToFind)
 static _NAT_UDP_MAP_NODE_S * nat_udp_PubGetMapNode
 (
     IN _NAT_UDP_CTRL_S *pstCtrl,
-    IN UINT uiIp/* 网络序 */,
-    IN USHORT usPort/* 网络序 */
+    IN UINT uiIp,
+    IN USHORT usPort
 )
 {
     _NAT_UDP_MAP_NODE_S *pstNode;
@@ -462,7 +462,7 @@ static BS_STATUS nat_udp_PubPktIn
     return eRet;
 }
 
-static BS_WALK_RET_E nat_udp_WalkEach(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
+static int nat_udp_WalkEach(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
 {
     _NAT_UDP_MAP_NODE_S *pstNatNode = (_NAT_UDP_MAP_NODE_S*)pstNode;
     USER_HANDLE_S *pstUserHandle = pUserHandle;
@@ -491,9 +491,9 @@ static VOID nat_udp_Walk
 BS_STATUS _NAT_UDP_Init
 (
     IN _NAT_UDP_CTRL_S *pstCtrl,
-    IN USHORT usMinPort,   /* 主机序 ,对外可转换的端口号最小值 */
-    IN USHORT usMaxPort,   /* 主机序 ,对外可转换的端口号最大值 */
-    IN UINT   uiMsInTick,  /* 多少ms为一个Tick */
+    IN USHORT usMinPort,   
+    IN USHORT usMaxPort,   
+    IN UINT   uiMsInTick,  
     IN BOOL_T bCreateMutex
 )
 {
@@ -572,7 +572,7 @@ VOID _NAT_UDP_Fini(IN _NAT_UDP_CTRL_S *pstCtrl)
 BS_STATUS _NAT_UDP_SetPubIp
 (
     IN _NAT_UDP_CTRL_S *pstCtrl,
-    IN UINT auiPubIp[NAT_MAX_PUB_IP_NUM] /* 网络序，提供的对外公网IP */
+    IN UINT auiPubIp[NAT_MAX_PUB_IP_NUM] 
 )
 {
     UINT i;
@@ -610,7 +610,7 @@ BS_STATUS _NAT_UDP_PktIn
         return BS_ERR;
     }
 
-    /* 计算去掉IP/Port后的原始IP */
+    
     usRawSum = IN_CHKSUM_UnWrap(pstUdpHead->usCrc);
     usRawSum = IN_CHKSUM_DelRaw(usRawSum, (UCHAR*)&pstIpHead->unSrcIp, 8);
     usRawSum = IN_CHKSUM_DelRaw(usRawSum, (UCHAR*)&pstUdpHead->usSrcPort, 4);

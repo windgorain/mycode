@@ -12,8 +12,8 @@ extern "C"
 #endif
 
 typedef struct {
-    char tag_start; /* 关键字起始标记 */
-    char tag_stop; /* 关键字结束标记 */
+    char tag_start; 
+    char tag_stop; 
 }RP_TAG_S;
 
 int RP_Do(RP_TAG_S *tag, MIME_HANDLE kv, char *in_str, char *out_str, int out_str_size);
@@ -21,4 +21,4 @@ int RP_Do(RP_TAG_S *tag, MIME_HANDLE kv, char *in_str, char *out_str, int out_st
 #ifdef __cplusplus
 }
 #endif
-#endif //RP_UTL_H_
+#endif 

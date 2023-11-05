@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID (*PF_ITOR_DEL_NOTIFY_FUNC) \
         (IN VOID *pstNodeToDel, IN HANDLE hItorInstanceHandle, IN HANDLE hItorId, IN USER_HANDLE_S *pstUserHandle);
@@ -30,8 +30,8 @@ HANDLE ITOR_GetHandle(IN HANDLE hItor);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__ITOR_UTL_H_*/
+#endif 
 
 

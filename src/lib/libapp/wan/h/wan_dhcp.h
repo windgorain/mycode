@@ -10,20 +10,20 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* 返回网络序IP */
+
 UINT WAN_DHCP_GetServerIP(IN UINT uiVFID);
 
-/* 返回网络序Mask */
+
 UINT WAN_DHCP_GetMask(IN UINT uiVFID);
 
 BS_STATUS WAN_DHCP_Init();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_DHCP_H_*/
+#endif 
 
 

@@ -929,10 +929,7 @@ static int _mybpf_asm_insn_to_asm_jmp(MYBPF_INSN_S *insn, int idx, OUT char *buf
     return consume_count;
 }
 
-/* insn: insn指令
- * insn_count: 总共有多少条insn
- * insn_idx: 当前的索引
- */
+
 int MYBPF_ASM_Insn2Asm(MYBPF_INSN_S *insn, int insn_count, int insn_idx, OUT char *buf, int size)
 {
     MYBPF_INSN_S *cur = &insn[insn_idx];

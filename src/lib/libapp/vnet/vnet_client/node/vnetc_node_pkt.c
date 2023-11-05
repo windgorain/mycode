@@ -255,7 +255,7 @@ BS_STATUS VNETC_NODE_PktInput(IN MBUF_S *pstMbuf)
         uiSesID = VNETC_Context_GetRecvSesID(pstMbuf);
         uiIfIndex = MBUF_GET_RECV_IF_INDEX(pstMbuf);
 
-        /* ѧϰNID */
+        
         if (uiSesID == VNETC_SesC2S_GetSesId())
         {
             VNETC_NODE_Learn(uiSrcNodeID, 0, 0);

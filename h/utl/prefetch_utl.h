@@ -44,4 +44,4 @@ static inline void PreFetchNonTemporal(const volatile void *p)
 #ifdef __cplusplus
 }
 #endif
-#endif //PREFETCH_UTL_H_
+#endif 

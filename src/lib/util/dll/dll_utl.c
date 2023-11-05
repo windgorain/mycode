@@ -6,7 +6,7 @@
 ******************************************************************************/
 #include "bs.h"
 
-/* 按从小到大排序 */
+
 VOID DLL_Sort(IN DLL_HEAD_S *pstDllHead, IN PF_DLL_CMP_FUNC pfFunc, IN HANDLE hUserHandle)
 {
     DLL_NODE_S *pstNode1, *pstNode2;
@@ -37,7 +37,7 @@ VOID DLL_Sort(IN DLL_HEAD_S *pstDllHead, IN PF_DLL_CMP_FUNC pfFunc, IN HANDLE hU
     }
 }
 
-/* 插入有序链表, 从小到大排序 */
+
 VOID DLL_SortAdd
 (
     IN DLL_HEAD_S *pstDllHead,
@@ -60,7 +60,7 @@ VOID DLL_SortAdd
     return;
 }
 
-/* 插入有序链表并保证唯一性 */
+
 int DLL_UniqueSortAdd(DLL_HEAD_S *head, DLL_NODE_S *node, PF_DLL_CMP_FUNC cmp_func, void *user_data)
 {
     DLL_NODE_S *pstNodeTmp;

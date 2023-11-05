@@ -2,33 +2,30 @@
 #ifndef __BPF_HELPERS__
 #define __BPF_HELPERS__
 
-/*
- * Note that bpf programs need to include either
- * vmlinux.h (auto-generated from BTF) or linux/types.h
- * in advance since bpf_helper_defs.h uses such types
- * as __u64.
- */
+
 #include "bpf_helper_defs.h"
 
 #define __uint(name, val) int (*name)[val]
 #define __type(name, val) typeof(val) *name
 #define __array(name, val) typeof(val) *name[]
 
-/*
- * Helper macro to place programs, maps, license in
- * different sections in elf_bpf file. Section names
- * are interpreted by libbpf depending on the context (BPF programs, BPF maps,
- * extern variables, etc).
- * To allow use of SEC() with externs (e.g., for extern .maps declarations),
- * make sure __attribute__((unused)) doesn't trigger compilation warning.
- */
+
+#if __GNUC__ && !__clang__
+
+
+#define SEC(name) __attribute__((section(name), used))
+
+#else
+
 #define SEC(name) \
 	_Pragma("GCC diagnostic push")					    \
 	_Pragma("GCC diagnostic ignored \"-Wignored-attributes\"")	    \
 	__attribute__((section(name), used))				    \
 	_Pragma("GCC diagnostic pop")					    \
 
-/* Avoid 'linux/stddef.h' definition of '__always_inline'. */
+#endif
+
+
 #undef __always_inline
 #define __always_inline inline __attribute__((always_inline))
 
@@ -39,20 +36,10 @@
 #define __weak __attribute__((weak))
 #endif
 
-/*
- * Use __hidden attribute to mark a non-static BPF subprogram effectively
- * static for BPF verifier's verification algorithm purposes, allowing more
- * extensive and permissive BPF verification process, taking into account
- * subprogram's caller context.
- */
+
 #define __hidden __attribute__((visibility("hidden")))
 
-/* When utilizing vmlinux.h with BPF CO-RE, user BPF programs can't include
- * any system-level headers (such as stddef.h, linux/version.h, etc), and
- * commonly-used macros like NULL and KERNEL_VERSION aren't available through
- * vmlinux.h. This just adds unnecessary hurdles and forces users to re-define
- * them on their own. So as a convenience, provide such definitions here.
- */
+
 #ifndef NULL
 #define NULL ((void *)0)
 #endif
@@ -61,9 +48,7 @@
 #define KERNEL_VERSION(a, b, c) (((a) << 16) + ((b) << 8) + ((c) > 255 ? 255 : (c)))
 #endif
 
-/*
- * Helper macros to manipulate data structures
- */
+
 #ifndef offsetof
 #define offsetof(TYPE, MEMBER)	((unsigned long)&((TYPE *)0)->MEMBER)
 #endif
@@ -75,25 +60,22 @@
 	})
 #endif
 
-/*
- * Helper macro to throw a compilation error if __bpf_unreachable() gets
- * built into the resulting code. This works given BPF back end does not
- * implement __builtin_trap(). This is useful to assert that certain paths
- * of the program code are never used and hence eliminated by the compiler.
- *
- * For example, consider a switch statement that covers known cases used by
- * the program. __bpf_unreachable() can then reside in the default case. If
- * the program gets extended such that a case is not covered in the switch
- * statement, then it will throw a build error due to the default case not
- * being compiled out.
- */
+
+#ifndef barrier
+#define barrier() asm volatile("" ::: "memory")
+#endif
+
+
+#ifndef barrier_var
+#define barrier_var(var) asm volatile("" : "+r"(var))
+#endif
+
+
 #ifndef __bpf_unreachable
 # define __bpf_unreachable()	__builtin_trap()
 #endif
 
-/*
- * Helper function to perform a tail call with a constant/immediate map slot.
- */
+
 #if __clang_major__ >= 8 && defined(__bpf__)
 static __always_inline void
 bpf_tail_call_static(void *ctx, const void *map, const __u32 slot)
@@ -101,19 +83,7 @@ bpf_tail_call_static(void *ctx, const void *map, const __u32 slot)
 	if (!__builtin_constant_p(slot))
 		__bpf_unreachable();
 
-	/*
-	 * Provide a hard guarantee that LLVM won't optimize setting r2 (map
-	 * pointer) and r3 (constant map index) from _different paths_ ending
-	 * up at the _same_ call insn as otherwise we won't be able to use the
-	 * jmpq/nopl retpoline-free patching by the x86-64 JIT in the kernel
-	 * given they mismatch. See also d2e4c1e6c294 ("bpf: Constant map key
-	 * tracking for prog array pokes") for details on verifier tracking.
-	 *
-	 * Note on clobber list: we need to stay in-line with BPF calling
-	 * convention, so even if we don't end up using r0, r4, r5, we need
-	 * to mark them as clobber so that LLVM doesn't end up using them
-	 * before / after the call.
-	 */
+	
 	asm volatile("r1 = %[ctx]\n\t"
 		     "r2 = %[map]\n\t"
 		     "r3 = %[slot]\n\t"
@@ -123,21 +93,9 @@ bpf_tail_call_static(void *ctx, const void *map, const __u32 slot)
 }
 #endif
 
-/*
- * Helper structure used by eBPF C program
- * to describe BPF map attributes to libbpf loader
- */
-struct bpf_map_def {
-	unsigned int type;
-	unsigned int key_size;
-	unsigned int value_size;
-	unsigned int max_entries;
-	unsigned int map_flags;
-} __attribute__((deprecated("use BTF-defined maps in .maps section")));
-
 enum libbpf_pin_type {
 	LIBBPF_PIN_NONE,
-	/* PIN_BY_NAME: pin maps by name (in /sys/fs/bpf by default) */
+	
 	LIBBPF_PIN_BY_NAME,
 };
 
@@ -149,6 +107,13 @@ enum libbpf_tristate {
 
 #define __kconfig __attribute__((section(".kconfig")))
 #define __ksym __attribute__((section(".ksyms")))
+#define __kptr_untrusted __attribute__((btf_type_tag("kptr_untrusted")))
+#define __kptr __attribute__((btf_type_tag("kptr")))
+
+#define bpf_ksym_exists(sym) ({									\
+	_Static_assert(!__builtin_constant_p(!!sym), #sym " should be marked as __weak");	\
+	!!sym;											\
+})
 
 #ifndef ___bpf_concat
 #define ___bpf_concat(a, b) a ## b
@@ -180,10 +145,7 @@ enum libbpf_tristate {
 #define ___bpf_fill(arr, args...) \
 	___bpf_apply(___bpf_fill, ___bpf_narg(args))(arr, 0, args)
 
-/*
- * BPF_SEQ_PRINTF to wrap bpf_seq_printf to-be-printed values
- * in a structure.
- */
+
 #define BPF_SEQ_PRINTF(seq, fmt, args...)			\
 ({								\
 	static const char ___fmt[] = fmt;			\
@@ -198,10 +160,7 @@ enum libbpf_tristate {
 		       ___param, sizeof(___param));		\
 })
 
-/*
- * BPF_SNPRINTF wraps the bpf_snprintf helper with variadic arguments instead of
- * an array of u64.
- */
+
 #define BPF_SNPRINTF(out, out_size, fmt, args...)		\
 ({								\
 	static const char ___fmt[] = fmt;			\
@@ -229,10 +188,7 @@ enum libbpf_tristate {
 			 ##__VA_ARGS__);		\
 })
 
-/*
- * __bpf_vprintk wraps the bpf_trace_vprintk helper with variadic arguments
- * instead of an array of u64.
- */
+
 #define __bpf_vprintk(fmt, args...)				\
 ({								\
 	static const char ___fmt[] = fmt;			\
@@ -247,16 +203,75 @@ enum libbpf_tristate {
 			  ___param, sizeof(___param));		\
 })
 
-/* Use __bpf_printk when bpf_printk call has 3 or fewer fmt args
- * Otherwise use __bpf_vprintk
- */
+
 #define ___bpf_pick_printk(...) \
 	___bpf_nth(_, ##__VA_ARGS__, __bpf_vprintk, __bpf_vprintk, __bpf_vprintk,	\
 		   __bpf_vprintk, __bpf_vprintk, __bpf_vprintk, __bpf_vprintk,		\
-		   __bpf_vprintk, __bpf_vprintk, __bpf_printk /*3*/, __bpf_printk /*2*/,\
-		   __bpf_printk /*1*/, __bpf_printk /*0*/)
+		   __bpf_vprintk, __bpf_vprintk, __bpf_printk , __bpf_printk ,\
+		   __bpf_printk , __bpf_printk )
 
-/* Helper macro to print out debug messages */
+
 #define bpf_printk(fmt, args...) ___bpf_pick_printk(args)(fmt, ##args)
+
+struct bpf_iter_num;
+
+extern int bpf_iter_num_new(struct bpf_iter_num *it, int start, int end) __weak __ksym;
+extern int *bpf_iter_num_next(struct bpf_iter_num *it) __weak __ksym;
+extern void bpf_iter_num_destroy(struct bpf_iter_num *it) __weak __ksym;
+
+#ifndef bpf_for_each
+
+#define bpf_for_each(type, cur, args...) for (							\
+								\
+	struct bpf_iter_##type ___it __attribute__((aligned(8), ,	\
+						    cleanup(bpf_iter_##type##_destroy))),	\
+			\
+			       *___p __attribute__((unused)) = (				\
+					bpf_iter_##type##_new(&___it, ##args),			\
+				\
+			\
+					(void)bpf_iter_##type##_destroy, (void *)0);		\
+								\
+	(((cur) = bpf_iter_##type##_next(&___it)));						\
+)
+#endif 
+
+#ifndef bpf_for
+
+#define bpf_for(i, start, end) for (								\
+								\
+	struct bpf_iter_num ___it __attribute__((aligned(8), 	\
+						 cleanup(bpf_iter_num_destroy))),		\
+			\
+			    *___p __attribute__((unused)) = (					\
+				bpf_iter_num_new(&___it, (start), (end)),			\
+				\
+				\
+				(void)bpf_iter_num_destroy, (void *)0);				\
+	({											\
+										\
+		int *___t = bpf_iter_num_next(&___it);						\
+								\
+		(___t && ((i) = *___t, (i) >= (start) && (i) < (end)));				\
+	});											\
+)
+#endif 
+
+#ifndef bpf_repeat
+
+#define bpf_repeat(N) for (									\
+								\
+	struct bpf_iter_num ___it __attribute__((aligned(8), 	\
+						 cleanup(bpf_iter_num_destroy))),		\
+			\
+			    *___p __attribute__((unused)) = (					\
+				bpf_iter_num_new(&___it, 0, (N)),				\
+				\
+				\
+				(void)bpf_iter_num_destroy, (void *)0);				\
+	bpf_iter_num_next(&___it);								\
+										\
+)
+#endif 
 
 #endif

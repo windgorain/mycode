@@ -10,14 +10,17 @@ extern "C"
 {
 #endif
 
-#define _MEM_LINE_MAX 4096 /* 最大行数, 必须为2的指数幂 */
+#define _MEM_LINE_MAX 4096 
 #define _MEM_LINE_LOW_MAX 32
 #define _MEM_LINE_HIGH_MAX (_MEM_LINE_MAX / _MEM_LINE_LOW_MAX)
-#define _MEM_MAX_LEVEL 9
+#define _MEM_MAX_LEVEL 27
 
 #define _MEM_DFT_CHECK_VALUE 0x0a0b0c0d
 
-#define _MEM_GET_SPLIT_MEM_USRSIZE(ulLevel)    (32<<(ulLevel))
+static inline U32 _mem_get_size_by_level(int level)
+{
+    return 32 << level;
+}
 
 typedef struct {
 #ifdef IN_DEBUG
@@ -27,7 +30,7 @@ typedef struct {
     UINT usLine:16;
     UINT level:4;
     UINT busy:1;
-    UINT size;          /* 用户真实申请的内存大小 */
+    UINT size;          
     UINT uiHeadCheck;
 }_MEM_HEAD_S;
 
@@ -58,15 +61,19 @@ static inline _MEM_TAIL_S * _mem_get_tail_by_head(_MEM_HEAD_S *head)
     return (void*)((char*)(head + 1) + head->size);
 }
 
-/* 根据大小得到Level */
+
 static inline UINT _mem_get_level_by_size(IN ULONG size)
 {
     int level;
 
     for (level=0; level<(_MEM_MAX_LEVEL-1); level++) {
-        if (size <= (32 << level)) {
+        if ((U64)size <= (32ULL << level)) {
             break;
         }
+    }
+
+    if (level >= _MEM_MAX_LEVEL) {
+        level = _MEM_MAX_LEVEL - 1;
     }
 
     return level;
@@ -108,4 +115,4 @@ void _MEM_UnLock();
 #ifdef __cplusplus
 }
 #endif
-#endif //MEM_BS_H_
+#endif 

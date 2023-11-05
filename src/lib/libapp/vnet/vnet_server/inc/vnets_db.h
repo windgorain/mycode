@@ -6,7 +6,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETS_DB_Init();
 
@@ -17,8 +17,8 @@ VOID VNETS_DB_Close(IN DB_MYSQL_HANDLE hDb);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_DB_H_*/
+#endif 
 
 

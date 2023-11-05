@@ -14,7 +14,7 @@
 #include "mybpf_osbase.h"
 #include "mybpf_def_inner.h"
 
-int MYBPF_INSN_GetCallsCount(void *insts, int insts_len /* 字节数 */)
+int MYBPF_INSN_GetCallsCount(void *insts, int insts_len )
 {
     MYBPF_INSN_S *insn = insts;
     int insn_cnt = insts_len / sizeof(*insn);
@@ -30,8 +30,8 @@ int MYBPF_INSN_GetCallsCount(void *insts, int insts_len /* 字节数 */)
     return count;
 }
 
-/* 返回获取了多少个calls,失败返回<0 */
-int MYBPF_INSN_GetCallsInfo(void *insts, int insts_len/* 字节数 */, MYBPF_INSN_CALLS_S *calls, int max_count)
+
+int MYBPF_INSN_GetCallsInfo(void *insts, int insts_len, MYBPF_INSN_CALLS_S *calls, int max_count)
 {
     MYBPF_INSN_S *insn = insts;
     int insn_cnt = insts_len / sizeof(*insn);
@@ -54,8 +54,69 @@ int MYBPF_INSN_GetCallsInfo(void *insts, int insts_len/* 字节数 */, MYBPF_INS
     return count;
 }
 
-/* fixup extern calls
- * len: 字节数 */
+int MYBPF_INSN_WalkCalls(void *insts, int insts_len, PF_MYBPF_INSN_WALK walk_func, void *ud)
+{
+    MYBPF_INSN_S *insn = insts;
+    int insn_cnt = insts_len / sizeof(*insn);
+    int i;
+    int ret;
+
+	for (i = 0; i < insn_cnt; i++, insn++) {
+		if (insn->opcode != (BPF_JMP | BPF_CALL))
+			continue;
+        ret = walk_func(insts, i, ud);
+        if (ret < 0) {
+            return ret;
+        }
+    }
+
+    return 0;
+}
+
+int MYBPF_INSN_WalkExternCalls(void *insts, int insts_len, PF_MYBPF_INSN_WALK walk_func, void *ud)
+{
+    MYBPF_INSN_S *insn = insts;
+    int insn_cnt = insts_len / sizeof(*insn);
+    int i;
+    int ret;
+
+	for (i = 0; i < insn_cnt; i++, insn++) {
+		if (insn->opcode != (BPF_JMP | BPF_CALL))
+			continue;
+		if (insn->src_reg == BPF_PSEUDO_CALL)
+			continue;
+        ret = walk_func(insts, i, ud);
+        if (ret < 0) {
+            return ret;
+        }
+    }
+
+    return 0;
+}
+
+
+int MYBPF_INSN_WalkLddw(void *insts, int insts_len, PF_MYBPF_INSN_WALK walk_func, void *ud)
+{
+    MYBPF_INSN_S *insn = insts;
+    int insn_cnt = insts_len / sizeof(*insn);
+    int i;
+    int ret;
+
+	for (i = 0; i < insn_cnt; i++, insn++) {
+		if (insn->opcode != (BPF_LD | BPF_IMM | BPF_DW))
+			continue;
+        ret = walk_func(insts, i, ud);
+        if (ret < 0) {
+            return ret;
+        }
+        i++;
+        insn++;
+    }
+
+    return 0;
+}
+
+
 int MYBPF_INSN_FixupExtCalls(void *insts, int len, PF_MYBPF_INSN_EXTCALL_CONVERT convert_imm, void *ud)
 {
     MYBPF_INSN_S *insn = insts;
@@ -80,36 +141,46 @@ int MYBPF_INSN_FixupExtCalls(void *insts, int len, PF_MYBPF_INSN_EXTCALL_CONVERT
     return 0;
 }
 
-/* 获取使用了多少栈空间 */
-int MYBPF_INSN_GetStackSize(void *insts, int insts_len /* 字节数 */)
+
+int MYBPF_INSN_GetStackSize(void *insts, int insts_len )
 {
+    int insn_cnt = insts_len / sizeof(MYBPF_INSN_S);
     MYBPF_INSN_S *insn = insts;
-    int insn_cnt = insts_len / sizeof(*insn);
-    int i;
+    MYBPF_INSN_S *end = insn + insn_cnt;
     int count = 0;
     int off;
+    U8 class;
 
-	for (i = 0; i < insn_cnt; i++, insn++) {
-        if ((insn->opcode & 0x7) >= 4) {
-            /* 非访存指令 */
+    for (; insn < end; insn++) {
+        off = 0;
+        class = BPF_CLASS(insn->opcode);
+
+        if (((insn->opcode == (BPF_ALU64 | BPF_MOV | BPF_X)) && (insn->src_reg == 10)) && ((insn + 1) < end)) {
+            if ((insn[1].opcode == (BPF_ALU64 | BPF_ADD | BPF_K)) && (insn[1].dst_reg == insn->dst_reg)) {
+                off = -insn[1].imm;
+            } else if ((insn[1].opcode == (BPF_ALU64 | BPF_SUB | BPF_K)) && (insn[1].dst_reg == insn->dst_reg)) {
+                off = insn[1].imm;
+            } else {
+                continue;
+            }
+        } else if (((class == BPF_STX) || (class == BPF_ST)) && (insn->dst_reg == 10)) {
+            off = -insn->off;
+        } else if (((class == BPF_LDX) || (class == BPF_LD)) && (insn->src_reg == 10)) {
+            off = -insn->off;
+        } else {
             continue;
         }
-        if (insn->dst_reg != 10) {
-            /* 非BP操作 */
-            continue;
-        }
 
-        off = -insn->off;
         if (count < off) {
             count = off;
         }
     }
 
-    /* 返回占用了多少字节的栈空间 */
+    
     return count;
 }
 
-/* 获取使用了多少栈空间, 扫描到exit指令截止 */
+
 int MYBPF_INSN_GetStackSizeUntilExit(void *insts)
 {
     MYBPF_INSN_S *insn = insts;
@@ -118,11 +189,11 @@ int MYBPF_INSN_GetStackSizeUntilExit(void *insts)
 
 	for (; insn->opcode != 0x95; insn++) {
         if ((insn->opcode & 0x7) >= 4) {
-            /* 非访存指令 */
+            
             continue;
         }
         if (insn->dst_reg != 10) {
-            /* 非BP操作 */
+            
             continue;
         }
 
@@ -132,7 +203,7 @@ int MYBPF_INSN_GetStackSizeUntilExit(void *insts)
         }
     }
 
-    /* 返回占用了多少字节的栈空间 */
+    
     return count;
 }
 

@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 VOID WanUdpService_Init();
 BS_STATUS WanUdpService_Input(IN MBUF_S *pstMbuf);
@@ -20,8 +20,8 @@ BS_STATUS WanUdpService_Output(IN MBUF_S *pstMbuf, IN WAN_UDP_SERVICE_PARAM_S *p
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_UDP_SERVICE_H_*/
+#endif 
 
 

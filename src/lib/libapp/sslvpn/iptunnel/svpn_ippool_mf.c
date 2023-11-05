@@ -95,7 +95,7 @@ static VOID _svpn_ippoolmf_DelRangeToIpPool(IN SVPN_CONTEXT_HANDLE hSvpnContext,
 }
 
 
-/********MF接口*********/
+
 static CHAR *g_apcSvpnIPPoolMfProperty[] = {"Description", "StartIP", "EndIP"};
 static UINT g_uiSvpnIPPoolMfPropertyCount = sizeof(g_apcSvpnIPPoolMfProperty)/sizeof(CHAR*);
 static VOID svpn_ippoolmf_IsExist(IN MIME_HANDLE hMime, IN SVPN_DWEB_S *pstDweb)
@@ -176,29 +176,29 @@ BS_STATUS SVPN_IPPoolMf_Init()
     return SVPN_MF_Reg(g_astSvpnIpPoolMfMap, sizeof(g_astSvpnIpPoolMfMap)/sizeof(SVPN_MF_MAP_S));
 }
 
-/* 命令行 */
 
-/* ip-pool xxx */
+
+
 PLUG_API BS_STATUS SVPN_IpPoolCmd_EnterView(int argc, char **argv, void *pEnv)
 {
     return SVPN_CD_EnterView(pEnv, SVPN_CTXDATA_IPPOOL, argv[1]);
 }
 
-/* description xxx */
+
 PLUG_API BS_STATUS SVPN_IpPoolCmd_SetDescription(int argc, char **argv,
         void *pEnv)
 {
     return SVPN_CD_SetProp(pEnv, SVPN_CTXDATA_IPPOOL, "Description", argv[1]);
 }
 
-/* start-ip xxx */
+
 PLUG_API BS_STATUS SVPN_IpPoolCmd_SetStartAddress(int argc, char **argv,
         void *pEnv)
 {
     return SVPN_CD_SetProp(pEnv, SVPN_CTXDATA_IPPOOL, "StartIP", argv[1]);
 }
 
-/* end-ip xxx */
+
 PLUG_API BS_STATUS SVPN_IpPoolCmd_SetEndAddress(int argc, char **argv,
         void *pEnv)
 {

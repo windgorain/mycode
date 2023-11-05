@@ -12,11 +12,13 @@ extern "C"
 {
 #endif
 
-#define NETLINK_GEN_NAME "netlink_gen_nl"
+#define NETLINK_GEN_NAME "my_nl_gen"
 
 enum{  
     NETLINK_GEN_C_UNSPEC,  
     NETLINK_GEN_C_CMD,
+
+    NETLINK_GEN_C_MAX
 };  
 
 typedef struct netlink_msg_st {
@@ -43,4 +45,4 @@ int NetLink_Do(PF_NETLINK_DO do_func, int cmd, void *data, int data_len);
 #ifdef __cplusplus
 }
 #endif
-#endif //NETLINK_UTL_H_
+#endif 

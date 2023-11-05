@@ -77,7 +77,7 @@ static WS_EV_RET_E ws_plugdweb_HeadOK(IN WS_TRANS_S *pstTrans)
         return WS_EV_RET_CONTINUE;
     }
 
-    pcRequestFile ++; /* 去掉开始的'/' */
+    pcRequestFile ++; 
 
     pcStaticPath = WS_Context_File2RootPathFile(hContext, pcRequestFile, szFilePath, sizeof(szFilePath));
     if (pcStaticPath == NULL)

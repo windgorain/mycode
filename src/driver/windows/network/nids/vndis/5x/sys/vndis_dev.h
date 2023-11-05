@@ -10,9 +10,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* 定义版本 */
+
 #define VNDIS_DEV_DRIVER_MAJOR_VERSION 1
 #define VNDIS_DEV_DRIVER_MINOR_VERSION 0
 
@@ -52,8 +52,8 @@ NDIS_STATUS VNDIS_DEV_SendPacket
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNDIS_DEV_H_*/
+#endif 
 
 

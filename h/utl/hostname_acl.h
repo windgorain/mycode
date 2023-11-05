@@ -11,7 +11,7 @@ extern "C"
 {
 #endif
 
-#define HOSTNAME_ACL_UNDEF  0  /* not defined */
+#define HOSTNAME_ACL_UNDEF  0  
 #define HOSTNAME_ACL_PERMIT 1
 #define HOSTNAME_ACL_DENY   2
 #define HOSTNAME_ACL_BYPASS 3
@@ -27,4 +27,4 @@ int HostnameACL_Match(HOSTNAME_ACL_S *hostname_acl, char *hostname);
 #ifdef __cplusplus
 }
 #endif
-#endif //HOSTNAME_ACL_H_
+#endif 

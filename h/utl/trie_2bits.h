@@ -35,4 +35,4 @@ TRIE_COMMON_S * Trie2b_PrefixMatch(void *trie_ctrl, UCHAR *data, int data_len, P
 #ifdef __cplusplus
 }
 #endif
-#endif //TRIE_2BITS_H_
+#endif 

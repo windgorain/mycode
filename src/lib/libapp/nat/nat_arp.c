@@ -17,8 +17,8 @@
 #define _NAT_ARP_DBG_FLAG 0x1
 
 
-#define _NAT_ARP_TIME_OF_TICK 1000 /* 1s */
-#define _NAT_ARP_TIME_OUT_TIME (((60 * 1000 * 10) + _NAT_ARP_TIME_OF_TICK - 1) / _NAT_ARP_TIME_OF_TICK)  /* 10分钟 */
+#define _NAT_ARP_TIME_OF_TICK 1000 
+#define _NAT_ARP_TIME_OUT_TIME (((60 * 1000 * 10) + _NAT_ARP_TIME_OF_TICK - 1) / _NAT_ARP_TIME_OF_TICK)  
 
 static ARP_HANDLE g_hNatArp;
 static UINT g_uiNatArpDebugFlag = 0;
@@ -39,7 +39,7 @@ static BOOL_T nat_arp_IsHostIP(IN IF_INDEX uiIfIndex, ARP_HEADER_S *pstArpHeader
     return FALSE;
 }
 
-/* 返回网络序IP */
+
 static UINT nat_arp_GetHostIp(IN IF_INDEX ifIndex, IN UINT uiDstIP, IN USER_HANDLE_S *pstUserHandle)
 {
     return NAT_PHY_GetIP(ifIndex);
@@ -72,11 +72,11 @@ BS_STATUS NAT_ARP_PacketInput(IN MBUF_S *pstArpPacket)
     return ARP_PacketInput(g_hNatArp, pstArpPacket);
 }
 
-/* 根据IP得到MAC，如果得不到,则发送ARP请求，并返回BS_AGAIN. */
+
 BS_STATUS NAT_ARP_GetMacByIp
 (
     IN UINT uiIfIndex,
-    IN UINT ulIpToResolve /* 网络序 */,
+    IN UINT ulIpToResolve ,
     IN MBUF_S *pstMbuf,
     OUT MAC_ADDR_S *pstMacAddr
 )
@@ -98,16 +98,16 @@ PLUG_API BS_STATUS NAT_ARP_NoDebug(IN UINT ulArgc, IN UCHAR **argv)
 	return BS_OK;
 }
 
-static BS_WALK_RET_E nat_arp_ShowEach(IN ARP_NODE_S *pstArpNode, IN HANDLE hUserHandle)
+static int nat_arp_ShowEach(IN ARP_NODE_S *pstArpNode, IN HANDLE hUserHandle)
 {
     EXEC_OutInfo(" %-15pI4 %pM %s\r\n",
         &pstArpNode->uiIp,
         &pstArpNode->stMac,
         pstArpNode->eType == ARP_TYPE_STATIC ? "Static" : "Dynamic");
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-/* show arp */
+
 PLUG_API BS_STATUS NAT_ARP_ShowArp
 (
     IN UINT ulArgc,
@@ -124,7 +124,7 @@ PLUG_API BS_STATUS NAT_ARP_ShowArp
     return BS_OK;
 }
 
-/* arp static xxx xxx */
+
 PLUG_API BS_STATUS NAT_ARP_AddStaticArp
 (
     IN UINT ulArgc,
@@ -156,7 +156,7 @@ PLUG_API BS_STATUS NAT_ARP_AddStaticArp
     return BS_OK;
 }
 
-static BS_WALK_RET_E nat_arp_SaveStaticArp(IN ARP_NODE_S *pstArpNode, IN HANDLE hFile)
+static int nat_arp_SaveStaticArp(IN ARP_NODE_S *pstArpNode, IN HANDLE hFile)
 {
     if (pstArpNode->eType == ARP_TYPE_STATIC)
     {
@@ -165,7 +165,7 @@ static BS_WALK_RET_E nat_arp_SaveStaticArp(IN ARP_NODE_S *pstArpNode, IN HANDLE 
             &pstArpNode->stMac);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 VOID NAT_ARP_Save(IN HANDLE hFile)

@@ -12,7 +12,7 @@
 
 #include "../h/wan_vrf.h"
 
-/* vrf %STRING */
+
 PLUG_API BS_STATUS WAN_VFCmd_EnterView
 (
     IN UINT ulArgc,
@@ -25,7 +25,7 @@ PLUG_API BS_STATUS WAN_VFCmd_EnterView
     uiVrf = WanVrf_GetIdByName(argv[1]);
     if (uiVrf == 0)
     {
-        /* 名字必须以字母或者数字开头, 否则是保留名字, 不允许配置, 至于徐进入 */
+        
         if ((isalpha(argv[1][0])) || (isdigit(argv[1][0])))
         {
             uiVrf = WanVrf_CreateVrf(argv[1]);

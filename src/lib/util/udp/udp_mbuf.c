@@ -50,14 +50,14 @@ UDP_HEAD_S * UDP_GetUDPHeaderByMbuf(IN MBUF_S *pstMbuf, IN NET_PKT_TYPE_E enPktT
     return pstUdpHeader;
 }
 
-/* 给MBUF加上UDP头 */
+
 BS_STATUS UDP_BuilderHeader
 (
     IN MBUF_S *pstMbuf,
-    IN USHORT usSrcPort/* 网络序 */,
-    IN USHORT usDstPort/* 网络序 */,
-    IN UINT uiSrcIp/* 网络序 */,
-    IN UINT uiDstIp/* 网络序 */
+    IN USHORT usSrcPort,
+    IN USHORT usDstPort,
+    IN UINT uiSrcIp,
+    IN UINT uiDstIp
 )
 {
     UDP_HEAD_S *pstUdpHeader;

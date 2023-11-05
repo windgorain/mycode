@@ -29,7 +29,7 @@ typedef struct {
 }PWATCHER_RUNNER_S;
 
 static PWATCHER_RUNNER_S g_pwatcher_runner[PWATCHER_WORKER_MAX];
-static int g_pwatcher_asyn_runner_count = 0; /* 异步runner数目 */
+static int g_pwatcher_asyn_runner_count = 0; 
 
 static int pwatcher_runner_event_in(UINT point, PWATCHER_PKT_DESC_S *pkt, void *data);
 

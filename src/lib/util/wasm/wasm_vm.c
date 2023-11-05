@@ -11,7 +11,7 @@
 #include "wasm_def.h"
 #include "wasm_func.h"
 
-// 非饱和截断
+
 #define OP_TRUNC(RES, A, TYPE, RMIN, RMAX)                   \
     if (isnan(A)) {                                          \
         snprintf(m->exception, sizeof(m->exception), "invalid conversion to integer"); \
@@ -33,9 +33,9 @@
 #define OP_I64_TRUNC_F64(RES, A) OP_TRUNC(RES, A, INT64, -9223372036854777856.0, 9223372036854775808.0)
 #define OP_U64_TRUNC_F64(RES, A) OP_TRUNC(RES, A, UINT64, -1.0, 18446744073709551616.0)
 
-// 饱和截断
-// 注：和非饱和截断的区别在于，饱和截断会对异常情况做特殊处理。
-// 比如将 NaN 转换为 0。再比如如果超出了类型能表达的范围，让该变量等于一个最大值或者最小值。
+
+
+
 #define OP_TRUNC_SAT(RES, A, TYPE, RMIN, RMAX, IMIN, IMAX) \
     if (isnan(A)) {                                        \
         (RES) = 0;                                         \
@@ -93,7 +93,7 @@ static void _wasm_sext_32_64(UINT64 *val)
     }
 }
 
-// 32 位整型循环左移
+
 static UINT _wasm_rotl32(UINT n, UINT c)
 {
     const unsigned int mask = (CHAR_BIT * sizeof(n) - 1);
@@ -102,7 +102,7 @@ static UINT _wasm_rotl32(UINT n, UINT c)
     return (n << c) | (n >> ((-c) & mask));
 }
 
-// 32 位整型循环右移
+
 static UINT _wasm_rotr32(UINT n, UINT c)
 {
     const unsigned int mask = (CHAR_BIT * sizeof(n) - 1);
@@ -111,7 +111,7 @@ static UINT _wasm_rotr32(UINT n, UINT c)
     return (n >> c) | (n << ((-c) & mask));
 }
 
-// 64 位整型循环左移
+
 static uint64_t _wasm_rotl64(UINT64 n, UINT c)
 {
     const unsigned int mask = (CHAR_BIT * sizeof(n) - 1);
@@ -120,7 +120,7 @@ static uint64_t _wasm_rotl64(UINT64 n, UINT c)
     return (n << c) | (n >> ((-c) & mask));
 }
 
-// 64 位整型循环右移
+
 static uint64_t _wasm_rotr64(UINT64 n, UINT c)
 {
     const unsigned int mask = (CHAR_BIT * sizeof(n) - 1);
@@ -129,7 +129,7 @@ static uint64_t _wasm_rotr64(UINT64 n, UINT c)
     return (n >> c) | (n << ((-c) & mask));
 }
 
-// 32 位浮点型比较两数之间最大值
+
 static float _wasm_fmaxf(float a, float b)
 {
     float c = fmaxf(a, b);
@@ -139,7 +139,7 @@ static float _wasm_fmaxf(float a, float b)
     return c;
 }
 
-// 32 位浮点型比较两数之间最小值
+
 static float _wasm_fminf(float a, float b)
 {
     float c = fminf(a, b);
@@ -149,7 +149,7 @@ static float _wasm_fminf(float a, float b)
     return c;
 }
 
-// 64 位浮点型比较两数之间最大值
+
 static double _wasm_fmax(double a, double b)
 {
     double c = fmax(a, b);
@@ -159,7 +159,7 @@ static double _wasm_fmax(double a, double b)
     return c;
 }
 
-// 64 位浮点型比较两数之间最小值
+
 static double _wasm_fmin(double a, double b)
 {
     double c = fmin(a, b);
@@ -204,13 +204,13 @@ static WASM_BLOCK_S * _wasm_pop_block(WASM_MODULE_S *m)
 void wasm_setup_call(WASM_MODULE_S *m, UINT fidx)
 {
     WASM_BLOCK_S *func = &m->functions[fidx];
-    WASM_TYPE_S *type = func->type; // 获取函数签名
+    WASM_TYPE_S *type = func->type; 
     UINT lidx;
 
     wasm_push_block(m, func, m->sp - (int) type->param_count);
     m->fp = m->sp - (int) type->param_count + 1;
 
-    // 参数压栈
+    
     for (lidx = 0; lidx < func->local_count; lidx++) {
         m->sp += 1;
         m->stack[m->sp].value_type = func->locals[lidx];
@@ -229,25 +229,25 @@ void wasm_push_block(WASM_MODULE_S *m, WASM_BLOCK_S *block, int sp)
     m->callstack[m->csp].ra = m->pc;
 }
 
-// 执行字节码
+
 BOOL_T wasm_interpret(WASM_MODULE_S *m)
 {
     UCHAR *bytes = m->bytes;
-    WASM_STACKVALUE_S *stack = m->stack;   // 操作数栈
+    WASM_STACKVALUE_S *stack = m->stack;   
     UCHAR opcode;
     UINT cur_pc;
-    WASM_BLOCK_S *block; // 控制块
-    UINT cond; // 保存在操作数栈顶的判断条件的值
-    UINT depth; // 跳转指令的目标标签索引
-    UINT fidx; // 函数索引
+    WASM_BLOCK_S *block; 
+    UINT cond; 
+    UINT depth; 
+    UINT fidx; 
     UINT idx;
-    UCHAR *maddr; // 实际内存地址指针
-    UINT addr; // 用于计算相对内存地址
+    UCHAR *maddr; 
+    UINT addr; 
     UINT offset;
     UINT a, b, c;
     UINT64 d, e, f;
-    float g, h, i; // 用于 WASM_F32 数值计算
-    double j, k, l; // 用于 WASM_F64 数值计算
+    float g, h, i; 
+    double j, k, l; 
 
     while (m->pc < m->byte_count) {
         opcode = bytes[m->pc];
@@ -298,15 +298,15 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                     return FALSE;
                 }
                 if (block->block_type == 0x00) {
-                    // 当控制块类型为函数时，且调用栈为空（即 csp 为 -1），说明已经执行完顶层的控制块，
+                    
                     if (m->csp == -1) {
                         return TRUE;
                     }
                 } else if (block->block_type == 0x01) {
-                    // 当控制块类型为初始化表达式时，说明只有一层控制块调用，则直接返回 TRUE 退出虚拟机执行即可
+                    
                     return TRUE;
                 }
-                // 当控制块的块类型为 block/loop/if，则继续执行下一条指令
+                
                 continue;
             case Br:
                 depth = LEB_Read(bytes, &m->pc);
@@ -324,7 +324,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
             case BrTable: {
                 UINT count = LEB_Read(bytes, &m->pc);
                 if (count > WASM_BR_TABLE_SIZE) {
-                    // TODO: check this prior to runtime
+                    
                     snprintf(m->exception, sizeof(m->exception), "br_table size %d exceeds max %d\n", count, WASM_BR_TABLE_SIZE);
                     return FALSE;
                 }
@@ -332,7 +332,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                     m->br_table[n] = LEB_Read(bytes, &m->pc);
                 }
                 depth = LEB_Read(bytes, &m->pc);
-                // TODO: check that depth is within table
+                
                 int didx = stack[m->sp--].value.int32;
                 if (didx >= 0 && didx < (int32_t) count) {
                     depth = m->br_table[didx];
@@ -383,7 +383,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                         snprintf(m->exception, sizeof(m->exception), "call stack exhausted");
                         return FALSE;
                     }
-                    if (ftype->mask != m->types[tidx].mask) { // 校验类型
+                    if (ftype->mask != m->types[tidx].mask) { 
                         snprintf(m->exception, sizeof(m->exception),
                                 "indirect call type mismatch (call type and function type differ)");
                         return FALSE;
@@ -417,16 +417,16 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                 continue;
             case LocalGet:
                 idx = LEB_Read(bytes, &m->pc);
-                // 将局部变量压栈
+                
                 stack[++m->sp] = stack[m->fp + idx];
                 continue;
             case LocalSet:
                 idx = LEB_Read(bytes, &m->pc);
-                // 弹出操作数栈顶的值，将其保存到指定局部变量中
+                
                 stack[m->fp + idx] = stack[m->sp--];
                 continue;
             case LocalTee:
-                // 将操作数栈顶值保存到指定局部变量中，但不弹出栈顶值
+                
                 idx = LEB_Read(bytes, &m->pc);
                 stack[m->fp + idx] = stack[m->sp];
                 continue;
@@ -443,7 +443,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                 offset = LEB_Read(bytes, &m->pc);
                 addr = stack[m->sp--].value.uint32;
                 maddr = m->memory.bytes + offset + addr;
-                // TODO: 校验 offset/addr/maddr 值的合法性
+                
                 stack[++m->sp].value.uint64 = 0;
                 switch (opcode) {
                     case I32Load:
@@ -518,7 +518,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                 WASM_STACKVALUE_S *sval = &stack[m->sp--];
                 addr = stack[m->sp--].value.uint32;
                 maddr = m->memory.bytes + offset + addr;
-                // TODO: 忽略校验 offset/addr/maddr 值的合法性
+                
                 switch (opcode) {
                     case I32Store:
                         memcpy(maddr, &sval->value.uint32, 4);
@@ -564,7 +564,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                 if (delta == 0 || delta + prev_pages > m->memory.max_size) {
                     continue;
                 }
-                // 如果内存增长页数合法，则增加 delta 页内存
+                
                 m->memory.cur_size += delta;
                 m->memory.bytes = MEM_MallocAndCopy(m->memory.bytes,
                         prev_pages * WASM_PAGE_SIZE, m->memory.cur_size * WASM_PAGE_SIZE);

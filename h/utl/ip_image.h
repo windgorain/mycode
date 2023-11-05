@@ -34,13 +34,13 @@ typedef struct {
 
 typedef void (*PF_IPIMG_WALK_IP)(IPIMG_IP_ID_S *ipid, void *ud);
 
-/* max_property: 具有的属性种类数目 */
+
 IPIMG_HANDLE IPIMG_Create(int max_property);
 void IPIMG_Destroy(IPIMG_HANDLE hIpImg);
 void IPIMG_Reset(IPIMG_HANDLE hIpImg);
-/* 设置ID容量 */
+
 void IPIMG_SetIDCapacity(IPIMG_HANDLE hIpImg, UINT64 capacity);
-/* 设置IP容量 */
+
 void IPIMG_SetIPCapacity(IPIMG_HANDLE hIpImg, UINT capacity);
 int IPIMG_Add(IPIMG_HANDLE ipimg_handle, UINT ip, int property, void *value, int value_len);
 IDKEY_KL_S * IPIMG_GetKey(IPIMG_HANDLE ipimg_handle, UINT64 id);
@@ -49,4 +49,4 @@ void IPIMG_Walk(IPIMG_HANDLE ipimg_handle, PF_IPIMG_WALK_IP walk_func, void *ud)
 #ifdef __cplusplus
 }
 #endif
-#endif //_IP_IMAGE_H
+#endif 

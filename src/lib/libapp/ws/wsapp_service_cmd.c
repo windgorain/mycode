@@ -20,7 +20,7 @@ typedef struct
     CHAR *pcDomain;
 }WSAPP_SERVICE_CMD_BIND_GATEWAY_INFO_S;
 
-/* service %STRING */
+
 PLUG_API BS_STATUS WSAPP_ServiceCmd_EnterView(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     if (ulArgc < 2)
@@ -41,7 +41,7 @@ PLUG_API BS_STATUS WSAPP_ServiceCmd_EnterView(IN UINT ulArgc, IN CHAR **argv, IN
     return BS_OK;
 }
 
-/* [no] webcenter {hide|readonly} */
+
 PLUG_API BS_STATUS WSAPP_ServiceCmd_WebCenterOpt(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;
@@ -68,7 +68,7 @@ PLUG_API BS_STATUS WSAPP_ServiceCmd_WebCenterOpt(IN UINT ulArgc, IN CHAR **argv,
     return BS_OK;
 }
 
-/* description %STRING */
+
 PLUG_API BS_STATUS WSAPP_ServiceCmd_Description(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;
@@ -139,7 +139,7 @@ static VOID wsapp_servicecmd_BindGatewayInfo
     return;
 }
 
-/* [no] bind gateway %STRING [vhost %STRING [domain %STRING] ]*/
+
 PLUG_API BS_STATUS WSAPP_ServiceCmd_BindGateway(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     WSAPP_SERVICE_CMD_BIND_GATEWAY_INFO_S stInfo;
@@ -162,7 +162,7 @@ PLUG_API BS_STATUS WSAPP_ServiceCmd_BindGateway(IN UINT ulArgc, IN CHAR **argv, 
 }
 
 
-/* service enable */
+
 PLUG_API BS_STATUS WSAPP_ServiceCmd_Enable(IN UINT ulArgc, IN UCHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcServiceName;
@@ -179,7 +179,7 @@ PLUG_API BS_STATUS WSAPP_ServiceCmd_Enable(IN UINT ulArgc, IN UCHAR **argv, IN V
     return BS_OK;
 }
 
-/* no service enable */
+
 PLUG_API BS_STATUS WSAPP_ServiceCmd_NoEnable(IN UINT ulArgc, IN UCHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcService;

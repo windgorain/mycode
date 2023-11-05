@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS ToolHelp_CreateModule(IN UINT ulPid, OUT UINT *pulToolHelpId);
 BS_STATUS ToolHelp_GetFirstModule(IN UINT ulToolHelpId, OUT MODULEENTRY32 *pstMe32);
@@ -20,8 +20,8 @@ VOID ToolHelp_Delete(IN UINT ulToolHelpId);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__TOOLHELP_OS_H_*/
+#endif 
 
 

@@ -10,7 +10,7 @@
 #include "utl/in_checksum.h"
 #include "utl/log_utl.h"
 
-/* 返回网络序的校验和 */
+
 USHORT TCP_CheckSum
 (
     IN UCHAR *pucBuf,
@@ -21,16 +21,16 @@ USHORT TCP_CheckSum
 {
     USHORT usCheckSum = 0;
 
-    /* 1. 计算TCP头和数据的校验和 */
+    
     usCheckSum = IN_CHKSUM_AddRaw(usCheckSum, pucBuf, uiLen);
 
-    /* 2. 计算伪首部的源IP的校验和 */
+    
     usCheckSum = IN_CHKSUM_AddRaw(usCheckSum, pucSrcIp, 4);
 
-    /* 3. 计算伪首部的目的IP的校验和 */
+    
     usCheckSum = IN_CHKSUM_AddRaw(usCheckSum, pucDstIp, 4);
 
-    /* 4. 计算伪首部的类型和长度字段校验和 */
+    
     usCheckSum = IN_CHKSUM_AddRawWord(usCheckSum, IP_PROTO_TCP);
     usCheckSum = IN_CHKSUM_AddRawWord(usCheckSum, uiLen);
 
@@ -67,7 +67,7 @@ TCP_HEAD_S * TCP_GetTcpHeader(IN UCHAR *pucData, IN UINT uiDataLen, IN NET_PKT_T
 
     if (enPktTypeTmp == NET_PKT_TYPE_TCP)
     {
-        /* 长度不够TCP头的长度则返回NULL */
+        
         if ((uiHeadLen + sizeof(TCP_HEAD_S)) > uiDataLen)
         {
             return NULL;

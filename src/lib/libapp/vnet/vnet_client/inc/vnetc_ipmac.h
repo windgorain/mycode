@@ -10,19 +10,19 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETC_Ipmac_Init();
 VOID VNETC_Ipmac_Fin();
-BS_STATUS VNETC_Ipmac_Add(IN UINT uiIp/* 利大會 */, IN MAC_ADDR_S *pstMac);
-VOID VNETC_Ipmac_Del(IN UINT uiIp/* 利大會 */);
-MAC_ADDR_S * VNETC_Ipmac_GetMacByIp(IN UINT uiIp/* 利大會 */, OUT MAC_ADDR_S *pstMac);
+BS_STATUS VNETC_Ipmac_Add(IN UINT uiIp, IN MAC_ADDR_S *pstMac);
+VOID VNETC_Ipmac_Del(IN UINT uiIp);
+MAC_ADDR_S * VNETC_Ipmac_GetMacByIp(IN UINT uiIp, OUT MAC_ADDR_S *pstMac);
 
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_IPMAC_H_*/
+#endif 
 
 

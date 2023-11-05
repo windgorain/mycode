@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS SVPN_Role_Init();
 HSTRING SVPN_Role_GetACL(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN CHAR *pcRoleName);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_ROLE_H_*/
+#endif 
 
 

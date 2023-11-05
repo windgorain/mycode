@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 UINT VNETC_NODE_SelfCookie();
@@ -18,8 +18,8 @@ UINT VNETC_NODE_SelfCookie();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_NODE_SELF_H_*/
+#endif 
 
 

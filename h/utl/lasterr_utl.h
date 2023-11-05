@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 VOID LastErr_Print();
@@ -20,8 +20,8 @@ VOID LastErr_PrintByErrno(IN UINT uiErrno);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__LASTERR_UTL_H_*/
+#endif 
 
 

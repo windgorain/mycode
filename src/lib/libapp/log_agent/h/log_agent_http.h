@@ -19,4 +19,4 @@ void LOGAGENT_HTTP_Save(HANDLE hFile);
 #ifdef __cplusplus
 }
 #endif
-#endif //LOGAGENT_HTTP_H_
+#endif 

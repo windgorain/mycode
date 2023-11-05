@@ -12,19 +12,19 @@
 #include "utl/ip_session.h"
 
 static UINT g_ipsession_dft_timeout_steps[IP_SESSION_STATE_MAX] = {
-    5,  // CLOSED 
-    5,  // LISTEN
-    10, // SYN_SEND
-    10, // SYN_RCVD
-    300,// EST
-    5,  // CLOSE_WAIT
-    10, // FIN1
-    10, // CLOSING
-    10, // LAST_ACK
-    10, // FIN2
-    5,  // TIME_WAIT
-    10, // UDP
-    5,  // ICMP
+    5,  
+    5,  
+    10, 
+    10, 
+    300,
+    5,  
+    10, 
+    10, 
+    10, 
+    10, 
+    5,  
+    10, 
+    5,  
 };
 
 #ifdef IN_DEBUG
@@ -199,7 +199,7 @@ static inline int ipsession_KeyInit(IP_TUP_KEY_S *key, UCHAR family, UCHAR proto
     return client_index;
 }
 
-/* 返回Client ip所占的index */
+
 int IPSession_KeyInit(IP_TUP_KEY_S *key, UCHAR family, UCHAR protocol,
         UINT *client_ip, UINT *server_ip, USHORT client_port, USHORT server_port, UINT vnet_id)
 {
@@ -308,7 +308,7 @@ IP_SESSION_S * IPSession_GetSession(IP_SESSION_CTRL_S *ctrl, int index)
     return Box_GetData(&ctrl->ip_tup_box, index);
 }
 
-/* index=-1表示从头开始, return -1表示结束 */
+
 int IPSession_GetNext(IP_SESSION_CTRL_S *ctrl, int index)
 {
     return Box_GetNext(&ctrl->ip_tup_box, index);

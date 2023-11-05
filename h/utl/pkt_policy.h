@@ -27,20 +27,20 @@ typedef struct {
     LSTR_S user;
     LSTR_S host;
     UCHAR protocol;
-    UINT sip; /* 网络序 */
-    UINT dip; /* 网络序 */
-    USHORT sport; /* 网络序 */
-    USHORT dport; /* 网络序 */
+    UINT sip; 
+    UINT dip; 
+    USHORT sport; 
+    USHORT dport; 
 }PKT_POLICY_PKTINFO_S;
 
 typedef struct {
-    char *action;           /* permit deny bypass */
+    char *action;           
 
-    char *host;             /* eg: *.baidu.com */
-    char *protocol;         /* eg: icmp,udp,tcp; 也可以使用数字,比如同时支持tcp和udp: 17,6 */
-    char *sip;              /* eg: 1.1.1.0/24 */
+    char *host;             
+    char *protocol;         
+    char *sip;              
     char *dip;
-    char *sport;            /* eg: 80,8080 ; eg: 1000-2000,3000-4000; */
+    char *sport;            
     char *dport;
 }PKT_POLICY_RULE_S;
 
@@ -57,9 +57,9 @@ typedef struct {
 #define PKT_POLICY_DIM_MASK_HOST     0x40
 
 typedef struct {
-    RULE_NODE_S rule_node; /* 私有成员, 用户不需要关心 */
+    RULE_NODE_S rule_node; 
     PKT_POLICY_RULE_S policy_rule;
-    UINT dim_mask; /* 维度掩码 */
+    UINT dim_mask; 
 }PKT_POLICY_NODE_S;
 
 typedef struct {
@@ -88,7 +88,7 @@ typedef struct {
     PKT_POLICY_PORT_DIM_S dport_dim;
     PKT_POLICY_IP_DIM_S sip_dim;
     PKT_POLICY_IP_DIM_S dip_dim;
-    int default_action; /* 没有命中情况下的缺省动作 */
+    int default_action; 
 }PKT_POLICY_ENGINE_S;
 
 int PKTPolicy_Init(PKT_POLICY_S *pkt_policy);
@@ -106,4 +106,4 @@ int PKTPolicy_EngineMatch(PKT_POLICY_ENGINE_S *engine, PKT_POLICY_PKTINFO_S *pkt
 #ifdef __cplusplus
 }
 #endif
-#endif //PKT_POLICY_H_
+#endif 

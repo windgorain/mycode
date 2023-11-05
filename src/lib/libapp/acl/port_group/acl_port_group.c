@@ -191,7 +191,7 @@ void * AclPortGroup_FindByName(int muc_id, char *list_name)
     return PortPool_FindListByName(_acl_address_get_port_pool_instance(muc_id), list_name);
 }
 
-/***** cmds *****/
+
 
 PLUG_API int AclPortGroup_Show(int argc, char **argv, void *pEnv)
 {
@@ -252,7 +252,7 @@ PLUG_API int AclPortGroup_Clear(int argc, char **argv, void *pEnv)
         RETURN(BS_OK);
     }
 
-    // 如果有被引用，则不能被清除
+    
     if (ListRule_IsAnyListRefed(muc->port_pool_handle)){
         EXEC_OutString("port pool has been refered, can not be cleared.\r\n");
         RETURN(BS_REF_NOT_ZERO);

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #include "utl/address_pool_utl.h"
 #include "utl/port_pool_utl.h"
@@ -24,16 +24,16 @@ typedef HANDLE DOMAINACL_LIST_HANDLE;
 
 #define DOMAINACL_RULE_ID_MAX 10000000
 
-/* IPV4基本和高级ACL: */
-#define DOMAINACL_KEY_SIP         0x01          /* 源IP地址 */
-#define DOMAINACL_KEY_DPORT      (0x01 << 1)    /* 目的端口号 */
-#define DOMAINACL_KEY_POOL_SIP   (0x01 << 2)    /* 源地址池 */
+
+#define DOMAINACL_KEY_SIP         0x01          
+#define DOMAINACL_KEY_DPORT      (0x01 << 1)    
+#define DOMAINACL_KEY_POOL_SIP   (0x01 << 2)    
 #define DOMAINACL_KEY_DOMAIN     (0x01 << 3)
-#define DOMAINACL_KEY_POOL_DOAMIN   (0x01 << 4)    /* 目的地址池 */
-#define DOMAINACL_KEY_POOL_DPORT (0x01 << 5)    /* 源目的端口池 */
-#define DOMAINACL_KEY_PROTO         (0x01 << 6) /*协议类型*/
-#define DOMAINACL_KEY_USER_GROUP_SINGLE (0x01 << 7) /*single user/ group*/
-#define DOMAINACL_KEY_USER_GROUP_SET    (0x01 << 8) /*user/group set */
+#define DOMAINACL_KEY_POOL_DOAMIN   (0x01 << 4)    
+#define DOMAINACL_KEY_POOL_DPORT (0x01 << 5)    
+#define DOMAINACL_KEY_PROTO         (0x01 << 6) 
+#define DOMAINACL_KEY_USER_GROUP_SINGLE (0x01 << 7) 
+#define DOMAINACL_KEY_USER_GROUP_SET    (0x01 << 8) 
 
 
 typedef struct
@@ -67,7 +67,7 @@ typedef struct{
 
 typedef struct
 {
-    BS_ACTION_E enAction;    /* 命中后的动作 */
+    BS_ACTION_E enAction;    
 
     UINT uiKeyMask;
     DOMAINACL_KEY_S stKey;
@@ -76,9 +76,9 @@ typedef struct
 
 typedef struct
 {
-    /* 统计计数 */
-    volatile ULONG ulMatchCount;    /* 命中次数 */
-    UINT uiLatestMatchTime;         /* 规则命中最新时间 */
+    
+    volatile ULONG ulMatchCount;    
+    UINT uiLatestMatchTime;         
 }DOMAINACL_RULE_STATISTICS_S;
 
 typedef struct
@@ -100,7 +100,7 @@ typedef struct
 
 typedef BOOL_T (*PF_DOMAINACL_RULE_SCAN)(IN UINT uiRuleID, IN DOMAINACL_RULE_S *pstRule, IN VOID *pUserHandle);
 
-DOMAINACL_HANDLE DOMAINACL_Create();
+DOMAINACL_HANDLE DOMAINACL_Create(void* memcap);
 VOID DOMAINACL_Destroy(IN DOMAINACL_HANDLE hIpAcl);
 DOMAINACL_LIST_HANDLE DOMAINACL_CreateList(IN DOMAINACL_HANDLE hIpAcl, IN CHAR *pcListName);
 VOID DOMAINACL_DestroyList(IN DOMAINACL_HANDLE hIpAcl, IN DOMAINACL_LIST_HANDLE hIpAclList);
@@ -112,7 +112,7 @@ BS_STATUS DOMAINACL_AddListRef(IN DOMAINACL_HANDLE hIpAcl, IN UINT uiListID);
 BS_STATUS DOMAINACL_DelListRef(IN DOMAINACL_HANDLE hIpAcl, IN UINT uiListID);
 UINT DOMAINACL_ListGetRef(IN DOMAINACL_HANDLE hIpAcl, IN UINT uiListID);
 UINT DOMAINACL_GetListByName(IN DOMAINACL_HANDLE hIpAcl, IN CHAR *pcListName);
-UINT DOMAINACL_GetNextListID(IN DOMAINACL_HANDLE hIpAcl, IN UINT uiCurrentListID/* 0表示获取第一个 */);
+UINT DOMAINACL_GetNextListID(IN DOMAINACL_HANDLE hIpAcl, IN UINT uiCurrentListID);
 CHAR * DOMAINACL_GetListNameByID(IN DOMAINACL_HANDLE hIpAcl, IN UINT ulListID);
 BS_ACTION_E DOMAINACL_GetDefaultActionByID(IN DOMAINACL_HANDLE hIpAcl, IN UINT uiListID);
 BS_STATUS DOMAINACL_SetDefaultActionByID(IN DOMAINACL_HANDLE hIpAcl, IN UINT uiListID, BS_ACTION_E enAction);
@@ -142,8 +142,8 @@ void DOMAINACL_Reset(DOMAINACL_HANDLE hDomainAcl);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__DOMAIN_ACL_H_*/
+#endif 
 
 

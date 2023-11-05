@@ -55,7 +55,7 @@ static VDOMAIN_TYPE_E vdomain_DomainTypeString2Type(IN CHAR *pcString)
     return VDOMAIN_TYPE_MAX;
 }
 
-static BS_WALK_RET_E vdomain_WalkDomainEach(IN CHAR *pcTblName, IN HANDLE hUserHandle)
+static int vdomain_WalkDomainEach(IN CHAR *pcTblName, IN HANDLE hUserHandle)
 {
     VDOMAIN_CTRL_S *pstCtrl = hUserHandle;
     DC_DATA_S stKey;
@@ -70,7 +70,7 @@ static BS_WALK_RET_E vdomain_WalkDomainEach(IN CHAR *pcTblName, IN HANDLE hUserH
         BITMAP_SET(&pstCtrl->stBitmap, uiDomindID);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static BS_STATUS vdomain_Restore(IN VDOMAIN_CTRL_S *pstCtrl)
@@ -198,7 +198,7 @@ UINT VDOMAIN_AddDomain(IN VDOMAIN_HANDLE hVDomain, IN UINT uiSuperDomainID, IN V
 UINT VDOMAIN_AddRootDomain(IN VDOMAIN_HANDLE hVDomain, IN VDOMAIN_TYPE_E eType)
 {
     VDOMAIN_CTRL_S *pstCtrl = hVDomain;
-    UINT uiDomainID = VDOMAIN_ROOT_DOMAIN_ID; /* root domain的ID 是1 */
+    UINT uiDomainID = VDOMAIN_ROOT_DOMAIN_ID; 
 
     if (NULL == hVDomain)
     {
@@ -368,7 +368,7 @@ BS_STATUS VDOMAIN_SetAdmin
     return eRet;
 }
 
-/* 判断用户名密码是否匹配 */
+
 BOOL_T VDOMAIN_CheckAdmin
 (
     IN VDOMAIN_HANDLE hVDomain,
@@ -476,7 +476,7 @@ BS_STATUS VDOMAIN_AddUser
     return BS_OK;
 }
 
-/* 判断用户名密码是否匹配 */
+
 BOOL_T VDOMAIN_CheckUser
 (
     IN VDOMAIN_HANDLE hVDomain,

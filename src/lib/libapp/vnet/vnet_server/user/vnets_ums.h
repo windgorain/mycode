@@ -25,8 +25,8 @@ UINT _VNETS_UMS_GetSesId
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_UMS_H_*/
+#endif 
 
 

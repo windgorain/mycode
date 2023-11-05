@@ -16,10 +16,10 @@ extern "C"
 {
 #endif
 
-#define IDKEY_FLAG_ID_MAP 0x1 /* 创建id map */
-#define IDKEY_FLAG_KEY_MAP 0x1 /* 创建key map */
+#define IDKEY_FLAG_ID_MAP 0x1 
+#define IDKEY_FLAG_KEY_MAP 0x1 
 
-#define IDKEY_NODE_FLAG_DUP_KEY    0x1 /* 申请内存并复制key */
+#define IDKEY_NODE_FLAG_DUP_KEY    0x1 
 
 typedef HANDLE IDKEY_HDL;
 
@@ -85,10 +85,10 @@ typedef struct {
     UINT flag;
 }IDKEY_PARAM_S;
 
-/* 基础实现 */
+
 IDKEY_S * IDKEY_BaseCreate(IDKEY_PARAM_S *p);
 
-/* 装饰器 */
+
 IDKEY_S * IDKEY_WrapperIdmgrCreate(IDKEY_S *impl, IDMGR_S *idmgr);
 
 static inline void IDKEY_Destroy(IDKEY_S *ctrl, PF_IDKEY_FREE_FUNC free_func, void *ud)
@@ -116,13 +116,13 @@ static inline INT64 IDKEY_Add(IDKEY_S *ctrl, void *key, int key_len, void *data,
     return ctrl->funcs->add(ctrl, key, key_len, data, flag);
 }
 
-/* 删除并返回pData */
+
 static inline void * IDKEY_DelByKey(IDKEY_S *ctrl, void *key, int key_len)
 {
     return ctrl->funcs->del_by_key(ctrl, key, key_len);
 }
 
-/* 删除并返回pData */
+
 static inline void * IDKEY_DelByID(IDKEY_S *ctrl, INT64 id)
 {
     return ctrl->funcs->del_by_id(ctrl, id);
@@ -156,4 +156,4 @@ static inline void IDKEY_Walk(IDKEY_S *ctrl, PF_IDKEY_WALK_FUNC walk_func, void 
 #ifdef __cplusplus
 }
 #endif
-#endif //IDKEY_UTL_H_
+#endif 

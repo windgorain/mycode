@@ -6,7 +6,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE TMSG2_HANDLE;
 
@@ -33,7 +33,7 @@ BS_STATUS TMSG2_Input(IN TMSG2_HANDLE hTmsg2, IN MBUF_S *pstMbuf);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /* __TMSG2_UTL_H_ */
+#endif 
 

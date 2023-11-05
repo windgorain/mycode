@@ -10,14 +10,14 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 HANDLE HTTPSVR_CreateInstance(IN HANDLE hXmlcHandle);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__HTTPSVR_LIB_H_*/
+#endif 
 
 

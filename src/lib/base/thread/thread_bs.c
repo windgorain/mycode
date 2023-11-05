@@ -29,9 +29,9 @@ BS_STATUS THREAD_Display()
 THREAD_ID _thread_create
 (
     IN CHAR  *pucName,
-    IN THREAD_CREATE_PARAM_S *pstParam, /* 可以为NULL */
+    IN THREAD_CREATE_PARAM_S *pstParam, 
     IN PF_THREAD_NAMED_FUNC pfFunc,
-    IN USER_HANDLE_S *pstUserHandle /* 可以为NULL */
+    IN USER_HANDLE_S *pstUserHandle 
 )
 {
     return ThreadNamed_Create(pucName, pstParam, pfFunc, pstUserHandle);

@@ -69,14 +69,14 @@ static BS_STATUS vnets_auth_RecvAuthRequest(IN MIME_HANDLE hMime, IN VNETS_PROTO
 
     PW_Base64Decrypt(pszPasswd, szPassword, sizeof(szPassword));
 
-    /* 认证用户 */
+    
     bSuccess = VNETS_DC_CheckUserPassword(pszUserName, szPassword);
 
     BS_DBG_OUTPUT(g_ulVnetServerAuthDbgFlag, _VNET_SERVER_AUTH_DBG_FLAG_PACKET, 
         ("VNETS-AUTH:User %s login %s.\r\n",
         pszUserName, bSuccess == FALSE ? "failed" : "success"));
 
-    if (bSuccess == FALSE) /* 认证失败 */
+    if (bSuccess == FALSE) 
     {
         eReason = VNET_USER_REASON_AUTH_FAILED;
     }
@@ -102,13 +102,13 @@ BS_STATUS VNETS_Auth_Input(IN MIME_HANDLE hMime, IN VNETS_PROTOCOL_PACKET_INFO_S
 }
 
 
-/* debug auth packet */
+
 PLUG_API VOID VNETS_AUTH_DebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetServerAuthDbgFlag |= _VNET_SERVER_AUTH_DBG_FLAG_PACKET;
 }
 
-/* no debug auth packet */
+
 PLUG_API VOID VNETS_AUTH_NoDebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetServerAuthDbgFlag &= ~_VNET_SERVER_AUTH_DBG_FLAG_PACKET;

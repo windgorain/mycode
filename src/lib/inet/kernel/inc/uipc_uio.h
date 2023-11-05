@@ -10,11 +10,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/*
- * UIO types
- */
+
 enum uio_rw
 {
     UIO_READ,
@@ -22,18 +20,18 @@ enum uio_rw
 };
 
 typedef struct uio {
-    struct iovec *uio_iov;        /* scatter/gather list */
-    int    uio_iovcnt;            /* length of scatter/gather list */
-    int    uio_offset;            /* offset in target object */
-    int    uio_resid;             /* remaining bytes to process */
-    enum   uio_rw uio_rw;         /* operation */
+    struct iovec *uio_iov;        
+    int    uio_iovcnt;            
+    int    uio_offset;            
+    int    uio_resid;             
+    enum   uio_rw uio_rw;         
 }UIO_S;
 
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__UIPC_UIO_H_*/
+#endif 
 
 

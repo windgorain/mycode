@@ -14,7 +14,7 @@
 #include "../h/log_agent_alert.h"
 #include "../h/log_agent_conf.h"
 
-/* alert match %INT sid %INT */
+
 PLUG_API int LOGAGENT_ALERT_CmdMatchSid(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_ALERT_GetCtrl();
@@ -26,7 +26,7 @@ PLUG_API int LOGAGENT_ALERT_CmdMatchSid(int argc, char **argv)
     return 0;
 }
 
-/* alert match %INT enable */
+
 PLUG_API int LOGAGENT_ALERT_CmdMatchEnable(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_ALERT_GetCtrl();
@@ -35,7 +35,7 @@ PLUG_API int LOGAGENT_ALERT_CmdMatchEnable(int argc, char **argv)
     return 0;
 }
 
-/* no alert match %INT enable */
+
 PLUG_API int LOGAGENT_ALERT_CmdMatchDisable(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_ALERT_GetCtrl();
@@ -58,7 +58,7 @@ static void logagent_alert_ShowMatchedCountOne(MATCH_HANDLE hMatch, int index)
             index, *sid, enable, count);
 }
 
-/* show alert match count [%INT] */
+
 PLUG_API int LOGAGENT_ALERT_CmdShowMatchCount(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_ALERT_GetCtrl();
@@ -80,7 +80,7 @@ PLUG_API int LOGAGENT_ALERT_CmdShowMatchCount(int argc, char **argv)
     return 0;
 }
 
-/* reset alert match count [%INT] */
+
 PLUG_API int LOGAGENT_ALERT_CmdResetMatchCount(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_ALERT_GetCtrl();

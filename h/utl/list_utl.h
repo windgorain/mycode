@@ -10,14 +10,12 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/*
- * Singly-linked List declarations.
- */
+
 #define    SLIST_HEAD(name, type)                        \
 struct name {                                \
-    struct type *slh_first;    /* first element */            \
+    struct type *slh_first;                \
 }
 
 #define    SLIST_HEAD_INITIALIZER(head)                    \
@@ -26,12 +24,10 @@ struct name {                                \
 #undef SLIST_ENTRY
 #define    SLIST_ENTRY(type)                        \
 struct {                                \
-    struct type *sle_next;    /* next element */            \
+    struct type *sle_next;                \
 }
 
-/*
- * Singly-linked List functions.
- */
+
 #define    SLIST_EMPTY(head)    ((head)->slh_first == NULL)
 
 #define    SLIST_FIRST(head)    ((head)->slh_first)
@@ -84,12 +80,10 @@ struct {                                \
     SLIST_FIRST((head)) = SLIST_NEXT(SLIST_FIRST((head)), field);    \
 } while (0)
 
-/*
- * List declarations.
- */
+
 #define    LIST_HEAD_DECLARE(name, type)    \
 struct name {                               \
-    struct type *lh_first;    /* first element */            \
+    struct type *lh_first;                \
 }
 
 #define    LIST_HEAD_INITIALIZER(head)                    \
@@ -97,13 +91,11 @@ struct name {                               \
 
 #define    LIST_ENTRY(type)                        \
 struct {                                \
-    struct type *le_next;    /* next element */            \
-    struct type **le_prev;    /* address of previous next element */    \
+    struct type *le_next;                \
+    struct type **le_prev;        \
 }
 
-/*
- * List functions.
- */
+
 
 #define    LIST_EMPTY(head)    ((head)->lh_first == NULL)
 
@@ -158,13 +150,11 @@ struct {                                \
 } while (0)
 
 
-/*
- * Tail queue declarations.
- */
+
 #define    TAILQ_HEAD(name, type)                        \
 struct name {                                \
-    struct type *tqh_first;    /* first element */            \
-    struct type **tqh_last;    /* addr of last next element */        \
+    struct type *tqh_first;                \
+    struct type **tqh_last;            \
 }
 
 #define    TAILQ_HEAD_INITIALIZER(head)                    \
@@ -172,8 +162,8 @@ struct name {                                \
 
 #define    TAILQ_ENTRY(type)                        \
 struct {                                \
-    struct type *tqe_next;    /* next element */            \
-    struct type **tqe_prev;    /* address of previous next element */    \
+    struct type *tqe_next;                \
+    struct type **tqe_prev;        \
 }
 
 #define    TAILQ_CONCAT(head1, head2, field) do {                \
@@ -271,8 +261,8 @@ struct {                                \
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__LIST_UTL_H_*/
+#endif 
 
 

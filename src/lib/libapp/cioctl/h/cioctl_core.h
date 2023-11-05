@@ -15,4 +15,4 @@ int CIOCTL_ProcessRequest(CIOCTL_REQUEST_S *req, OUT VBUF_S *reply);
 #ifdef __cplusplus
 }
 #endif
-#endif //CIOCTL_CORE_H_
+#endif 

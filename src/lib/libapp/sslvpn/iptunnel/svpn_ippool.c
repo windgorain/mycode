@@ -81,7 +81,7 @@ static BS_STATUS _svpn_ippool_ContextCreate(IN SVPN_CONTEXT_HANDLE hSvpnContext)
 
     SVPN_Context_SetUserData(hSvpnContext, SVPN_CONTEXT_DATA_INDEX_IPTUN_IPPOOL, pstIpPoolCtrl);
 
-    /* 恢复配置 */
+    
     while (BS_OK == SVPN_CtxData_GetNextObject(hSvpnContext,
         SVPN_CTXDATA_IPPOOL, szName, szName, sizeof(szName)))
     {
@@ -179,8 +179,8 @@ static BS_STATUS svpn_ippool_DelFibRange
 BS_STATUS SVPN_IPPOOL_AddRange
 (
     IN SVPN_CONTEXT_HANDLE hSvpnContext,
-    IN UINT uiStartIP/* 主机序 */,
-    IN UINT uiEndIP/* 主机序 */
+    IN UINT uiStartIP,
+    IN UINT uiEndIP
 )
 {
     _SVPN_IPPOOL_CTRL_S *pstCtrl;
@@ -210,8 +210,8 @@ BS_STATUS SVPN_IPPOOL_AddRange
 VOID SVPN_IPPOOL_DelRange
 (
     IN SVPN_CONTEXT_HANDLE hSvpnContext,
-    IN UINT uiStartIP/* 主机序 */,
-    IN UINT uiEndIP/* 主机序 */
+    IN UINT uiStartIP,
+    IN UINT uiEndIP
 )
 {
     _SVPN_IPPOOL_CTRL_S *pstCtrl;
@@ -238,10 +238,10 @@ VOID SVPN_IPPOOL_DelRange
 BS_STATUS SVPN_IPPOOL_ModifyRange
 (
     IN SVPN_CONTEXT_HANDLE hSvpnContext,
-    IN UINT uiOldStartIP/* 主机序 */,
-    IN UINT uiOldEndIP/* 主机序 */,
-    IN UINT uiStartIP/* 主机序 */,
-    IN UINT uiEndIP/* 主机序 */
+    IN UINT uiOldStartIP,
+    IN UINT uiOldEndIP,
+    IN UINT uiStartIP,
+    IN UINT uiEndIP
 )
 {
     _SVPN_IPPOOL_CTRL_S *pstCtrl;
@@ -271,7 +271,7 @@ BS_STATUS SVPN_IPPOOL_ModifyRange
     return eRet;
 }
 
-/* 申请一个IP，返回主机序IP */
+
 UINT SVPN_IPPOOL_AllocIP(IN SVPN_CONTEXT_HANDLE hSvpnContext)
 {
     _SVPN_IPPOOL_CTRL_S *pstCtrl;
@@ -290,7 +290,7 @@ UINT SVPN_IPPOOL_AllocIP(IN SVPN_CONTEXT_HANDLE hSvpnContext)
     return uiIP;
 }
 
-VOID SVPN_IPPOOL_FreeIP(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN UINT uiIP/* 主机序 */)
+VOID SVPN_IPPOOL_FreeIP(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN UINT uiIP)
 {
     _SVPN_IPPOOL_CTRL_S *pstCtrl;
 

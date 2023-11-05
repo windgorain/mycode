@@ -13,7 +13,7 @@
 #include "../h/pwatcher_ob_common.h"
 
 typedef struct {
-    UINT service_enable: 1; /* 本service是否使能 */
+    UINT service_enable: 1; 
 }PWATCHER_OB_EXAMPLE_SERVICE_S;
 
 static int pwatcher_ob_example_input(UINT point, PWATCHER_PKT_DESC_S *pkt, void *data);
@@ -106,7 +106,7 @@ static void pwatcher_ob_example_zone_event(PWATCHER_ZONE_EV_S *ev)
 
 static void pwatcher_ob_example_ip_input(PWATCHER_PKT_DESC_S *pkt_info)
 {
-    /* process pkt */
+    
 }
 
 static int pwatcher_ob_example_input(UINT point, PWATCHER_PKT_DESC_S *pkt_info, void *data)
@@ -157,7 +157,7 @@ PLUG_ENTRY
 
 PWATCHER_OB_FUNCTIONS 
 
-/* [no] ob example enable */
+
 PLUG_API int PWatcherObTopn_CmdEnable(int argc, char **argv, void *env)
 {
     PWATCHER_OB_EXAMPLE_SERVICE_S *svr = pwatcher_ob_example_get_service_by_env(env, 1, NULL);

@@ -13,7 +13,7 @@
 
 static PATHTREE_NODE_S *g_pstMkWebMenuPathTree = NULL;
 
-static BS_WALK_RET_E _mwm_WalkTreeNode
+static int _mwm_WalkTreeNode
 (
     IN PATHTREE_NODE_S *pstNode,
     IN UINT ulDeepth,
@@ -29,7 +29,7 @@ static BS_WALK_RET_E _mwm_WalkTreeNode
 
     if (ulDeepth == 1)
     {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     if ((ulDeepth > ulOldDeepth) && (ulOldDeepth > 1))
@@ -64,7 +64,7 @@ static BS_WALK_RET_E _mwm_WalkTreeNode
         FILE_WriteStr(fp, "</li>");
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static BS_STATUS _mwm_CreateMenuList()
@@ -106,7 +106,7 @@ BS_STATUS _mwm_RegMenu(IN CHAR *pszWebMenuFilePath)
 
     TXT_SCAN_LINE_BEGIN(pstMemMap->pucFileData, pszLineHead, ulLineLen)
     {
-        /* 格式为: /dir1/dir2/dir3:xxx.htm */
+        
         pszLineHead[ulLineLen] = '\0';
         pcSplit = strchr(pszLineHead, ':');
         if (NULL == pcSplit)

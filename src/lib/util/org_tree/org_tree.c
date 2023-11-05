@@ -18,7 +18,7 @@ typedef struct
 {
     TREE_NODE_S stTreeNode;
     CHAR szOrgName[USER_TREE_MAX_ORG_NAME_LEN + 1];
-    KV_HANDLE hKvList;   /* kvlist */
+    KV_HANDLE hKvList;   
 }ORG_TREE_ORG_S;
 
 
@@ -111,7 +111,7 @@ static VOID orgtree_DeleteOrg(IN ORG_TREE_S *pstUserTree, IN ORG_TREE_ORG_S *pst
     ORG_TREE_ORG_S *pstOrgChild;
     ORG_TREE_ORG_S *pstOrgTmp;
 
-    /* 删除子组织 */
+    
     DLL_SAFE_SCAN(&pstOrg->stTreeNode.stChildNode, pstOrgChild, pstOrgTmp)
     {
         orgtree_DeleteOrg(pstUserTree, pstOrgChild);
@@ -360,7 +360,7 @@ UINT64 OrgTree_FindChildOrgByName
     return uiFoundID;
 }
 
-/* 根据Index顺序获取下一个 */
+
 UINT64 OrgTree_GetNextOrgByIndexOrder(IN ORG_TREE_HANDLE hOrgTree, IN UINT64 uiCurrentOrgID)
 {
     ORG_TREE_S *pstUserTree = hOrgTree;
@@ -368,7 +368,7 @@ UINT64 OrgTree_GetNextOrgByIndexOrder(IN ORG_TREE_HANDLE hOrgTree, IN UINT64 uiC
     return NAP_GetNextID(pstUserTree->hOrgNap, uiCurrentOrgID);
 }
 
-static BS_WALK_RET_E orgtree_WalkOrgByDeepOrder
+static int orgtree_WalkOrgByDeepOrder
 (
     IN ORG_TREE_S *pstUserTree,
     IN ORG_TREE_ORG_S *pstOrg,
@@ -378,28 +378,25 @@ static BS_WALK_RET_E orgtree_WalkOrgByDeepOrder
 {
     ORG_TREE_ORG_S *pstOrg1;
     ORG_TREE_ORG_S *pstOrg2;
-    BS_WALK_RET_E eRet = BS_WALK_CONTINUE;
+    int ret = 0;
     
-    eRet = pfWalkFunc(pstUserTree, NAP_GetIDByNode(pstUserTree->hOrgNap, pstOrg), hUserHandle);
-    if (eRet == BS_WALK_STOP)
-    {
-        return eRet;
+    ret = pfWalkFunc(pstUserTree, NAP_GetIDByNode(pstUserTree->hOrgNap, pstOrg), hUserHandle);
+    if (ret < 0) {
+        return ret;
     }
 
-    DLL_SAFE_SCAN(&pstOrg->stTreeNode.stChildNode, pstOrg1, pstOrg2)
-    {
-        eRet = orgtree_WalkOrgByDeepOrder(pstUserTree, pstOrg1, pfWalkFunc, hUserHandle);
-        if (eRet == BS_WALK_STOP)
-        {
+    DLL_SAFE_SCAN(&pstOrg->stTreeNode.stChildNode, pstOrg1, pstOrg2) {
+        ret = orgtree_WalkOrgByDeepOrder(pstUserTree, pstOrg1, pfWalkFunc, hUserHandle);
+        if (ret < 0) {
             break;
         }
     }
 
-    return eRet;
+    return ret;
 }
 
-/* 深度优先遍历 */
-VOID OrgTree_WalkOrgByDeepOrder
+
+int OrgTree_WalkOrgByDeepOrder
 (
     IN ORG_TREE_HANDLE hOrgTree,
     IN PF_OrgTree_Walk_Func pfWalkFunc,
@@ -410,12 +407,11 @@ VOID OrgTree_WalkOrgByDeepOrder
     ORG_TREE_ORG_S *pstOrg;
 
     pstOrg = pstUserTree->pstRoot;
-    if (NULL == pstOrg)
-    {
-        return;
+    if (NULL == pstOrg) {
+        return 0;
     }
 
-    orgtree_WalkOrgByDeepOrder(pstUserTree, pstOrg, pfWalkFunc, hUserHandle);
+    return orgtree_WalkOrgByDeepOrder(pstUserTree, pstOrg, pfWalkFunc, hUserHandle);
 }
 
 

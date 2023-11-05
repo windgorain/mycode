@@ -28,10 +28,10 @@ extern UINT g_fakecert_log_flag;
         if (g_fakecert_log_flag & FAKECERT_LOG_FLAG_ERROR) {fakecert_log _X;} \
     }while (0)
 
-int fakecert_log_conf_init();
+int fakecert_log_conf_init(IN CFF_HANDLE hCff);
 void fakecert_log(IN CHAR *fmt, ...);
 
 #ifdef __cplusplus
 }
 #endif
-#endif //FAKECERT_LOG_H_
+#endif 

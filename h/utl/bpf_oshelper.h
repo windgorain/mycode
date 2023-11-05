@@ -12,7 +12,7 @@ extern "C"
 
 #if 0
 typedef struct {
-    long long err; /* 当func不存在时,返回的err值 */
+    long long err; 
     char *name;
     void * func;
 }BPF_OSHELPER_S;
@@ -30,7 +30,7 @@ static BPF_OSHELPER_S g_bpf_os_helper[1024] = {
     {.err=-1, .name="bpf_skb_store_bytes"},
     {.err=-1, .name="bpf_l3_csum_replace"},
     {.err=-1, .name="bpf_l4_csum_replace"},
-    {.err=-1, .name=NULL}, //bpf_tail_call暂不支持
+    {.err=-1, .name=NULL}, 
     {.err=-1, .name="bpf_clone_redirect"},
     {.err=0, .name="bpf_get_current_pid_tgid"},
     {.err=0, .name="bpf_get_current_uid_gid"},
@@ -87,7 +87,7 @@ static BPF_OSHELPER_S g_bpf_os_helper[1024] = {
     {.err=-1, .name="bpf_skb_get_xfrm_state"},
     {.err=-1, .name="bpf_get_stack"},
     {.err=-1, .name="bpf_skb_load_bytes_relative"},
-    {.err=-1, .name=NULL}, /* bpf_skb_fib_lookup or bpf_xdp_fib_lookup 不知道该使用哪个 */
+    {.err=-1, .name=NULL}, 
     {.err=-1, .name="bpf_sock_hash_update"},
     {.err=0, .name="bpf_msg_redirect_hash"},
     {.err=0, .name="bpf_sk_redirect_hash"},
@@ -166,4 +166,4 @@ static BPF_OSHELPER_S g_bpf_os_helper[1024] = {
 #ifdef __cplusplus
 }
 #endif
-#endif //BPF_OSHELPER_H_
+#endif 

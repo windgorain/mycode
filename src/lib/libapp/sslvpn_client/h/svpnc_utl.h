@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 CONN_HANDLE SVPNC_CreateServerConn();
 CONN_HANDLE SVPNC_SynConnectServer();
@@ -18,8 +18,8 @@ INT SVPNC_ReadHttpBody(IN CONN_HANDLE hConn, IN UCHAR *pucData, IN UINT uiDataSi
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPNC_UTL_H_*/
+#endif 
 
 

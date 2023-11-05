@@ -16,18 +16,18 @@ char * inet_ntop6_full(const struct in6_addr *addr, char *dst, socklen_t size)
 
     if (addr == NULL) return NULL;
 
-    bzero(tmp, sizeof(tmp));
+    memset(tmp, 0, sizeof(tmp));
 
-    /*  check for mapped or compat addresses */
+    
     i = IN6_IS_ADDR_V4MAPPED(addr);
     j = IN6_IS_ADDR_V4COMPAT(addr);
     if ((i != 0) || (j != 0)) {
-        char tmp2[16]; /* max length of ipv4 addr string */
+        char tmp2[16]; 
         addr4.s_addr = addr->s6_addr32[3];
         len = scnprintf(tmp, sizeof(tmp), "::%s%s", (i != 0) ? "ffff:" : "",
                 inet_ntop4(&addr4, tmp2, sizeof(tmp2)));
         if (len >= size) return NULL;
-        bcopy(tmp, dst, len + 1);
+        memcpy(dst, tmp, len + 1);
         return dst;
     }
 
@@ -43,12 +43,12 @@ char * inet_ntop6_full(const struct in6_addr *addr, char *dst, socklen_t size)
         if (i != 14) tmp[len++] = ':';
     }
 
-    /* trailing NULL */
+    
     if (++len > size) {
         return NULL;
     }
 
-    bcopy(tmp, dst, len);
+    memcpy(dst, tmp, len);
 
     return dst;
 }
@@ -93,7 +93,7 @@ static inline int ip6_is_up_layer_type(UCHAR protocol)
     return 0;
 }
 
-int IP6_GetUpLayer(IP6_HEAD_S *ip6_header, int len/*包含IP6头的长度*/, OUT IP6_UPLAYER_S *uplayer)
+int IP6_GetUpLayer(IP6_HEAD_S *ip6_header, int len, OUT IP6_UPLAYER_S *uplayer)
 {
     UCHAR protocol = ip6_header->next;
     UCHAR *opt = (void*)(ip6_header + 1);
@@ -104,7 +104,7 @@ int IP6_GetUpLayer(IP6_HEAD_S *ip6_header, int len/*包含IP6头的长度*/, OUT
         return -1;
     }
 
-    /* 跳过扩展头 */
+    
     while (! ip6_is_up_layer_type(protocol)) {
         if (protocol == IP_PROTO_FRAGMENT) {
             opt_len = 8;

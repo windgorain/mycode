@@ -212,7 +212,7 @@ BS_STATUS HCall_Init()
     return BS_OK;
 }
 
-/* bind ws-service xxx */
+
 PLUG_API BS_STATUS HCall_BindService(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     if (BS_OK != WSAPP_BindService(argv[2]))
@@ -233,7 +233,7 @@ PLUG_API BS_STATUS HCall_BindService(IN UINT ulArgc, IN CHAR **argv, IN VOID *pE
     return BS_OK;
 }
 
-/* [no] debug packet */
+
 PLUG_API BS_STATUS HCall_DebugPacket(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     if (argv[0][0] == 'n')
@@ -248,7 +248,7 @@ PLUG_API BS_STATUS HCall_DebugPacket(IN UINT ulArgc, IN CHAR **argv, IN VOID *pE
     return BS_OK;
 }
 
-/* no bind ws-service */
+
 PLUG_API BS_STATUS HCall_UnBindService(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     if (g_szHcallWsService[0] != '\0')
@@ -261,7 +261,7 @@ PLUG_API BS_STATUS HCall_UnBindService(IN UINT ulArgc, IN CHAR **argv, IN VOID *
     return BS_OK;
 }
 
-/* [no] permit module xxx */
+
 PLUG_API BS_STATUS HCall_PermitModule(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     BS_STATUS eRet = BS_OK;

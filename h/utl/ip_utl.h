@@ -14,7 +14,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define IP_INVALID_HEAD_OFFSET 0xffffffff
 
@@ -22,7 +22,7 @@ typedef struct
 {
     UINT uiIP;
     UINT uiMask;
-}IP_MAKS_S;
+}IP_MASK_S;
 
 typedef struct
 {
@@ -30,14 +30,14 @@ typedef struct
     UCHAR ucPrefix;
 }IP_PREFIX_S;
 
-USHORT IP_CheckSum (IN UCHAR *pucBuf/* IP头 */, IN UINT ulLen/* IP头长度 */);
+USHORT IP_CheckSum (IN UCHAR *pucBuf, IN UINT ulLen);
 IP_HEAD_S * IP_GetIPHeader(IN UCHAR *pucData, IN UINT uiDataLen, IN NET_PKT_TYPE_E enPktType);
-BOOL_T IPUtl_IsExistInIpArry(IN IP_MAKS_S *pstIpMask, IN UINT uiNum, IN UINT uiIP, IN UINT uiMask);
-BOOL_T IP_IsPrivateIp(UINT ip/*net order*/);
+BOOL_T IPUtl_IsExistInIpArry(IN IP_MASK_S *pstIpMask, IN UINT uiNum, IN UINT uiIP, IN UINT uiMask);
+BOOL_T IP_IsPrivateIp(UINT ip);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__IP_UTL_H_*/
+#endif 
 

@@ -12,7 +12,7 @@
 #include "../h/svpn_dweb.h"
 #include "../h/svpn_mf.h"
 
-/********MF接口*********/
+
 static CHAR *g_apcSvpnWebResProperty[] = {"Description", "URL", "Permit"};
 static UINT g_uiSvpnWebResPropertyCount = sizeof(g_apcSvpnWebResProperty)/sizeof(CHAR*);
 static VOID svpn_webres_IsExist(IN MIME_HANDLE hMime, IN SVPN_DWEB_S *pstDweb)
@@ -67,27 +67,27 @@ BS_STATUS SVPN_WebRes_Init()
 }
 
 
-/* 命令行 */
 
-/* web-resource xxx */
+
+
 PLUG_API BS_STATUS SVPN_WebResCmd_EnterView(int argc, char **argv, void *pEnv)
 {
     return SVPN_CD_EnterView(pEnv, SVPN_CTXDATA_WEB_RES, argv[1]);
 }
 
-/* description xxx */
+
 PLUG_API BS_STATUS SVPN_WebResCmd_SetDescription(int argc, char **argv, void *pEnv)
 {
     return SVPN_CD_SetProp(pEnv, SVPN_CTXDATA_WEB_RES, "Description", argv[1]);
 }
 
-/* url xxx */
+
 PLUG_API BS_STATUS SVPN_WebResCmd_SetUrl(int argc, char **argv, void *pEnv)
 {
     return SVPN_CD_SetProp(pEnv, SVPN_CTXDATA_WEB_RES, "URL", argv[1]);
 }
 
-/* [no] permit */
+
 PLUG_API BS_STATUS SVPN_WebResCmd_Permit(int argc, char **argv, void *pEnv)
 {
     if (argv[0][0] == 'n')

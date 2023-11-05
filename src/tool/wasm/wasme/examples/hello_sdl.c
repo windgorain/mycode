@@ -14,15 +14,11 @@ int main()
 
   SDL_CreateWindowAndRenderer(320, 200, 0, &window, &renderer);
 
-  /**
-   * Set up a blue background
-   */
+  
   SDL_SetRenderDrawColor(renderer, 128, 128, 255, 255);
   SDL_RenderClear(renderer);
 
-  /**
-   * Show what is in the renderer
-   */
+  
   SDL_RenderPresent(renderer);
 
   SDL_Delay(2000);

@@ -20,4 +20,4 @@ extern BS_STATUS AIF_PCAP_AutoCreateInterface();
 #ifdef __cplusplus
 }
 #endif
-#endif //AIF_FUNC_H_
+#endif 

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct
 {
@@ -42,7 +42,7 @@ static inline VOID OFBUF_Destory(IN HANDLE hOfbuf)
     MEM_Free(hOfbuf);
 }
 
-/* 得到ofbuf的buf起始地址 */
+
 static inline UCHAR * OFBUF_GetBuf(IN HANDLE hOfbuf)
 {
     _OFBUF_CTRL_S *pstCtrl = (_OFBUF_CTRL_S *)hOfbuf;
@@ -57,7 +57,7 @@ static inline UINT OFBUF_GetBufLen(IN HANDLE hOfbuf)
     return pstCtrl->uiBufSize;
 }
 
-/* 得到ofbuf的data的起始地址 */
+
 static inline UCHAR * OFBUF_GetData(IN HANDLE hOfbuf)
 {
     _OFBUF_CTRL_S *pstCtrl = (_OFBUF_CTRL_S *)hOfbuf;
@@ -97,8 +97,8 @@ static inline VOID OFBUF_CutTail(IN HANDLE hOfbuf, IN UINT uiTailLen)
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__OFBUF_UTL_H_*/
+#endif 
 
 

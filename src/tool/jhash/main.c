@@ -8,8 +8,8 @@
 #include "utl/jhash_utl.h"
 #include "utl/subcmd_utl.h"
 
-/* 计算字符串的jhash值 */
-/* jhash string xxxx [-i initval] */
+
+
 static int jhash_string(int argc, char **argv)
 {
     char *string = NULL;
@@ -17,8 +17,8 @@ static int jhash_string(int argc, char **argv)
     UINT hash;
 
     GETOPT2_NODE_S opts[] = {
-        {'P', 0, "string", 's', &string, "string", 0},
-        {'o', 'i', "initval", 'u', &initval, "jhash init val", 0},
+        {'P', 0, "string", GETOPT2_V_STRING, &string, "string", 0},
+        {'o', 'i', "initval", GETOPT2_V_U32, &initval, "jhash init val", 0},
         {0}
     };
 

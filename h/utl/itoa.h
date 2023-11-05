@@ -11,7 +11,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http:
  *
  * These serialization functions returns the address of the terminating
  * zero character ('\0') so the length of the result is known,
@@ -24,7 +24,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif /* __cplusplus */
+#endif 
 
     unsigned int ilog_10( unsigned int aI );
 
@@ -34,27 +34,27 @@ extern "C"
 
 #define LLONG_DIGITS 20
 
-    /* Converts an unsigned short into a string, returns the terminating zero char address.*/
+    
     char * ustoa( char *aBuf, unsigned short aShort );
 
-    /* Converts an unsigned short into a string, returns the terminating zero char address.*/
+    
     char * stoa(char *aBuf, short aShort);
 
-    /* Converts an unsigned int into a string, returns the terminating zero char address.*/
+    
     char * uitoa(char *aBuf, unsigned int anInt);
 
-    /* Converts an int into a string, returns the terminating zero char address.*/
+    
     char * good_old_itoa(char *aBuf, int anInt);
 
-    /* Converts an unsigned long long into a string, returns the terminating zero char address.*/
+    
     char * ulltoa(char *aBuf, unsigned long long aLL);
 
-    /* Converts long long into a string, returns the terminating zero char address.*/
+    
     char * lltoa(char *aBuf, long long aLL);
 
-    /* Converts an unsigned short into a string, returns the terminating zero char address.*/
+    
     char * dtoa_fast(char *aBuf, double aD);
 
 #ifdef __cplusplus
 };
-#endif /* __cplusplus */
+#endif 

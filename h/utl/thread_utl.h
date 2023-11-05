@@ -32,4 +32,4 @@ THREAD_ID ThreadUtl_GetSelfID(void);
 #ifdef __cplusplus
 }
 #endif
-#endif //THREAD_UTL_H_
+#endif 

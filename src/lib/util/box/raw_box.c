@@ -9,7 +9,7 @@
 #include "utl/file_utl.h"
 #include "utl/box_utl.h"
 
-int RawBox_Init(BOX_S *box, CUCKOO_HASH_NODE_S *table, /* NULL表示动态申请 */
+int RawBox_Init(BOX_S *box, CUCKOO_HASH_NODE_S *table, 
         UINT bucket_num, UINT bucket_depth,
         PF_CUCKOO_INDEX index_func, PF_CUCKOO_CMP cmp_func)
 {

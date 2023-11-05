@@ -17,7 +17,7 @@
 static THREAD_ID g_uiWsAppMasterTID = 0;
 static MYPOLL_HANDLE g_hWsAppMasterPoll = NULL;
 
-static BS_WALK_RET_E wsapp_master_Accept(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int wsapp_master_Accept(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     INT iAccetpSocketId;
     UINT uiGwID;
@@ -29,7 +29,7 @@ static BS_WALK_RET_E wsapp_master_Accept(IN INT iSocketId, IN UINT uiEvent, IN U
         iAccetpSocketId = Socket_Accept(iSocketId, NULL, NULL);
         if (iAccetpSocketId < 0)
         {
-            return BS_WALK_CONTINUE;
+            return 0;
         }
 
         if (TRUE != WSAPP_GW_IsFilterPermit(uiGwID, iAccetpSocketId))
@@ -43,7 +43,7 @@ static BS_WALK_RET_E wsapp_master_Accept(IN INT iSocketId, IN UINT uiEvent, IN U
         }
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static void wsapp_master_Main(IN USER_HANDLE_S *pstUserHandle)

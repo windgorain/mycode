@@ -13,25 +13,25 @@ extern "C"
 
 typedef enum
 {
-    PLUG_STAGE_PLUG_LOAD = 1,      /* 加载插件 */
-    PLUG_STAGE_PLUG_LOADED,        /* 加载插件后 */
-    PLUG_STAGE_CMD_REG0,           /* 首期命令注册 */
-    PLUG_STAGE_CMD_REGED0,         /* 首期命令注册完成 */
-    PLUG_STAGE_CMD_REG,            /* 命令注册 */
-    PLUG_STAGE_CMD_REGED,          /* 命令注册完成 */
-    PLUG_STAGE_CFG0_LOAD,          /* 首期配置加载 */
-    PLUG_STAGE_CFG0_LOADED,        /* 首期配置加载完成 */
-    PLUG_STAGE_CFG_LOAD,           /* 配置加载 */
-    PLUG_STAGE_CFG_LOADED,         /* 配置加载完成 */
-    PLUG_STAGE_RUNNING,            /* 运行状态 */
-    PLUG_STAGE_STOP,               /* 停止 */
-    PLUG_STAGE_CMD_UNREG,          /* 取消命令行注册 */
-    PLUG_STAGE_PLUG_UNLOAD         /* 卸载插件 */
+    PLUG_STAGE_PLUG_LOAD = 1,      
+    PLUG_STAGE_PLUG_LOADED,        
+    PLUG_STAGE_CMD_REG0,           
+    PLUG_STAGE_CMD_REGED0,         
+    PLUG_STAGE_CMD_REG,            
+    PLUG_STAGE_CMD_REGED,          
+    PLUG_STAGE_CFG0_LOAD,          
+    PLUG_STAGE_CFG0_LOADED,        
+    PLUG_STAGE_CFG_LOAD,           
+    PLUG_STAGE_CFG_LOADED,         
+    PLUG_STAGE_RUNNING,            
+    PLUG_STAGE_STOP,               
+    PLUG_STAGE_CMD_UNREG,          
+    PLUG_STAGE_PLUG_UNLOAD         
 }PLUG_STAGE_E;
 
 typedef int (*PF_PLUG_STAGE)(int stage, void *env);
 
-/* 所有Plug 需要在文件中使用这个宏 */
+
 #define PLUG_MAIN \
     PLUG_API int PlugMain (char *file, char *conf_path, char *save_path)  \
     {   \
@@ -43,7 +43,7 @@ typedef int (*PF_PLUG_STAGE)(int stage, void *env);
 
 
 typedef struct {
-    DLL_NODE_S link_node; /* 必须为第一个成员 */
+    DLL_NODE_S link_node; 
     char *plug_name;
     char *filename;
     PLUG_HDL hPlug;
@@ -59,11 +59,11 @@ int PlugMgr_LoadByCfgFile(PLUG_MGR_S *plug_mgr, char *cfg_file);
 int PlugMgr_LoadManual(PLUG_MGR_S *mgr, char *ini_file, char *tag);
 int PlugMgr_Unload(PLUG_MGR_S *plug_mgr, char *ini_file, char *tag);
 PLUG_MGR_NODE_S * PlugMgr_Find(PLUG_MGR_S *mgr, char *plug_name);
-PLUG_MGR_NODE_S * PlugMgr_Next(PLUG_MGR_S *mgr, PLUG_MGR_NODE_S *curr/* NULL表示获取第一个 */);
+PLUG_MGR_NODE_S * PlugMgr_Next(PLUG_MGR_S *mgr, PLUG_MGR_NODE_S *curr);
 int PlugMgr_GetStage(PLUG_MGR_S *mgr);
 char * PlugMgr_GetSavePathByEnv(void *env);
 
 #ifdef __cplusplus
 }
 #endif
-#endif //PLUG_MGR_H_
+#endif 

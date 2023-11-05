@@ -21,7 +21,7 @@ static CHAR g_szSvpncServer[DNS_MAX_DNS_NAME_SIZE] = "";
 static CHAR g_szSvpncCookie[256] = "";
 static USHORT g_usSvpncServerPort = 443;
 static VOID *g_pSvpncSslCtx = NULL;
-static UINT g_uiSvpncServerIP = 0; /* 服务器地址, 主机序 */
+static UINT g_uiSvpncServerIP = 0; 
 static SVPNC_CONN_TYPE_E g_enSpncConnType = SVPNC_CONN_TYPE_SSL;
 
 BS_STATUS SVPNC_SetServer(IN CHAR *pcServer)
@@ -73,7 +73,7 @@ CHAR * SVPNC_GetServer()
     return g_szSvpncServer;
 }
 
-/* 返回主机序服务器IP */
+
 UINT SVPNC_GetServerIP()
 {
     return g_uiSvpncServerIP;

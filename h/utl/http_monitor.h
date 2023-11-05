@@ -30,7 +30,7 @@ typedef int (*PF_HTTP_MONITOR_OUTPUT)(void *http_monitor,
 typedef struct {
     UCHAR type;
     UCHAR state;
-    UINT64 offset; /* 当前已经处理到了的位置 */
+    UINT64 offset; 
     HTTP_HEAD_PARSER head_parser;
     HTTP_BODY_PARSER body_parser;
     PF_HTTP_MONITOR_OUTPUT output;
@@ -42,11 +42,11 @@ int HttpMonitor_Reset(HTTP_MONITOR_S *ctrl);
 void HttpMonitor_Final(HTTP_MONITOR_S *ctrl);
 int HttpMonitor_Input(HTTP_MONITOR_S *ctrl, UINT64 offset, UCHAR *data,
         int len, PF_HTTP_MONITOR_OUTPUT output, void *ud);
-/* 如果头没有全, 强直解析 */
+
 int HttpMonitor_ForceProcHead(HTTP_MONITOR_S *ctrl, UINT64 offset, UCHAR *data,
         int len, PF_HTTP_MONITOR_OUTPUT output, void *ud);
 
 #ifdef __cplusplus
 }
 #endif
-#endif //HTTP_MONITOR_H_
+#endif 

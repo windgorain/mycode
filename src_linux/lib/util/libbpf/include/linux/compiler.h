@@ -67,4 +67,4 @@ do {						\
 })
 #endif
 
-#endif /* __LINUX_COMPILER_H */
+#endif 

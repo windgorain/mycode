@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WAN_Bridge_Init();
 MAC_ADDR_S * WAN_Bridge_GetMac();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_BRIDGE_H_*/
+#endif 
 
 

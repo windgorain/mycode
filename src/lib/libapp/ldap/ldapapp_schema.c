@@ -117,7 +117,7 @@ CHAR * LDAPAPP_Schema_GetServerPort(IN CHAR *pcName)
     return NO_GetKeyValue(pNode, "ServerPort");
 }
 
-CHAR * LDAPAPP_Schema_GetNext(IN CHAR *pcCurrent/* NULL或""表示获取第一个 */)
+CHAR * LDAPAPP_Schema_GetNext(IN CHAR *pcCurrent)
 {
     return NO_GetNextName(g_hLdapAppSchemeNo, pcCurrent);
 }

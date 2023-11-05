@@ -71,11 +71,11 @@ static void WINAPI winservice_ServiceStrl(DWORD dwOpcode)
 
 static void WINAPI winservice_ServiceMain()
 {
-    // Register the control request handler
+    
     g_winservice_status.dwCurrentState = SERVICE_START_PENDING;
     g_winservice_status.dwControlsAccepted = SERVICE_ACCEPT_STOP;
 
-    //注册服务控制
+    
     g_winservice_hServiceStatus = RegisterServiceCtrlHandler(g_winservice_name, winservice_ServiceStrl);
     if (g_winservice_hServiceStatus == NULL)
     {
@@ -132,11 +132,11 @@ BOOL_T WinService_IsInstalled()
 {
     BOOL_T bResult = FALSE;
 
-    //打开服务控制管理器
+    
     SC_HANDLE hSCM = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 
     if (hSCM != NULL) {
-        //打开服务
+        
         SC_HANDLE hService = OpenService(hSCM, g_winservice_name, SERVICE_QUERY_CONFIG);
         if (hService != NULL) {
             bResult = TRUE;
@@ -160,7 +160,7 @@ BOOL_T WinService_Install(char *filepath)
         return FALSE;
     }
 
-    //创建服务
+    
     SC_HANDLE hService = CreateService(hSCM, g_winservice_name, g_winservice_name,
             SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS|SERVICE_INTERACTIVE_PROCESS ,SERVICE_AUTO_START , SERVICE_ERROR_NORMAL,
             filepath, NULL, NULL, _T(""), NULL, NULL);

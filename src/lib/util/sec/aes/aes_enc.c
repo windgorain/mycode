@@ -7,10 +7,7 @@
 #include "bs.h"
 #include <openssl/evp.h>
 
-/*
-key: 需要对应加密位数,128位加密需要16个字节
-iv: 16个字节
- */
+
 int AES_Cipher128(UCHAR *key, UCHAR *iv, UCHAR *in, int in_size, UCHAR *out, int out_size, int do_encrypt)
 {
     int outlen, finlen;
@@ -38,10 +35,7 @@ int AES_Cipher128(UCHAR *key, UCHAR *iv, UCHAR *in, int in_size, UCHAR *out, int
     return outlen + finlen;
 }
 
-/*
-key: 需要对应加密位数,256位加密需要32个字节
-iv: 16个字节
- */
+
 int AES_Cipher256(UCHAR *key, UCHAR *iv, UCHAR *in, int in_size, UCHAR *out, int out_size, int do_encrypt)
 {
     int outlen, finlen;

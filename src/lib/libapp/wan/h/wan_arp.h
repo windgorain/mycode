@@ -13,17 +13,17 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WAN_ARP_Init();
 
 BS_STATUS WAN_ARP_PacketInput(IN MBUF_S *pstArpPacket);
 
-/* 根据IP得到MAC，如果得不到,则发送ARP请求，并返回BS_AGAIN. */
+
 BS_STATUS WAN_ARP_GetMacByIp
 (
     IN UINT uiIfIndex,
-    IN UINT ulIpToResolve /* 网络序 */,
+    IN UINT ulIpToResolve ,
     IN MBUF_S *pstMbuf,
     OUT MAC_ADDR_S *pstMacAddr
 );
@@ -31,8 +31,8 @@ BS_STATUS WAN_ARP_GetMacByIp
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_ARP_H_*/
+#endif 
 
 

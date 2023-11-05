@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 VOID SupportBridge_Init();
 MAC_ADDR_S * SupportBridge_GetMac();
@@ -20,8 +20,8 @@ VOID SupportBridge_IoctlGetMac(OUT MAC_ADDR_S *pstMac);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SUPPORT_BRIDGE_H_*/
+#endif 
 
 

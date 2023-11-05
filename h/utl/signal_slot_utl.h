@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE SIG_SLOT_HANDLE;
 
@@ -55,8 +55,8 @@ BS_STATUS SigSlot_SendSignal
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SIGNAL_SLOT_UTL_H_*/
+#endif 
 
 

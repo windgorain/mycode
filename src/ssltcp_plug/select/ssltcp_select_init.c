@@ -4,7 +4,7 @@
 * Description:  使用select的异步TCP
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_PLUG_BASE
     
 #include "bs.h"
@@ -30,13 +30,13 @@ typedef struct
     BOOL_T bIsSelectting;
     MSOCKET_ID uiTriggerSrcSocket;
     MSOCKET_ID uiTriggerDstSocket;
-    ULONG ulCareEvent;   /* 关心的事件，可以设置为SSLTCP_EVENT_READ/SSLTCP_EVENT_WRITE */
+    ULONG ulCareEvent;   
     fd_set socketReadFds;
     fd_set socketWriteFds;
     fd_set socketExpFds;
-    fd_set socketAsynNotSelectted;   /* 是异步Socket, 但是并不在本次select内. 每次select之前清空 */
-    UINT ulMaxSocketFd;            /*  最大的异步socket 的ID */
-    DLL_HEAD_S stSocketList;         /* _SSLTCP_SELECT_ASYN_NODE_S , 本实例内所有的异步Socket串在一起*/
+    fd_set socketAsynNotSelectted;   
+    UINT ulMaxSocketFd;            
+    DLL_HEAD_S stSocketList;         
 }_SSLTCP_SELECT_ASYN_INFO_S;
 
 typedef struct
@@ -90,14 +90,14 @@ static BS_STATUS __SSLTCP_SELECT_Dispatch(IN _SSLTCP_SELECT_ASYN_INSTANCE_S *pst
             pstInstance->pfTriggerFunc(&pstInstance->stTriggerUserHandle);
         }
 
-        /*  遍历异步Socket 链表  */
+        
         DLL_SAFE_SCAN (&pstSslTcpTcpAsynInfo->stSocketList, pstNode, pstNodeNext)
         {
             pstASocketNode = container_of(pstNode, _SSLTCP_SELECT_ASYN_NODE_S, stDllNode);
 
             if (MSocket_FdIsSet(pstASocketNode->uiSocketID, &pstSslTcpTcpAsynInfo->socketAsynNotSelectted))
             {
-                /* 表示不是这个Socket的事件, 而是以前的相同ID 的socket 的事件, 对其事件不处理 */
+                
                 continue;
             }
 
@@ -204,13 +204,13 @@ static BS_STATUS __SSLTCP_SELECT_SetAsyn
     
     __SSLTCP_SELECT_UnSetAsyn(uiSocketID);
     
-    /* 更改Socket 为非阻塞 */
+    
     if (BS_OK != MSocket_Ioctl (uiSocketID, (INT) FIONBIO, &ulIoMode))
     {
         RETURN(BS_ERR);
     }
     
-    /* 将ASocket 节点加入异步链表 */
+    
     pstNode = MEM_Malloc (sizeof(_SSLTCP_SELECT_ASYN_NODE_S));
     if (NULL == pstNode)
     {
@@ -265,23 +265,23 @@ BS_STATUS _SSLTCP_SELECT_AsynSocketInit(IN _SSLTCP_SELECT_ASYN_INSTANCE_S *pstIn
 
     pstInstance->eAsynMode = eMode;
 
-    /* 初始化异步Socket控制结构 */
+    
     DLL_INIT(&pstInstance->stSslTcpTcpAsynInfo.stSocketList);
 
-    /* 初始化Hash表 */
+    
     for (i=0; i<_SSLTCP_TCP_ASYN_HASH_SIZE; i++)
     {
         DLL_INIT(&pstInstance->g_pstSslTcpTcpHashTable[i]);
     }
 
-    /* 申请信号量 */
+    
     if (0 == (pstInstance->hSsltcpTcpAsynSem = SEM_MCreate("AsynSocket")))
     {
         BS_WARNNING(("Can't create asyn socket sem!"));
         RETURN(BS_NO_RESOURCE);
     }
 
-    /* 创建唤醒Socket */
+    
     if (BS_OK != MSocket_Pair(SOCK_STREAM, auiFd))
     {
         BS_WARNNING(("Can't create socket pair"));
@@ -318,7 +318,7 @@ static BS_STATUS _SSLTCP_SELECT_AsynAccept
 
     eRet = MSocket_Accept(listenSocketId, &ulAcceptSocketId);
 
-    /* 数据读完了, 如果是异步Socket, 则将其加入Select Read */
+    
     if (pstAsynInstance != NULL)
     {
         SEM_P (pstAsynInstance->hSsltcpTcpAsynSem, BS_WAIT, BS_WAIT_FOREVER);
@@ -369,7 +369,7 @@ static BS_STATUS _SSLTCP_SELECT_AsynRead
 
     if (uiReadLen < ulLen)
     {
-        /* 数据读完了, 如果是异步Socket, 则将其加入Select Read */
+        
         if ((pstAsynInstance != NULL) && 
             (pstAsynInstance->eAsynMode == SSLTCP_ASYN_MODE_EDGE) &&
             (pstAsynInstance->stSslTcpTcpAsynInfo.ulCareEvent & SSLTCP_EVENT_READ))
@@ -409,7 +409,7 @@ static INT _SSLTCP_SELECT_AsynWrite(IN MSOCKET_ID uiSocketId, IN UCHAR *pucBuf, 
 
     if (lLen < (INT)ulLen)
     {
-        /* 数据发送不完, 如果是异步Socket, 则将其加入Select Write */
+        
         if ((pstAsynInstance != NULL) && 
             (pstAsynInstance->eAsynMode == SSLTCP_ASYN_MODE_EDGE) &&
             (pstAsynInstance->stSslTcpTcpAsynInfo.ulCareEvent & SSLTCP_EVENT_WRITE))
@@ -499,7 +499,7 @@ static BS_STATUS _SSLTCP_SELECT_SetAsyn
 (
     IN HANDLE hAsynInstance,
     IN HANDLE hFileHandle,
-    IN ULONG ulEvent, /* 关心的事件 */
+    IN ULONG ulEvent, 
     IN PF_SSLTCP_INNER_CB_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle
 )

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETC_P_AddrChange_Init();
 
@@ -18,8 +18,8 @@ VOID VNETC_P_AddrChange_Stop();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_P_ADDR_CHANGE_H_*/
+#endif 
 
 

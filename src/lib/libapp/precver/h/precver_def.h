@@ -38,4 +38,4 @@ int PRecver_Comp_Init();
 #ifdef __cplusplus
 }
 #endif
-#endif //PRECVER_DEF_H_
+#endif 

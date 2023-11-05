@@ -13,13 +13,13 @@
 #include "utl/file_utl.h"
 #include "utl/vldbmp_utl.h"
 
-#define _VLDBMP_CODE_BMP_WIDTH 100   /* 字符图片模板的边长 */
+#define _VLDBMP_CODE_BMP_WIDTH 100   
 
-#define _VLDBMP_YAWP_RATE 10  /* 噪点率 */
+#define _VLDBMP_YAWP_RATE 10  
 
-#define _VLDBMP_COLOR_BG_BLUE    0xFF  /* 背景色 */
-#define _VLDBMP_COLOR_BG_RED     0xFF  /* 背景色 */
-#define _VLDBMP_COLOR_BG_GREEN   0xFF  /* 背景色 */
+#define _VLDBMP_COLOR_BG_BLUE    0xFF  
+#define _VLDBMP_COLOR_BG_RED     0xFF  
+#define _VLDBMP_COLOR_BG_GREEN   0xFF  
 
 typedef struct
 {
@@ -36,7 +36,7 @@ typedef struct
     UINT uiLineNum;
 }VLDBMP_MAP_S;
 
-/* 以100 * 100的画布, 第1象限为坐标 */
+
 
 static VLDBMP_LINE_S g_astVlsImg_0[] = 
 {
@@ -278,12 +278,12 @@ static inline VOID vldbmp_FillHead
     pstBmp->stInfo.uiWidth       = uiWidth * uiCodeCount;
     pstBmp->stInfo.uiHeight      = uiHeight;
     pstBmp->stInfo.usPlanes      = 1;
-    pstBmp->stInfo.usBitCount    = 24;   /* 24位真彩色 */
+    pstBmp->stInfo.usBitCount    = 24;   
     pstBmp->stInfo.uiCompression = 0;
     pstBmp->stInfo.uiSizeImage   = uiDataSize;
 }
 
-/* 转成bmp需要的小序 */
+
 VOID vldbmp_EndianHead(IN VLDBMP_S *pstBmp)
 {
     pstBmp->stBmpHead.usType    = Host2Litter16(pstBmp->stBmpHead.usType);
@@ -373,7 +373,7 @@ static inline UINT vldbmp_GetDistance(IN UINT uiPos1, IN UINT uiPos2)
     return uiPos2 - uiPos1;
 }
 
-/* 获得坐标 */
+
 static UINT vldbmp_GetCoordinate
 (
     IN UINT uiStarCoordinate,
@@ -450,7 +450,7 @@ static VOID vldbmp_DrawLine
 (
     INOUT VLDBMP_S *pstBmp,
     IN const VLDBMP_LINE_S *pstLine,
-    IN UINT uiXOffset,  /* X方向上的偏移 */
+    IN UINT uiXOffset,  
     IN const VLDBMP_OPT_S *pstOpt,
     IN const VLDBMP_DATA_S *pstColor
 )
@@ -459,7 +459,7 @@ static VOID vldbmp_DrawLine
     UINT uiYDistance;
     UINT uiStepNum;
     UINT uiStep;
-    UINT uiX, uiY; /* XY坐标 */
+    UINT uiX, uiY; 
 
     uiXDistance = vldbmp_GetDistance(pstLine->uiStartX, pstLine->uiStopX);
     uiYDistance = vldbmp_GetDistance(pstLine->uiStartY, pstLine->uiStopY);
@@ -483,7 +483,7 @@ static VOID vldbmp_FillCode
 (
     INOUT VLDBMP_S *pstBmp,
     IN const VLDBMP_MAP_S *pstMap,
-    IN UINT uiXOffset,  /* X方向上的偏移 */
+    IN UINT uiXOffset,  
     IN const VLDBMP_OPT_S *pstOpt,
     IN const VLDBMP_DATA_S *pstColor
 )
@@ -501,7 +501,7 @@ static VOID vldbmp_AddYawp
     INOUT VLDBMP_S *pstBmp,
     IN UINT uiWidth,
     IN UINT uiHeight,
-    IN UINT uiImgIndex, /* 第几个字符图片 */
+    IN UINT uiImgIndex, 
     IN const VLDBMP_OPT_S *pstOpt,
     IN const VLDBMP_DATA_S *pstColor
 )
@@ -553,7 +553,7 @@ static UINT vldbmp_Fit2Length(IN UINT uiOffset, IN UINT uiFrom, IN UINT uiTo)
     return (uiOffset * uiTo) / uiFrom;
 }
 
-/* 适应画布 */
+
 static VOID vldbmp_Fit2Canvas
 (
     IN const VLDBMP_MAP_S *pstMap,
@@ -605,7 +605,7 @@ static inline UINT vldbmp_CompressPoint(IN UINT uiPoint, IN UINT uiCompressRate)
     return uiNewPoint;
 }
 
-/* 压缩 */
+
 static VOID vldbmp_Compress
 (
     IN const VLDBMP_MAP_S *pstMap,
@@ -639,7 +639,7 @@ static VOID vldbmp_Compress
     return;
 }
 
-/* 漂移 */
+
 static VOID vldbmp_Drift
 (
     IN const VLDBMP_MAP_S *pstMap,
@@ -648,8 +648,8 @@ static VOID vldbmp_Drift
     IN const VLDBMP_OPT_S *pstOpt
 )
 {
-    UINT uiMaxXDrift; /* X方向上的最大漂移值 */
-    UINT uiMaxYDrift; /* Y方向上的最大漂移值 */
+    UINT uiMaxXDrift; 
+    UINT uiMaxYDrift; 
     UINT uiMaxX;
     UINT uiMaxY;
     UINT uiXDrift;
@@ -690,7 +690,7 @@ static VOID vldbmp_Drift
     uiXDrift = 0;
     if (uiMaxXDrift > 0)
     {
-        uiXDrift = vldbmp_Rand() % uiMaxXDrift;  /* 取值范围为 0 - (width - 1)*/
+        uiXDrift = vldbmp_Rand() % uiMaxXDrift;  
     }
 
     uiYDrift = 0;
@@ -716,7 +716,7 @@ static inline VOID vldbmp_RoutePoint
     IN double fCos,
     IN INT iX1,
     IN INT iY1,
-    IN BOOL_T bDeasil, /* 是否顺时针 */
+    IN BOOL_T bDeasil, 
     OUT INT *piX2,
     OUT INT *piY2
 )
@@ -740,7 +740,7 @@ static inline VOID vldbmp_RoutePoint
     return;
 }
 
-/* 移动到第一象限 */
+
 static VOID vldbmp_MoveToQuadrant1(IN VLDBMP_MAP_S *pstMap)
 {
     INT iX, iY;
@@ -787,7 +787,7 @@ static VOID vldbmp_GetMapSize(IN VLDBMP_MAP_S *pstMap, OUT UINT *puiWidth, OUT U
     *puiHeight = uiMaxY + 1;
 }
 
-/* 旋转 */
+
 static VOID vldbmp_Rotate
 (
     IN VLDBMP_MAP_S *pstMap,
@@ -847,10 +847,10 @@ static VOID vldbmp_Rotate
         pstMap->pstLines[uiIndex].uiStopY = iY;
     }
 
-    /* 移动到第一象限 */
+    
     vldbmp_MoveToQuadrant1(pstMap);
 
-    /* 可能超出画布范围了,调整一下 */
+    
     vldbmp_GetMapSize(pstMap, &uiWidthAfterRotate, &uiHeightAfterRotate);
     vldbmp_Fit2Canvas(pstMap, uiWidthAfterRotate, uiHeightAfterRotate, uiWidth, uiHeight);
 
@@ -893,7 +893,7 @@ static VOID vldbmp_FillData
     VLDBMP_MAP_S *pstMap;
     VLDBMP_DATA_S stColor = {0};
 
-    /* 填充背景色 */
+    
     vldbmp_FillBackColor(pstBmp);
 
     for (uiImgIndex=0; uiImgIndex<uiVldCodeLen; uiImgIndex++)
@@ -914,10 +914,10 @@ static VOID vldbmp_FillData
             vldbmp_RandColor(&stColor);
         }
 
-        /* 添加噪点 */
+        
         vldbmp_AddYawp(pstBmp, uiWidth, uiHeight, uiImgIndex, pstOpt, &stColor);
         
-        /* 生成字符图片 */
+        
         vldbmp_FillCode(pstBmp, pstMap, uiImgIndex * uiWidth, pstOpt, &stColor);
 
         vldbmp_FreeMap(pstMap);
@@ -926,7 +926,7 @@ static VOID vldbmp_FillData
     return;
 }
 
-VOID VLDBMP_GenCode(IN UINT uiCount/* 产生随机字符数目 */, OUT CHAR *pcCode)
+VOID VLDBMP_GenCode(IN UINT uiCount, OUT CHAR *pcCode)
 {
     UINT uiI;
     UINT uiCharCount;
@@ -946,8 +946,8 @@ VOID VLDBMP_GenCode(IN UINT uiCount/* 产生随机字符数目 */, OUT CHAR *pcC
 VLDBMP_S * VLDBMP_CreateBmp
 (
     IN const CHAR *pcVldCode,
-    IN UINT uiWidth/* 每个字符的宽度 */,
-    IN UINT uiHeight/* 每个字符的高度 */,
+    IN UINT uiWidth,
+    IN UINT uiHeight,
     IN const VLDBMP_OPT_S *pstOpt
 )
 {
@@ -978,11 +978,11 @@ VOID VLDBMP_Destory(IN const VLDBMP_S *pstBmp)
     }
 }
 
-/* 创建所有字符图片的总表图片 */
+
 VLDBMP_S * VLDBMP_CreateListBmp
 (
-    IN UINT uiWidth/* 每个字符的宽度 */,
-    IN UINT uiHeight/* 每个字符的高度 */,
+    IN UINT uiWidth,
+    IN UINT uiHeight,
     IN VLDBMP_OPT_S *pstOpt
 )
 {

@@ -11,8 +11,8 @@ BS_STATUS VNETC_IpFwd_Output(IN MBUF_S *pstMbuf);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_IP_FWD_H_*/
+#endif 
 
 

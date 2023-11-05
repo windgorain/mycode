@@ -14,8 +14,8 @@
 typedef struct
 {
     UINT uiPcapIndex;
-    UINT uiCheatIP;         /* 发送出去的欺骗IP */
-    MAC_ADDR_S stCheatMac;  /* 发送出去的欺骗MAC */
+    UINT uiCheatIP;         
+    MAC_ADDR_S stCheatMac;  
 }_ARP_CHEAT_CTRL_S;
 
 ARP_CHEAT_HANDLE ARPCheat_Create()
@@ -47,7 +47,7 @@ UINT ARPCheat_GetPcapIndex(IN ARP_CHEAT_HANDLE hArpCheat)
     return pstCtrl->uiPcapIndex;
 }
 
-VOID ARPCheat_SetCheatIP(IN ARP_CHEAT_HANDLE hArpCheat, IN UINT uiCheatIP/* 网络序 */)
+VOID ARPCheat_SetCheatIP(IN ARP_CHEAT_HANDLE hArpCheat, IN UINT uiCheatIP)
 {
     _ARP_CHEAT_CTRL_S *pstCtrl = hArpCheat;
 

@@ -18,7 +18,7 @@ typedef void (*PF_COROUTINE_PRINT_FUNC)(char *fmt, ...);
 
 typedef struct {
     int id;
-    UCHAR state; /* COROUTINE_STATE_XXX */
+    UCHAR state; 
     int stack_size;
     char task_name[COROUTINE_NAME_SIZE];
     UINT64 sleep_end_tsc;
@@ -34,18 +34,18 @@ void Coroutine_Yield(COROUTINE_S *ctrl);
 void Coroutine_USleep(COROUTINE_S *ctrl, UINT64 usec);
 void Coroutine_MSleep(COROUTINE_S *ctrl, UINT64 msec);
 void Coroutine_Sleep(COROUTINE_S *ctrl, UINT64 sec);
-int Coroutine_Suspend(COROUTINE_S *ctrl, int task_id, UINT64 timeout_us/* 0表示永不超时 */);
-int Coroutine_SuspendSelf(COROUTINE_S *ctrl, UINT64 timeout_us/* 0表示永不超时 */);
+int Coroutine_Suspend(COROUTINE_S *ctrl, int task_id, UINT64 timeout_us);
+int Coroutine_SuspendSelf(COROUTINE_S *ctrl, UINT64 timeout_us);
 int Coroutine_Resume(COROUTINE_S *ctrl, int task_id);
 int Coroutine_GetByName(COROUTINE_S *ctrl, char *task_name);
 char * Coroutine_GetName(COROUTINE_S *ctrl, int task_id);
 char * Coroutine_SelfName(COROUTINE_S *ctrl);
 int Coroutine_GetAttr(COROUTINE_S *ctrl, int task_id, OUT COROUTINE_ATTR_S *attr);
-/* 返回下一个有效的task_id, 如果没有下一个了则返回-1 */
-int Coroutine_GetNext(COROUTINE_S *ctrl, int curr_task_id /* -1表示从头开始 */);
+
+int Coroutine_GetNext(COROUTINE_S *ctrl, int curr_task_id );
 void Coroutine_StackTrace(COROUTINE_S *ctrl, int task_id, PF_COROUTINE_PRINT_FUNC print_func);
 
 #ifdef __cplusplus
 }
 #endif
-#endif //COROUTINE_UTL_H_
+#endif 

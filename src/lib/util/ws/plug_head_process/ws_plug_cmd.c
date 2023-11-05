@@ -20,12 +20,7 @@
 #include "../ws_event.h"
 #include "../ws_context.h"
 
-/*
-    Action              Param                   说明
-    SetCookie           CookieName=x+Value=y    设置Cookie: x=y
-    EnterDomain         Domain=xxx              进入Domain
-    Redirect2Url        Url=xxx                 重定向到xxx
-*/
+
 
 #define _WS_PLUG_CMD_URI "/__ws_keep__/cmd.cgi"
 

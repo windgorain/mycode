@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct
 {
@@ -24,8 +24,8 @@ UINT NameBit_GetBitByName(IN NAME_BIT_S *pstNameBits, IN CHAR *pcName);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__NAME_BIT_H_*/
+#endif 
 
 

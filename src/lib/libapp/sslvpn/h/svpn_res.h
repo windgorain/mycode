@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 BS_STATUS SVPN_WebRes_Init();
@@ -29,8 +29,8 @@ BS_STATUS SVPN_LocalUser_Save(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN HANDLE hFi
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_RES_H_*/
+#endif 
 
 

@@ -16,4 +16,4 @@ int Super_CmdInit();
 #ifdef __cplusplus
 }
 #endif
-#endif //SUPER_CMD_H_
+#endif 

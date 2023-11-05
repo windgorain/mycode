@@ -79,7 +79,7 @@ static void luamgr_save_group(HANDLE hFile, LUA_GROUP_S *group)
     }
 }
 
-/* gropu %INT */
+
 PLUG_API BS_STATUS LuaMgr_EnterGroup(int argc, char **argv, void *env)
 {
     LUA_GROUP_S *group = luamgr_get_group_by_str(argv[1]);
@@ -87,7 +87,7 @@ PLUG_API BS_STATUS LuaMgr_EnterGroup(int argc, char **argv, void *env)
     return 0;
 }
 
-/* no group %INT */
+
 PLUG_API BS_STATUS LuaMgr_NoGroup(int argc, char **argv, void *env)
 {
     LUA_GROUP_S *group = luamgr_get_group_by_str(argv[1]);
@@ -95,7 +95,7 @@ PLUG_API BS_STATUS LuaMgr_NoGroup(int argc, char **argv, void *env)
     return 0;
 }
 
-/* name %STRING */
+
 PLUG_API BS_STATUS LuaMgr_SetName(int argc, char **argv, void *env)
 {
     LUA_GROUP_S *group = luamgr_get_group(env);
@@ -103,7 +103,7 @@ PLUG_API BS_STATUS LuaMgr_SetName(int argc, char **argv, void *env)
     return 0;
 }
 
-/* disable */
+
 PLUG_API BS_STATUS LuaMgr_Disable(int argc, char **argv, void *env)
 {
     LUA_GROUP_S *group = luamgr_get_group(env);
@@ -111,7 +111,7 @@ PLUG_API BS_STATUS LuaMgr_Disable(int argc, char **argv, void *env)
     return 0;
 }
 
-/* enable/no disable */
+
 PLUG_API BS_STATUS LuaMgr_Enable(int argc, char **argv, void *env)
 {
     LUA_GROUP_S *group = luamgr_get_group(env);
@@ -119,14 +119,14 @@ PLUG_API BS_STATUS LuaMgr_Enable(int argc, char **argv, void *env)
     return 0;
 }
 
-/* load %STRING */
+
 PLUG_API int LuaMgr_LoadFile(int argc, char **argv, void *env)
 {
     LUA_GROUP_S *group = luamgr_get_group(env);
     return luamgr_load_unload(group, argv[1], 1);
 }
 
-/* no load %STRING */
+
 PLUG_API int LuaMgr_UnLoadFile(int argc, char **argv, void *env)
 {
     LUA_GROUP_S *group = luamgr_get_group(env);

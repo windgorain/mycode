@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef enum
 {
@@ -36,8 +36,8 @@ VOID VNETC_Caller_Reset();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_CALLER_H_*/
+#endif 
 
 

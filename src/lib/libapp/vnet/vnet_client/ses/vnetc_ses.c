@@ -23,13 +23,13 @@
 
 #define _VNETC_SES_MAX_NUM (1024 * 64)
 
-#define _VNETC_SES_TIMEOUT_TIME 1000  /* 1s */
+#define _VNETC_SES_TIMEOUT_TIME 1000  
 #define _VNETC_SES_KEEP_ALIVE_IDLE   30
 #define _VNETC_SES_KEEP_ALIVE_INTVAL 5
 #define _VNETC_SES_KEEP_ALIVE_MAX_TRYS 3
 
 static SES_HANDLE g_hVnetcSesHandle = NULL;
-static MUTEX_S g_stVnetcSesMutex; /* 只用于互斥删除和显示.其他不存在问题 */
+static MUTEX_S g_stVnetcSesMutex; 
 
 static BS_STATUS vnetc_ses_RecvPkt(IN UINT uiSesID, IN MBUF_S *pstMbuf)
 {
@@ -212,17 +212,17 @@ UINT VNETC_SES_GetIfIndex(IN UINT uiSesID)
     return uiIfIndex;
 }
 
-static BS_WALK_RET_E vnetc_ses_show(IN UINT uiSesID, IN HANDLE hUserHandle)
+static int vnetc_ses_show(IN UINT uiSesID, IN HANDLE hUserHandle)
 {
     EXEC_OutInfo(" %-8x %-9x %s \r\n",
         uiSesID,
         SES_GetPeerSESID(g_hVnetcSesHandle, uiSesID),
         SES_GetStatusString(SES_GetStatus(g_hVnetcSesHandle, uiSesID)));
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-/* show session */
+
 PLUG_API BS_STATUS VNETC_SES_Show(IN UINT ulArgc, IN CHAR **argv)
 {
     EXEC_OutInfo(" SESID    PeerSESID Status\r\n"
@@ -237,7 +237,7 @@ PLUG_API BS_STATUS VNETC_SES_Show(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* debug session protocol packet*/
+
 PLUG_API BS_STATUS VNETC_SES_DebugProtocolPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     SES_AddDbgFlag(g_hVnetcSesHandle, SES_DBG_FLAG_PROTOCOL_PKT);
@@ -245,7 +245,7 @@ PLUG_API BS_STATUS VNETC_SES_DebugProtocolPacket(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* no debug session protocol packet*/
+
 PLUG_API BS_STATUS VNETC_SES_NoDebugProtocolPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     SES_ClrDbgFlag(g_hVnetcSesHandle, SES_DBG_FLAG_PROTOCOL_PKT);
@@ -253,7 +253,7 @@ PLUG_API BS_STATUS VNETC_SES_NoDebugProtocolPacket(IN UINT ulArgc, IN CHAR **arg
     return BS_OK;
 }
 
-/* debug session data packet*/
+
 PLUG_API BS_STATUS VNETC_SES_DebugDataPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     SES_AddDbgFlag(g_hVnetcSesHandle, SES_DBG_FLAG_DATA_PKT);
@@ -261,7 +261,7 @@ PLUG_API BS_STATUS VNETC_SES_DebugDataPacket(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* no debug session data packet*/
+
 PLUG_API BS_STATUS VNETC_SES_NoDebugDataPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     SES_ClrDbgFlag(g_hVnetcSesHandle, SES_DBG_FLAG_DATA_PKT);

@@ -13,11 +13,11 @@
 #include "../inc/vnetc_vnic_phy.h"
 #include "../inc/vnetc_addr_monitor.h"
 
-#define _VNETC_P_ADDR_MONITOR_TIMEOUT_TIME 1000  /* 1s */
+#define _VNETC_P_ADDR_MONITOR_TIMEOUT_TIME 1000  
 
 static VCLOCK_HANDLE g_hVnetcAddrMonitorVclock = NULL;
-static UINT g_uiVnetcAddrMonitorIp = 0;     /* 利大會 */
-static UINT g_uiVnetcAddrMonitorMask = 0;   /* 利大會 */
+static UINT g_uiVnetcAddrMonitorIp = 0;     
+static UINT g_uiVnetcAddrMonitorMask = 0;   
 static OB_CHAIN_S g_stVnetcAddrMonitorObChain = OB_CHAIN_HEAD_INIT_VALUE(&g_stVnetcAddrMonitorObChain);
 
 static VOID vnetc_addrmonitor_TimeOut(IN HANDLE hTimerHandle, IN USER_HANDLE_S *pstUserHandle)

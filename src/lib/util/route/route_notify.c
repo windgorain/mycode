@@ -5,7 +5,7 @@
 ================================================================*/
 #include "bs.h"
 
-#define RT_BUFFER_LEN       8192    //define for max buffer to store
+#define RT_BUFFER_LEN       8192    
 
 #if 0
 static void parse_nlmsg(struct nlmsghdr *hdr)
@@ -38,7 +38,7 @@ static void parse_nlmsg(struct nlmsghdr *hdr)
 	case RTM_DELROUTE:
 		rtm = NLMSG_DATA(hdr);
 		convert_rtm_to_rt(rtm, &rt, attr_len);
-		//dump_rt(&rt);
+		
 		break;
 	case RTM_NEWNEIGH:
 	case RTM_DELNEIGH:
@@ -71,11 +71,11 @@ static void parse_nlmsg(struct nlmsghdr *hdr)
 		rt.nh[i].out_dev = vlanid;
 	}
 
-//  SYNC to DPDK here!
+
 	if (rtm->rtm_type == RTN_LOCAL || rtm->rtm_type == RTN_UNICAST) {
 		rt_send_to_dpdk(hdr->nlmsg_type, &rt);
 	}
-//  print_daemon_rt();
+
 	return;
 }
 

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID* HTTP_AUTH_HANDLE;
 
@@ -26,7 +26,7 @@ BS_STATUS HTTP_AUTH_BasicBuild
 BOOL_T HTTP_AUTH_IsDigestUnauthorized(IN CHAR *pcWwwAuthenticate);
 HTTP_AUTH_HANDLE HTTP_Auth_ClientCreate();
 VOID HTTP_Auth_ClientDestroy(IN HTTP_AUTH_HANDLE hAuthHandle);
-BS_STATUS HTTP_Auth_ClientSetAuthContext(IN HTTP_AUTH_HANDLE hAuthHandle, IN CHAR *pcWwwAuthenticate/* http应答中的WWW-Authenticate */);
+BS_STATUS HTTP_Auth_ClientSetAuthContext(IN HTTP_AUTH_HANDLE hAuthHandle, IN CHAR *pcWwwAuthenticate);
 BS_STATUS HTTP_Auth_ClientSetUser(IN HTTP_AUTH_HANDLE hAuthHandle, IN CHAR *pcUser, IN CHAR *pcPassword);
 BS_STATUS HTTP_AUTH_ClientDigestBuild
 (
@@ -38,8 +38,8 @@ BS_STATUS HTTP_AUTH_ClientDigestBuild
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__HTTP_AUTH_H_*/
+#endif 
 
 

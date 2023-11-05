@@ -30,11 +30,11 @@ typedef struct
     CSS_UP_OUTPUT_PF pfOutput;
     VOID *pUserContext;
     CHAR *pcCssData;
-    CHAR *pcCssCurrent; /* 指向扫描到的位置 */
+    CHAR *pcCssCurrent; 
     CSS_UP_SAVE_URLVALUE_S stUrlValueBuf;
 }CSS_UP_CTRL_S;
 
-/* 解析状态枚举定义 */
+
 typedef enum tagCSS_UP_LEX_STATE
 {
     CSS_UP_LEX_DATA = 0,
@@ -126,7 +126,7 @@ STATIC DFA_NODE_S g_astCssUpStateUrlAfterValueQuoted[] =
 };
 
 
-/*此处保存可能的路径值*/
+
 STATIC DFA_NODE_S g_astCssUpState_Left_Braces[] =
 {
     {DFA_CODE_CHAR(')'), CSS_UP_LEX_DATA, "ProcessUrlValue"},
@@ -194,7 +194,7 @@ STATIC VOID _cssup_ProcessUrlValue(IN DFA_HANDLE hDfa)
 }
 
 
-/* 将包含当前位置的数据以及当前位置之前的所有数据全部输出 */
+
 STATIC VOID _cssup_OutputData(IN DFA_HANDLE hDfa)
 {
     CHAR *pcData = NULL;

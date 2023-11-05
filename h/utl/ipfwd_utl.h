@@ -13,22 +13,22 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* Debug 选项 */
+
 #define IP_FWD_DBG_PACKET 0x1
 
 
 typedef HANDLE IPFWD_HANDLE;
 
-typedef BS_STATUS (*PF_IPFWD_LINK_OUTPUT)(IN UINT uiIfIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType/* 网络序 */);
+typedef BS_STATUS (*PF_IPFWD_LINK_OUTPUT)(IN UINT uiIfIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType);
 typedef BS_STATUS (*PF_IPFWD_DeliverUp)(IN IP_HEAD_S *pstIpHead, IN MBUF_S *pstMbuf);
 
 typedef enum
 {
-    IPFWD_HOW_DEBUG_SET = 0,    /* 设置DebugFalg */
-    IPFWD_HOW_DEBUG_ADD,        /* 添加DebugFalg */
-    IPFWD_HOW_DEBUG_DEL         /* 删除DebugFalg */
+    IPFWD_HOW_DEBUG_SET = 0,    
+    IPFWD_HOW_DEBUG_ADD,        
+    IPFWD_HOW_DEBUG_DEL         
 }IPFWD_HOW_DEBUG_E;
 
 
@@ -42,19 +42,19 @@ IPFWD_HANDLE IPFWD_Create
 
 VOID IPFWD_Destory(IN IPFWD_HANDLE hIpFwd);
 
-/* 相比于OutPut, 不再填写IP头的东西,认为上面已经填写好了 */
+
 BS_STATUS IPFWD_Send
 (
     IN IPFWD_HANDLE hIpFwd,
-    IN MBUF_S *pstMbuf /* 带IP头 */
+    IN MBUF_S *pstMbuf 
 );
 
 BS_STATUS IPFWD_Output
 (
     IN IPFWD_HANDLE hIpFwd,
-    IN MBUF_S *pstMbuf, /* 不带IP头 */
-    IN UINT uiDstIp,    /* 网络序 */
-    IN UINT uiSrcIp,    /* 网络序 */
+    IN MBUF_S *pstMbuf, 
+    IN UINT uiDstIp,    
+    IN UINT uiSrcIp,    
     IN UCHAR ucProto
 );
 
@@ -65,8 +65,8 @@ VOID IPFWD_SetDebug(IN IPFWD_HANDLE hIpFwd, IN IPFWD_HOW_DEBUG_E eHow, IN UINT u
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__IPFWD_UTL_H_*/
+#endif 
 
 

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     http:
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,7 @@
 #include <inttypes.h>
 #include <sys/mman.h>
 #include "bs.h"
+#include "pcap.h"
 #include "utl/endian_utl.h"
 #include "ubpf_int.h"
 #include <unistd.h>
@@ -168,7 +169,7 @@ ubpf_load(struct ubpf_vm *vm, const void *code, uint32_t code_len, char **errmsg
 
     vm->num_insts = code_len / sizeof(vm->insts[0]);
 
-    // Store instructions in the vm.
+    
     for (uint32_t i = 0; i < vm->num_insts; i++) {
         ubpf_store_instruction(vm, i, source_inst[i]);
     }
@@ -212,7 +213,7 @@ inline static uint64_t
 ubpf_mem_load(uint64_t address, size_t size)
 {
     if (!IS_ALIGNED(address, size)) {
-        // Fill the result with 0 to avoid leaking uninitialized memory.
+        
         uint64_t value = 0;
         memcpy(&value, (void*)address, size);
         return value;
@@ -268,7 +269,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len, uint64_t* bpf_ret
     uint64_t stack[(UBPF_STACK_SIZE+7)/8];
 
     if (!insts) {
-        /* Code must be loaded before we can execute */
+        
         return -1;
     }
 
@@ -486,11 +487,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len, uint64_t* bpf_ret
             reg[inst.dst] = (int64_t)reg[inst.dst] >> reg[inst.src];
             break;
 
-        /*
-         * HACK runtime bounds check
-         *
-         * Needed since we don't have a verifier yet.
-         */
+        
 #define BOUNDS_CHECK_LOAD(size) \
     do { \
         if (!bounds_check(vm, (char *)reg[inst.src] + inst.offset, size, "load", cur_pc, mem, mem_len, stack)) { \
@@ -787,7 +784,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len, uint64_t* bpf_ret
             return 0;
         case EBPF_OP_CALL:
             reg[0] = vm->ext_funcs[inst.imm](reg[1], reg[2], reg[3], reg[4], reg[5]);
-            // Unwind the stack if unwind extension returns success.
+            
             if (inst.imm == vm->unwind_stack_extension_index && reg[0] == 0) {
                 *bpf_return_value = reg[0];
                 return 0;
@@ -883,6 +880,8 @@ validate(const struct ubpf_vm *vm, const struct ebpf_inst *insts, uint32_t num_i
         case EBPF_OP_STXH:
         case EBPF_OP_STXB:
         case EBPF_OP_STXDW:
+        case EPBF_OP_LOCK_STXW: 
+        case EPBF_OP_LOCK_STXDW:  
             store = true;
             break;
 
@@ -895,7 +894,7 @@ validate(const struct ubpf_vm *vm, const struct ebpf_inst *insts, uint32_t num_i
                 *errmsg = ubpf_error("incomplete lddw at PC %d", i);
                 return false;
             }
-            i++; /* Skip next instruction */
+            i++; 
             break;
 
         case EBPF_OP_JA:
@@ -1010,10 +1009,10 @@ bounds_check(
     if (!vm->bounds_check_enabled)
         return true;
     if (mem && (addr >= mem && ((char*)addr + size) <= ((char*)mem + mem_len))) {
-        /* Context access */
+        
         return true;
     } else if (addr >= stack && ((char*)addr + size) <= ((char*)stack + UBPF_STACK_SIZE)) {
-        /* Stack access */
+        
         return true;
     } else {
         vm->error_printf(
@@ -1086,8 +1085,8 @@ typedef struct _ebpf_encoded_inst
 struct ebpf_inst
 ubpf_fetch_instruction(const struct ubpf_vm* vm, uint16_t pc)
 {
-    // XOR instruction with base address of vm.
-    // This makes ROP attack more difficult.
+    
+    
     ebpf_encoded_inst encode_inst;
     encode_inst.inst = vm->insts[pc];
     encode_inst.value ^= (uint64_t)vm->insts;
@@ -1098,8 +1097,8 @@ ubpf_fetch_instruction(const struct ubpf_vm* vm, uint16_t pc)
 void
 ubpf_store_instruction(const struct ubpf_vm* vm, uint16_t pc, struct ebpf_inst inst)
 {
-    // XOR instruction with base address of vm.
-    // This makes ROP attack more difficult.
+    
+    
     ebpf_encoded_inst encode_inst;
     encode_inst.inst = inst;
     encode_inst.value ^= (uint64_t)vm->insts;

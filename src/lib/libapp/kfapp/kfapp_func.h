@@ -15,4 +15,4 @@ char * KFAPP_KV_Get(char *key);
 #ifdef __cplusplus
 }
 #endif
-#endif //KFAPP_FUNC_H_
+#endif 

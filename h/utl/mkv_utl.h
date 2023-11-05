@@ -9,7 +9,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define MKV_MAX_LEVEL 32
 
@@ -32,17 +32,17 @@
 
 typedef struct
 {
-    ULONG ulLevle;  /* 表示有多少个mark */
+    ULONG ulLevle;  
     CHAR *apszMarkName[MKV_MAX_LEVEL];
 }MKV_X_PARA_S;
 
 typedef struct
 {
-    DLL_NODE_S  stDllNode;      /* mark链表的链接件 */
+    DLL_NODE_S  stDllNode;      
     CHAR        *pucMarkName;
     BOOL_T      bIsCopy;
-    DLL_HEAD_S  stSectionDllHead;   /* 下一级Secton链表 */
-    DLL_HEAD_S  stKeyValueDllHead;   /* mark下的key-value链表 */
+    DLL_HEAD_S  stSectionDllHead;   
+    DLL_HEAD_S  stKeyValueDllHead;   
 }MKV_MARK_S;
 
 static inline VOID MKV_MARK_Init(IN MKV_MARK_S *pstMark)
@@ -53,10 +53,10 @@ static inline VOID MKV_MARK_Init(IN MKV_MARK_S *pstMark)
 
 typedef struct
 {
-    DLL_NODE_S stDllNode;       /* mark的属性链表的链接件 */
+    DLL_NODE_S stDllNode;       
     CHAR *pucKeyName;
     CHAR *pucKeyValue;
-    BOOL_T bIsCopy;         /* pucKeyName 和pucKeyValue是否申请了内存*/
+    BOOL_T bIsCopy;         
 }MKV_KEY_S;
 
 typedef BS_STATUS (*PF_MKV_MarkProcess)(IN MKV_MARK_S *pstMarkNode, IN VOID *pUserPointer);
@@ -68,8 +68,8 @@ typedef struct
 }MKV_MARK_PROCESS_S;
 
 
-typedef BS_WALK_RET_E (*PF_MKV_MARK_WALK_FUNC)(IN MKV_MARK_S *pstRoot, IN MKV_MARK_S *pstMark, IN HANDLE hUserHandle);
-typedef BS_WALK_RET_E (*PF_MKV_KEY_WALK_FUNC)(IN MKV_MARK_S *pstMarkRoot, IN MKV_KEY_S *pstKey, IN HANDLE hUserHandle);
+typedef int (*PF_MKV_MARK_WALK_FUNC)(IN MKV_MARK_S *pstRoot, IN MKV_MARK_S *pstMark, IN HANDLE hUserHandle);
+typedef int (*PF_MKV_KEY_WALK_FUNC)(IN MKV_MARK_S *pstMarkRoot, IN MKV_KEY_S *pstKey, IN HANDLE hUserHandle);
 
 MKV_MARK_S * MKV_GetLastMarkOfLevel(MKV_MARK_S *pstRoot, IN UINT ulLevel);
 MKV_MARK_S * MKV_AddMark2Mark(IN MKV_MARK_S *pstRoot, IN CHAR *pszMarkName, IN BOOL_T bCopy);
@@ -106,9 +106,9 @@ BS_STATUS MKV_AddMark(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks, IN BOOL
 MKV_MARK_S * MKV_GetMark(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks);
 BOOL_T MKV_IsMarkExist(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks);
 CHAR * MKV_GetNextMarkInMark(IN MKV_MARK_S *pstRoot, IN CHAR *pcCurMarkName);
-CHAR * MKV_GetMarkByIndexInMark(IN MKV_MARK_S *pstRoot, IN UINT uiIndex/* 从0开始计算 */);
+CHAR * MKV_GetMarkByIndexInMark(IN MKV_MARK_S *pstRoot, IN UINT uiIndex);
 CHAR * MKV_GetNextMark(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks, IN CHAR *pcCurMarkName);
-CHAR * MKV_GetMarkByIndex(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks, IN UINT uiIndex/* 从0开始计算 */);
+CHAR * MKV_GetMarkByIndex(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks, IN UINT uiIndex);
 BS_STATUS MKV_GetNextKeyInMark(IN MKV_MARK_S *pstMark, INOUT CHAR **ppszKeyName);
 BS_STATUS MKV_GetNextKey(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks, INOUT CHAR **ppszKeyName);
 BS_STATUS MKV_SetKeyValueAsString
@@ -164,13 +164,13 @@ BS_STATUS MKV_GetKeyValueAsInt
     OUT INT *plKeyValue
 );
 BOOL_T MKV_IsKeyExist(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks, IN CHAR *pszKeyName);
-/* 返回Mark的个数 */
+
 UINT MKV_GetMarkNumInMark(IN MKV_MARK_S *pstMark);
 UINT MKV_GetSectionNum(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks);
-/* 返回Mark中属性的个数 */
+
 UINT MKV_GetKeyNumOfMark(IN MKV_MARK_S *pstMark);
 VOID MKV_WalkMarkInMark(IN MKV_MARK_S *pstRoot, IN PF_MKV_MARK_WALK_FUNC pfFunc, IN HANDLE hUserHandle);
-/* 获取重复的mark名 */
+
 char * MKV_GetMarkDuplicate(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks);
 VOID MKV_WalkKeyInMark(IN MKV_MARK_S *pstRoot, IN PF_MKV_KEY_WALK_FUNC pfFunc, IN HANDLE hUserHandle);
 
@@ -185,8 +185,8 @@ VOID MKV_ScanProcess
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__MKV_UTL_H_*/
+#endif 
 
 

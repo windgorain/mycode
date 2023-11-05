@@ -14,9 +14,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* 返回TRUE:允许删除; FALSE:不允许删除 */
+
 typedef BOOL_T (*PF_JSON_DEL_NOTIFY)(IN HANDLE hUserHandle, IN CHAR *pcNodeName);
 typedef BOOL_T (*PF_JSON_LIST_IS_PERMIT)(IN HANDLE hUserHandle, IN UINT64 ulNodeID);
 
@@ -50,11 +50,7 @@ BS_STATUS JSON_NO_ListWithCallBack
     IN HANDLE hUserHandle
 );
 
-/*
-成功: BS_OK
-已经存在: BS_ALREADY_EXIST
-其他错误: ...
-*/
+
 BS_STATUS JSON_NO_Add
 (
     IN NO_HANDLE hNo,
@@ -96,8 +92,8 @@ BS_STATUS JSON_List(cJSON *pstJson, CHAR **apcPropertys,
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__JSON_UTL_H_*/
+#endif 
 
 

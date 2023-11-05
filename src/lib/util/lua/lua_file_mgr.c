@@ -104,7 +104,7 @@ int LuaFM_DelAndFree(LUA_FM_S *lfm, char *file)
     return 0;
 }
 
-LUA_FILE_S * LuaFM_Next(LUA_FM_S *lfm, LUA_FILE_S *curr/*NULL表示获取第一个*/)
+LUA_FILE_S * LuaFM_Next(LUA_FM_S *lfm, LUA_FILE_S *curr)
 {
     if (! curr) {
         return DLL_FIRST(&lfm->list);
@@ -124,7 +124,7 @@ static int luafm_call(LUA_FM_S *lfm, LUA_FILE_S *file, LUA_ENV_S *env)
 
     lua_getglobal(L, env->func);
 
-    /* 创建一个新的table并压入栈中 */
+    
     lua_newtable(L);
 
     for (i=0; i<env->param_count; i++) {
@@ -139,13 +139,13 @@ static int luafm_call(LUA_FM_S *lfm, LUA_FILE_S *file, LUA_ENV_S *env)
         lua_setfield(L, -2, env->params[i].name);
     }
 
-    /* 调用函数 */
+    
     lua_pcall(L, 1, 1, 0);
 
-    /* 获取栈顶元素(结果) */
+    
     lua_tonumber(L, -1);
 
-    /* 清除堆栈, 清除计算结果 */
+    
     lua_pop(L, 1);
 
     luafm_fini_lua(L);

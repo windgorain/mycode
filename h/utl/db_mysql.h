@@ -14,7 +14,7 @@ typedef struct
     CHAR *pcUserName;
     CHAR *pcPassWord;
     CHAR *pcDbName;
-    USHORT usPort;      /* 主机序 */
+    USHORT usPort;      
 }DB_MYSQL_PARAM_S;
 
 DB_MYSQL_HANDLE DB_Mysql_Create(IN DB_MYSQL_PARAM_S *pstParam);
@@ -26,7 +26,7 @@ VOID DB_Mysql_FreeResult(IN VOID *pResult);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__DB_MYSQL_H_*/
+#endif 
 

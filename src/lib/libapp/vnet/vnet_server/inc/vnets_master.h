@@ -12,12 +12,12 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETS_Master_Init();
 BS_STATUS VNETS_Master_SetEvent
 (
-    IN UINT uiEventOffset, /* 0-15 */
+    IN UINT uiEventOffset, 
     IN PF_TASK_MASTER_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle
 );
@@ -37,8 +37,8 @@ VOID VNETS_Master_DelTimer(IN VCLOCK_HANDLE hTimerHandle);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_MASTER_H_*/
+#endif 
 
 

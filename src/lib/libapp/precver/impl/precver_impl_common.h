@@ -15,4 +15,4 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-#endif //PRECVER_IMPL_COMMON_H_
+#endif 

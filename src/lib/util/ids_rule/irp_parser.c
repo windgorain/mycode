@@ -89,13 +89,13 @@ static void irp_opt_judge_fast_opt(IRP_OTN_S *otn, IRP_CONTENT_OPT_S *opt)
         return;
     }
 
-    /* 如果已有的fast opt是强制fast pattern的,则不做替换 */
+    
     if (otn->fast_opt->fast_pattern) {
         return;
     }
 
-    /* 使用更长的pattern */
-    if (otn->fast_opt->content.uiLen < opt->content.uiLen) {
+    
+    if (otn->fast_opt->content.len < opt->content.len) {
         otn->fast_opt = opt;
     }
 
@@ -181,13 +181,13 @@ static int irp_opt_kv_content(IRP_OTN_S *otn, char *value)
         RETURN(BS_NO_MEMORY);
     }
 
-    opt->content.pucData = (void*)TXT_Strdup(value);
-    if (! opt->content.pucData) {
+    opt->content.data = (void*)TXT_Strdup(value);
+    if (! opt->content.data) {
         MEM_Free(opt);
         RETURN(BS_NO_MEMORY);
     }
 
-    opt->content.uiLen = strlen(value);
+    opt->content.len = strlen(value);
 
     irp_opt_judge_fast_opt(otn, opt);
 
@@ -374,7 +374,7 @@ static int irp_opt_kv_http_raw_cookie(IRP_OTN_S *otn, char *value)
     return 0;
 }
 
-/* threshold: type <threshold|limit|both>, track <by_src|by_dst>, count, seconds */
+
 static int irp_opt_kv_threshold(IRP_OTN_S *otn, char *value)
 {
     IRP_THRESHOLD_OPT_S *threshold_opt = &otn->threshold_opt;
@@ -423,11 +423,11 @@ static IRP_OPT_KV_FUNC_S g_irp_kv_funcs[] = {
     {"sid", irp_opt_kv_sid},
     {"gid", irp_opt_kv_gid},
 
-    /* TCP Opts */
+    
     {"flags", irp_opt_kv_flags},
     {"flow", irp_opt_kv_flow},
 
-    /* Content Opts */
+    
     {"content", irp_opt_kv_content},
     {"uricontent", irp_opt_kv_uri_content},
     {"nocase", irp_opt_kv_nocase},
@@ -447,13 +447,13 @@ static IRP_OPT_KV_FUNC_S g_irp_kv_funcs[] = {
     {"http_stat_code", irp_opt_kv_http_state_code},
     {"http_stat_msg", irp_opt_kv_http_state_msg},
 
-    /* pcre */
+    
     {"pcre", irp_opt_kv_pcre},
 
-    /* threshold */
+    
     {"threshold", irp_opt_kv_threshold},
 
-    /* other */
+    
     {"metadata", NULL},
     {"reference", NULL},
     {"classtype", NULL},
@@ -508,8 +508,8 @@ static int irp_process_opts(IRP_CTRL_S *ctrl, IRP_OTN_S *otn, KV_HANDLE kv)
 
 static void irp_free_opt(IRP_CONTENT_OPT_S *opt)
 {
-    if (opt->content.pucData) {
-        MEM_Free(opt->content.pucData);
+    if (opt->content.data) {
+        MEM_Free(opt->content.data);
     }
 
     MEM_Free(opt);
@@ -551,7 +551,7 @@ static int irp_get_action_by_string(char *type_str)
         return IRP_RULE_ACTION_PASS;
     }
 
-    BS_DBGASSERT(0); /* 需要添加对应type的解析代码 */
+    BS_DBGASSERT(0); 
 
     return IRP_RULE_ACTION_PASS;
 }
@@ -586,7 +586,7 @@ static IRP_RTN_S * irp_add_rtn(IRP_CTRL_S *ctrl, IRP_STRING_S *str_node)
 
     to_find.protocol = IPProtocol_GetByName(str_node->protocol);
 
-    /* TODO: 后续需要支持地址薄能力 */
+    
 
     if (stricmp(str_node->sip, "ANY") != 0) {
         if (0 != IPString_ParseIpMask(str_node->sip, &to_find.sip)) {

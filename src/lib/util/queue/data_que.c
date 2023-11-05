@@ -19,7 +19,7 @@ void DataQue_InitReader(DATA_QUE_S *ctrl, void *buf)
     ctrl->reader_base = buf;
 }
 
-/* 获取队列中被占用了多长 */
+
 int DataQue_Used(DATA_QUE_S *ctrl)
 {
     int len = ctrl->write - ctrl->read;
@@ -50,9 +50,9 @@ int DataQue_Push(DATA_QUE_S *ctrl, void *data, int len)
     int read = ctrl->read;
 
     if (ctrl->write >= read) {
-        if (ctrl->write + need_len > ctrl->size) { /* 尾部放不下了 */
+        if (ctrl->write + need_len > ctrl->size) { 
             data_node = (void*)(start + ctrl->write);
-            data_node->len = 0; /* 0表示跳过尾部空间 */
+            data_node->len = 0; 
             ctrl->write = 0;
         }
     }
@@ -68,7 +68,7 @@ int DataQue_Push(DATA_QUE_S *ctrl, void *data, int len)
     memcpy(data_node->data, data, len);
     ctrl->write += need_len;
 
-    /* 如果尾部不能放数据了, 则跳过去 */
+    
     if (ctrl->size - ctrl->write <= sizeof(DATA_QUE_DATA_S)) {
         ctrl->write = 0;
     }

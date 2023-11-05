@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define NAT_MAIN_DBG_PACKET 0x1
 
@@ -30,8 +30,8 @@ VOID NAT_Main_PktInput(IN MBUF_S *pstMbuf);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__NAT_MAIN_H_*/
+#endif 
 
 

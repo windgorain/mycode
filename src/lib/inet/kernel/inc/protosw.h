@@ -16,54 +16,41 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
-
-/*
- * Values for pr_flags.
- * PR_ADDR requires PR_ATOMIC;
- * PR_ADDR and PR_CONNREQUIRED are mutually exclusive.
- * PR_IMPLOPCL means that the protocol allows sendto without prior connect,
- *    and the protocol understands the MSG_EOF flag.  The first property is
- *    is only relevant if PR_CONNREQUIRED is set (otherwise sendto is allowed
- *    anyhow).
- */
-#define    PR_ATOMIC    0x01        /* exchange atomic messages only */
-#define    PR_ADDR        0x02        /* addresses given with messages */
-#define    PR_CONNREQUIRED    0x04        /* connection required by protocol */
-#define    PR_WANTRCVD    0x08        /* want PRU_RCVD calls */
-#define    PR_RIGHTS    0x10        /* passes capabilities */
-#define    PR_IMPLOPCL    0x20        /* implied open/close */
-#define    PR_LASTHDR    0x40        /* enforce ipsec policy; last header */
+#endif 
 
 
-/*
- * The arguments to the ctlinput routine are
- *    (*protosw[].pr_ctlinput)(cmd, sa, arg);
- * where cmd is one of the commands below, sa is a pointer to a sockaddr,
- * and arg is a `void *' argument used within a protocol family.
- */
-#define    PRC_IFDOWN        0    /* interface transition */
-#define    PRC_ROUTEDEAD        1    /* select new route if possible ??? */
-#define    PRC_IFUP        2     /* interface has come back up */
-#define    PRC_QUENCH2        3    /* DEC congestion bit says slow down */
-#define    PRC_QUENCH        4    /* some one said to slow down */
-#define    PRC_MSGSIZE        5    /* message size forced drop */
-#define    PRC_HOSTDEAD        6    /* host appears to be down */
-#define    PRC_HOSTUNREACH        7    /* deprecated (use PRC_UNREACH_HOST) */
-#define    PRC_UNREACH_NET        8    /* no route to network */
-#define    PRC_UNREACH_HOST    9    /* no route to host */
-#define    PRC_UNREACH_PROTOCOL    10    /* dst says bad protocol */
-#define    PRC_UNREACH_PORT    11    /* bad port # */
-/* was    PRC_UNREACH_NEEDFRAG    12       (use PRC_MSGSIZE) */
-#define    PRC_UNREACH_SRCFAIL    13    /* source route failed */
-#define    PRC_REDIRECT_NET    14    /* net routing redirect */
-#define    PRC_REDIRECT_HOST    15    /* host routing redirect */
-#define    PRC_REDIRECT_TOSNET    16    /* redirect for type of service & net */
-#define    PRC_REDIRECT_TOSHOST    17    /* redirect for tos & host */
-#define    PRC_TIMXCEED_INTRANS    18    /* packet lifetime expired in transit */
-#define    PRC_TIMXCEED_REASS    19    /* lifetime expired on reass q */
-#define    PRC_PARAMPROB        20    /* header incorrect */
-#define    PRC_UNREACH_ADMIN_PROHIB    21    /* packet administrativly prohibited */
+#define    PR_ATOMIC    0x01        
+#define    PR_ADDR        0x02        
+#define    PR_CONNREQUIRED    0x04        
+#define    PR_WANTRCVD    0x08        
+#define    PR_RIGHTS    0x10        
+#define    PR_IMPLOPCL    0x20        
+#define    PR_LASTHDR    0x40        
+
+
+
+#define    PRC_IFDOWN        0    
+#define    PRC_ROUTEDEAD        1    
+#define    PRC_IFUP        2     
+#define    PRC_QUENCH2        3    
+#define    PRC_QUENCH        4    
+#define    PRC_MSGSIZE        5    
+#define    PRC_HOSTDEAD        6    
+#define    PRC_HOSTUNREACH        7    
+#define    PRC_UNREACH_NET        8    
+#define    PRC_UNREACH_HOST    9    
+#define    PRC_UNREACH_PROTOCOL    10    
+#define    PRC_UNREACH_PORT    11    
+
+#define    PRC_UNREACH_SRCFAIL    13    
+#define    PRC_REDIRECT_NET    14    
+#define    PRC_REDIRECT_HOST    15    
+#define    PRC_REDIRECT_TOSNET    16    
+#define    PRC_REDIRECT_TOSHOST    17    
+#define    PRC_TIMXCEED_INTRANS    18    
+#define    PRC_TIMXCEED_REASS    19    
+#define    PRC_PARAMPROB        20    
+#define    PRC_UNREACH_ADMIN_PROHIB    21    
 
 #define    PRC_NCMDS        22
 
@@ -125,18 +112,18 @@ typedef struct protosw
     USHORT pr_protocol;
     USHORT pr_flags;
 
-    /* protocol-protocol hooks */
+    
     pr_input_t pr_input;
     pr_output_t pr_output;
     pr_ctlinput_t pf_ctlinput;
     pr_ctloutput_t pr_ctloutput;
 
-    /* utility hooks */
+    
     pr_init_t pr_init;
     pr_servinit_t pr_servinit;
-    pr_fasttimo_t pr_fasttimo;    /* fast timeout (200ms) */
-    pr_slowtimo_t pr_slowtimo;    /* slow timeout (500ms) */
-    pr_drain_t pr_drain;        /* flush any excess space possible */
+    pr_fasttimo_t pr_fasttimo;    
+    pr_slowtimo_t pr_slowtimo;    
+    pr_drain_t pr_drain;        
     
     PROTOSW_USER_REQUEST_S *pr_usrreqs;
 }PROTOSW_S;
@@ -145,8 +132,8 @@ VOID IN_Proto_Init();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__PROTOSW_H_*/
+#endif 
 
 

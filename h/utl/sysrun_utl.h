@@ -16,8 +16,8 @@ typedef VOID (*PF_SYSRUN_EXIT_NOTIFY_FUNC)(IN INT lExitNum,
 #if 1
 VOID _SysrunBs_Exit(INT lExitNum);
 VOID _SysrunUtl_Exit(INT lExitNum);
-BS_STATUS _SysrunBs_RegExitNotifyFunc(IN PF_SYSRUN_EXIT_NOTIFY_FUNC pfFunc, IN USER_HANDLE_S *ud/* 可以为NULL */);
-BS_STATUS _SysrunUtl_RegExitNotifyFunc(IN PF_SYSRUN_EXIT_NOTIFY_FUNC pfFunc, IN USER_HANDLE_S *pstUserHandle/* 可以为NULL */);
+BS_STATUS _SysrunBs_RegExitNotifyFunc(IN PF_SYSRUN_EXIT_NOTIFY_FUNC pfFunc, IN USER_HANDLE_S *ud);
+BS_STATUS _SysrunUtl_RegExitNotifyFunc(IN PF_SYSRUN_EXIT_NOTIFY_FUNC pfFunc, IN USER_HANDLE_S *pstUserHandle);
 #endif
 
 
@@ -33,4 +33,4 @@ BS_STATUS _SysrunUtl_RegExitNotifyFunc(IN PF_SYSRUN_EXIT_NOTIFY_FUNC pfFunc, IN 
 #ifdef __cplusplus
 }
 #endif
-#endif //SYSRUN_UTL_H_
+#endif 

@@ -17,7 +17,7 @@ typedef struct
     DLL_HEAD_S stExternNameList;
 }_URL_MATCH_TBL_S;
 
-/* 精确匹配 */
+
 static URL_MATCH_NODE_S * url_match_Find(IN DLL_HEAD_S *pstList, IN CHAR *pcKey)
 {
     URL_MATCH_NODE_S *pstNode;
@@ -39,7 +39,7 @@ static URL_MATCH_NODE_S * url_match_Find(IN DLL_HEAD_S *pstList, IN CHAR *pcKey)
     return pstNodeFound;
 }
 
-/* 最长匹配 */
+
 static URL_MATCH_NODE_S * url_match_MatchPath(IN DLL_HEAD_S *pstList, IN CHAR *pcUrl)
 {
     URL_MATCH_NODE_S *pstNode;
@@ -194,7 +194,7 @@ BS_STATUS URL_Match_RegExternName
     return url_match_Add(&pstUD->stExternNameList, pcExternName, uiFlag, pstUserHandle);
 }
 
-/* 按照Method, File, Path, 扩展名顺序进行匹配 */
+
 URL_MATCH_NODE_S * URL_Match_Match
 (
     IN URL_MATCH_HANDLE hUD,

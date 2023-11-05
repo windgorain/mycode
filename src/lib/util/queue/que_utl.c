@@ -108,7 +108,7 @@ BS_STATUS QUE_Pop(IN QUE_HANDLE hQue, OUT HANDLE *phItem)
     return BS_OK;
 }
 
-/* 查找并弹出 */
+
 BS_STATUS QUE_ExtractPop(IN QUE_HANDLE hQue, IN HANDLE hItem, OUT HANDLE *phItemFound)
 {
     UINT uiDest, uiSrc, uiCount;

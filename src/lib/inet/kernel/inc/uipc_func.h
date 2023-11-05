@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 int sbappendaddr_locked
 (
@@ -51,8 +51,8 @@ int sooptcopyout(OUT struct sockopt *sopt, IN const void *buf, IN UINT len);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__UIPC_FUNC_H_*/
+#endif 
 
 

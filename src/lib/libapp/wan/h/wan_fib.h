@@ -12,17 +12,17 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WanFib_Init();
-BS_STATUS WanFib_PrefixMatch(IN UINT uiVFID, IN UINT uiDstIp /* 网络序 */, OUT FIB_NODE_S *pstFibNode);
+BS_STATUS WanFib_PrefixMatch(IN UINT uiVFID, IN UINT uiDstIp , OUT FIB_NODE_S *pstFibNode);
 VOID WAN_FIB_Save(IN HANDLE hFile);
 BS_STATUS WanFib_KfInit();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_FIB_H_*/
+#endif 
 
 

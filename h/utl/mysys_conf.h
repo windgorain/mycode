@@ -16,4 +16,4 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-#endif //MYSYS_CONF_H_
+#endif 

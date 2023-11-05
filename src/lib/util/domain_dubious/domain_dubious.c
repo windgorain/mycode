@@ -19,8 +19,8 @@ int DomainDubious_Init(DOMAIN_DUBIOUS_S *ctrl)
     return 0;
 }
 
-/* 添加一条域名,比如: www.163.com, *.baidu.com */
-/* type: DOMAIN_DUBIOUS_ADD_WHITE  or DOMAIN_DUBIOUS_ADD_BLACK */
+
+
 int DomainDubious_Add(DOMAIN_DUBIOUS_S *ctrl, char *domain_name, int domain_name_len, int type)
 {
     return DnsNameTrie_Insert(ctrl->domain_name_trie, domain_name, domain_name_len, UINT_HANDLE(type));
@@ -47,7 +47,7 @@ int DomainDubious_LoadFile(DOMAIN_DUBIOUS_S *ctrl, char *file, int type)
     return 0;
 }
 
-/* return: DOMAIN_DUBIOUS_RESULT_XXX */
+
 int DomainDubious_Check(DOMAIN_DUBIOUS_S *ctrl, char *domain_name, int domain_name_len)
 {
     void *ud;

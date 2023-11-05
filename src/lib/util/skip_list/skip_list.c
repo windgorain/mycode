@@ -9,16 +9,16 @@
 
 #define SKL_MAX_LEVEL 32
 
-//定义结点
+
 typedef struct SKL_NODE SKL_NODE_S;
 typedef struct SKL_NODE {
     UINT key;
     UCHAR level;
     void *value;
-    SKL_NODE_S *forward[1]; /* SKL_NODE_S */
+    SKL_NODE_S *forward[1]; 
 }SKL_NODE_S;
 
-//定义跳跃表
+
 typedef struct {
     int max_level;
     UINT count;
@@ -48,7 +48,7 @@ static SKL_NODE_S * skl_new_node(int level)
     return node;
 }
 
-SKL_HDL SKL_Create(int max_level/* 包含最底层,需要最大多少级 */)
+SKL_HDL SKL_Create(int max_level)
 {
     BS_DBGASSERT(max_level <= SKL_MAX_LEVEL);
     BS_DBGASSERT(max_level >= 1);
@@ -114,7 +114,7 @@ void * SKL_GetLast(SKL_HDL hSkl)
     return SKL_GetInLeft(hSkl, 0xffffffff);
 }
 
-/* 查询 <=key的最大节点 */
+
 void * SKL_GetInLeft(SKL_HDL hSkl, UINT key)
 {
     SKL_CTRL_S *ctrl = hSkl;
@@ -134,7 +134,7 @@ void * SKL_GetInLeft(SKL_HDL hSkl, UINT key)
     return x->value;
 }
 
-/* 查询 >=key的最小节点 */
+
 void * SKL_GetInRight(SKL_HDL hSkl, UINT key)
 {
     SKL_CTRL_S *ctrl = hSkl;
@@ -155,7 +155,7 @@ void * SKL_GetInRight(SKL_HDL hSkl, UINT key)
     return x->value;
 }
 
-/* 查询 <key的最大节点 */
+
 void * SKL_GetLeft(SKL_HDL hSkl, UINT key)
 {
     SKL_CTRL_S *ctrl = hSkl;
@@ -171,7 +171,7 @@ void * SKL_GetLeft(SKL_HDL hSkl, UINT key)
     return x->value;
 }
 
-/* 查询 >key的最小节点 */
+
 void * SKL_GetRight(SKL_HDL hSkl, UINT key)
 {
     SKL_CTRL_S *ctrl = hSkl;
@@ -227,8 +227,8 @@ int SKL_Insert(SKL_HDL hSkl, UINT key, void *value)
     SKL_NODE_S *x = ctrl->header;
     int i;
 
-    //寻找key所要插入的位置
-    //保存大于key的位置信息
+    
+    
     for(i = ctrl->max_level-1; i >= 0; --i){
         while ((x->forward[i]) && (x->forward[i]->key < key)) {
             x = x->forward[i];
@@ -237,16 +237,16 @@ int SKL_Insert(SKL_HDL hSkl, UINT key, void *value)
     }
 
     x = x->forward[0];
-    //如果key已经存在
+    
     if(x->key == key) {
         x->value = value;
         return BS_ALREADY_EXIST;
     }
 
-    //随机生成新结点的层数
+    
     int level = skl_rand_level();
 
-    //申请新的结点
+    
     SKL_NODE_S *new_node = skl_new_node(level);
     if (! new_node) {
         RETURN(BS_NO_MEMORY);
@@ -255,14 +255,14 @@ int SKL_Insert(SKL_HDL hSkl, UINT key, void *value)
     new_node->value = value;
     new_node->level = level;
 
-    //调整forward指针
+    
     for(i = level; i >= 0; --i){
         x = update[i];
         new_node->forward[i] = x->forward[i];
         x->forward[i] = new_node;
     }
 
-    //更新元素数目
+    
     ctrl->count ++;
 
     return 0;
@@ -275,7 +275,7 @@ void * SKL_Delete(SKL_HDL hSkl, UINT key)
     SKL_NODE_S *x = ctrl->header;
     int i;
 
-    //寻找要删除的结点
+    
     for(i = ctrl->max_level-1; i >= 0; --i) {
         while(x->forward[i]->key < key){
             x = x->forward[i];
@@ -290,17 +290,17 @@ void * SKL_Delete(SKL_HDL hSkl, UINT key)
 
     void *value = x->value;
 
-    //调整指针
+    
     for (i = 0; i <= ctrl->max_level-1; ++i) {
         if(update[i]->forward[i] != x)
             break;
         update[i]->forward[i] = x->forward[i];
     }
 
-    //删除结点
+    
     MEM_Free(x);
 
-    //更新链表元素数目
+    
     ctrl->count --;
 
     return value;

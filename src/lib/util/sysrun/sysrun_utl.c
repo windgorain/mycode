@@ -37,13 +37,13 @@ VOID _SysrunUtl_Exit(INT lExitNum)
         pstNotify->pfFunc(lExitNum, pstUserHandle);
     }
 
-    Sleep(10);  /* 等待一段时间,以方便各个被通知者任务切换后处理 */
+    Sleep(10);  
 
     exit(lExitNum);
 }
 
 BS_STATUS _SysrunUtl_RegExitNotifyFunc(IN PF_SYSRUN_EXIT_NOTIFY_FUNC pfFunc,
-        IN USER_HANDLE_S *pstUserHandle/* 可以为NULL */)
+        IN USER_HANDLE_S *pstUserHandle)
 {
     _SYSRUN_EXIT_NOTIFY_S *pstNotify;
 

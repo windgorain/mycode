@@ -10,26 +10,22 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/*
- * Flags to sblock().
- */
-#define    SBL_WAIT    0x00000001    /* Wait if not immediately available. */
-#define    SBL_NOINTR    0x00000002    /* Force non-interruptible sleep. */
+
+#define    SBL_WAIT    0x00000001    
+#define    SBL_NOINTR    0x00000002    
 #define    SBL_VALID    (SBL_WAIT | SBL_NOINTR)
 
-/*
- * Constants for sb_flags field of struct sockbuf.
- */
-#define    SB_WAIT      0x04        /* someone is waiting for data/space */
-#define    SB_SEL       0x08        /* someone is selecting */
-#define    SB_ASYNC     0x10        /* ASYNC I/O, need signals */
-#define    SB_UPCALL    0x20        /* someone wants an upcall */
-#define    SB_NOINTR    0x40        /* operations not interruptible */
-#define    SB_AIO       0x80        /* AIO operations queued */
-#define    SB_KNOTE     0x100       /* kernel note attached */
-#define    SB_AUTOSIZE  0x800       /* automatically size socket buffer */
+
+#define    SB_WAIT      0x04        
+#define    SB_SEL       0x08        
+#define    SB_ASYNC     0x10        
+#define    SB_UPCALL    0x20        
+#define    SB_NOINTR    0x40        
+#define    SB_AIO       0x80        
+#define    SB_KNOTE     0x100       
+#define    SB_AUTOSIZE  0x800       
 
 #define SB_EMPTY_FIXUP(sb) do { \
     if ((sb)->sb_mb == NULL) { \
@@ -52,14 +48,14 @@ typedef struct sockbuf
 {
     SEM_HANDLE sb_wait;
     SEM_HANDLE sb_mtx;
-    MUTEX_S sb_sx;        /* prevent I/O interlacing */
-    MBUF_S *sb_mb;    /* Mbuf Chain */
+    MUTEX_S sb_sx;        
+    MBUF_S *sb_mb;    
     MBUF_S *sb_lastrecord;
     UINT sb_cc;
     UINT sb_hiwat;
     UINT sb_lowat;
-    INT  sb_timeo;      /* timeout for read/write */
-    USHORT sb_state;    /* socket state on sockbuf */
+    INT  sb_timeo;      
+    USHORT sb_state;    
     USHORT sb_flags;
 }SOCKBUF_S;
 
@@ -75,8 +71,8 @@ typedef struct sockbuf
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__UIPC_SOCKBUF_H_*/
+#endif 
 
 

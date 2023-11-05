@@ -11,52 +11,52 @@
 
 #define _XML_PARSE_MAX_STATE_CHANGE_NUM 10
 
-/* XML Parse状态 */
+
 typedef enum
 {
     XML_PARSE_STATE_INIT = 0,
     XML_PARSE_STATE_CONTENT,
     XML_PARSE_STATE_MARK,
-    XML_PARSE_STATE_REMARK_1,   /* 处于<!--中的!号状态 */
-    XML_PARSE_STATE_REMARK_2,   /* 处于<!--中的-号状态 */
-    XML_PARSE_STATE_REMARK_3,   /* 处于<!--中的第二个-号状态 */
+    XML_PARSE_STATE_REMARK_1,   
+    XML_PARSE_STATE_REMARK_2,   
+    XML_PARSE_STATE_REMARK_3,   
     XML_PARSE_STATE_REMARK,
-    XML_PARSE_STATE_REMARK_END_1,   /* 处于-->中的第一个-号状态 */
-    XML_PARSE_STATE_REMARK_END_2,   /* 处于-->中的第二个-号状态 */
+    XML_PARSE_STATE_REMARK_END_1,   
+    XML_PARSE_STATE_REMARK_END_2,   
     XML_PARSE_STATE_MARK_NAME,
     XML_PARSE_STATE_MARK_NAME_END,
     XML_PARSE_STATE_MARK_KEY,
     XML_PARSE_STATE_MARK_KEY_END,
-    XML_PARSE_STATE_MARK_KEY_EQUEL,     /* 处于key=value中的=号状态 */
-    XML_PARSE_STATE_MARK_VALUE_SINGLE_QUOTE,           /* value单引号状态 */
-    XML_PARSE_STATE_MARK_VALUE_SINGLE_QUOTE_VALUE,     /* value单引号状态内的value */
-    XML_PARSE_STATE_MARK_VALUE_DOUBLE_QUOTE,           /* value双引号状态 */
-    XML_PARSE_STATE_MARK_VALUE_DOUBLE_QUOTE_VALUE,     /* value双引号状态内的value */
-    XML_PARSE_STATE_MARK_VALUE_QUOTE_END,              /* value引号结束状态 */
+    XML_PARSE_STATE_MARK_KEY_EQUEL,     
+    XML_PARSE_STATE_MARK_VALUE_SINGLE_QUOTE,           
+    XML_PARSE_STATE_MARK_VALUE_SINGLE_QUOTE_VALUE,     
+    XML_PARSE_STATE_MARK_VALUE_DOUBLE_QUOTE,           
+    XML_PARSE_STATE_MARK_VALUE_DOUBLE_QUOTE_VALUE,     
+    XML_PARSE_STATE_MARK_VALUE_QUOTE_END,              
     XML_PARSE_STATE_MARK_VALUE,
     XML_PARSE_STATE_MARK_VALUE_END,
-    XML_PARSE_STATE_MARK_END,       /* 处于> 状态 */
-    XML_PARSE_STATE_BF_END_MARK,       /* before end mark: 处于/>或</中的斜杠 状态 */
+    XML_PARSE_STATE_MARK_END,       
+    XML_PARSE_STATE_BF_END_MARK,       
 
     XML_PARSE_STATE_ERROR
 }_XML_PARSE_STATE_E;
 
 typedef enum
 {
-    _XML_PARSE_ACT_NONE = 0,    /* 不做任何动作 */
-    _XML_PARSE_ACT_STR1,        /* 为str1赋值 */
-    _XML_PARSE_ACT_LEN1,        /* 为str1len赋值 */
-    _XML_PARSE_ACT_STR2,        /* 为str2赋值 */
-    _XML_PARSE_ACT_LEN2,        /* 为str2len赋值 */
-    _XML_PARSE_ACT_L2_0,        /* 为str2len赋值为0 */
+    _XML_PARSE_ACT_NONE = 0,    
+    _XML_PARSE_ACT_STR1,        
+    _XML_PARSE_ACT_LEN1,        
+    _XML_PARSE_ACT_STR2,        
+    _XML_PARSE_ACT_LEN2,        
+    _XML_PARSE_ACT_L2_0,        
 }_XML_PARSE_ACT_E;
 
 typedef struct
 {
-    CHAR cChar;                     /* 碰到此字符时切换状态. 0表示匹配任意字符 */
-    _XML_PARSE_STATE_E eToState;    /* 切换成eToState状态 */
-    _XML_PARSE_ACT_E eAction;       /* 需要做的动作 */
-    XML_TYPE_E eType;               /* 当不是XML_TYPE_NONE时, 设置类型并调用用户函数 */
+    CHAR cChar;                     
+    _XML_PARSE_STATE_E eToState;    
+    _XML_PARSE_ACT_E eAction;       
+    XML_TYPE_E eType;               
 }_XML_PARSE_STATE_CHANGE_TO_S;
 
 typedef struct
@@ -65,11 +65,11 @@ typedef struct
     _XML_PARSE_STATE_CHANGE_TO_S astStateChange[_XML_PARSE_MAX_STATE_CHANGE_NUM];
 }_XML_PARSE_STATE_MACHINE_S;
 
-/* vars */
+
 static _XML_PARSE_STATE_MACHINE_S g_astXmlParseStateMachine[] =
 {
     {XML_PARSE_STATE_INIT,
-        {{'<', XML_PARSE_STATE_MARK, _XML_PARSE_ACT_NONE, XML_TYPE_NONE},     /* 碰到'<'表示XML_PARSE_STATE_MARK状态开始  */
+        {{'<', XML_PARSE_STATE_MARK, _XML_PARSE_ACT_NONE, XML_TYPE_NONE},     
         {0,    XML_PARSE_STATE_INIT, _XML_PARSE_ACT_NONE, XML_TYPE_NONE}}},
     {XML_PARSE_STATE_CONTENT,
         {{'<', XML_PARSE_STATE_MARK, _XML_PARSE_ACT_NONE, XML_TYPE_NONE},
@@ -193,7 +193,7 @@ static _XML_PARSE_STATE_MACHINE_S g_astXmlParseStateMachine[] =
 };
 
 #ifdef IN_DEBUG
-/* 检查状态机合法性 */
+
 static BOOL_T _XML_PARSE_IsStateMachineValie()
 {
     UINT i;
@@ -221,7 +221,7 @@ BS_STATUS XML_Parse(IN CHAR *pszContent, IN PF_XML_PARSE_FUNC pfFunc, IN HANDLE 
     BS_STATUS eRet;
 
 #ifdef IN_DEBUG
-    /* 检查状态机合法性 */
+    
     _XML_PARSE_IsStateMachineValie();
 #endif
 

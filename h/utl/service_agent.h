@@ -27,10 +27,10 @@ typedef struct {
 }SERVICE_AGENT_S;
 
 int ServiceAgent_Init(SERVICE_AGENT_S *ctrl, void *mypller);
-int ServiceAgent_OpenTcp(SERVICE_AGENT_S *ctrl, USHORT port/* host order */);
+int ServiceAgent_OpenTcp(SERVICE_AGENT_S *ctrl, USHORT port);
 void ServiceAgent_SetEventOb(SERVICE_AGENT_S *ctrl, PF_SERVICE_AGENT_EV_OB fn);
 void ServiceAgent_SetDataOb(SERVICE_AGENT_S *ctrl, PF_SERVICE_AGENT_DATA_OB fn);
-/* 设置关联到连接上的用户数据 */
+
 void ServiceAgent_SetFdUd(SERVICE_AGENT_S *ctrl, int fd, void *fd_ud);
 void * ServiceAgent_GetFdUd(SERVICE_AGENT_S *ctrl, int fd);
 void ServiceAgent_Close(SERVICE_AGENT_S *ctrl, int fd);
@@ -38,4 +38,4 @@ void ServiceAgent_Close(SERVICE_AGENT_S *ctrl, int fd);
 #ifdef __cplusplus
 }
 #endif
-#endif //SERVICE_AGENT_H_
+#endif 

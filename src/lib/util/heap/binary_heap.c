@@ -43,8 +43,8 @@ static void binaryheap_Up(IN BINARY_HEAP_S *heap, IN UINT index, IN PF_BINARY_HE
 {
     DARRAY_HANDLE hDarray = heap->hDarray;
     void *current, *parrent;
-    UINT c;          // 当前节点(current)的位置
-    UINT p;          // 父(parent)结点的位置 
+    UINT c;          
+    UINT p;          
 
     c = index;
     current = DARRAY_Get(hDarray, c);
@@ -64,7 +64,7 @@ static void binaryheap_Up(IN BINARY_HEAP_S *heap, IN UINT index, IN PF_BINARY_HE
     DARRAY_Set(hDarray, c, current);
 }
 
-/* 选取最小的孩子 */
+
 static UINT binaryheap_GetMinChild(IN BINARY_HEAP_S *heap, IN UINT index, IN PF_BINARY_HEAP_CMP pfCmp)
 {
     DARRAY_HANDLE hDarray = heap->hDarray;
@@ -136,7 +136,7 @@ int BinaryHeap_Insert(IN BINARY_HEAP_S *heap, IN void *new_data)
     return 0;
 }
 
-/* 删除指定index位置的元素, 并返回这个元素 */
+
 void * BinaryHeap_RemoveIndex(IN BINARY_HEAP_S *heap, IN UINT index)
 {
     DARRAY_HANDLE hDarray = heap->hDarray;

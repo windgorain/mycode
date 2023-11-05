@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS UIPC_FD_Init();
 INT UIPC_FD_FAlloc(OUT UPIC_FD_S **ppstFp);
@@ -21,8 +21,8 @@ VOID * UIPC_FD_GetSocket(IN UPIC_FD_S *pstFp);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__UIPC_FD_FUNC_H_*/
+#endif 
 
 

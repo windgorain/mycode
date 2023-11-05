@@ -116,7 +116,7 @@ BS_STATUS Event_Read(EVENT_HANDLE hEventID, UINT64 events,
             pstEventCtrl->flag = ulFlag;
 
             MUTEX_V(&pstEventCtrl->stMutex);
-            eRet = SEM_P(pstEventCtrl->hEventSem, wait, ulTimeToWait); /*需要修改，减去先前多次等待的时间之和*/
+            eRet = SEM_P(pstEventCtrl->hEventSem, wait, ulTimeToWait); 
             MUTEX_P(&pstEventCtrl->stMutex);
  
             pstEventCtrl->flag = 0;

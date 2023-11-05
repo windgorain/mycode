@@ -22,7 +22,7 @@ int TAP_PKT_Init()
     return 0;
 }
 
-static BS_WALK_RET_E tappkt_FdEvent(int fd, UINT uiEvent, USER_HANDLE_S *pstUserHandle)
+static int tappkt_FdEvent(int fd, UINT uiEvent, USER_HANDLE_S *pstUserHandle)
 {
     unsigned char data[2048];
     int len;
@@ -31,17 +31,17 @@ static BS_WALK_RET_E tappkt_FdEvent(int fd, UINT uiEvent, USER_HANDLE_S *pstUser
 
     len = TUN_Read(fd, data, sizeof(data));
     if (len <= 0) {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     m = MBUF_CreateByCopyBuf(200, data, len , MBUF_DATA_DATA);
     if (! m) {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     TAP_PhyInput(id, m);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 int TAP_PKT_AddFd(int tap_fd, int id)

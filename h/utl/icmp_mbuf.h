@@ -15,4 +15,4 @@ ICMP_HEAD_S * ICMP_GetIcmpHeaderByMbuf(IN MBUF_S *pstMbuf, IN NET_PKT_TYPE_E enP
 #ifdef __cplusplus
 }
 #endif
-#endif //ICMP_MBUF_H_
+#endif 

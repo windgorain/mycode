@@ -18,10 +18,10 @@
 #define _NAT_PHY_PCAP_FLAG_PRIVATE 0x1
 #define _NAT_PHY_PCAP_FLAG_PUB     0x2
 
-/* VNET ETH PHY的事件 */
+
 #define _NAT_PHY_INPUT_DATA_EVENT 0x1
 
-/* VNET ETH PHY的消息类型 */
+
 #define _NAT_PHY_INPUT_DATA_MSG   1
 
 typedef struct
@@ -29,9 +29,9 @@ typedef struct
     UINT uiFlag;
     UINT uiPcapIndex;
     UINT uiIfIndex;
-    UINT uiHostIP;  /* 网络序 */
-    UINT uiMask;    /* 网络序 */
-    UINT uiGateWayIP;  /* 网络序 */
+    UINT uiHostIP;  
+    UINT uiMask;    
+    UINT uiGateWayIP;  
     MAC_ADDR_S stMacAddr;
 }_NAT_PHY_CTRL_S;
 
@@ -361,7 +361,7 @@ UINT NAT_PHY_GetMask(IN UINT uiIfIndex)
     return g_astNatPrivatePhy[uiIndex].uiMask;
 }
 
-/* 判断pub pcap是否同时是private pcap */
+
 BOOL_T NAT_PHY_PubPcapIsPrivate()
 {
     if (g_uiNatPhyPubPcapIndex == PCAP_INVALID_INDEX)

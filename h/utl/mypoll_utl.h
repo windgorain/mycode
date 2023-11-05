@@ -10,11 +10,11 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE MYPOLL_HANDLE;
 
-/* mypoll 事件 */
+
 #ifdef IN_LINUX
 #include <sys/epoll.h>
 #define MYPOLL_EVENT_IN  EPOLLIN
@@ -30,9 +30,9 @@ typedef HANDLE MYPOLL_HANDLE;
 #define MYPOLL_EVENT_ALL (MYPOLL_EVENT_IN | MYPOLL_EVENT_OUT | MYPOLL_EVENT_ERR)
 
 
-typedef BS_WALK_RET_E (*PF_MYPOLL_EV_NOTIFY)(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle);
-typedef BS_WALK_RET_E (*PF_MYPOLL_USER_EVENT_FUNC)(IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle);
-typedef BS_WALK_RET_E (*PF_MYPOLL_SIGNAL_FUNC)(IN int signum);
+typedef int (*PF_MYPOLL_EV_NOTIFY)(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle);
+typedef int (*PF_MYPOLL_USER_EVENT_FUNC)(IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle);
+typedef int (*PF_MYPOLL_SIGNAL_FUNC)(IN int signum);
 
 MYPOLL_HANDLE MyPoll_Create(void);
 VOID MyPoll_Destory(IN MYPOLL_HANDLE hMypoll);
@@ -56,13 +56,13 @@ BS_STATUS MyPoll_SetSignalProcessor(IN MYPOLL_HANDLE hMypoll, IN INT signo, IN P
 BS_STATUS MyPoll_SetUserEventProcessor(IN MYPOLL_HANDLE hMypoll, IN PF_MYPOLL_USER_EVENT_FUNC pfFunc, IN USER_HANDLE_S *pstUserHandle);
 BS_STATUS MyPoll_PostUserEvent(IN MYPOLL_HANDLE hMypoll, IN UINT uiEvent);
 BS_STATUS MyPoll_Trigger(MYPOLL_HANDLE hMyPoll);
-BS_WALK_RET_E MyPoll_Run(IN MYPOLL_HANDLE hMypoll);
+int MyPoll_Run(IN MYPOLL_HANDLE hMypoll);
 VOID MyPoll_Restart(IN MYPOLL_HANDLE hMypoll);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__MYPOLL_UTL_H_*/
+#endif 
 
 

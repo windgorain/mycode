@@ -25,10 +25,10 @@ static UCHAR g_pwatcher_global_timer_min;
 
 static void pwatchertimer_global_step(HANDLE timer, USER_HANDLE_S *pstUserHandle)
 {
-    /* 秒级通知 */
+    
     PWatcherEvent_Notify(PWATCHER_EV_GLOBAL_TIMER, NULL, NULL);
 
-    /* 分钟级通知 */
+    
     g_pwatcher_global_timer_min ++;
     if (g_pwatcher_global_timer_min >= 60) {
         PWatcherEvent_Notify(PWATCHER_EV_GLOBAL_MINUTE_TIMER, NULL, NULL);
@@ -41,10 +41,10 @@ static void pwatchertimer_Wake(int worker_id)
     PWATCHER_TIMER_EV_S ev;
     ev.worker_id = worker_id;
 
-    /* 秒级通知 */
+    
     PWatcherEvent_Notify(PWATCHER_EV_WORKER_TIMER, NULL, &ev);
 
-    /* 分钟级通知 */
+    
     g_pwatcher_timer_min[worker_id] ++;
     if (g_pwatcher_timer_min[worker_id] >= 60) {
         PWatcherEvent_Notify(PWATCHER_EV_WORKER_MINUTE_TIMER, NULL, &ev);

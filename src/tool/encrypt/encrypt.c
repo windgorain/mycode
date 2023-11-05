@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-/* encrypt source-filename password dest-filename */
+
 int main(int argc, char **argv)
 {
     FILE *fp, *fq;

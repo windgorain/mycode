@@ -72,4 +72,4 @@ static inline void IDMGR_Reset(IDMGR_S *tbl)
 #ifdef __cplusplus
 }
 #endif
-#endif //IDMGR_UTL_H_
+#endif 

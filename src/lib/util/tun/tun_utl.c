@@ -268,9 +268,7 @@ static int _tunos_Write(VNIC_HANDLE hVnic, IN void *buf, IN int len)
 
 #endif
 
-/*
- * dev_name: 允许为NULL
- */
+
 TUN_FD TUN_Open(char *dev_name, int dev_name_size)
 {
     return _tunos_Open(dev_name, dev_name_size, TUN_TYPE_TUN);

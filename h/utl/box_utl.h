@@ -89,21 +89,21 @@ static inline UINT Box_GetKeyHash(BOX_S *box, int index)
     return CuckooHash_GetKeyFactor(&box->hash, index);
 }
 
-/* int box: data中放的是数字 */
+
 int IntBox_Init(BOX_S *box, CUCKOO_HASH_NODE_S *table,
         UINT bucket_num, UINT bucket_depth);
 void IntBox_Show(BOX_S *box);
 
-/* id box: data中放的是指向ID的指针 */
+
 int IDBox_Init(BOX_S *box, CUCKOO_HASH_NODE_S *table,
         UINT bucket_num, UINT bucket_depth);
 
-/* str box */
+
 int StrBox_Init(BOX_S *box, CUCKOO_HASH_NODE_S *table,
         UINT bucket_num, UINT bucket_depth);
 void StrBox_Show(BOX_S *box);
 
-/* ip tup box */
+
 typedef union {
     union {
         UINT ip4;
@@ -125,7 +125,7 @@ typedef struct {
 int IPTupBox_Init(BOX_S *box, CUCKOO_HASH_NODE_S *table,
         UINT bucket_num, UINT bucket_depth);
 
-/* ip 3 tup box */
+
 typedef struct {
     UCHAR protocol;
     UCHAR reserved;
@@ -136,11 +136,11 @@ typedef struct {
 int IPTup3Box_Init(BOX_S *box, CUCKOO_HASH_NODE_S *table,
         UINT bucket_num, UINT bucket_depth);
 
-/* data box */
+
 int DataBox_Init(BOX_S *box, CUCKOO_HASH_NODE_S *table,
         UINT bucket_num, UINT bucket_depth);
 
-/* raw box */
+
 int RawBox_Init(BOX_S *box, CUCKOO_HASH_NODE_S *table,
         UINT bucket_num, UINT bucket_depth,
         PF_CUCKOO_INDEX index_func, PF_CUCKOO_CMP cmp_func);
@@ -148,4 +148,4 @@ int RawBox_Init(BOX_S *box, CUCKOO_HASH_NODE_S *table,
 #ifdef __cplusplus
 }
 #endif
-#endif //BOX_UTL_H_
+#endif 

@@ -14,7 +14,7 @@
 #include "webcenter_inner.h"
 
 static CHAR g_szWebCenterBindWsService[WSAPP_SERVICE_NAME_LEN + 1] = "";
-static CHAR g_szWebCenterInnerBindWsService[WSAPP_SERVICE_NAME_LEN + 1] = "";  /* InnerWsService, 仅能使用命令行进行配置,用于缺省web网管服务 */
+static CHAR g_szWebCenterInnerBindWsService[WSAPP_SERVICE_NAME_LEN + 1] = "";  
 
 static BS_STATUS _webcenter_kf_SaveConfig(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, IN KFAPP_PARAM_S *pstParam)
 {

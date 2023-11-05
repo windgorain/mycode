@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef DLL_HEAD_S OB_CHAIN_S;
 #define OB_CHAIN_HEAD_INIT_VALUE DLL_HEAD_INIT_VALUE
@@ -18,8 +18,8 @@ typedef DLL_HEAD_S OB_CHAIN_S;
 
 typedef struct
 {
-    DLL_NODE_S    stDllNode;   /* 必须是第一个成员 */
-    UINT uiPri;                /* 优先级,数字越小越优先 */
+    DLL_NODE_S    stDllNode;   
+    UINT uiPri;                
     void *pfFunc;
     USER_HANDLE_S stUserHandle;
 }OB_CHAIN_NODE_S;
@@ -55,8 +55,8 @@ BS_STATUS OB_CHAIN_DelAll(IN OB_CHAIN_S *pstHead);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__OB_CHAIN_H_*/
+#endif 
 
 

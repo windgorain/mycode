@@ -43,11 +43,11 @@ typedef struct
 typedef struct
 {
     UINT uiMaxVD;
-    UINT uiRegNodeNum; /* 记录有多少人注册了event */
+    UINT uiRegNodeNum; 
     UINT bCreateLock:1;
-    DLL_HEAD_S stListenerList;  /* 放置VD_EVENT_NODE_S */
-    VF_NODE_S *pstVds; /* 指向VF数组 */
-    HASH_HANDLE hNameIdTbl;  /* 根据Name记录ID的表 */
+    DLL_HEAD_S stListenerList;  
+    VF_NODE_S *pstVds; 
+    HASH_HANDLE hNameIdTbl;  
     MUTEX_S stMutex;
     void *memcap;
 }VF_CTRL_S;
@@ -155,11 +155,11 @@ static VOID vf_InsertListener(IN VF_CTRL_S *pstCtrl, IN VF_EVENT_NODE_S *pstNode
     return;
 }
 
-/* 返回Index, VF_INVALID_INDEX表示失败 */
+
 UINT VF_RegEventListener
 (
     IN VF_HANDLE hVf,
-    IN UINT uiPriority/* 值越小优先级越高 */,
+    IN UINT uiPriority,
     IN PF_VF_EVENT_FUNC pfEventFunc,
     IN USER_HANDLE_S *pstUserHandle
 )
@@ -196,7 +196,7 @@ UINT VF_RegEventListener
     return uiIndex;
 }
 
-/* 返回VF ID, VF_INVALID_VF表示失败 */
+
 UINT VF_CreateVF(IN VF_HANDLE hVf, IN CHAR *pcVfName)
 {
     UINT i;
@@ -455,7 +455,7 @@ CHAR * VF_GetEventName(IN UINT uiEvent)
     return apcName[uiEvent];
 }
 
-UINT VF_GetNext(IN VF_HANDLE hVf, IN UINT uiCurrent/* 0表示从开始获取 */)
+UINT VF_GetNext(IN VF_HANDLE hVf, IN UINT uiCurrent)
 {
     UINT i;
     VF_CTRL_S *pstCtrl = hVf;

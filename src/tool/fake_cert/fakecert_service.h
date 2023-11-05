@@ -20,4 +20,4 @@ void fakecert_service_run();
 #ifdef __cplusplus
 }
 #endif
-#endif //FAKECERT_SERVICE_H_
+#endif 

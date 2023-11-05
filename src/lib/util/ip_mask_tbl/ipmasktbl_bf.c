@@ -14,7 +14,7 @@ void IPMASKTBL_BfInit(IPMASKTBL_BF_S *ipmasktbl_bf)
     memset(ipmasktbl_bf, 0, sizeof(IPMASKTBL_BF_S));
 }
 
-void IPMASKTBL_BfSet(IPMASKTBL_BF_S *ipmasktbl_bf, UINT ip/*netorder*/, UCHAR depth)
+void IPMASKTBL_BfSet(IPMASKTBL_BF_S *ipmasktbl_bf, UINT ip, UCHAR depth)
 {
     UINT mask;
     UINT start, end;
@@ -38,7 +38,7 @@ void IPMASKTBL_BfSet(IPMASKTBL_BF_S *ipmasktbl_bf, UINT ip/*netorder*/, UCHAR de
     }
 }
 
-int IPMASKTBL_BfTest(IPMASKTBL_BF_S *ipmasktbl_bf, UINT ip/*netorder*/, UCHAR depth)
+int IPMASKTBL_BfTest(IPMASKTBL_BF_S *ipmasktbl_bf, UINT ip, UCHAR depth)
 {
     UINT mask;
     UINT start, end;

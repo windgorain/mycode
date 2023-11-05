@@ -9,18 +9,12 @@
 #include "utl/mybpf_runtime.h"
 #include "utl/mybpf_loader.h"
 
-int MYBPF_RuntimeInit(OUT MYBPF_RUNTIME_S *runtime, UINT ufd_capacity)
+int MYBPF_RuntimeInit(OUT MYBPF_RUNTIME_S *runtime)
 {
     memset(runtime, 0, sizeof(*runtime));
 
     runtime->loader_map = MAP_ListCreate(NULL);
     if (! runtime->loader_map) {
-        RETURN(BS_ERR);
-    }
-
-    runtime->ufd_ctx = UFD_Create(ufd_capacity);
-    if (! runtime->ufd_ctx) {
-        MAP_Destroy(runtime->loader_map, NULL, NULL);
         RETURN(BS_ERR);
     }
 
@@ -35,8 +29,6 @@ int MYBPF_RuntimeInit(OUT MYBPF_RUNTIME_S *runtime, UINT ufd_capacity)
 void MYBPF_RuntimeFini(OUT MYBPF_RUNTIME_S *runtime)
 {
     MYBPF_LoaderUnloadAll(runtime);
-    UFD_Destroy(runtime->ufd_ctx);
-    runtime->ufd_ctx = NULL;
     MAP_Destroy(runtime->loader_map, NULL, NULL);
     runtime->loader_map = NULL;
 }

@@ -45,21 +45,21 @@ static UINT vnets_domain_Add
         return uiDomainId;
     }
 
-    /* 申请一个可用ID */
+    
     uiDomainId = _VNETS_DomainId_Get();
     if (0 == uiDomainId)
     {
         return 0;
     }
 
-    /* 添加名字到ID的映射 */
+    
     if (BS_OK != _VNETS_DomainNIM_Add(pcDomainName, uiDomainId))
     {
         _VNETS_DomainId_FreeID(uiDomainId);
         return 0;
     }
 
-    /* 添加一个域记录 */
+    
     if (BS_OK != _VNETS_DomainRecord_Add(uiDomainId, pcDomainName, eType, uiNodeID))
     {
         _VNETS_DomainNIM_Del(pcDomainName);
@@ -157,7 +157,7 @@ static VOID vnets_domain_Reboot(IN CHAR *pcDomainName)
 static UINT vnets_domain_GetNextNode
 (
     IN CHAR *pcDomainName,
-    IN UINT uiCurrentNodeId/* 如果为0,则表示得到第一个 */
+    IN UINT uiCurrentNodeId
 )
 {
     UINT uiDomainId;
@@ -294,7 +294,7 @@ UINT VNETS_Domain_GetSesCount(IN UINT uiDomainID)
 UINT VNETS_Domain_GetNextNode
 (
     IN CHAR *pcDomainName,
-    IN UINT uiCurrentNodeId/* 如果为0,则表示得到第一个SES ID */
+    IN UINT uiCurrentNodeId
 )
 {
     UINT uiNodeID = 0;

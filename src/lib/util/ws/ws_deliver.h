@@ -10,11 +10,11 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct
 {
-    DLL_HEAD_S stDeliverList;       /* _WS_DELIVER_NODE_S */
+    DLL_HEAD_S stDeliverList;       
 }WS_DELIVER_TBL_S;
 
 typedef struct
@@ -32,8 +32,8 @@ _WS_DELIVER_NODE_S * _WS_Deliver_Match(IN WS_TRANS_S *pstTrans);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WS_DELIVER_H_*/
+#endif 
 
 

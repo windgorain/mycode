@@ -9,7 +9,7 @@
 #include "utl/txt_utl.h"
 #include "utl/lstr_utl.h"
 
-/* 消除字符串头尾的字符 */
+
 VOID LSTR_Strim(IN LSTR_S *pstString, IN CHAR *pcSkipChars, OUT LSTR_S *pstStringOut)
 {
     ULONG ulDataLenTemp;
@@ -50,7 +50,7 @@ CHAR *LSTR_Strstr(IN LSTR_S *pstLstr, IN CHAR *pcToFind)
     return TXT_Strnstr(pstLstr->pcData, pcToFind, pstLstr->uiLen);
 }
 
-/* 消除字符串头尾的引号 */
+
 VOID LSTR_RemoveQuotation(INOUT LSTR_S *pstString)
 {
     if (pstString->uiLen == 0)
@@ -76,11 +76,11 @@ VOID LSTR_RemoveQuotation(INOUT LSTR_S *pstString)
 }
 
 
-/* 将字符串分隔成两个字符串 */
+
 VOID LSTR_MSplit
 (
     IN LSTR_S *pstString,
-    IN CHAR *pcSplitChar, /* 分隔符集合 */
+    IN CHAR *pcSplitChar, 
     OUT LSTR_S *pstStr1,
     OUT LSTR_S *pstStr2
 )
@@ -108,11 +108,11 @@ VOID LSTR_MSplit
     return;
 }
 
-/* 将字符串分隔成两个字符串 */
+
 VOID LSTR_Split
 (
     IN LSTR_S *pstString,
-    IN CHAR cSplitChar, /* 分隔符 */
+    IN CHAR cSplitChar, 
     OUT LSTR_S *pstStr1,
     OUT LSTR_S *pstStr2
 )
@@ -140,13 +140,13 @@ VOID LSTR_Split
     return;
 }
 
-/* 将字符串分隔成多个字符串, 返回分割成了多少个子串 */
+
 UINT LSTR_XSplit
 (
     IN LSTR_S *pstString,
-    IN CHAR cSplitChar, /* 分隔符 */
-    OUT LSTR_S *pstStr,/* 指向数组 */
-    IN UINT uiCount /* 数组中元素个数 */
+    IN CHAR cSplitChar, 
+    OUT LSTR_S *pstStr,
+    IN UINT uiCount 
 )
 {
     LSTR_S stReserved;
@@ -164,7 +164,7 @@ UINT LSTR_XSplit
 }
 
 
-/* 按照字符串比较 */
+
 INT LSTR_StrCmp(IN LSTR_S *pstStr, IN CHAR *pcString)
 {
     LSTR_S stStr2;
@@ -175,7 +175,7 @@ INT LSTR_StrCmp(IN LSTR_S *pstStr, IN CHAR *pcString)
     return LSTR_Cmp(pstStr, &stStr2);
 }
 
-/*str结构按照字符串进行不区分大小写比较 */
+
 INT LSTR_StrCaseCmp(IN LSTR_S *pstStr, IN CHAR *pcString)
 {
     LSTR_S stStr2;
@@ -186,7 +186,7 @@ INT LSTR_StrCaseCmp(IN LSTR_S *pstStr, IN CHAR *pcString)
     return LSTR_CaseCmp(pstStr, &stStr2);
 }
 
-/* 按照字符串比较 */
+
 INT LSTR_Cmp(IN LSTR_S *pstStr, IN LSTR_S *pstStr2)
 {
     UINT   uiLen   = MIN(pstStr->uiLen, pstStr2->uiLen);
@@ -215,7 +215,7 @@ INT LSTR_Cmp(IN LSTR_S *pstStr, IN LSTR_S *pstStr2)
     return -1;
 }
 
-/*str结构按照字符串进行不区分大小写比较 */
+
 INT LSTR_CaseCmp(IN LSTR_S *pstStr, IN LSTR_S *pstStr2)
 {
     int c1;
@@ -251,7 +251,7 @@ INT LSTR_CaseCmp(IN LSTR_S *pstStr, IN LSTR_S *pstStr2)
     return -1;
 }
 
-/* str结构复制到buff中并转为字符串 */
+
 CHAR *LSTR_Strlcpy(IN LSTR_S *pstStr, IN UINT uiSzSize, OUT CHAR *pcSz)
 {
     ULONG ulLen = (ULONG)pstStr->uiLen;
@@ -306,7 +306,7 @@ BS_STATUS LSTR_XAtoui(IN LSTR_S *pstStr, OUT UINT *puiNum)
     return TXT_XAtoui(szNum, puiNum);
 }
 
-/* 获取扩展名 */
+
 BS_STATUS LSTR_GetExt(IN LSTR_S *pstFilePath, OUT LSTR_S *pstExt)
 {
     UINT uiCount;
@@ -368,7 +368,7 @@ VOID LSTR_Lstr2Str(IN LSTR_S *pstLstr, OUT CHAR *pcStr, IN UINT uiStrSize)
     return;
 }
 
-/* 将多行压缩成一行 */
+
 VOID LSTR_CompressLine(INOUT LSTR_S *pstLstr)
 {
     UINT uiLen;
@@ -398,7 +398,7 @@ VOID LSTR_CompressLine(INOUT LSTR_S *pstLstr)
     return;
 }
 
-/* 删除指定的Elemeent. 比如删除"exp1,exp2,exp3"中的exp2 */
+
 VOID LSTR_DelElement(INOUT LSTR_S *pstLstr, IN CHAR cSplitChar, IN LSTR_S *pstElement)
 {
     LSTR_S stEleTmp;
@@ -443,7 +443,7 @@ CHAR * LSTR_FindElement(INOUT LSTR_S *pstLstr, IN CHAR cSplitChar, IN LSTR_S *ps
     return NULL;
 }
 
-/* 从keyXvalue字符串中获取指定key的value */
+
 BS_STATUS LSTR_GetValueByKey
 (
     IN LSTR_S *pstString,

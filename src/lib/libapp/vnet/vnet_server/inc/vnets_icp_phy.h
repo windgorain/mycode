@@ -11,7 +11,7 @@ BS_STATUS VNETS_IcpPhy_Start();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_ICP_PHY_H_*/
+#endif 
 

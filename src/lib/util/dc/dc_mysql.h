@@ -27,7 +27,7 @@ BS_STATUS DC_Mysql_CpyFieldValueAsString
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__DC_MYSQL_H_*/
+#endif 
 

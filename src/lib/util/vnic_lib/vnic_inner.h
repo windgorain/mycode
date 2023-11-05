@@ -53,4 +53,4 @@ CHAR * _OS_VNIC_GetAdapterGuid(IN HANDLE hVnicId);
 #ifdef __cplusplus
 }
 #endif
-#endif //VNIC_INNER_H_
+#endif 

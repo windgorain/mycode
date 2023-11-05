@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef BS_STATUS (*PF_VNETS_CMD_SAVE_FUNC)(IN HANDLE hFile);
 
@@ -19,8 +19,8 @@ BS_STATUS VNETS_CmdUdp_Save(IN HANDLE hFile);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_CMD_H_*/
+#endif 
 
 

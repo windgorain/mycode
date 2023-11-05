@@ -50,10 +50,7 @@ UCHAR inetctlerrmap[PRC_NCMDS] =
     ENOPROTOOPT,    ECONNREFUSED
 };
 
-/*
-接收到的UDP或RawIP报文，依据各种控制选项，从报文中提取相应字段，
-       生成控制mbuf链，输出控制mbuf链即mp
-*/
+
 void ip_savecontrol
 (
     IN INPCB_S *inp,
@@ -153,10 +150,7 @@ void ip_savecontrol
         }
     }
 
-    /*
-     * 报文上送时可以携带报文的入接口索引，如果是从二层口上送的也携带入端口
-     * 索引。
-     */
+    
     if ((inp->inp_flags & INP_RECVIF) != 0)
     {
         UINT uiRecvIfIndex = MBUF_GET_RECV_IF_INDEX(m);
@@ -208,7 +202,7 @@ void ip_savecontrol
     return;
 }
 
-/* 将应用程序设置的选项设置到mbuf中，此接口供TCP/UDP/RAWIP使用 */
+
 void ip_setopt2mbuf
 (
     IN INPCB_S *inp,
@@ -224,7 +218,7 @@ void ip_setopt2mbuf
     if (NULL != control) {
         while (MBUF_TOTAL_DATA_LEN(control) > 0)
         {
-            /* First pullup, length is sizeof struct cmsghdr */
+            
             if (BS_OK !=  MBUF_MakeContinue(control, sizeof(struct cmsghdr)))
             {
                 break;
@@ -253,7 +247,7 @@ void ip_setopt2mbuf
             switch (opt)
             {
                 case IP_SNDBYDSTMAC:
-                    /* 携带的结构为struct snd_mac */
+                    
                     if (cm->cmsg_len == CMSG_LEN(sizeof(struct snd_mac)))
                     {
                         MBUF_SET_DESTMAC(m, CMSG_DATA(cm));
@@ -263,7 +257,7 @@ void ip_setopt2mbuf
                     break;
 
                 case IP_SNDBYSRCMAC:
-                    /* 携带的结构为struct snd_mac */
+                    
                     if (cm->cmsg_len == CMSG_LEN(sizeof(struct snd_mac))) {
                         MBUF_SET_SOURCEMAC(m, (u_char *)CMSG_DATA(cm));
                         MBUF_SET_ETH_MARKFLAG(m, MBUF_L2_FLAG_SRC_MAC);
@@ -281,17 +275,12 @@ void ip_setopt2mbuf
     {
         INP_LOCK_ASSERT(inp);
 
-        /*
-         * 现在支持应用程序设置的选项有: 
-         * 发送报文的目的MAC、
-         * 协议报文发送、
-         * 设置mplsflag
-         */
+        
 
-        /* destnation MAC address */
+        
         if ((0 == hasdmac) && (NULL != inp->inp_dmac))
         {
-            /* copy destination MAC address to MBUF, and set Flag */
+            
             MBUF_SET_DESTMAC(m, inp->inp_dmac->sm_mac);
             MBUF_SET_ETH_MARKFLAG(m, MBUF_L2_FLAG_DST_MAC);
         }
@@ -312,7 +301,7 @@ int ip_pcbopts(IN INPCB_S *inp, IN int optname, IN MBUF_S *m)
 
     pcbopt = &inp->inp_options;
 
-    /* turn off any old options */
+    
     if (NULL != *pcbopt)
     {
         (void)MBUF_Free(*pcbopt);
@@ -322,9 +311,7 @@ int ip_pcbopts(IN INPCB_S *inp, IN int optname, IN MBUF_S *m)
     cnt = (int)MBUF_TOTAL_DATA_LEN(m);
     if (m == NULL || cnt == 0)
     {
-        /*
-         * Only turning off any previous options.
-         */
+        
         if (m != NULL)
         {
             (void)MBUF_Free(m);
@@ -337,10 +324,7 @@ int ip_pcbopts(IN INPCB_S *inp, IN int optname, IN MBUF_S *m)
         goto bad;
     }
 
-    /*
-     * IP first-hop destination address will be stored before actual
-     * options; move other options back and clear it when none present.
-     */
+    
     if (BS_OK != MBUF_Prepend(m, sizeof(UINT)))
     {
         goto bad;
@@ -383,31 +367,16 @@ int ip_pcbopts(IN INPCB_S *inp, IN int optname, IN MBUF_S *m)
 
             case IPOPT_LSRR:
             case IPOPT_SSRR:
-                /*
-                 * User process specifies route as:
-                 *
-                 *  ->A->B->C->D
-                 *
-                 * D must be our final destination (but we can't
-                 * check that since we may not have connected yet).
-                 * A is first hop destination, which doesn't appear
-                 * in actual IP option, but is stored before the
-                 * options.
-                 */
+                
                 if (optlen < ((IPOPT_MINOFF - 1) + (int)(u_int) sizeof(struct in_addr))) {
                     goto bad;
                 }
                 cnt -= (int)(u_int) sizeof(struct in_addr);
                 optlen -= (int)(u_int) sizeof(struct in_addr);
                 cp[IPOPT_OLEN] = (u_char)(u_int) optlen;
-                /*
-                 * Move first hop before start of options.
-                 */
+                
                 bcopy((caddr_t)&cp[IPOPT_OFFSET+1], MBUF_MTOD(m), sizeof(UINT));
-                /*
-                 * Then copy rest of options back
-                 * to close up the deleted entry.
-                 */
+                
                 bcopy((&cp[IPOPT_OFFSET+1] + sizeof(UINT)),
                         &cp[IPOPT_OFFSET+1],
                         ((unsigned)cnt - (IPOPT_MINOFF - 1)));
@@ -484,7 +453,7 @@ int ip_ctloutput(IN SOCKET_S *so, IN SOCKOPT_S *sopt)
                 if (0 != error) {
                     break;
                 }
-                /* Copy to inpcb. */
+                
                 INP_LOCK(inp);
                 if (NULL == inp->inp_dmac) {
                     macp = (struct snd_mac *)MEM_ZMalloc(sizeof(mac));
@@ -504,7 +473,7 @@ int ip_ctloutput(IN SOCKET_S *so, IN SOCKOPT_S *sopt)
 
         case IP_SNDDATAIF:
         {
-            /* Option should be removed when option length equals 0. */
+            
             if (0 == sopt->sopt_valsize)
             {
                 INP_LOCK(inp);
@@ -522,7 +491,7 @@ int ip_ctloutput(IN SOCKET_S *so, IN SOCKOPT_S *sopt)
                 if (0 != error) {
                     break;
                 }
-                /* Copy to inpcb. */
+                
                 INP_LOCK(inp);
                 if (NULL == inp->inp_outif) {
                     outifp = (struct snd_if *)MEM_ZMalloc(sizeof(outif));
@@ -631,10 +600,7 @@ int ip_ctloutput(IN SOCKET_S *so, IN SOCKOPT_S *sopt)
                 break;
             }
             break;
-        /*
-         * Multicast socket options are processed by the in_mcast
-         * module.
-         */
+        
         case IP_MULTICAST_IF:
         case IP_MULTICAST_VIF:
         case IP_MULTICAST_TTL:
@@ -788,22 +754,7 @@ int ip_ctloutput(IN SOCKET_S *so, IN SOCKOPT_S *sopt)
             case IP_RECVIF:
                 optval = OPTBIT(INP_RECVIF);
                 break;
-            /*
-             * J03845: 在Leopard上端口通过主控板统一分配，不再使用BSD支持的算法
-             * 也不再需要支持此选项
-             *
-            case IP_PORTRANGE:
-                if (0 != (inp->inp_flags & INP_HIGHPORT)) {
-                    optval = IP_PORTRANGE_HIGH;
-                }
-                else if (0 != (inp->inp_flags & INP_LOWPORT)) {
-                    optval = IP_PORTRANGE_LOW;
-                }
-                else {
-                    optval = 0;
-                }
-                break;
-            */
+            
             case IP_FAITH:
                 optval = OPTBIT(INP_FAITH);
                 break;
@@ -833,10 +784,7 @@ int ip_ctloutput(IN SOCKET_S *so, IN SOCKOPT_S *sopt)
             }
             error = sooptcopyout(sopt, &optval, sizeof(optval));
             break;
-        /*
-         * Multicast socket options are processed by the in_mcast
-         * module.
-         */
+        
         case IP_MULTICAST_IF:
         case IP_MULTICAST_VIF:
         case IP_MULTICAST_TTL:

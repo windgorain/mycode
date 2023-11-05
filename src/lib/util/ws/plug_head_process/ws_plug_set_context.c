@@ -59,7 +59,7 @@ WS_EV_RET_E ws_plugsetcontext_Redirect(IN WS_TRANS_S *pstTrans, IN CHAR *pcConte
 
     ws_plugsetcontext_GetJump2Url(pstTrans, szTmp, sizeof(szTmp));
 
-    /* 回应重定向,重定向到Context */
+    
     if (BS_OK != WS_Trans_Redirect(pstTrans, szTmp))
     {
         return WS_EV_RET_ERR;

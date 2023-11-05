@@ -58,7 +58,7 @@ static BIO_METHOD g_stSslNetMethodsSslTcp =
 	_SSLNET_SslTcpWrite,
 	_SSLNET_SslTcpRead,
 	_SSLNET_SslTcpPuts,
-	NULL, /* sock_gets, */
+	NULL, 
 	_SSLNET_SslTcpCtrl,
 	_SSLNET_SslTcpNew,
 	_SSLNET_SslTcpFree,
@@ -310,7 +310,7 @@ static SSL_CTX * _SSLNET_CreateNewCtx(IN CHAR *pszSslPolicy)
     meth=(SSL_METHOD*)SSLv23_method();
     ctx=SSL_CTX_new(meth);
 
-    /* 加载证书*/
+    
     if(!(SSL_CTX_use_certificate_file(ctx, pszKeyFile, SSL_FILETYPE_PEM)))
     {
         return 0;
@@ -326,7 +326,7 @@ static SSL_CTX * _SSLNET_CreateNewCtx(IN CHAR *pszSslPolicy)
         return 0;
     }
 
-    /* Load the CAs we trust*/
+    
     if(!(SSL_CTX_load_verify_locations(ctx, CA_LIST, 0)))
     {
         return 0;
@@ -334,7 +334,7 @@ static SSL_CTX * _SSLNET_CreateNewCtx(IN CHAR *pszSslPolicy)
 
     SSL_CTX_set_verify_depth(ctx, 1);
 
-    /* Load randomness */
+    
     if(!(RAND_load_file(RANDOM,1024*1024)))
     {
         return 0;
@@ -401,7 +401,7 @@ BS_STATUS SSLNET_Create(IN UINT ulFamily, IN CHAR *pszSslPolicy, OUT HANDLE *phS
     return BS_OK;    
 }
 
-/*ip/port:主机序*/
+
 BS_STATUS SSLNET_Listen(IN HANDLE hSslHandle, UINT ulLocalIp, IN USHORT usPort, IN USHORT ulBackLog)
 {
     _SSL_NET_S *pstSslNet = (_SSL_NET_S*)hSslHandle;
@@ -481,7 +481,7 @@ BS_STATUS SSLNET_Accept(IN HANDLE hListenSslHandle, OUT HANDLE *phAcceptSslHandl
         SSL_free(pstNewSsl);
         SSLTCP_Close(ulAcceptFd);
         MEM_Free(pstNewSslNet);
-        RETURN(BS_AGAIN); /* 有可能协商错误 */
+        RETURN(BS_AGAIN); 
     }
 
     pstNewSslNet->ulFd = ulAcceptFd;
@@ -598,7 +598,7 @@ BS_STATUS SSLNET_UnSetAsyn(IN HANDLE hSslHandle)
     return SSLTCP_UnSetAsyn(pstSslNet->ulFd);
 }
 
-/* 返回主机序IP和Port */
+
 BS_STATUS SSLNET_GetHostIpPort(IN HANDLE hSslHandle, OUT UINT *pulIp, OUT USHORT *pusPort)
 {
     _SSL_NET_S *pstSslNet = (_SSL_NET_S*)hSslHandle;
@@ -620,7 +620,7 @@ BS_STATUS SSLNET_GetHostIpPort(IN HANDLE hSslHandle, OUT UINT *pulIp, OUT USHORT
     return BS_OK;
 }
 
-/* 返回主机序IP和Port */
+
 BS_STATUS SSLNET_GetPeerIpPort(IN HANDLE hSslHandle, OUT UINT *pulIp, OUT USHORT *pusPort)
 {
     _SSL_NET_S *pstSslNet = (_SSL_NET_S*)hSslHandle;

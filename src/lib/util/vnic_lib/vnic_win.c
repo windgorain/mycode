@@ -6,7 +6,7 @@
 ******************************************************************************/
 #include "bs.h"
 
-/* func */
+
 #ifdef IN_WINDOWS
 
 #include "utl/vnic_lib.h"
@@ -34,7 +34,7 @@ BS_STATUS _OS_VNIC_Create (IN UCHAR *pcVnicFilePath, OUT HANDLE *phVnicId)
     }
     Mem_Zero (pstCtrl, sizeof(_OS_VNIC_CTRL_S));
 
-    /* 非阻塞方式创建 */
+    
     pstCtrl->stReadOverLapped.hEvent = CreateEvent (NULL, FALSE, FALSE, NULL);
     if (NULL == pstCtrl->stReadOverLapped.hEvent)
     {
@@ -52,7 +52,7 @@ BS_STATUS _OS_VNIC_Create (IN UCHAR *pcVnicFilePath, OUT HANDLE *phVnicId)
 
     pstCtrl->hFileHandle = CreateFile (pcVnicFilePath,
             			       GENERIC_READ | GENERIC_WRITE,
-            			       0, /* was: FILE_SHARE_READ */
+            			       0, 
             			       0,
             			       OPEN_EXISTING,
             			       FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED,
@@ -162,7 +162,7 @@ BS_STATUS _OS_VNIC_Read
         RETURN(BS_ERR);
     }
 
-    /* 未完成，需要等待 */
+    
     if (BS_WAIT_FOREVER == ulTime)
     {
         ulTime = INFINITE;

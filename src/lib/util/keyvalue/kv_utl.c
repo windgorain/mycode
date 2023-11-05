@@ -223,7 +223,7 @@ void KV_Reset(KV_HANDLE hKvHandle)
     return;
 }
 
-/* 设置解码函数 */
+
 VOID KV_SetDecode(IN KV_HANDLE hKvHandle, IN PF_KV_DECODE_FUNC pfDecode)
 {
     _KV_CTRL_S *pstCtrl;
@@ -246,7 +246,7 @@ VOID KV_SetDecode(IN KV_HANDLE hKvHandle, IN PF_KV_DECODE_FUNC pfDecode)
     }
 }
 
-/* 只解析一个key=value的情况 */
+
 BS_STATUS KV_ParseOne(IN KV_HANDLE hKvHandle, IN LSTR_S *pstLstr, IN CHAR cEquelChar)
 {
     LSTR_S stKey;
@@ -259,17 +259,17 @@ BS_STATUS KV_ParseOne(IN KV_HANDLE hKvHandle, IN LSTR_S *pstLstr, IN CHAR cEquel
 
     if (pstLstr->uiLen == 0)
     {
-        /* 空行返回 */
+        
         return BS_OK;
     }
 
     if (pstLstr->pcData[0] == cEquelChar)
     {
-        /* 第一个就是key和value之前的符号, 没有Key，返回 */
+        
         return BS_BAD_PARA;
     }
 
-    /* 分割字符串 */
+    
     LSTR_Split(pstLstr, cEquelChar, &stKey, &stValue);
 
     return kv_SetKeyValue(pstCtrl, &stKey, &stValue);
@@ -282,7 +282,7 @@ BS_STATUS KV_Parse(IN KV_HANDLE hKvHandle, IN LSTR_S *pstLstr, IN CHAR cSeparato
     
     if (pstLstr->uiLen == 0)
     {
-        /* 空行返回 */
+        
         return BS_OK;
     }
 

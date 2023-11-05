@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-BS_STATUS WAN_ETH_LinkOutput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType/* 主机序 */);
+BS_STATUS WAN_ETH_LinkOutput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType);
 BS_STATUS WAN_ETH_LinkInput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_ETH_LINK_H_*/
+#endif 
 
 

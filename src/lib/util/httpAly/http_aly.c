@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_HTTPALY
 
 
@@ -18,28 +18,28 @@
 #include "utl/data2hex_utl.h"
 
 
-/* ---define--- */
-#define HTTP_ALY_MAX_UINT_STRING_LEN 10 /* UINT的十进制表示字符串的长度 */
+
+#define HTTP_ALY_MAX_UINT_STRING_LEN 10 
 
 #define HTTP_ALY_MAX_COOKIE_LEN 255
 
 #define HTTP_ALY_IS_HEAD_RECVED(pstHttpAlyCtrl) ((pstHttpAlyCtrl)->stReadData.bIsHeadFin)
 #define HTTP_ALY_IS_BODY_RECVED(pstHttpAlyCtrl) ((pstHttpAlyCtrl)->stReadData.bIsBodyFin)
 
-/* ---struct--- */
+
 typedef struct
 {
-    DLL_NODE_S stDllNode;   /* 必须是第一个域 */
+    DLL_NODE_S stDllNode;   
     UCHAR *pucKey;
     UCHAR *pucKeyValue;
     UINT ulValueOffsetInHead;
     UINT ulKeyOffsetInHead;
-    BOOL_T bIsBuildHttpHeadDisable;  /* 如果是True, 则不参与HTTP_ALY_BuildHttpHead 的组装 */
+    BOOL_T bIsBuildHttpHeadDisable;  
 }_HTTP_ALY_KEY_S;
 
 typedef struct
 {
-    DLL_NODE_S stDllNode;   /* 必须是第一个域 */
+    DLL_NODE_S stDllNode;   
     UCHAR *pucKey;
     UCHAR *pucKeyValue;
     UCHAR *pszPath;
@@ -48,24 +48,24 @@ typedef struct
 typedef struct
 {
     UCHAR  *pucMethod;
-    UCHAR  *pucUrlPath;       /* 不包含?号后面的Query */
+    UCHAR  *pucUrlPath;       
     UCHAR  *pucQueryString;
     UCHAR  *pucHost;
-    DLL_HEAD_S stCookie;      /* 收到的Cookie */
+    DLL_HEAD_S stCookie;      
     UCHAR  *pucReferer;
     BOOL_T bIsProxyConnection;
     BOOL_T bKeepAlive;
     HTTP_ALY_BODY_LEN_TYPE_E eBodyLenType;
     USHORT usPort;
     UINT  ulBodyLen;
-    UINT  ulHeadLen;   /* 包含"\r\n\r\n" */
+    UINT  ulHeadLen;   
     HTTP_PROTOCOL_VER_E  eHttpVer;
     HTTP_PROTOCOL_TYPE_E eHttpType;
     HTTP_ALY_METHOD_E eMethod;
 
-    DLL_HEAD_S       stDllHeadField;    /* http头中的Field */
+    DLL_HEAD_S       stDllHeadField;    
     
-    DLL_HEAD_S       stDllKeyValueHead;     /* 请求体和URL ?号后面的key value对的解析 */
+    DLL_HEAD_S       stDllKeyValueHead;     
 }_HTTP_REQUEST_INFO_S;
 
 #define _HTTP_ALY_MAX_STATUS_DESC_LEN 31
@@ -73,14 +73,14 @@ typedef struct
 {
     HTTP_PROTOCOL_VER_E eHttpVer;
     BOOL_T bIsKeepAlive;
-    BOOL_T bIsSendHead;     /* 是否已经发送了头 */
-    BOOL_T bIsFinish;  /* 用户已经调用了Finish接口 */
-    UCHAR  ucResponseMode;  /* HTTP_ALY_RESPONSE_MODE_CLOSED/HTTP_ALY_RESPONSE_MODE_CHUNKED/HTTP_ALY_RESPONSE_MODE_LENGTH */
-    UINT   ulStatusCode;  /* 回应状态码 */
+    BOOL_T bIsSendHead;     
+    BOOL_T bIsFinish;  
+    UCHAR  ucResponseMode;  
+    UINT   ulStatusCode;  
     CHAR   szStatusDesc[_HTTP_ALY_MAX_STATUS_DESC_LEN + 1];
-    DLL_HEAD_S stCookie;    /* 待发送的Cookie链 */
-    DLL_HEAD_S stSendKeyValue; /* 需要在头中发送的Key-Value */
-    VBUF_S stSendBuf;        /* 发送缓冲区 */
+    DLL_HEAD_S stCookie;    
+    DLL_HEAD_S stSendKeyValue; 
+    VBUF_S stSendBuf;        
     UINT  ulChunkRmainLen;
 }_HTTP_ALY_RESPONSE_INFO_S;
 
@@ -92,15 +92,15 @@ typedef struct
     MBUF_S *pstBodyMbuf;
     UINT  ulRecvBodyLen;
 
-    /* for chunked */
-    UINT  ulScanOffset;        /* 已经扫描到了哪里. 从本次会话体的开始外置为0 算起 */
-    UINT  ulBeginOffset;       /* 存在协议解析器中的数据的起始位置,从本次会话体的开始外置为0 算起 */
-    BOOL_T bIsRecvChunkedFlagOk;  /* 表示是否接收chunked标记完毕。 */
-    CHAR   szChunkedString[16];   /* chunked标记, 从'\r\n'开始记录 */
-    UINT  ulChunkedStringOffset; /* 当前chunked块的起始位置,从"\r\nchunkedflag\r\n"开始 */
-    UINT  ulChunkedStringLen;    /* szChunkedString中已经记录的长度 */
-    UINT  ulChunkedLen;     /* 本Chunked块长度, 不包括chunked标记 */
-    UINT  ulChunkedEndLen;  /* 本Chunked块还剩下多少数据没有收齐并扫描 */
+    
+    UINT  ulScanOffset;        
+    UINT  ulBeginOffset;       
+    BOOL_T bIsRecvChunkedFlagOk;  
+    CHAR   szChunkedString[16];   
+    UINT  ulChunkedStringOffset; 
+    UINT  ulChunkedStringLen;    
+    UINT  ulChunkedLen;     
+    UINT  ulChunkedEndLen;  
     BOOL_T bIsLastChunk;
 
 
@@ -113,7 +113,7 @@ typedef struct
 {
     UCHAR           *pucBuf;
     UINT            ulBufLen;
-    BOOL_T          bIsServer;   /* TRUE: 收request, 发response;  FALSE: 发request, 收response */
+    BOOL_T          bIsServer;   
     _HTTP_REQUEST_INFO_S stHttpAlyRequestInfo;
     _HTTP_ALY_RESPONSE_INFO_S stHttpAlyResponseInfo;
     _HTTP_ALY_READ_DATA_S stReadData;
@@ -122,7 +122,7 @@ typedef struct
     UINT              ulFd;
 }_HTTP_ALY_CTRL_S;
 
-/* ---func--- */
+
 
 static HTTP_ALY_READ_RET_E _HTTP_ALY_DftReadFunc
 (
@@ -156,7 +156,7 @@ static BS_STATUS _HTTP_ALY_AlyStatusLine(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, IN
     UINT ulStatusCodeLen;
     CHAR szStatusCode[20];
     
-    /*get http ver*/
+    
     {
         if (strncmp("HTTP/1.1", pcBufTmp, sizeof("HTTP/1.1") - 1) == 0)
         {
@@ -178,7 +178,7 @@ static BS_STATUS _HTTP_ALY_AlyStatusLine(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, IN
     ulLineLen -= (pcFoundSplite - pcBufTmp + 1);
     pcBufTmp = pcFoundSplite + 1;
     
-    /* get status code */
+    
     {
         pcFoundSplite = TXT_Strnchr(pcBufTmp, ' ', ulLineLen);
         if (pcFoundSplite == NULL)
@@ -210,7 +210,7 @@ static BS_STATUS _HTTP_ALY_AlyStatusLine(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, IN
         return BS_OK;
     }
     
-    /* get status des */
+    
     {
         TXT_Strlcpy(pstHttpAlyCtrl->stHttpAlyResponseInfo.szStatusDesc,
             pcBufTmp, sizeof(pstHttpAlyCtrl->stHttpAlyResponseInfo.szStatusDesc));
@@ -226,7 +226,7 @@ static BS_STATUS _HTTP_ALY_AlyRequestLine(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, I
     CHAR aucPort[10];
     UINT ulLineLen = ulLen;
 
-    /*get method*/
+    
     {
         pcFoundSplite = TXT_Strnchr(pcBufTmp, ' ', ulLineLen);
         if (pcFoundSplite == NULL)
@@ -248,7 +248,7 @@ static BS_STATUS _HTTP_ALY_AlyRequestLine(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, I
         pcBufTmp = pcFoundSplite + 1;
     }
 
-    /* get path */
+    
     {
         pstHttpAlyCtrl->stHttpAlyRequestInfo.usPort = 80;
         
@@ -310,7 +310,7 @@ static BS_STATUS _HTTP_ALY_AlyRequestLine(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, I
         pcBufTmp = pcFoundSplite + 1;
     }
 
-    /* get query string */
+    
     if (*pcFoundSplite == '?')
     {
         pcFoundSplite = TXT_Strnchr(pcBufTmp, ' ', ulLineLen);
@@ -335,7 +335,7 @@ static BS_STATUS _HTTP_ALY_AlyRequestLine(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, I
     }
 
 
-    /*get http ver*/
+    
     {
         if (strncmp("HTTP/1.1", pcBufTmp, sizeof("HTTP/1.1") - 1) == 0)
         {
@@ -350,10 +350,7 @@ static BS_STATUS _HTTP_ALY_AlyRequestLine(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, I
     return BS_OK;
 }
 
-/*
-* 解析Cookie;
-* 将类似uid=xxx;pas=bbb解析成key-value对的形式放在pstCookieList中
-*/
+
 static BS_STATUS _HTTP_ALY_ParseCookie(IN CHAR *pszCookie, OUT DLL_HEAD_S *pstCookieList)
 {
     CHAR *pszCookieNode;
@@ -390,7 +387,7 @@ static BS_STATUS _HTTP_ALY_ParseCookie(IN CHAR *pszCookie, OUT DLL_HEAD_S *pstCo
         }
 
         pcSplit1 = TXT_Strnchr(pszCookieNode, '=', ulLen);
-        if (NULL == pcSplit1)   /* 没有Value */
+        if (NULL == pcSplit1)   
         {
             ulKeyLen = ulLen;
             ulValueLen = 0;
@@ -429,16 +426,7 @@ static BS_STATUS _HTTP_ALY_ParseCookie(IN CHAR *pszCookie, OUT DLL_HEAD_S *pstCo
     return BS_OK;
 }
 
-/***************************************************
- 说明     :  解析HTTP头第一行
- 输入     :  pstHttpAlyCtrl: HTTP ALY实例
-             pcFirstLine: HTTP头第一行
-             uiFirstLineLen: 第一行的长度
- 输出     :  None
- 返回值   :  成功: BS_OK
-             失败: 错误码
- 注意     :  None
-****************************************************/
+
 static BS_STATUS http_aly_ParseFirstLine
 (
     IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl,
@@ -470,16 +458,7 @@ static BS_STATUS http_aly_ParseFirstLine
     return BS_OK;
 }
 
-/***************************************************
- 说明     :  解析所有的HeadField. pcHeadFiled以'\0'结束, 解析后将key-value对插入链表
- 输入     :  pstHttpAlyCtrl: HTTP ALY实例
-             pcHead: HTTP头的起始地址
-             pcHeadField: HTTP头中Head Field起始位置
- 输出     :  None
- 返回值   :  成功: BS_OK
-             失败: 错误码
- 注意     :  None
-****************************************************/
+
 static BS_STATUS http_aly_ParseHeadField
 (
     IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl,
@@ -504,7 +483,7 @@ static BS_STATUS http_aly_ParseHeadField
         pstListHead = &pstHttpAlyCtrl->stHttpAlyResponseInfo.stSendKeyValue;
     }
 
-    /*取得参数列表*/
+    
     while (pcBufTmp)
     {
         TXT_GetLine(pcBufTmp, &ulLineLen, &bIsFoundLineEnd, &pcLineNext);
@@ -547,14 +526,7 @@ static BS_STATUS http_aly_ParseHeadField
     return BS_OK;
 }
 
-/***************************************************
- 说明     :  解析请求的常用参数
- 输入     :  pstHttpAlyCtrl: HTTP ALY实例
- 输出     :  None
- 返回值   :  成功: BS_OK
-             失败: 错误码
- 注意     :  None
-****************************************************/
+
 static BS_STATUS http_aly_ParseRequestCommonParams
 (
     IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl
@@ -617,7 +589,7 @@ static BS_STATUS http_aly_ParseRequestCommonParams
         sscanf(pcBufTmp, "%u", &pstHttpAlyCtrl->stHttpAlyRequestInfo.ulBodyLen);
         pstHttpAlyCtrl->stHttpAlyRequestInfo.eBodyLenType = HTTP_ALY_BODY_LEN_KNOWN;
     }
-    else if (strcmp("GET", (CHAR*)pstHttpAlyCtrl->stHttpAlyRequestInfo.pucMethod) == 0)  /*GET  没有体*/
+    else if (strcmp("GET", (CHAR*)pstHttpAlyCtrl->stHttpAlyRequestInfo.pucMethod) == 0)  
     {
         pstHttpAlyCtrl->stHttpAlyRequestInfo.eBodyLenType = HTTP_ALY_BODY_LEN_KNOWN;
         pstHttpAlyCtrl->stHttpAlyRequestInfo.ulBodyLen = 0;
@@ -644,14 +616,7 @@ static BS_STATUS http_aly_ParseRequestCommonParams
     return BS_OK;
 }
 
-/***************************************************
- 说明     :  解析应答的常用参数
- 输入     :  pstHttpAlyCtrl: HTTP ALY实例
- 输出     :  None
- 返回值   :  成功: BS_OK
-             失败: 错误码
- 注意     :  None
-****************************************************/
+
 static BS_STATUS http_aly_ParseResponseCommonParams
 (
     IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl
@@ -676,7 +641,7 @@ static BS_STATUS http_aly_ParseResponseCommonParams
         }
     }
 
-    if (HTTP_ALY_STATUS_CODE_OK != HTTP_ALY_GetResponseStatusCode(pstHttpAlyCtrl))   /*不是200的应答  没有体*/
+    if (HTTP_ALY_STATUS_CODE_OK != HTTP_ALY_GetResponseStatusCode(pstHttpAlyCtrl))   
     {
         pstHttpAlyCtrl->stHttpAlyRequestInfo.eBodyLenType = HTTP_ALY_BODY_LEN_KNOWN;
         pstHttpAlyCtrl->stHttpAlyRequestInfo.ulBodyLen = 0;
@@ -686,14 +651,7 @@ static BS_STATUS http_aly_ParseResponseCommonParams
 }
 
 
-/***************************************************
- 说明     :  解析常用的参数
- 输入     :  pstHttpAlyCtrl: HTTP ALY实例
- 输出     :  None
- 返回值   :  成功: BS_OK
-             失败: 错误码
- 注意     :  None
-****************************************************/
+
 static BS_STATUS http_aly_ParseCommonParams
 (
     IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl
@@ -737,10 +695,10 @@ BS_STATUS HTTP_ALY_AlyHead(IN HANDLE hHandle)
     
     pcBuf[ulLen - 4] = '\0';
 
-    /*get first line*/
+    
     TXT_GetLine(pcBufTmp, &ulLineLen, &bIsFoundLineEnd, &pcLineNext);
 
-    /* 解析first line */
+    
     if ((BS_OK != http_aly_ParseFirstLine(pstHttpAlyCtrl, pcBufTmp, ulLineLen))
         || (BS_OK != http_aly_ParseHeadField(pstHttpAlyCtrl, pcBuf, pcLineNext))
         || (BS_OK != http_aly_ParseCommonParams(pstHttpAlyCtrl)))
@@ -754,8 +712,8 @@ BS_STATUS HTTP_ALY_AlyHead(IN HANDLE hHandle)
     return BS_OK;
 }
 
-/* return BS_OK; BS_ERR; BS_NOT_COMPLETE */
-/* 返回的长度包含chunk字段 */
+
+
 static BS_STATUS _HTTP_ALY_GetTrunkBodyLen(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, OUT UINT *pulBodyLen)
 {
     UINT ulChunkDataLen;
@@ -777,7 +735,7 @@ static BS_STATUS _HTTP_ALY_GetTrunkBodyLen(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, 
         {
             if (pstHttpAlyCtrl->stReadData.ulChunkedEndLen == 1)
             {
-                /* 还有一个字节没有收完,表示已经收到的最后一个字节是"\r\n"中的'\r', 应该去掉 */
+                
                 MBUF_CutPart(pstHttpAlyCtrl->stReadData.pstBodyMbuf, 
                     MBUF_TOTAL_DATA_LEN(pstHttpAlyCtrl->stReadData.pstBodyMbuf) - 1,
                     1);
@@ -792,7 +750,7 @@ static BS_STATUS _HTTP_ALY_GetTrunkBodyLen(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, 
 
         if (pstHttpAlyCtrl->stReadData.bIfRemoveChunkFlag == TRUE)
         {
-            /* 砍掉chunked块后面的"\r\n" */
+            
             ulCutLen = MIN(pstHttpAlyCtrl->stReadData.ulChunkedEndLen, 2);
             MBUF_CutPart(pstHttpAlyCtrl->stReadData.pstBodyMbuf,
                 ulOffset + pstHttpAlyCtrl->stReadData.ulChunkedEndLen -ulCutLen,  ulCutLen);
@@ -808,7 +766,7 @@ static BS_STATUS _HTTP_ALY_GetTrunkBodyLen(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, 
 
         if (pstHttpAlyCtrl->stReadData.bIsRecvChunkedFlagOk == FALSE)
         {
-            /* 标记存在且没有收完,则拷贝chunked标记 */
+            
             ulLen = MIN(sizeof(pstHttpAlyCtrl->stReadData.szChunkedString) - pstHttpAlyCtrl->stReadData.ulChunkedStringLen - 1,
                     MBUF_TOTAL_DATA_LEN(pstHttpAlyCtrl->stReadData.pstBodyMbuf) - ulOffset);
     
@@ -827,7 +785,7 @@ static BS_STATUS _HTTP_ALY_GetTrunkBodyLen(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, 
             {
                 pstHttpAlyCtrl->stReadData.bIsRecvChunkedFlagOk = TRUE;
 
-                /* 计算chunked标记长度, 要加上最后的"\r\n" */
+                
                 ulLen = (pszSplit - pstHttpAlyCtrl->stReadData.szChunkedString + 2);
 
                 ulChunkedFlagLen = ulLen - pstHttpAlyCtrl->stReadData.ulChunkedStringLen;
@@ -859,16 +817,16 @@ static BS_STATUS _HTTP_ALY_GetTrunkBodyLen(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, 
             }
         }
 
-        /* if chunked标记存在且没有收完 */
+        
         if (pstHttpAlyCtrl->stReadData.bIsRecvChunkedFlagOk == FALSE)
         {
             RETURN(BS_NOT_COMPLETE);
         }
 
-        /* if chunked标记存在且收完. */
+        
         if ((pstHttpAlyCtrl->stReadData.bIsRecvChunkedFlagOk == TRUE) && (pstHttpAlyCtrl->stReadData.ulChunkedStringLen != 0))
         {
-            if (pstHttpAlyCtrl->stReadData.ulChunkedStringLen > sizeof("ffffffff\r\n") - 1)    /* chunked块长度超过4G */
+            if (pstHttpAlyCtrl->stReadData.ulChunkedStringLen > sizeof("ffffffff\r\n") - 1)    
             {
                 RETURN(BS_NOT_SUPPORT);
             }
@@ -880,7 +838,7 @@ static BS_STATUS _HTTP_ALY_GetTrunkBodyLen(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, 
                 pstHttpAlyCtrl->stReadData.bIsLastChunk = TRUE;
             }
 
-            ulChunkDataLen += 2;    /* 加上每个Chunked块后面的"\r\n"的长度 */
+            ulChunkDataLen += 2;    
             
             pstHttpAlyCtrl->stReadData.ulChunkedEndLen = ulChunkDataLen;
             pstHttpAlyCtrl->stReadData.ulChunkedLen = ulChunkDataLen;
@@ -913,7 +871,7 @@ static BS_STATUS _HTTP_ALY_GetTrunkBodyLen(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, 
     return BS_OK;
 }
 
-/*return BS_OK, BS_NOT_COMPLETE, Other...*/
+
 static BS_STATUS _HTTP_ALY_ReadData(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, OUT MBUF_S **ppstMbuf)
 {
     MBUF_S *pstMbuf = NULL;
@@ -973,7 +931,7 @@ static BS_STATUS _HTTP_ALY_ReadData(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, OUT MBU
     return BS_OK;
 }
 
-/*return BS_OK; BS_ERR; BS_NOT_COMPLETE*/
+
 static BS_STATUS _HTTP_ALY_IsBodyFinAndFraIt(_HTTP_ALY_CTRL_S *pstHttpAlyCtrl)
 {
     UINT ulBodyLen = 0;
@@ -982,7 +940,7 @@ static BS_STATUS _HTTP_ALY_IsBodyFinAndFraIt(_HTTP_ALY_CTRL_S *pstHttpAlyCtrl)
 
     pstMbuf = pstHttpAlyCtrl->stReadData.pstBodyMbuf;
     
-    /*if 是chunk, 调用_HTTP_ALY_IsChunkBodyFinish*/
+    
     if (pstHttpAlyCtrl->stHttpAlyRequestInfo.eBodyLenType == HTTP_ALY_BODY_LEN_TRUNKED)
     {
         if (NULL == pstMbuf)
@@ -1004,7 +962,7 @@ static BS_STATUS _HTTP_ALY_IsBodyFinAndFraIt(_HTTP_ALY_CTRL_S *pstHttpAlyCtrl)
         
         pstHttpAlyCtrl->stHttpAlyRequestInfo.ulBodyLen = ulBodyLen;
     }
-    /*else if 是ContentLen, 判断是否OK*/
+    
     else if (pstHttpAlyCtrl->stHttpAlyRequestInfo.eBodyLenType == HTTP_ALY_BODY_LEN_KNOWN)
     {
         ulBodyLen = pstHttpAlyCtrl->stHttpAlyRequestInfo.ulBodyLen;
@@ -1022,7 +980,7 @@ static BS_STATUS _HTTP_ALY_IsBodyFinAndFraIt(_HTTP_ALY_CTRL_S *pstHttpAlyCtrl)
             }
         }
     }
-    /*else if 是connect-close, 是否err*/
+    
     else if (pstHttpAlyCtrl->stHttpAlyRequestInfo.eBodyLenType == HTTP_ALY_BODY_LEN_CLOSED)
     {
         if (pstHttpAlyCtrl->stReadData.bIsConnClosed == FALSE)
@@ -1035,7 +993,7 @@ static BS_STATUS _HTTP_ALY_IsBodyFinAndFraIt(_HTTP_ALY_CTRL_S *pstHttpAlyCtrl)
         RETURN(BS_ERR);
     }
 
-    /* cut mbuf, 将剩余的部分存到nextHttpData */
+    
 
     pstHttpAlyCtrl->stReadData.bIsBodyFin = TRUE;
 
@@ -1096,7 +1054,7 @@ static BS_STATUS _HTTP_ALY_DelChunkCode(_HTTP_ALY_CTRL_S *pstHttpAlyCtrl)
         
         lTrunkCodeStartOff += ulChunkDataLen;
 
-        MBUF_CutPart(pstHttpAlyCtrl->stReadData.pstBodyMbuf, lTrunkCodeStartOff, 2);    /* 去掉chunk后的回车 */
+        MBUF_CutPart(pstHttpAlyCtrl->stReadData.pstBodyMbuf, lTrunkCodeStartOff, 2);    
     }while(ulChunkDataLen != 0);
 
     pstHttpAlyCtrl->stHttpAlyRequestInfo.ulBodyLen = MBUF_TOTAL_DATA_LEN(pstHttpAlyCtrl->stReadData.pstBodyMbuf);
@@ -1106,7 +1064,7 @@ static BS_STATUS _HTTP_ALY_DelChunkCode(_HTTP_ALY_CTRL_S *pstHttpAlyCtrl)
 
 static BS_STATUS _HTTP_ALY_SaveProtoData(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, IN UCHAR *pucSendBuf, IN UINT ulShouldSendLen)
 {
-    /* HTTP协议数据没有发送完成,  记录到发送缓冲中, 等待下次发送*/
+    
     if (BS_OK != VBUF_CatFromBuf(&pstHttpAlyCtrl->stHttpAlyResponseInfo.stSendBuf, pucSendBuf, ulShouldSendLen))
     {
         RETURN(BS_ERR);
@@ -1115,16 +1073,14 @@ static BS_STATUS _HTTP_ALY_SaveProtoData(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, IN
     return BS_OK;
 }
 
-/* 
-* return BS_OK; BS_NOT_COMPLETE, BS_ERR ...
-*/
+
 static BS_STATUS _HTTP_ALY_SendHttpProtoData(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, IN UCHAR *pucSendBuf, IN UINT ulShouldSendLen)
 {
     UINT ulWriteLen = 0;
 
     if (VBUF_GetDataLength(&pstHttpAlyCtrl->stHttpAlyResponseInfo.stSendBuf) > 0)
     {
-        /* HTTP协议数据没有发送完成,  记录到发送缓冲中, 等待下次发送*/
+        
         if (BS_OK != _HTTP_ALY_SaveProtoData(pstHttpAlyCtrl, pucSendBuf, ulShouldSendLen))
         {
             RETURN(BS_ERR);
@@ -1141,7 +1097,7 @@ static BS_STATUS _HTTP_ALY_SendHttpProtoData(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl
     if (ulShouldSendLen > ulWriteLen)
     {
         VBUF_Init(&pstHttpAlyCtrl->stHttpAlyResponseInfo.stSendBuf);
-        /* HTTP协议数据没有发送完成,  记录到发送缓冲中, 等待下次发送*/
+        
         if (BS_OK != _HTTP_ALY_SaveProtoData(pstHttpAlyCtrl, pucSendBuf + ulWriteLen, ulShouldSendLen - ulWriteLen))
         {
             RETURN(BS_ERR);
@@ -1218,14 +1174,14 @@ static _HTTP_ALY_KEY_S * _HTTP_ALY_GetField(_HTTP_ALY_CTRL_S *pstHttpAlyCtrl, IN
     return NULL;
 }
 
-/* 修改接受数据描述 */
+
 static VOID _HTTP_ALY_ModifyReadDes(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl, IN UINT ulReadOutLen)
 {
     pstHttpAlyCtrl->stReadData.ulBeginOffset += ulReadOutLen;
 }
 
 #if 0
-/* 发送缓冲区中的数据 */
+
 static BS_STATUS _HTTP_ALY_SendBufData(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl)
 {
     UCHAR *pucData;
@@ -1279,7 +1235,7 @@ static BS_STATUS _HTTP_ALY_SplitBody(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl)
             pstHttpAlyCtrl->stReadData.bIsHeadFin = TRUE;
             pstHttpAlyCtrl->stHttpAlyRequestInfo.ulHeadLen = (UINT)lHeadLen + 4;
 
-            /* 将头和体分开 */
+            
             if (MBUF_TOTAL_DATA_LEN(pstMbuf) > pstHttpAlyCtrl->stHttpAlyRequestInfo.ulHeadLen)
             {
                 pstHttpAlyCtrl->stReadData.pstHeadMbuf = MBUF_Fragment(pstMbuf,pstHttpAlyCtrl->stHttpAlyRequestInfo.ulHeadLen);
@@ -1310,7 +1266,7 @@ static BS_STATUS _HTTP_ALY_SplitBody(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl)
     return BS_NOT_COMPLETE;
 }
 
-/* 构造回应头并放到发送缓冲区中 */
+
 static BS_STATUS _HTTP_ALY_FormatResponseHeader(IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl)
 {
     CHAR szHeader[HTTP_ALY_MAX_HEAD_LEN + 1];
@@ -1328,7 +1284,7 @@ static BS_STATUS _HTTP_ALY_FormatResponseHeader(IN _HTTP_ALY_CTRL_S *pstHttpAlyC
 
     pstHttpAlyCtrl->stHttpAlyResponseInfo.bIsSendHead = TRUE;
 
-    /* 如果没有设置过StatusCode, 则默认设置为200 OK */
+    
     if (pstHttpAlyCtrl->stHttpAlyResponseInfo.ulStatusCode == 0)
     {
         HTTP_ALY_SetResponseStatusCode(pstHttpAlyCtrl, HTTP_ALY_STATUS_CODE_OK, "OK");
@@ -1348,7 +1304,7 @@ static BS_STATUS _HTTP_ALY_FormatResponseHeader(IN _HTTP_ALY_CTRL_S *pstHttpAlyC
     }
     else
     {
-        /* 确定回应模式:Closed/Length/Chunked */
+        
         if (pszResponseContentLen == NULL)
         {
             switch (eResponseVersion)
@@ -1387,9 +1343,9 @@ static BS_STATUS _HTTP_ALY_FormatResponseHeader(IN _HTTP_ALY_CTRL_S *pstHttpAlyC
 
     HTTP_ALY_SetResponseKeepAlive(pstHttpAlyCtrl, bIsResponseKeepAlive);
 
-    /* 补充一些必要的key-value */
+    
     {
-        /* 如果没有设置时间,则客户端最好不进行缓存 */
+        
         if (NULL == HTTP_ALY_GetResponseKeyValue(pstHttpAlyCtrl, "Last-Modified"))
         {
             HTTP_ALY_SetNoCache(pstHttpAlyCtrl);
@@ -1398,7 +1354,7 @@ static BS_STATUS _HTTP_ALY_FormatResponseHeader(IN _HTTP_ALY_CTRL_S *pstHttpAlyC
 
     pszHeader = szHeader;
 
-    /* 构造应答行 */
+    
     uiLen = snprintf(pszHeader, HTTP_ALY_MAX_HEAD_LEN, "%s %d %s\r\n",
                 pszResponseVersion,
                 pstHttpAlyCtrl->stHttpAlyResponseInfo.ulStatusCode,
@@ -1427,7 +1383,7 @@ static BS_STATUS _HTTP_ALY_FormatResponseHeader(IN _HTTP_ALY_CTRL_S *pstHttpAlyC
     return BS_OK;
 }
 
-/* 发送缓存中的数据 */
+
 static BS_STATUS _HTTP_ALY_SendBuffedData
 (
     IN _HTTP_ALY_CTRL_S *pstHttpAlyCtrl
@@ -1501,7 +1457,7 @@ static BS_STATUS _HTTP_ALY_SendDataByChunk
     
     for (;;)
     {
-        /* 如果上一次的chunk数据没有发送完成,继续发送chunk数据块 */
+        
         if (pstHttpAlyCtrl->stHttpAlyResponseInfo.ulChunkRmainLen > 0)
         {
             uiSendLen = MIN(pstHttpAlyCtrl->stHttpAlyResponseInfo.ulChunkRmainLen, uiDataLen);
@@ -1519,7 +1475,7 @@ static BS_STATUS _HTTP_ALY_SendDataByChunk
                 return BS_OK;
             }
 
-            /* 发送完一次chunk数据，需要加换行 */
+            
             if (pstHttpAlyCtrl->stHttpAlyResponseInfo.ulChunkRmainLen == 0)
             {
                 eRet = _HTTP_ALY_SendHttpProtoData(pstHttpAlyCtrl, (UCHAR*)"\r\n", 2);
@@ -1537,7 +1493,7 @@ static BS_STATUS _HTTP_ALY_SendDataByChunk
             return BS_OK;
         }
 
-        /* 发送chunk标记 */
+        
         pstHttpAlyCtrl->stHttpAlyResponseInfo.ulChunkRmainLen = uiRmainLen;
         sprintf(szContentLen, "%x\r\n", uiRmainLen);
         eRet = _HTTP_ALY_SendHttpProtoData(pstHttpAlyCtrl, (UCHAR*)szContentLen, strlen(szContentLen));
@@ -1771,9 +1727,7 @@ BS_STATUS HTTP_ALY_GetData(IN HANDLE hHandle, OUT MBUF_S **ppstMbuf)
     return BS_OK;
 }
 
-/*
-return BS_OK; BS_ERR;BS_NOT_COMPLETE
-*/
+
 BS_STATUS HTTP_ALY_TryHead (IN HANDLE hHandle)
 {
     _HTTP_ALY_CTRL_S *pstHttpAlyCtrl = (_HTTP_ALY_CTRL_S *)hHandle;
@@ -1817,14 +1771,7 @@ BS_STATUS HTTP_ALY_ReadHead (IN HANDLE hHandle, OUT MBUF_S **ppMbuf)
     return BS_OK;
 }
 
-/***************************************************
- Description  : 查询Body是否接收完成
- Input        : hHandle: 协议解析器句柄
- Output       : None
- Return       : TRUE
-                FALSE
- Caution      : None
-****************************************************/
+
 BOOL_T HTTP_ALY_IsRecvBodyOK(IN HANDLE hHandle)
 {
     _HTTP_ALY_CTRL_S *pstHttpAlyCtrl = (_HTTP_ALY_CTRL_S *)hHandle;
@@ -1837,9 +1784,7 @@ BOOL_T HTTP_ALY_IsRecvBodyOK(IN HANDLE hHandle)
     return FALSE;
 }
 
-/*
-return BS_OK; BS_ERR;BS_NOT_COMPLETE
-*/
+
 BS_STATUS HTTP_ALY_TryBody(IN HANDLE hHandle)
 {
     _HTTP_ALY_CTRL_S *pstHttpAlyCtrl = (_HTTP_ALY_CTRL_S *)hHandle;
@@ -1854,17 +1799,17 @@ BS_STATUS HTTP_ALY_TryBody(IN HANDLE hHandle)
         }
     }
 
-    /*if body接收完成 return ok*/
+    
     if (pstHttpAlyCtrl->stReadData.bIsBodyFin == TRUE)
     {
         return BS_OK;
     }
     
-    /*read数据*/
+    
     eRet = _HTTP_ALY_ReadData(pstHttpAlyCtrl, &pstMbuf);
     if (BS_OK != eRet)
     {
-        /* 如果是connection close方式,并且读取出错,则认为完成 */
+        
         if ((RETCODE(eRet) != BS_NOT_COMPLETE)
             && (pstHttpAlyCtrl->stHttpAlyRequestInfo.eBodyLenType == HTTP_ALY_BODY_LEN_CLOSED))
         {
@@ -1909,7 +1854,7 @@ BS_STATUS HTTP_ALY_ParseKeyValue(IN HANDLE hHandle)
     }
     else
     {    
-        /* 如果是chunk, 删除其中的chunk字段 */
+        
         if (pstHttpAlyCtrl->stHttpAlyRequestInfo.eBodyLenType == HTTP_ALY_BODY_LEN_TRUNKED)
         {
             _HTTP_ALY_DelChunkCode(pstHttpAlyCtrl);
@@ -2002,10 +1947,7 @@ BS_STATUS HTTP_ALY_ParseKeyValue(IN HANDLE hHandle)
 
 
 
-/*
-*成功: return BS_OK; BS_NOT_COMPLETE
-*失败: 返回失败code
-*/
+
 BS_STATUS HTTP_ALY_SetNotModify(IN HANDLE hHttpHandle)
 {
     BS_STATUS eRet = BS_OK;
@@ -2076,7 +2018,7 @@ BS_STATUS HTTP_ALY_SetBaseRspHttpHeader(IN HANDLE hHandle, IN UCHAR *pucBuf)
         RETURN(BS_OUT_OF_RANGE);
     }
 
-    //TODO:解析头部并设置SendKeyValue
+    
 
 
     return BS_OK;
@@ -2105,7 +2047,7 @@ static inline BS_STATUS _HTTP_ALY_SetResponseHeadFieldRaw
     MEM_Copy(pstNode->pucKeyValue, pszValue, uiValueLen);
     pstNode->pucKeyValue[uiValueLen] = '\0';
 
-    /* 释放原来同名的节点 */
+    
     DLL_SCAN(&pstHttpAlyCtrl->stHttpAlyResponseInfo.stSendKeyValue, pstNodeTmp)
     {
         if (strcmp((CHAR*)pstNodeTmp->pucKey, pszKey) == 0)
@@ -2143,7 +2085,7 @@ CHAR * HTTP_ALY_GetResponseKeyValue(IN HANDLE hHandle, IN CHAR *pszKey)
     return NULL;
 }
 
-/* 设置一行KeyValue */
+
 BS_STATUS HTTP_ALY_SetResponseHeadFieldByLine(IN HANDLE hHandle, IN CHAR *pszLine, IN UINT uiLineLen)
 {
     CHAR *pcSplit;
@@ -2151,7 +2093,7 @@ BS_STATUS HTTP_ALY_SetResponseHeadFieldByLine(IN HANDLE hHandle, IN CHAR *pszLin
     BS_STATUS eRet;
     UINT uiKeyLen;
 
-    /* 查找冒号 */
+    
     pcSplit = TXT_Strnchr(pszLine, ':', uiLineLen);
     if (NULL == pcSplit)
     {
@@ -2171,9 +2113,7 @@ BS_STATUS HTTP_ALY_SetResponseHeadFieldByLine(IN HANDLE hHandle, IN CHAR *pszLin
     return eRet;
 }
 
-/*
-* 根据Buf内容设置KeyValue; 一行就是一个KeyValue
-*/
+
 BS_STATUS HTTP_ALY_SetResponseHeadFieldByBuf(IN HANDLE hHandle, IN CHAR *pszString)
 {
     CHAR *pszLine;
@@ -2248,7 +2188,7 @@ CHAR * HTTP_ALY_GetField(IN HANDLE hHandle, IN CHAR *pcFieldName)
     return (CHAR*)pstHttpAlyKey->pucKeyValue;
 }
 
-/* 返回0表示没有找到 */
+
 UINT HTTP_ALY_GetFieldValueOffset(IN HANDLE hHandle, IN CHAR *pcFieldName)
 {
     _HTTP_ALY_CTRL_S *pstHttpAlyCtrl = (_HTTP_ALY_CTRL_S *)hHandle;
@@ -2273,7 +2213,7 @@ UINT HTTP_ALY_GetFieldValueOffset(IN HANDLE hHandle, IN CHAR *pcFieldName)
     return 0;
 }
 
-/* 返回0表示没有找到 */
+
 UINT HTTP_ALY_GetFieldKeyOffset(IN HANDLE hHandle, IN CHAR *pcFieldName)
 {
     _HTTP_ALY_CTRL_S *pstHttpAlyCtrl = (_HTTP_ALY_CTRL_S *)hHandle;
@@ -2686,7 +2626,7 @@ BS_STATUS HTTP_ALY_NotBuildHeadField(IN HANDLE hHandle, IN CHAR *pszFieldName)
     return BS_OK;
 }
 
-/* HTTP_ALY_NotBuildHeadField的反向函数 */
+
 BS_STATUS HTTP_ALY_BuildHeadField(IN HANDLE hHandle, IN CHAR *pszFieldName)
 {
     _HTTP_ALY_CTRL_S *pstHttpAlyCtrl = (_HTTP_ALY_CTRL_S *)hHandle;
@@ -2740,7 +2680,7 @@ MBUF_S * HTTP_ALY_BuildRequestHead(IN HANDLE hHandle)
 
     if (pstHttpAlyCtrl->bIsServer == TRUE)
     {
-        /* 构造请求行 */
+        
         ulLen = sprintf(szHttpHead, "%s %s%s%s HTTP/%s\r\n",
                     pstHttpAlyCtrl->stHttpAlyRequestInfo.pucMethod, 
                     pstHttpAlyCtrl->stHttpAlyRequestInfo.pucUrlPath,
@@ -2750,16 +2690,16 @@ MBUF_S * HTTP_ALY_BuildRequestHead(IN HANDLE hHandle)
     }
     else
     {
-        /* 构造应答行 */
+        
         ulLen = sprintf(szHttpHead, "HTTP/%s %d\r\n",
                     pstHttpAlyCtrl->stHttpAlyRequestInfo.eHttpVer == HTTP_PROTOCOL_VER_10 ? "1.0":"1.1",
                     pstHttpAlyCtrl->stHttpAlyResponseInfo.ulStatusCode);
     }
 
-    /*  根据原来的HTTP报文信息组装新的HTTP头 */
+    
     DLL_SCAN(&pstHttpAlyCtrl->stHttpAlyRequestInfo.stDllHeadField, pstNode)
     {
-        if (pstNode->bIsBuildHttpHeadDisable == TRUE)   /* 指定了不组装这个Field */
+        if (pstNode->bIsBuildHttpHeadDisable == TRUE)   
         {
             continue;
         }
@@ -2781,7 +2721,7 @@ VOID HTTP_ALY_SetRemoveChunkFlag(IN HANDLE hHttpHandle)
     pstHttpAlyCtrl->stReadData.bIfRemoveChunkFlag = TRUE;
 }
 
-/* OK/NOT_COMPLETE/其他错误值 */
+
 BS_STATUS HTTP_ALY_SetRedirectTo(IN HANDLE hHttpHandle, IN CHAR *pszRedirectTo)
 {
     BS_STATUS eRet = BS_OK;
@@ -2817,13 +2757,13 @@ BS_STATUS HTTP_ALY_BuildResponseHead(IN HANDLE hHttpHandle)
     return BS_OK;
 }
 
-/* pucData可以为NULL，这时uiDataLen必须为0. 这种情况下只发送缓冲区中的数据 */
+
 BS_STATUS HTTP_ALY_Send(IN HANDLE hHttpHandle, IN UCHAR *pucData, IN UINT uiDataLen, OUT UINT *pulSendLen)
 {
     _HTTP_ALY_CTRL_S *pstHttpAlyCtrl = (_HTTP_ALY_CTRL_S *)hHttpHandle;
     BS_STATUS eRet;
 
-    /* 已经调用了Finish，却还尝试发送用户数据是不对的. */
+    
     if (uiDataLen > 0)
     {
         if (pstHttpAlyCtrl->stHttpAlyResponseInfo.bIsFinish == TRUE)
@@ -2833,7 +2773,7 @@ BS_STATUS HTTP_ALY_Send(IN HANDLE hHttpHandle, IN UCHAR *pucData, IN UINT uiData
         }
     }
 
-    /* 还未发送头,则先构造头 */
+    
     if (pstHttpAlyCtrl->stHttpAlyResponseInfo.bIsSendHead == FALSE)
     {
         if (BS_OK != _HTTP_ALY_FormatResponseHeader(pstHttpAlyCtrl))
@@ -2842,7 +2782,7 @@ BS_STATUS HTTP_ALY_Send(IN HANDLE hHttpHandle, IN UCHAR *pucData, IN UINT uiData
         }
     }
 
-    /* 发送缓冲区中的协议数据 */
+    
     if (VBUF_GetDataLength(&pstHttpAlyCtrl->stHttpAlyResponseInfo.stSendBuf) > 0)
     {
         eRet = _HTTP_ALY_SendBuffedData(pstHttpAlyCtrl);
@@ -2871,7 +2811,7 @@ UCHAR HTTP_ALY_GetResponseMode(IN HANDLE hHttpHandle)
     return pstHttpAlyCtrl->stHttpAlyResponseInfo.ucResponseMode;
 }
 
-/* 数据发送完成.但是这种情况下缓冲区中可能还有数据 */
+
 BS_STATUS HTTP_ALY_Finish(IN HANDLE hHttpHandle)
 {
     _HTTP_ALY_CTRL_S *pstHttpAlyCtrl = (_HTTP_ALY_CTRL_S *)hHttpHandle;
@@ -2879,7 +2819,7 @@ BS_STATUS HTTP_ALY_Finish(IN HANDLE hHttpHandle)
 
     pstHttpAlyCtrl->stHttpAlyResponseInfo.bIsFinish = TRUE;
 
-    /* 如果是Chunked发送,则发送Chunked结束标志 */
+    
     if (pstHttpAlyCtrl->stHttpAlyResponseInfo.ucResponseMode == HTTP_ALY_RESPONSE_MODE_CHUNKED)
     {
         eRet = _HTTP_ALY_SendHttpProtoData(pstHttpAlyCtrl, (UCHAR*)"0\r\n\r\n", 5);
@@ -2892,19 +2832,12 @@ BS_STATUS HTTP_ALY_Finish(IN HANDLE hHttpHandle)
     return BS_OK;
 }
 
-/***************************************************
- Description  : 得到发送缓冲区中还有多少数据数据
- Input        : hHttpHandle: HTTP ALY实例
- Output       : None
- Return       : 成功: BS_OK
-                失败: 错误码
- Caution      : None
-****************************************************/
+
 UINT HTTP_ALY_GetSendDataSize(IN HANDLE hHttpHandle)
 {
     _HTTP_ALY_CTRL_S *pstHttpAlyCtrl = (_HTTP_ALY_CTRL_S *)hHttpHandle;
 
-    /* 如果没有构造过头，则构造头 */
+    
     if (pstHttpAlyCtrl->stHttpAlyResponseInfo.bIsSendHead == FALSE)
     {
         _HTTP_ALY_FormatResponseHeader(pstHttpAlyCtrl);
@@ -2914,14 +2847,7 @@ UINT HTTP_ALY_GetSendDataSize(IN HANDLE hHttpHandle)
 }
 
 
-/***************************************************
- Description  : 发送缓冲区中的数据
- Input        : hHttpHandle: HTTP ALY实例
- Output       : None
- Return       : 成功: BS_OK
-                失败: 错误码
- Caution      : None
-****************************************************/
+
 BS_STATUS HTTP_ALY_Flush(IN HANDLE hHttpHandle)
 {
     _HTTP_ALY_CTRL_S *pstHttpAlyCtrl = (_HTTP_ALY_CTRL_S *)hHttpHandle;

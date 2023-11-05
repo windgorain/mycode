@@ -6,7 +6,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #if 1
 BS_STATUS _VNETS_DomainId_Init();
@@ -113,9 +113,9 @@ BS_STATUS _VNETS_DomainCmd_Init();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_DOMAIN_INNER_H_*/
+#endif 
 
 
 

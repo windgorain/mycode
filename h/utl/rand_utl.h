@@ -8,35 +8,39 @@
 #ifndef __RAND_UTL_H_
 #define __RAND_UTL_H_
 
-#ifdef __cplusplus
-    extern "C" {
-#endif /* __cplusplus */
-
-UINT RAND_Get(void);
-
 UINT RAND_GetNonZero(void);
 
-/* 获取/dev/urandom随机数 */
+
 unsigned long RAND_GetRandom(void);
 
-/* 改变熵值 */
+
 VOID RAND_Entropy(IN UINT uiEntropy);
 
-/* 生成一段随机内存 */
+
 void RAND_Mem(OUT UCHAR *buf, int len);
+
+static inline void RAND_Init(void)
+{
+    srand(time(NULL));
+}
+
+static inline UINT RAND_Get(void)
+{
+    return rand();
+}
 
 static inline UINT RAND_FastGet(UINT *seedp)
 {
-	*seedp ^= (*seedp << 13);
-	*seedp ^= (*seedp >> 17);
-	*seedp ^= (*seedp << 5);
-	return *seedp;
+    *seedp = (*seedp) * 1103515245 + 12345;
+    return *seedp;
 }
 
-#ifdef __cplusplus
-    }
-#endif /* __cplusplus */
+static inline U64 RAND_FastGet64(U64 *seedp)
+{
+    *seedp = (*seedp) * 2862933555777941757ULL + 1;
+    return *seedp;
+}
 
-#endif /*__RAND_UTL_H_*/
+#endif 
 
 

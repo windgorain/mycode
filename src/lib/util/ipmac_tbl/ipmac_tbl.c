@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_IPMACTBL
     
 #include "bs.h"
@@ -117,7 +117,7 @@ VOID IPMAC_TBL_Del(IN IPMAC_HANDLE hInstance, IN UINT uiIp)
     MEM_Free(pstNode);
 }
 
-static BS_WALK_RET_E ipmac_tbl_walkNode(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
+static int ipmac_tbl_walkNode(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
 {
     USER_HANDLE_S *pstUserHandle = pUserHandle;
     PF_IPMAC_TBL_WALK_FUNC pfFunc;
@@ -126,7 +126,7 @@ static BS_WALK_RET_E ipmac_tbl_walkNode(IN HASH_HANDLE hHashId, IN VOID *pstNode
 
     pfFunc((IPMAC_TBL_NODE_S*)pstNode, pstUserHandle->ahUserHandle[1]);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 VOID IPMAC_TBL_Walk(IN IPMAC_HANDLE hInstance, IN PF_IPMAC_TBL_WALK_FUNC pfFunc, IN VOID *pUserHandle)

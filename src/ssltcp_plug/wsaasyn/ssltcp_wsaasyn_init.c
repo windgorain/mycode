@@ -5,7 +5,7 @@
 * History:     
 ******************************************************************************/
 
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_PLUG_BASE
 
 #include "bs.h"
@@ -108,7 +108,7 @@ static HWND _SSLTCP_WsaAsyn_MakeWorkerWindow()
       return NULL;
    }
 
-   // Create a window.
+   
 
    if ((Window = CreateWindow(
       ProviderClass,
@@ -221,8 +221,7 @@ static BS_STATUS _SSLTCP_WsaAsyn_SetAsyn
     g_astSsltcpWsaAsynSocketCbs[ulSocketId - 1].stUserHandle = *pstUserHandle;
     SPLX_V();
 
-    /* 如果没有对端IP, 则说明可能是Listen Socket或者Connect用Socket,
-        则不响应Read/write等事件, 否则可能对Accept Socket造成也发送事件 */
+    
     if ((BS_OK != Socket_GetPeerIpPort(HANDLE_UINT(hFileHandle), &ulRIp, &usRPort))
         || (ulRIp == 0) || (usRPort == 0))
     {

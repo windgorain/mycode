@@ -54,7 +54,7 @@ int iclog_disable()
     return 0;
 }
 
-/* file size %INT */
+
 PLUG_API int ICLOG_SetLogFileSize(int argc, char **argv)
 {
     g_iclog_file_capacity = TXT_Str2Ui(argv[2]);
@@ -66,7 +66,7 @@ PLUG_API int ICLOG_SetLogFileSize(int argc, char **argv)
     return 0;
 }
 
-/* event {xxx} */
+
 PLUG_API int ICLOG_SetEvents(int argc, char **argv)
 {
     UINT events = IC_GetLogEvent(argv[1]);
@@ -80,7 +80,7 @@ PLUG_API int ICLOG_SetEvents(int argc, char **argv)
     return 0;
 }
 
-/* no event {xxx} */
+
 PLUG_API int ICLOG_NoEvents(int argc, char **argv)
 {
     UINT events = IC_GetLogEvent(argv[2]);
@@ -94,7 +94,7 @@ PLUG_API int ICLOG_NoEvents(int argc, char **argv)
     return 0;
 }
 
-/* [no] iclog enable */
+
 PLUG_API int ICLOG_Enable(int argc, char **argv)
 {
     if (argv[0][0] == 'n') {

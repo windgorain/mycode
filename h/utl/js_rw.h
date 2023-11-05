@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID* JS_RW_HANDLE;
 
@@ -27,8 +27,8 @@ extern VOID JS_RW_End(IN JS_RW_HANDLE hJsRw);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__JS_RW_H_*/
+#endif 
 
 

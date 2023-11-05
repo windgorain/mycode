@@ -233,7 +233,7 @@ UINT DOMAINACL_GetListByName(IN DOMAINACL_HANDLE hDOMAINAcl, IN CHAR *pcListName
     return ListRule_GetListIDByName(pstDOMAINAcl->hDOMAINAclHandle, pcListName);
 }
 
-UINT DOMAINACL_GetNextListID(IN DOMAINACL_HANDLE hDOMAINAcl, IN UINT uiCurrentListID/* 0表示获取第一个 */)
+UINT DOMAINACL_GetNextListID(IN DOMAINACL_HANDLE hDOMAINAcl, IN UINT uiCurrentListID)
 {
     DOMAINACL_CTRL_S *pstDOMAINAcl = hDOMAINAcl;
     return ListRule_GetNextListID(pstDOMAINAcl->hDOMAINAclHandle, uiCurrentListID);
@@ -365,7 +365,7 @@ BS_STATUS DOMAINACL_MoveRule(IN DOMAINACL_HANDLE hDOMAINAcl, IN UINT uiListID, I
 }
 
 
-/*每个规则的ID都递增step，另一种方案是每两条规则的ID相差step，暂时未实现*/
+
 BS_STATUS DOMAINACL_RebaseID(IN DOMAINACL_HANDLE hDOMAINAcl, IN UINT uiListID, IN UINT uiStep)
 {
     DOMAINACL_CTRL_S *pstDOMAINAcl = hDOMAINAcl;
@@ -438,7 +438,7 @@ BS_ACTION_E DOMAINACL_Match(IN DOMAINACL_HANDLE hDOMAINAcl, IN UINT uiListID, IN
 
     pstList = ListRule_GetListByID(pstDOMAINAcl->hDOMAINAclHandle, uiListID);
     if (NULL != pstList) {
-        /* 按rule匹配 */
+        
         RuleList_ScanRule(&pstList->stRuleList, _domainacl_MatchRuleScan, &stMatchDesc);
 
         if (!stMatchDesc.bIsMatch) {

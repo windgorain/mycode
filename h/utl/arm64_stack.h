@@ -13,10 +13,10 @@ extern "C"
 #ifdef __ARM64__
 
 #pragma pack(1)
-/* arm64的堆栈 */
+
 typedef struct {
-    //8*35 registers + 8bytes PADDING
-    //stack must be aligned to 16 bytes
+    
+    
     UINT64 nzcv;
     UINT64 daif;
     UINT64 x0;
@@ -61,4 +61,4 @@ typedef struct {
 #ifdef __cplusplus
 }
 #endif
-#endif //ARM64_STACK_H_
+#endif 

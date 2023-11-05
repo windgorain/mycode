@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS LDAPAPP_Cmd_Init();
 
@@ -28,14 +28,14 @@ CHAR * LDAPAPP_Schema_GetDescription(IN CHAR *pcName);
 BS_STATUS LDAPAPP_Schema_SetServerAddress(IN CHAR *pcName, IN CHAR *pcAddr, IN CHAR *pcPort);
 CHAR * LDAPAPP_Schema_GetServerAddress(IN CHAR *pcName);
 CHAR * LDAPAPP_Schema_GetServerPort(IN CHAR *pcName);
-CHAR * LDAPAPP_Schema_GetNext(IN CHAR *pcCurrent/* NULL或""表示获取第一个 */);
+CHAR * LDAPAPP_Schema_GetNext(IN CHAR *pcCurrent);
 
 
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__LDAPAPP_INNER_H_*/
+#endif 
 
 

@@ -30,4 +30,4 @@ int HoleBuf_Add(HOLE_BUF_S *hole_buf, HOLE_BUF_NODE_S *node);
 #ifdef __cplusplus
 }
 #endif
-#endif //HOLE_BUF_H_
+#endif 

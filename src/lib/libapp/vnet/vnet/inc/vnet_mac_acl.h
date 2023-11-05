@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETS_MAC_ACL_Init();
 
@@ -21,8 +21,8 @@ BOOL_T VNETS_MAC_ACL_IsPermitBroadcast();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNET_MAC_ACL_H_*/
+#endif 
 
 

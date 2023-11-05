@@ -27,7 +27,7 @@
 
 #define WSAPP_SERVICE_MAX_NUM 1024
 
-#define _WSAPP_SERVICE_FLAG_BINDED   0x80000000 /* 已经被Bind */
+#define _WSAPP_SERVICE_FLAG_BINDED   0x80000000 
 
 static NO_HANDLE g_hWsAppServiceNo = NULL;
 
@@ -500,7 +500,7 @@ CHAR * WSAPP_Service_GetName(IN HANDLE hService)
     return NO_GetName(hService);
 }
 
-/* 创建一个自动命名的Service, 并返回其名字 */
+
 CHAR * WSAPP_Service_AddAutoNameService(IN UINT uiFlag)
 {
     CHAR szAutoName[64];
@@ -563,7 +563,7 @@ BS_STATUS WSAPP_Service_Del(IN CHAR *pcServiceName)
     return BS_OK;
 }
 
-/* 设置webcenter的操作属性: Hide:对webcenter隐藏; readonly:对webcenter只读 */
+
 BS_STATUS WSAPP_Service_SetWebCenterOpt(IN CHAR *pcServiceName, IN CHAR *pcOpt)
 {
     WSAPP_SERVICE_S *pstService;
@@ -646,7 +646,7 @@ static WSAPP_SERVICE_BIND_INFO_S * wsapp_FindBindNode
     return NULL;
 }
 
-/* 获得一个空闲的位置 */
+
 static WSAPP_SERVICE_BIND_INFO_S * wsapp_GetBindNode(IN WSAPP_SERVICE_S *pstService)
 {
     UINT i;

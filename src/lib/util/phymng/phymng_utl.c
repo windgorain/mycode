@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_PHYMNGUTL
 
 #include "bs.h"
@@ -52,10 +52,10 @@ INT _PHYMNG_CmpNode(IN _PHYMNGTBL_NODE_S *pstNode1, IN _PHYMNGTBL_NODE_S *pstNod
     return pstNode1->stPhyNode.ulIfIndex - pstNode2->stPhyNode.ulIfIndex;
 }
 
-BS_WALK_RET_E _PHYMNG_WalkHash(IN UINT ulHashId, IN _PHYMNGTBL_NODE_S *pstNode, IN _PHYMNG_WALK_USERHANDLE_S *pstUserHandle)
+int _PHYMNG_WalkHash(IN UINT ulHashId, IN _PHYMNGTBL_NODE_S *pstNode, IN _PHYMNG_WALK_USERHANDLE_S *pstUserHandle)
 {
     pstUserHandle->pfWalkFunc(pstUserHandle->hPhyMngId, &(pstNode->stPhyNode), pstUserHandle->hUserHandle);
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 HANDLE PHYMNG_Create()

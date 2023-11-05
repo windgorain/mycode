@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 typedef enum
@@ -50,8 +50,8 @@ VOID CSS_UP_End(IN CSS_UP_HANDLE hParser);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__CSS_UP_H_*/
+#endif 
 
 

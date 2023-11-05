@@ -8,11 +8,9 @@
 #ifndef __BASEOS_H_
 #define __BASEOS_H_
 
-#include "os_def.h"
-
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #ifdef IN_WINDOWS
     #include <share.h>
@@ -103,7 +101,7 @@
 
     #define DeleteFile(x)  remove(x)
 
-    #define Sleep(x/*ms*/)    usleep((x)*1000)
+    #define Sleep(x)    usleep((x)*1000)
 #endif
 
 #if !defined(__GNUC__) || (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
@@ -118,8 +116,8 @@
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__BASEOS_H_*/
+#endif 
 
 

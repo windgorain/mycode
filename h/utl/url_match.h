@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE URL_MATCH_HANDLE;
 
@@ -61,8 +61,8 @@ URL_MATCH_NODE_S * URL_Match_Match
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__URL_DELIVER_H_*/
+#endif 
 
 

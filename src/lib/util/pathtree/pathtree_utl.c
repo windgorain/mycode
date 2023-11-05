@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_TXT
 
 #include "bs.h"
@@ -30,12 +30,7 @@ PATHTREE_NODE_S * PathTree_Create()
     return pstNode;
 }
 
-static BS_WALK_RET_E _PATHTREE_FreeNode
-(
-    IN TREE_NODE_S *pstNode,
-    IN UINT ulDeepth,
-    IN VOID *pUserHandle
-)
+static int _PATHTREE_FreeNode(TREE_NODE_S *pstNode, UINT ulDeepth, void *pUserHandle)
 {
     USER_HANDLE_S *pstUserHandle = (USER_HANDLE_S*)pUserHandle;
     PATHTREE_NODE_S *pstPathTreeNode = (PATHTREE_NODE_S*)pstNode;
@@ -50,7 +45,7 @@ static BS_WALK_RET_E _PATHTREE_FreeNode
 
     MEM_Free(pstPathTreeNode);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 VOID PathTree_Destory
@@ -124,13 +119,7 @@ BS_STATUS PathTree_AddPath
     return BS_OK;
 }
 
-static BS_WALK_RET_E _PathTree_DepthBackWalkTreeNode
-(
-    IN TREE_NODE_S *pstNode,
-    IN UINT ulDeepth,
-    IN BOOL_T bIsBack,
-    IN VOID * pUserHandle
-)
+static int _PathTree_DepthBackWalkTreeNode(TREE_NODE_S *pstNode, UINT ulDeepth, BOOL_T bIsBack, VOID *pUserHandle)
 {
     USER_HANDLE_S *pstUserHandle = pUserHandle;
     PF_PathTree_DepthWalkNode pfFunc = pstUserHandle->ahUserHandle[0];
@@ -138,12 +127,7 @@ static BS_WALK_RET_E _PathTree_DepthBackWalkTreeNode
     return pfFunc((PATHTREE_NODE_S*)pstNode, ulDeepth, bIsBack, pstUserHandle->ahUserHandle[1]);    
 }
 
-BS_WALK_RET_E PathTree_DepthBackWalk
-(
-    IN PATHTREE_NODE_S *pstRoot,
-    IN PF_PathTree_DepthWalkNode pfFunc,
-    IN VOID * pUserHandle
-)
+int PathTree_DepthBackWalk(PATHTREE_NODE_S *pstRoot, PF_PathTree_DepthWalkNode pfFunc, VOID *pUserHandle)
 {
     USER_HANDLE_S stHandle;
     

@@ -97,7 +97,7 @@ static void timerutl_DeleteTimer(TIMER_UTL_CTRL_S *ctrl, VCLOCK_HANDLE vclock_id
     VCLOCK_DestroyTimer(ctrl->vclock, vclock_id);
 }
 
-BS_STATUS TimerUtl_Init(TIMER_UTL_CTRL_S *ctrl, int precision/* 精度,ms */)
+BS_STATUS TimerUtl_Init(TIMER_UTL_CTRL_S *ctrl, int precision)
 {
     NAP_PARAM_S param = {0};
 
@@ -117,7 +117,7 @@ BS_STATUS TimerUtl_Init(TIMER_UTL_CTRL_S *ctrl, int precision/* 精度,ms */)
     return 0;
 }
 
-HANDLE TimerUtl_Create(TIMER_UTL_CTRL_S *ctrl, UINT ulTime/*ms*/, UINT flag, PF_TIME_OUT_FUNC pfFunc, USER_HANDLE_S *pstUserHandle)
+HANDLE TimerUtl_Create(TIMER_UTL_CTRL_S *ctrl, UINT ulTime, UINT flag, PF_TIME_OUT_FUNC pfFunc, USER_HANDLE_S *pstUserHandle)
 {
     _TIMER_UTL_NODE_S *pstTimer;
 

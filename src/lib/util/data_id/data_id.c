@@ -18,7 +18,7 @@ typedef struct {
     MEM_CAP_S *memcap;
 }DATA_ID_CTRL_S;
 
-int DataID_Init(DATA_ID_CTRL_S *ctrl, MEM_CAP_S *memcap/*可以为NULL*/,
+int DataID_Init(DATA_ID_CTRL_S *ctrl, MEM_CAP_S *memcap,
         int bucket_num, int bucket_depth)
 {
     CUCKOO_HASH_NODE_S * table;

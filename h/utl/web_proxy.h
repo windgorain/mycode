@@ -13,14 +13,14 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID* WEB_PROXY_HANDLE;
 
 #define WEB_PROXY_DBG_FLAG_PACKET 0x1
 #define WEB_PROXY_DBG_FLAG_FSM    0x2
 
-#define WEB_PROXY_FLAG_ERRTYPE_COMPATIBLE 0x2 /* 当content-type错误,进一步检测是否需要改写 */
+#define WEB_PROXY_FLAG_ERRTYPE_COMPATIBLE 0x2 
 
 typedef struct
 {
@@ -32,7 +32,7 @@ WEB_PROXY_HANDLE WEB_Proxy_Create(IN UINT uiFlag);
 VOID WEB_Proxy_Destroy(IN WEB_PROXY_HANDLE hWebProxy);
 VOID WEB_Proxy_SetDgbFlag(IN WEB_PROXY_HANDLE hWebProxy, IN UINT uiDbgFlag);
 VOID WEB_Proxy_ClrDgbFlag(IN WEB_PROXY_HANDLE hWebProxy, IN UINT uiDbgFlag);
-/* 判断是否改写后的URL */
+
 BOOL_T WEB_Proxy_IsRwedUrl(IN WEB_PROXY_HANDLE hWebProxy, IN CHAR *pcUrl);
 BS_STATUS WEB_Proxy_ReferInput
 (
@@ -54,12 +54,12 @@ BS_STATUS WEB_Proxy_RequestIn
     IN WS_TRANS_HANDLE hTrans,
     IN UINT uiEvent
 );
-/* URL格式为: /tag/proto/port/host/path */
+
 BS_STATUS WEB_Proxy_ParseServerUrl
 (
     IN CHAR *pcUrl,
-    OUT LSTR_S *pstTag,   /* tag ... */
-    OUT LSTR_S *pstProto, /* http/https/ftp/smb... */
+    OUT LSTR_S *pstTag,   
+    OUT LSTR_S *pstProto, 
     OUT LSTR_S *pstHost,
     OUT LSTR_S *pstPort,
     OUT LSTR_S *pstPath
@@ -67,8 +67,8 @@ BS_STATUS WEB_Proxy_ParseServerUrl
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WEB_PROXY_H_*/
+#endif 
 
 

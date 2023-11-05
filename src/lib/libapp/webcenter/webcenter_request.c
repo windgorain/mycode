@@ -37,7 +37,7 @@ static BS_STATUS webcenter_RecvBodyOK(IN WS_TRANS_HANDLE hWsTrans)
 
     hEncap = WS_Trans_GetHttpEncap(hWsTrans);
 
-    /* 权限检查 */
+    
     if (! WebCenter_IsPermit(hWsTrans))
     {
         WS_Trans_Redirect(hWsTrans, "/index.htm");

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef enum
 {
@@ -37,8 +37,8 @@ VOID * SVPNC_GetSslCtx();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPNC_CONF_H_*/
+#endif 
 
 

@@ -16,8 +16,8 @@
 #include "../inc/vnetc_protocol.h"
 #include "../inc/vnetc_master.h"
 
-#define _VNETC_MAC_TBL_TIMEOUT_TICK  5      /* 300s */
-#define _VNETC_MAC_TBL_TIME_PER_TICK 60000  /* 60s */
+#define _VNETC_MAC_TBL_TIMEOUT_TICK  5      
+#define _VNETC_MAC_TBL_TIME_PER_TICK 60000  
 
 
 static MACTBL_HANDLE g_hVnetcMacTblId = 0;
@@ -128,9 +128,7 @@ static VOID vnetc_mactbl_ShowEach(IN MAC_NODE_S *pstMacNode, IN VNETC_MAC_USER_D
     }
 }
 
-/*
-    执行命令: show vnet mac-table
-*/
+
 PLUG_API BS_STATUS VNETC_MACTBL_Show(IN UINT ulArgc, IN CHAR ** argv)
 {
     EXEC_OutString(" MAC                Flag       NodeID \r\n"

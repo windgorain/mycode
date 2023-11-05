@@ -15,4 +15,4 @@ static inline void ring_buffer_write_tail(struct perf_event_mmap_page *base,
 	smp_store_release(&base->data_tail, tail);
 }
 
-#endif /* _TOOLS_LINUX_RING_BUFFER_H_ */
+#endif 

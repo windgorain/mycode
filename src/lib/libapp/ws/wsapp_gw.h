@@ -14,7 +14,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct
 {
@@ -55,8 +55,8 @@ UINT WSAPP_GW_GetID(IN WSAPP_GW_S *pstGW);
 WS_CONTEXT_HANDLE WSAPP_GW_AddService
 (
     IN CHAR *pcServiceName,
-    IN CHAR *pcVHost,   /* 可以为NULL, 表示使用缺省 */
-    IN CHAR *pcDomain   /* 可以为NULL, 表示独占 */
+    IN CHAR *pcVHost,   
+    IN CHAR *pcDomain   
 );
 VOID WSAPP_GW_DelService(IN CHAR *pcGwName, IN WS_CONTEXT_HANDLE hContext);
 CHAR * WSAPP_GW_GetName(IN WSAPP_GW_S *pstGW);
@@ -73,8 +73,8 @@ BOOL_T WSAPP_GW_IsFilterPermit(IN UINT uiGwID, IN INT iSocketID);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WSAPP_GW_H_*/
+#endif 
 
 

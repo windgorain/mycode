@@ -55,21 +55,21 @@ void RuleList_Add(RULE_LIST_S * pstList, UINT uiRuleID, IN RULE_NODE_S *pstRule)
     listhead = &pstList->stRuleList;
     pstRule->uiRuleID = uiRuleID;
 
-    /* 添加到链表中, 需要按照rule id排序 */
+    
     if (DLL_COUNT(listhead) == 0) {
-        /* 没有rule,则加在队列头 */
+        
         DLL_ADD(listhead, &(pstRule->stLinkNode));
         return;
     }
 
-    /* 大于最大id插在最后 */
+    
     pstLast = DLL_LAST(&pstList->stRuleList);
     if (NULL == pstLast || uiRuleID > pstLast->uiRuleID) {
         DLL_ADD(listhead, &(pstRule->stLinkNode));
         return;
     }
 
-    /* 遍历链表 */
+    
     DLL_SCAN(listhead, pstCur) {
         if (uiRuleID <= pstCur->uiRuleID) {
             pstTemp = pstCur;
@@ -78,10 +78,10 @@ void RuleList_Add(RULE_LIST_S * pstList, UINT uiRuleID, IN RULE_NODE_S *pstRule)
     }
 
     if (NULL != pstTemp) {
-        /* 找到节点则加在节点前面 */
+        
         DLL_INSERT_BEFORE(listhead, pstRule, pstTemp);
     } else {
-        /* 没找到则加在节点最后面 */
+        
         DLL_ADD(listhead, pstRule);
     }
 
@@ -185,7 +185,7 @@ BS_STATUS RuleList_IncreaseID(RULE_LIST_S *pstList, IN UINT uiStart, IN UINT uiE
     return BS_OK;
 }
 
-/* 移动rule */
+
 BS_STATUS RuleList_MoveRule(RULE_LIST_S *pstList, UINT uiOldRuleID, UINT uiNewRuleID)
 {
     RULE_NODE_S *pstNode;
@@ -214,7 +214,7 @@ BS_STATUS RuleList_MoveRule(RULE_LIST_S *pstList, UINT uiOldRuleID, UINT uiNewRu
     return BS_OK;
 }
 
-RULE_NODE_S * RuleList_GetNextByNode(RULE_LIST_S *pstList, RULE_NODE_S *pstCurr/* NULL表示从头开始 */)
+RULE_NODE_S * RuleList_GetNextByNode(RULE_LIST_S *pstList, RULE_NODE_S *pstCurr)
 {
     if (pstCurr == NULL) {
         return DLL_FIRST(&pstList->stRuleList);
@@ -223,7 +223,7 @@ RULE_NODE_S * RuleList_GetNextByNode(RULE_LIST_S *pstList, RULE_NODE_S *pstCurr/
     return DLL_NEXT(&pstList->stRuleList, pstCurr);
 }
 
-RULE_NODE_S * RuleList_GetNextByID(RULE_LIST_S *pstList, UINT uiCurrentRuleID /* INVALID表示从头开始 */)
+RULE_NODE_S * RuleList_GetNextByID(RULE_LIST_S *pstList, UINT uiCurrentRuleID )
 {
     RULE_NODE_S *pstRule;
 

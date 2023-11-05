@@ -9,7 +9,7 @@
 #include "utl/bitmap1_utl.h"
 #include "utl/bitque_utl.h"
 
-BS_STATUS BITQUE_Init(BITQUE_S *pstBitQue, int size/* 支持多少个bit */)
+BS_STATUS BITQUE_Init(BITQUE_S *pstBitQue, int size)
 {
     BS_STATUS eRet;
 
@@ -30,7 +30,7 @@ VOID BITQUE_Fini(IN BITQUE_S *pstBitQue)
     BITMAP_Destory(&pstBitQue->stBitMap);
 }
 
-/* 返回占用的位置 */
+
 int BITQUE_Enque(BITQUE_S *pstBitQue, int bit_value)
 {
     int index;
@@ -58,7 +58,7 @@ int BITQUE_Enque(BITQUE_S *pstBitQue, int bit_value)
     return index;
 }
 
-/* 返回-1表示没有弹出 */
+
 int BITQUE_Deque(BITQUE_S *pstBitQue)
 {
     int ret;
@@ -109,7 +109,7 @@ int BITQUE_Get(BITQUE_S *pstBitQue, int index)
     return 0;
 }
 
-/* 返回应该返回的值,但是不真正弹出 */
+
 int BITQUE_TestDeque(BITQUE_S *pstBitQue)
 {
     int ret;

@@ -46,7 +46,7 @@ BS_STATUS ETH_GetEthHeadInfo(IN UCHAR *pucData, IN UINT uiDataLen, OUT ETH_PKT_I
         }
         else
         {  
-            /* ISIS2类型 */
+            
             usType = usPktLenOrType;
             usOffSet += ETH_LLC_LEN;
             ucPktFmt = PKTFMT_LLC_ENCAP;
@@ -61,7 +61,7 @@ BS_STATUS ETH_GetEthHeadInfo(IN UCHAR *pucData, IN UINT uiDataLen, OUT ETH_PKT_I
         
         pstLlc = (ETH_LLC_S*)pucData;
 
-        /* Ethernet_SNAP格式 */
+        
         if ((0xaa == pstLlc->ucDSAP ) && (0xaa == pstLlc->ucSSAP))
         {
             usOffSet += (ETH_LLC_LEN + ETH_SNAP_LEN);
@@ -75,12 +75,12 @@ BS_STATUS ETH_GetEthHeadInfo(IN UCHAR *pucData, IN UINT uiDataLen, OUT ETH_PKT_I
             pstSnap = (ETH_SNAP_S *)(pstLlc + 1);
             usType = ntohs(pstSnap->usType);
         }
-        /*raw 封装*/
+        
         else if ((0xff == pstLlc->ucDSAP) && (0xff == pstLlc->ucSSAP))
         {
             ucPktFmt = PKTFMT_8023RAW_ENCAP;
         }
-        /* ISIS */
+        
         else if ((0xfe == pstLlc->ucDSAP) && 
                  (0xfe == pstLlc->ucSSAP) && 
                  (0x03 == pstLlc->ucCtrl))
@@ -89,7 +89,7 @@ BS_STATUS ETH_GetEthHeadInfo(IN UCHAR *pucData, IN UINT uiDataLen, OUT ETH_PKT_I
             usType = ETHERTYPE_ISIS;
             usOffSet += ETH_LLC_LEN;
         }
-        /*llc(纯802.3封装)*/
+        
         else
         {
             usOffSet += ETH_LLC_LEN;
@@ -98,7 +98,7 @@ BS_STATUS ETH_GetEthHeadInfo(IN UCHAR *pucData, IN UINT uiDataLen, OUT ETH_PKT_I
     }
     else
     {
-        /* 保留字段未使用 */
+        
     }
 
     if (usOffSet >= uiDataLen)
@@ -115,7 +115,7 @@ BS_STATUS ETH_GetEthHeadInfo(IN UCHAR *pucData, IN UINT uiDataLen, OUT ETH_PKT_I
     return BS_OK;
 }
 
-/* 将非eth标准报文转换为eth标准报文 */
+
 int ETH_ToEthPkt(void *data, int len, OUT void **new_data, OUT int *new_len)
 {
     ETH_PKT_INFO_S eth_info;

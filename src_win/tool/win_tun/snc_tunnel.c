@@ -6,27 +6,27 @@
 #include "utl/vnic_tap.h"
 #include "snc_tunnel.h"
 
-#define SN_TUN_OPT_TYPE_KEEPLIVE 1  /* 保活探测 */
-#define SN_TUN_OPT_TYPE_PKT      4  /* 携带IP报文 */
-#define SN_TUN_OPT_TYPE_USERINFO 6  /* 格式为: "uid:12345,mac:xxxx-xxxx-xxxx",最后使用padding 0保证4字节对齐 */
+#define SN_TUN_OPT_TYPE_KEEPLIVE 1  
+#define SN_TUN_OPT_TYPE_PKT      4  
+#define SN_TUN_OPT_TYPE_USERINFO 6  
 
 typedef struct
 {
     UCHAR version;
-    UCHAR reserved1; /* reserved, should set to 0 */
-    USHORT reserved2; /* reserved, should set to 0 */
+    UCHAR reserved1; 
+    USHORT reserved2; 
 }SN_TUN_HEAD_S;
 
 typedef struct
 {
     UCHAR type;
     UCHAR flag;
-    USHORT length; /* Value length; not include opt */
+    USHORT length; 
 }SN_TUN_OPT_S;
 
 #define SNTUN_HEAD_LEN (sizeof(SN_TUN_HEAD_S) + sizeof(SN_TUN_OPT_S))
 
-static char * g_user_info = "uid:12345,mac:0101-aaaa-bbbb,os:win7sp1,localtion:BeiJing.Office"; /* demo, should be setted to true info */
+static char * g_user_info = "uid:12345,mac:0101-aaaa-bbbb,os:win7sp1,localtion:BeiJing.Office"; 
 static VNIC_HANDLE g_hVnic = 0;
 static int g_netfd = 0;
 static unsigned int g_proxy_ip = 0;
@@ -36,7 +36,7 @@ static int _snc_tun_GetUserinfoSize()
 {
     int len = strlen(g_user_info);
 
-    /* 4 bytes align */
+    
     len = ((len + 3) >> 2) << 2;
 
     return len;
@@ -111,9 +111,9 @@ static int _snc_tun_Net2Tun(VNIC_HANDLE tun_fd, int net_fd)
 
 static unsigned int _snc_tun_GetNearIP(char *proxy_ip_list)
 {
-    /* 获取最近的proxy并返回 */
+    
 
-    /* deom */
+    
     return inet_addr(proxy_ip_list);
 }
 
@@ -132,7 +132,7 @@ static DWORD WINAPI ThreadTun2Net(LPVOID lpParameter)
     return 0;
 }
 
-int SNC_TUN_Run(VNIC_HANDLE tun_fd, int net_fd, char *proxy_ip_list, unsigned short dst_port/*net order*/)
+int SNC_TUN_Run(VNIC_HANDLE tun_fd, int net_fd, char *proxy_ip_list, unsigned short dst_port)
 {
     g_hVnic = tun_fd;
     g_netfd = net_fd;

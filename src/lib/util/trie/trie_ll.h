@@ -15,7 +15,7 @@ extern "C"
 #endif
 
 typedef struct trie_ll_node {
-    TRIE_COMMON_S common; /* 必须为第一个成员 */
+    TRIE_COMMON_S common; 
     SL_NODE_S link_node;
     SL_HEAD_S next;
     UINT bits[8];
@@ -31,4 +31,4 @@ TRIE_COMMON_S * Triell_PrefixMatch(void *root, UCHAR *data, int data_len, PF_TRI
 #ifdef __cplusplus
 }
 #endif
-#endif //TRIE_LL_H_
+#endif 

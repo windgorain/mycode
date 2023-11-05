@@ -13,22 +13,22 @@
 #include "utl/sys_utl.h"
 #include "utl/process_utl.h"
 
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_SYSINFO
 
 static UINT g_uiSysinfoArgc = 0;
 static CHAR **g_ppcSysInfoArgv = NULL;
-static CHAR g_szSysInfoInitWorkDir[FILE_MAX_PATH_LEN + 1] = ""; /* 初始工作目录 */
-static CHAR g_szSysInfoConfDir[128] = "conf_dft"; /* 配置文件目录 */
+static CHAR g_szSysInfoInitWorkDir[FILE_MAX_PATH_LEN + 1] = ""; 
+static CHAR g_szSysInfoConfDir[128] = "conf_dft"; 
 static char g_szSysInfoSelfName[128];
 
-/* 获取可执行文件所在目录 */
+
 CHAR * SYSINFO_GetExePath()
 {
     return SYS_GetSelfFilePath();
 }
 
-/* 初始工作目录 */
+
 CHAR *SYSINFO_GetInitWorkDir()
 {
     return g_szSysInfoInitWorkDir;

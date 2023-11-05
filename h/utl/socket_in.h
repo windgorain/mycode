@@ -12,36 +12,36 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 #ifndef INET_ADDRSTRLEN
-#define INET_ADDRSTRLEN 15    /* IPv4地址的字符串形式的长度 */
+#define INET_ADDRSTRLEN 15    
 #endif
 
 #ifndef INET6_ADDRSTRLEN
-#define INET6_ADDRSTRLEN 46   /* IPv6地址的字符串形式的长度 */
+#define INET6_ADDRSTRLEN 46   
 #endif
 
-/* 地址通用结构中存储的地址转成字符串的最大长度，包括'\0' */
+
 #define INET_ADDR_STR_LEN      INET6_ADDRSTRLEN
 
-/* IPv4和IPv6使用的通用IP地址结构. 其中的地址建议存储为网络序 */
+
 typedef struct
 {
-    USHORT   usFamily;             /* 地址协议族(AF_INET/AF_INET6) */
-    USHORT   usReserved;           /* 保留字段 */
+    USHORT   usFamily;             
+    USHORT   usReserved;           
     union
     {
         IN6ADDR_S stIP6Addr;
         INADDR_S  stIP4Addr;
-    } un_addr;                      /* IP地址字段 */
+    } un_addr;                      
 
     #define uIP6_Addr       un_addr.stIP6Addr
     #define uIP4_Addr       un_addr.stIP4Addr
 }INET_ADDR_S;
 
-/* 地址通用结构成员相关宏 */
+
 #define INET_ADDR_FAMILY(pstAddrM)      ((pstAddrM)->usFamily)
 #define INET_ADDR_IP4ADDR(pstAddrM)     ((pstAddrM)->uIP4_Addr)
 #define INET_ADDR_IP4ADDRUINT(pstAddrM) INET_ADDR_IP4ADDR(pstAddrM).S_addr
@@ -62,9 +62,7 @@ static inline VOID INADDR_LenToMask(IN UINT uiLen, OUT UINT *puiMask)
     return;
 }
 
-/*****************************************************************************
-  Description: 根据掩码长度计算得到掩码
-*****************************************************************************/
+
 static inline VOID IN6ADDR_LenToMask(IN UINT uiLen, OUT IN6ADDR_S *pstMask)
 {
     UINT uiUintLen;
@@ -79,8 +77,8 @@ static inline VOID IN6ADDR_LenToMask(IN UINT uiLen, OUT IN6ADDR_S *pstMask)
     puiMask[2] = 0;
     puiMask[3] = 0;
 
-    uiUintLen = uiLen >> 5;     /* uiLen除以32 */
-    uiBitLen = uiLen & 31;      /* uiLen除以32的余数 */
+    uiUintLen = uiLen >> 5;     
+    uiBitLen = uiLen & 31;      
     for (uiLoop = 0; uiLoop < uiUintLen; uiLoop++)
     {
         puiMask[uiLoop] = 0xffffffff;
@@ -94,9 +92,7 @@ static inline VOID IN6ADDR_LenToMask(IN UINT uiLen, OUT IN6ADDR_S *pstMask)
     return;
 }
 
-/*****************************************************************************
-  Description: 获取地址对应的前缀
-*****************************************************************************/
+
 static inline VOID IN6ADDR_GetPrefix(IN const IN6ADDR_S *pstAddr, IN const IN6ADDR_S *pstMask, 
                                             OUT IN6ADDR_S *pstPrefix)
 {
@@ -116,15 +112,7 @@ static inline VOID IN6ADDR_GetPrefix(IN const IN6ADDR_S *pstAddr, IN const IN6AD
     return;
 }
 
-/*****************************************************************************
-  Description: 比较IPv6地址大小
-        Input: pstAddr1: 待比较地址1
-               pstAddr2: 待比较地址2
-       Return: 大于0: 地址1大于地址2
-               小于0: 地址1小于地址2
-               等于0: 地址1等于地址2
-      Caution: IPV6地址按网络序输入
-*****************************************************************************/
+
 static inline INT IN6ADDR_Cmp(IN const IN6ADDR_S *pstAddr1, IN const IN6ADDR_S *pstAddr2)
 {
     UINT i;
@@ -142,13 +130,7 @@ static inline INT IN6ADDR_Cmp(IN const IN6ADDR_S *pstAddr1, IN const IN6ADDR_S *
     return iRet;
 }
 
-/*****************************************************************************
-  函数描述: 比较IP地址通用结构中包含的地址字段的大小(网络序)
-    返回值: 大于0: 地址1大于地址2
-            小于0: 地址1小于地址2
-            等于0: 地址1等于地址2
-    注意点: 只比较相同地址族的地址通用结构
-*****************************************************************************/
+
 static inline INT INET_ADDR_Cmp(IN const INET_ADDR_S *pstAddr1, IN const INET_ADDR_S *pstAddr2)
 {
     INT iRet = 0;
@@ -179,17 +161,14 @@ static inline INT INET_ADDR_Cmp(IN const INET_ADDR_S *pstAddr1, IN const INET_AD
     return iRet;
 }
 
-/*****************************************************************************
-  将字符格式转换为IP地址通用结构
-  本函数只支持转换为网络序地址
-*****************************************************************************/
+
 BS_STATUS INET_ADDR_Str2IP(IN USHORT usFamily, IN const CHAR *pcStr, OUT INET_ADDR_S *pstAddr);
 BS_STATUS INET_ADDR_N_Str2IP(IN USHORT usFamily, IN const CHAR *pcStr, IN UINT uiStrLen, OUT INET_ADDR_S *pstAddr);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SOCKET_IN_H_*/
+#endif 
 
 

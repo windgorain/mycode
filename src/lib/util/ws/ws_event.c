@@ -23,7 +23,7 @@ typedef struct
 
 typedef struct
 {
-    CHAR *pcStage;  /* 阶段 */
+    CHAR *pcStage;  
     _WS_EVENT_S *pstEventPlugs;
     UINT uiPlugNum;
 }_WS_EVENT_TBL_S;
@@ -79,11 +79,11 @@ static _WS_EVENT_S g_astWsHeadFilter[] =
 
 static _WS_EVENT_TBL_S g_astWsEventTbl[] =
 {
-    /* 请求处理阶段 */
+    
     {"HeadProcess", g_astWsHeadProcess, sizeof(g_astWsHeadProcess)/sizeof(_WS_EVENT_S)},
     {"Handler", g_astWsHandler, sizeof(g_astWsHandler)/sizeof(_WS_EVENT_S)},
 
-    /* 应答阶段 */
+    
     {"HeadFilter", g_astWsHeadFilter, sizeof(g_astWsHeadFilter)/sizeof(_WS_EVENT_S)},
 };
 

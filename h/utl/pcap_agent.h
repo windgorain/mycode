@@ -5,7 +5,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define PCAP_AGENT_INDEX_INVALID 0xFFFFFFFF
 
@@ -15,12 +15,12 @@
 
 typedef HANDLE PCAP_AGENT_HANDLE;
 
-/* 因为加锁, 以及可能还会调用其它回调. 此回调函数应该尽快返回.  */
+
 typedef VOID (*PF_PCAP_AGENT_PKT_INPUT_FUNC)(IN UCHAR *pucData, IN PKTCAP_PKT_INFO_S *pstPktInfo, IN USER_HANDLE_S *pstUserHandle);
 
 
 PCAP_AGENT_HANDLE PCAP_AGENT_CreateInstance(IN UINT uiMaxAgentNum);
-/* 获取一个空闲的Index */
+
 UINT PCAP_AGENT_GetAFreeIndex(IN PCAP_AGENT_HANDLE hPcapAgent);
 BS_STATUS PCAP_AGENT_SetNdis
 (
@@ -79,7 +79,7 @@ VOID PCAP_AGENT_NoDbgCmd(IN CHAR *pcModuleName, IN CHAR *pcFlagName);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__PCAP_AGENT_H_*/
+#endif 
 

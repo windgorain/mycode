@@ -5,7 +5,7 @@
 * History:     
 ******************************************************************************/
 
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_IPPOOL
 
 #include "bs.h"
@@ -19,8 +19,8 @@
 typedef struct
 {
     IPLIST_S stIpList;
-    LBITMAP_HANDLE hUsedOrDenyBitmap;     /* 地址池位图, 用来表示地址池中哪些地址被使用或禁止使用了 */
-    LBITMAP_HANDLE hDenyBitmap;     /* 地址池位图,  用来表示不能分配的IP */
+    LBITMAP_HANDLE hUsedOrDenyBitmap;     
+    LBITMAP_HANDLE hDenyBitmap;     
 }_IP_POOL_S;
 
 static UINT ippool_GetFreeIP(IN _IP_POOL_S *pstIpPool)
@@ -88,12 +88,12 @@ VOID IPPOOL_Destory(IN IPPOOL_HANDLE hIpPoolHandle)
     MEM_Free(pstIpPool);
 }
 
-/* 添加一个地址池 */
+
 BS_STATUS IPPOOL_AddRange
 (
     IN IPPOOL_HANDLE hIpPoolHandle,
-    IN UINT uiBeginIP/* 主机序, 含有此IP */,
-    IN UINT uiEndIP/* 主机序, 含有此IP */
+    IN UINT uiBeginIP,
+    IN UINT uiEndIP
 )
 {
     _IP_POOL_S *pstIpPool = (_IP_POOL_S *)hIpPoolHandle;
@@ -104,8 +104,8 @@ BS_STATUS IPPOOL_AddRange
 BS_STATUS IPPOOL_DelRange
 (
     IN IPPOOL_HANDLE hIpPoolHandle,
-    IN UINT uiBeginIP/* 主机序*/,
-    IN UINT uiEndIP/* 主机序*/
+    IN UINT uiBeginIP,
+    IN UINT uiEndIP
 )
 {
     _IP_POOL_S *pstIpPool = (_IP_POOL_S *)hIpPoolHandle;
@@ -116,10 +116,10 @@ BS_STATUS IPPOOL_DelRange
 BS_STATUS IPPOOL_ModifyRange
 (
     IN IPPOOL_HANDLE hIpPoolHandle,
-    IN UINT uiOldBeginIP/* 主机序*/,
-    IN UINT uiOldEndIP/* 主机序*/,
-    IN UINT uiBeginIP/* 主机序*/,
-    IN UINT uiEndIP/* 主机序*/
+    IN UINT uiOldBeginIP,
+    IN UINT uiOldEndIP,
+    IN UINT uiBeginIP,
+    IN UINT uiEndIP
 )
 {
     _IP_POOL_S *pstIpPool = (_IP_POOL_S *)hIpPoolHandle;
@@ -127,12 +127,12 @@ BS_STATUS IPPOOL_ModifyRange
     return IPList_ModifyRange(&pstIpPool->stIpList, uiOldBeginIP, uiOldEndIP, uiBeginIP, uiEndIP);
 }
 
-/* 判断是否和已经存在的地址池有重叠 */
+
 BOOL_T IPPOOL_IsOverlap
 (
     IN IPPOOL_HANDLE hIpPoolHandle,
-    IN UINT uiBeginIP/* 主机序*/,
-    IN UINT uiEndIP/* 主机序*/
+    IN UINT uiBeginIP,
+    IN UINT uiEndIP
 )
 {
     _IP_POOL_S *pstIpPool = (_IP_POOL_S *)hIpPoolHandle;
@@ -140,11 +140,11 @@ BOOL_T IPPOOL_IsOverlap
     return IPLIst_IsOverlap(&pstIpPool->stIpList, uiBeginIP, uiEndIP);
 }
 
-/* 返回地址, 主机序 */
+
 UINT IPPOOL_AllocIP
 (
     IN IPPOOL_HANDLE hIpPoolHandle,
-    IN UINT uiRequestIp/* 优先分配这个IP,如果不行,则自动分配一个. 主机序 */
+    IN UINT uiRequestIp
 )
 {
     _IP_POOL_S *pstIpPool = (_IP_POOL_S *)hIpPoolHandle;
@@ -166,8 +166,8 @@ UINT IPPOOL_AllocIP
 }
 
 
-/* 申请特定IP */
-BS_STATUS IPPOOL_AllocSpecIP(IN IPPOOL_HANDLE hIpPoolHandle, IN UINT uiSpecIp/* 主机序 */)
+
+BS_STATUS IPPOOL_AllocSpecIP(IN IPPOOL_HANDLE hIpPoolHandle, IN UINT uiSpecIp)
 {
     _IP_POOL_S *pstIpPool = (_IP_POOL_S *)hIpPoolHandle;
 
@@ -192,7 +192,7 @@ BS_STATUS IPPOOL_AllocSpecIP(IN IPPOOL_HANDLE hIpPoolHandle, IN UINT uiSpecIp/* 
 }
 
 
-VOID IPPOOL_FreeIP(IN IPPOOL_HANDLE hIpPoolHandle, IN UINT uiIP/* 主机序 */)
+VOID IPPOOL_FreeIP(IN IPPOOL_HANDLE hIpPoolHandle, IN UINT uiIP)
 {
     _IP_POOL_S *pstIpPool = (_IP_POOL_S *)hIpPoolHandle;
     
@@ -201,8 +201,8 @@ VOID IPPOOL_FreeIP(IN IPPOOL_HANDLE hIpPoolHandle, IN UINT uiIP/* 主机序 */)
     return;
 }
 
-/* 将IP设置为禁止分配 */
-VOID IPPOOL_Deny(IN IPPOOL_HANDLE hIpPoolHandle, IN UINT uiDenyIp /* 主机序 */)
+
+VOID IPPOOL_Deny(IN IPPOOL_HANDLE hIpPoolHandle, IN UINT uiDenyIp )
 {
     _IP_POOL_S *pstIpPool = (_IP_POOL_S *)hIpPoolHandle;
 
@@ -210,7 +210,7 @@ VOID IPPOOL_Deny(IN IPPOOL_HANDLE hIpPoolHandle, IN UINT uiDenyIp /* 主机序 *
     LBitMap_SetBit(pstIpPool->hDenyBitmap, uiDenyIp);
 }
 
-VOID IPPOOL_Permit(IN IPPOOL_HANDLE hIpPoolHandle, IN UINT uiIP /* 主机序 */)
+VOID IPPOOL_Permit(IN IPPOOL_HANDLE hIpPoolHandle, IN UINT uiIP )
 {
     _IP_POOL_S *pstIpPool = (_IP_POOL_S *)hIpPoolHandle;\
 

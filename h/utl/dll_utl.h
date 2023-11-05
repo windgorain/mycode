@@ -11,7 +11,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct tagDLL_HEAD_S _DLL_HEAD_S;
 
@@ -73,7 +73,7 @@ static inline void * DLL_FIRST(DLL_HEAD_S *pstDllHead)
 #define DLL_LOOPPREV(pstDllHead,pstNode) ((VOID*)((pstNode) == NULL ? NULL : (((DLL_NODE_S*)(pstNode))->prev == (DLL_NODE_S*)pstDllHead ? DLL_LAST(pstDllHead) : ((DLL_NODE_S*)(pstNode))->prev)))
 
 
-/* 添加到链表的头 */
+
 static inline void DLL_ADD_TO_HEAD_RCU(DLL_HEAD_S *pstDllHead, void *new_node) {
     DLL_NODE_S *pstNewNode = new_node;
     pstNewNode->pstHead = pstDllHead;
@@ -84,7 +84,7 @@ static inline void DLL_ADD_TO_HEAD_RCU(DLL_HEAD_S *pstDllHead, void *new_node) {
     pstDllHead->next = pstNewNode;
     pstDllHead->ulCount++;
 }
-/* 添加到链表的头 */
+
 static inline void DLL_ADD_TO_HEAD(DLL_HEAD_S *pstDllHead, void *new_node) {
     DLL_NODE_S *pstNewNode = new_node;
     pstNewNode->pstHead = pstDllHead;
@@ -95,7 +95,7 @@ static inline void DLL_ADD_TO_HEAD(DLL_HEAD_S *pstDllHead, void *new_node) {
     pstDllHead->ulCount++;
 }
 
-/* 添加到链表的最后 */
+
 static inline void DLL_ADD_RCU(DLL_HEAD_S *pstDllHead, void *new_node) {
     DLL_NODE_S *pstNewNode = new_node;
     pstNewNode->pstHead = pstDllHead;
@@ -107,7 +107,7 @@ static inline void DLL_ADD_RCU(DLL_HEAD_S *pstDllHead, void *new_node) {
     pstDllHead->ulCount++;
 }
 
-/* 添加到链表的最后 */
+
 static inline void DLL_ADD(DLL_HEAD_S *pstDllHead, void *new_node) {
     DLL_NODE_S *pstNewNode = new_node;
     pstNewNode->pstHead = pstDllHead;
@@ -237,7 +237,7 @@ static inline void DLL_DelIfInList(IN DLL_NODE_S *pstNode)
 }
 
 extern VOID DLL_Sort(IN DLL_HEAD_S *pstDllHead, IN PF_DLL_CMP_FUNC pfFunc, IN HANDLE hUserHandle);
-/* 插入有序链表并保证唯一性 */
+
 extern int DLL_UniqueSortAdd(DLL_HEAD_S *head, DLL_NODE_S *node, PF_DLL_CMP_FUNC cmp_func, void *user_data);
 
 extern VOID DLL_SortAdd
@@ -254,7 +254,7 @@ extern VOID * DLL_Find(IN DLL_HEAD_S *pstDllHead, IN PF_DLL_CMP_FUNC pfCmpFunc, 
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__DLL_H_*/
+#endif 
 

@@ -23,20 +23,20 @@ static BOOL_T _mybpf_relo_is_globle_data(MYBPF_RELO_MAP_S *relo_map)
 static int _mybpf_relo_map(MYBPF_INSN_S *insn, int cur_pc,
         GElf_Sym *sym, MYBPF_RELO_MAP_S *relo_maps, int maps_count)
 {
-    /* Match FD relocation against recorded map_data[] offset */
+    
     for (int i= 0; i< maps_count; i++) {
         if (relo_maps[i].sec_id != sym->st_shndx) {
             continue;
         }
 
         if (_mybpf_relo_is_globle_data(&relo_maps[i])) {
-            /* is global data */
+            
             int old_imm = insn->imm;
             insn->imm = relo_maps[i].value;
             insn[1].imm = old_imm + sym->st_value;
             insn->src_reg = BPF_PSEUDO_MAP_VALUE;
 
-            MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_RELO, MYBPF_DBG_FLAG_RELO_PROCESS, 
+            MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_RELO, DBG_UTL_FLAG_PROCESS, 
                     "Relo insn %d to global map %d from offset %d to %d\n",
                     cur_pc, insn->imm, old_imm, insn[1].imm);
 
@@ -47,7 +47,7 @@ static int _mybpf_relo_map(MYBPF_INSN_S *insn, int cur_pc,
             insn->imm = relo_maps[i].value;
             insn->src_reg = BPF_PSEUDO_MAP_FD;
 
-            MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_RELO, MYBPF_DBG_FLAG_RELO_PROCESS, 
+            MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_RELO, DBG_UTL_FLAG_PROCESS, 
                     "Relo insn %d to map %d \n", cur_pc, insn->imm);
 
             return 0;
@@ -57,19 +57,38 @@ static int _mybpf_relo_map(MYBPF_INSN_S *insn, int cur_pc,
     return BS_ERR;
 }
 
-static int _mybpf_relo_sub_prog(MYBPF_INSN_S *insn, int cur_pc, GElf_Sym *sym)
+static BOOL_T _mybpf_is_text_sec(ELF_S *elf, int sec_id)
+{
+    ELF_SECTION_S sec;
+
+    if (ELF_GetSecByID(elf, sec_id, &sec) < 0) {
+        return FALSE;
+    }
+
+    if (strcmp(sec.shname, ".text") != 0) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static int _mybpf_relo_sub_prog(ELF_S *elf, MYBPF_INSN_S *insn, int cur_pc, GElf_Sym *sym)
 {
     if (insn->src_reg != BPF_PSEUDO_CALL) {
         return BS_ERR;
     }
 
-    /* insn->imm + sym->st_value/8 + 1: 目标绝对位置 */
-    /* 目标绝对位置 - 当前位置: 相对于cur_pc的的相对位置 */
-    /* 先对位置 - 1: 相对于pc的的相对位置. pc = cur_pc + 1 */
+    if (! _mybpf_is_text_sec(elf, sym->st_shndx)) {
+        return BS_ERR;
+    }
+
+    
+    
+    
 
     int new_imm = (insn->imm + sym->st_value/8) - cur_pc;
 
-    MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_RELO, MYBPF_DBG_FLAG_RELO_PROCESS, 
+    MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_RELO, DBG_UTL_FLAG_PROCESS, 
             "Relo insn %d from %d to %d \n", cur_pc, insn->imm, new_imm);
 
     insn->imm = new_imm;
@@ -77,12 +96,40 @@ static int _mybpf_relo_sub_prog(MYBPF_INSN_S *insn, int cur_pc, GElf_Sym *sym)
     return 0;
 }
 
+static int _mybpf_relo_func_ptr(ELF_S *elf, MYBPF_INSN_S *insn, int cur_pc, GElf_Sym *sym)
+{
+    if (! _mybpf_is_text_sec(elf, sym->st_shndx)) {
+        return BS_ERR;
+    }
+
+    insn->imm += sym->st_value;
+    insn->src_reg = BPF_PSEUDO_FUNC_PTR;
+
+    MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_RELO, DBG_UTL_FLAG_PROCESS, 
+            "Relo insn %d to func ptr %d \n", cur_pc, insn->imm/sizeof(MYBPF_INSN_S));
+
+    return 0;
+}
+
+static int _mybpf_relo_load(ELF_S *elf, MYBPF_INSN_S *insn, int cur_pc,
+        GElf_Sym *sym, MYBPF_RELO_MAP_S *relo_maps, int maps_count)
+{
+    int ret;
+
+    ret = _mybpf_relo_map(insn, cur_pc, sym, relo_maps, maps_count);
+    if (ret < 0) { 
+        ret = _mybpf_relo_func_ptr(elf, insn, cur_pc, sym);
+    }
+
+    return ret;
+}
+
 static int _mybpf_relo_and_apply(ELF_S *elf, MYBPF_INSN_S *insn, MYBPF_RELO_MAP_S *relo_maps, int maps_count,
         ELF_SECTION_S *relo_sec, ELF_PROG_INFO_S *prog_info)
 {
     Elf_Data *data = relo_sec->data;
     GElf_Shdr *shdr = &relo_sec->shdr;
-	int nrels = shdr->sh_size / shdr->sh_entsize;
+    int nrels = shdr->sh_size / shdr->sh_entsize;
     int i;
 
 	for (i = 0; i < nrels; i++) {
@@ -101,14 +148,14 @@ static int _mybpf_relo_and_apply(ELF_S *elf, MYBPF_INSN_S *insn, MYBPF_RELO_MAP_
         int cur_pc = (prog_info->sec_offset / sizeof(MYBPF_INSN_S)) + insn_idx;
 
         if (insn[cur_pc].opcode == (BPF_LD | BPF_IMM | BPF_DW)) {
-            ret = _mybpf_relo_map(&insn[cur_pc], cur_pc, sym, relo_maps, maps_count);
+            ret = _mybpf_relo_load(elf, &insn[cur_pc], cur_pc, sym, relo_maps, maps_count);
         } else if (insn[cur_pc].opcode == (BPF_JMP | BPF_CALL)) {
-            ret = _mybpf_relo_sub_prog(&insn[cur_pc], cur_pc, sym);
+            ret = _mybpf_relo_sub_prog(elf, &insn[cur_pc], cur_pc, sym);
         }
 
         if (ret < 0) {
             RETURNI(BS_ERR, "Can't process relo: insn:%d, sec_id=%d, value=%ld",
-                    cur_pc, sym->st_shndx, sym->st_value);
+                    cur_pc, sym->st_shndx, (long)sym->st_value);
         }
 	}
 
@@ -127,7 +174,7 @@ static ELF_PROG_INFO_S * _mybpf_relo_get_prog_by_sec_id(ELF_PROG_INFO_S *progs_i
     return NULL;
 }
 
-/* 重定位Prog Map 和 sub prog */
+
 int MYBPF_RELO_ProgRelo(ELF_S *elf, void *insts, MYBPF_RELO_MAP_S *relo_maps, int maps_count,
         ELF_PROG_INFO_S *progs_info, int prog_count)
 {
@@ -141,7 +188,7 @@ int MYBPF_RELO_ProgRelo(ELF_S *elf, void *insts, MYBPF_RELO_MAP_S *relo_maps, in
             continue;
         }
 
-        /* 根据sec id找到对应的prog */
+        
         prog_info = _mybpf_relo_get_prog_by_sec_id(progs_info, prog_count, relo_sec.shdr.sh_info);
         if (! prog_info) {
             continue;
@@ -155,3 +202,65 @@ int MYBPF_RELO_ProgRelo(ELF_S *elf, void *insts, MYBPF_RELO_MAP_S *relo_maps, in
     return 0;
 }
 
+static BOOL_T _mybpf_relo_is_matched(GElf_Sym *sym, int map_sec_id, int map_offset, BOOL_T is_global_data)
+{
+    if (map_sec_id != sym->st_shndx) {
+        return FALSE;
+    }
+
+    if ((! is_global_data) && (map_offset != sym->st_value)) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static BOOL_T _mybpf_relo_is_map_used_by_prog(ELF_S *elf, ELF_SECTION_S *sec,
+        int map_sec_id, int map_offset, BOOL_T is_global_data)
+{
+    Elf_Data *data = sec->data;
+    GElf_Shdr *shdr = &sec->shdr;
+	int nrels = shdr->sh_size / shdr->sh_entsize;
+    int i;
+
+	for (i = 0; i < nrels; i++) {
+		GElf_Sym *sym;
+		GElf_Rel rel;
+
+        ELF_GetRel(data, i, &rel);
+
+		sym = ELF_GetSymbol(elf, GELF_R_SYM(rel.r_info));
+
+        if (_mybpf_relo_is_matched(sym, map_sec_id, map_offset, is_global_data)) {
+            return TRUE;
+        }
+
+	}
+
+	return FALSE;
+}
+
+
+static BOOL_T _mybpf_relo_is_map_used(ELF_S *elf, int map_sec_id, int map_offset, int is_global_data)
+{
+    void *iter = NULL;
+    ELF_SECTION_S sec;
+
+    while((iter = ELF_GetNextSection(elf, iter, &sec))) {
+        if (sec.shdr.sh_type != SHT_REL) {
+            continue;
+        }
+
+        if (_mybpf_relo_is_map_used_by_prog(elf, &sec, map_sec_id, map_offset, is_global_data)) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+
+BOOL_T MYBPF_RELO_IsMapUsed(ELF_S *elf, int map_sec_id, int map_offset, int is_global_data)
+{
+    return _mybpf_relo_is_map_used(elf, map_sec_id, map_offset, is_global_data);
+}

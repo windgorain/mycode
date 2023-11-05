@@ -54,7 +54,7 @@ static BS_STATUS ipmasktbl_Add(IN IPMASKTBL_S *ipmasktbl, IN IPMASKTBL_NODE_S *p
     return BS_OK;
 }
 
-static BS_WALK_RET_E ipmasktbl_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
+static int ipmasktbl_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
 {
     IPMASKTBL_NODE_S *pstIpMaskTblNode = (void*)pstNode;
     USER_HANDLE_S *pstUserHandle = pUserHandle;
@@ -63,7 +63,7 @@ static BS_WALK_RET_E ipmasktbl_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *
     return pfWalkFunc(pstIpMaskTblNode, pstUserHandle->ahUserHandle[1]);
 }
 
-static BS_WALK_RET_E ipmasktbl_MergeEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
+static int ipmasktbl_MergeEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
 {
     PF_IPMASKTBL_MERGE_USER_DATA pfFunc = pUserHandle;
     IPMASKTBL_NODE_S *pstIpMaskTblNode = (void*)pstNode;
@@ -85,7 +85,7 @@ static BS_WALK_RET_E ipmasktbl_MergeEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S 
         }
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static INT ipmasktbl_GetNextCmp(IN IPMASKTBL_NODE_S *pstNode1, IN IPMASKTBL_NODE_S *pstNode2)
@@ -117,7 +117,7 @@ static INT ipmasktbl_GetNextCmp(IN IPMASKTBL_NODE_S *pstNode1, IN IPMASKTBL_NODE
     return iCmpRet;
 }
 
-static BS_WALK_RET_E ipmasktbl_GetNextEach(IN IPMASKTBL_NODE_S *pstIpMaskNode, IN HANDLE hUserHandle)
+static int ipmasktbl_GetNextEach(IN IPMASKTBL_NODE_S *pstIpMaskNode, IN HANDLE hUserHandle)
 {
     USER_HANDLE_S *pstUserHandle = hUserHandle;
     IPMASKTBL_NODE_S *pstCurrent = pstUserHandle->ahUserHandle[0];
@@ -125,19 +125,19 @@ static BS_WALK_RET_E ipmasktbl_GetNextEach(IN IPMASKTBL_NODE_S *pstIpMaskNode, I
 
     if (pstCurrent != NULL) {
         if (ipmasktbl_GetNextCmp(pstIpMaskNode, pstCurrent) >= 0) {
-            return BS_WALK_CONTINUE;
+            return 0;
         }
     }
 
     if (pstNext != NULL) {
         if (ipmasktbl_GetNextCmp(pstIpMaskNode, pstNext) <= 0) {
-            return BS_WALK_CONTINUE;
+            return 0;
         }
     }
 
     pstUserHandle->ahUserHandle[1] = pstIpMaskNode;
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 int IPMASKTBL_Init(IN IPMASKTBL_S *ipmasktbl)
@@ -174,7 +174,7 @@ BS_STATUS IPMASKTBL_Add(IN IPMASKTBL_S *ipmasktbl, IN IPMASKTBL_NODE_S *pstIpMas
     return ipmasktbl_Add(ipmasktbl, pstIpMaskTblNode);
 }
 
-IPMASKTBL_NODE_S * IPMASKTBL_Get(IN IPMASKTBL_S *ipmasktbl, UINT ip/*netorder*/, UCHAR depth)
+IPMASKTBL_NODE_S * IPMASKTBL_Get(IN IPMASKTBL_S *ipmasktbl, UINT ip, UCHAR depth)
 {
     IPMASKTBL_NODE_S stToFind;
 
@@ -196,7 +196,7 @@ VOID IPMASKTBL_DelAll(IN IPMASKTBL_S *ipmasktbl, PF_HASH_FREE_FUNC pfFree, void 
     HASH_DelAll(ipmasktbl->hHash, pfFree, user_handle);
 }
 
-IPMASKTBL_NODE_S * IPMASKTBL_Match(IN IPMASKTBL_S *ipmasktbl, IN UINT uiDstIp /*net order*/)
+IPMASKTBL_NODE_S * IPMASKTBL_Match(IN IPMASKTBL_S *ipmasktbl, IN UINT uiDstIp )
 {
     IPMASKTBL_NODE_S *pstFound = NULL;
     IPMASKTBL_NODE_S stToFind;
@@ -217,7 +217,7 @@ IPMASKTBL_NODE_S * IPMASKTBL_Match(IN IPMASKTBL_S *ipmasktbl, IN UINT uiDstIp /*
     return pstFound;
 }
 
-IPMASKTBL_NODE_S * IPMASKTBL_BfMatch(IN IPMASKTBL_S *ipmasktbl, IPMASKTBL_BF_S *ipmasktbl_bf, IN UINT uiDstIp /*net order*/)
+IPMASKTBL_NODE_S * IPMASKTBL_BfMatch(IN IPMASKTBL_S *ipmasktbl, IPMASKTBL_BF_S *ipmasktbl_bf, IN UINT uiDstIp )
 {
     IPMASKTBL_NODE_S *pstFound = NULL;
     IPMASKTBL_NODE_S stToFind;
@@ -253,8 +253,8 @@ VOID IPMASKTBL_Walk(IN IPMASKTBL_S *ipmasktbl, IN PF_IPMASKTBL_WALK_FUNC pfWalkF
     HASH_Walk(ipmasktbl->hHash, (PF_HASH_WALK_FUNC)ipmasktbl_WalkEach, &stUserHandle);
 }
 
-/* 字典序方式访问下一个 */
-IPMASKTBL_NODE_S * IPMASKTBL_GetNext( IN IPMASKTBL_S *ipmasktbl, IN IPMASKTBL_NODE_S *pstFibCurrent/* 如果为NULL表示获取第一个 */)
+
+IPMASKTBL_NODE_S * IPMASKTBL_GetNext( IN IPMASKTBL_S *ipmasktbl, IN IPMASKTBL_NODE_S *pstFibCurrent)
 {
     USER_HANDLE_S stUserHandle;
 
@@ -265,7 +265,7 @@ IPMASKTBL_NODE_S * IPMASKTBL_GetNext( IN IPMASKTBL_S *ipmasktbl, IN IPMASKTBL_NO
     return stUserHandle.ahUserHandle[1];
 }
 
-/* 遍历合并每个通配子集的user_data */
+
 void IPMASKTBL_MergeUserData(IPMASKTBL_S *ipmasktbl, PF_IPMASKTBL_MERGE_USER_DATA pfFunc)
 {
     HASH_Walk(ipmasktbl->hHash, (PF_HASH_WALK_FUNC)ipmasktbl_MergeEach, pfFunc);

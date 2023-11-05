@@ -12,33 +12,31 @@
 #define STREAM2IP_MAX_IP_LEN 1500
 #define STREAM2IP_MAX_TCP_PAYLOAD_LEN  (STREAM2IP_MAX_IP_LEN - sizeof(struct s2ip_tcp_hdr) - sizeof(struct s2ip_ipv4_hdr) - sizeof(ETH_HEADER_S))
 
-/**
- * IPv4 Header
- */
+
 struct s2ip_ipv4_hdr {
-	unsigned char version_ihl;		/**< version and header length */
-	unsigned char type_of_service;	/**< type of service */
-	unsigned short total_length;		/**< length of packet */
-	unsigned short packet_id;		    /**< packet ID */
-	unsigned short fragment_offset;	/**< fragmentation offset */
-	unsigned char time_to_live;		/**< time to live */
-	unsigned char next_proto_id;		/**< protocol ID */
-	unsigned short hdr_checksum;		/**< header checksum */
-	unsigned int src_addr;		    /**< source address */
-	unsigned int dst_addr;		    /**< destination address */
+	unsigned char version_ihl;		
+	unsigned char type_of_service;	
+	unsigned short total_length;		
+	unsigned short packet_id;		    
+	unsigned short fragment_offset;	
+	unsigned char time_to_live;		
+	unsigned char next_proto_id;		
+	unsigned short hdr_checksum;		
+	unsigned int src_addr;		    
+	unsigned int dst_addr;		    
 } __attribute__((__packed__));
 
 struct s2ip_tcp_hdr {
-    unsigned short src_port;  /**< TCP source port. */
-    unsigned short dst_port;  /**< TCP destination port. */
-    unsigned int sent_seq;  /**< TX data sequence number. */
-    unsigned int recv_ack;  /**< RX data acknowledgement sequence number. */
+    unsigned short src_port;  
+    unsigned short dst_port;  
+    unsigned int sent_seq;  
+    unsigned int recv_ack;  
     unsigned char rsvd:4;
     unsigned char hlen:4;
-    unsigned char tcp_flags; /**< TCP flags */
-    unsigned short rx_win;    /**< RX flow control window. */
-    unsigned short cksum;     /**< TCP checksum. */
-    unsigned short tcp_urp;   /**< TCP urgent pointer, if any. */
+    unsigned char tcp_flags; 
+    unsigned short rx_win;    
+    unsigned short cksum;     
+    unsigned short tcp_urp;   
 } __attribute__((__packed__));
 
 static inline unsigned short s2ip_get_16b_sum(void *ptr, unsigned short nr)
@@ -54,7 +52,7 @@ static inline unsigned short s2ip_get_16b_sum(void *ptr, unsigned short nr)
             sum -= 0xffff;
     }
 
-    /* If length is in odd bytes */
+    
     if (nr)
         sum += *((unsigned char*)ptr16);
 
@@ -102,7 +100,7 @@ static inline void s2ip_fill_tcp_hdr(S2IP_S *ctrl, struct s2ip_tcp_hdr *tcp,
     }
 }
 
-/* ip/port网络序 */
+
 void S2IP_Init(OUT S2IP_S *ctrl, UINT sip, UINT dip, USHORT sport, USHORT dport)
 {
     ctrl->sip = sip;
@@ -118,7 +116,7 @@ void S2IP_SetMac(OUT S2IP_S *ctrl, MAC_ADDR_S *smac, MAC_ADDR_S *dmac)
     ctrl->dmac = *dmac;
 }
 
-/* 源目互换 */
+
 void S2IP_Switch(S2IP_S *ctrl)
 {
     unsigned int addrtmp = ctrl->dip;
@@ -134,7 +132,7 @@ void S2IP_Switch(S2IP_S *ctrl)
     ctrl->ack = sn;
 }
 
-/* 三次握手 */
+
 int S2IP_Hsk(S2IP_S *ctrl, PF_S2IP_OUTPUT output_func, void *user_handle)
 {
     unsigned char buf[256];
@@ -152,22 +150,22 @@ int S2IP_Hsk(S2IP_S *ctrl, PF_S2IP_OUTPUT output_func, void *user_handle)
     eth->stDMac = ctrl->dmac;
     eth->usProto = htons(ETH_P_IP);
 
-    /* 构造三次握手报文 */
+    
     ip_total_len = sizeof(struct s2ip_tcp_hdr) + sizeof(struct s2ip_ipv4_hdr);
     total_len = ip_total_len + sizeof(ETH_HEADER_S);
 
-    /* syn */
+    
     s2ip_fill_ip_hdr(ctrl, ip, ip_total_len);
     s2ip_fill_tcp_hdr(ctrl, tcp_hdr, 0x2);
     output_func(buf, total_len, user_handle);
 
-    /* syn+ack */
+    
     S2IP_Switch(ctrl);
     s2ip_fill_ip_hdr(ctrl, ip, ip_total_len);
     s2ip_fill_tcp_hdr(ctrl, tcp_hdr, 0x12);
     output_func(buf, total_len, user_handle);
 
-    /* ack */
+    
     S2IP_Switch(ctrl);
     s2ip_fill_ip_hdr(ctrl, ip, ip_total_len);
     s2ip_fill_tcp_hdr(ctrl, tcp_hdr, 0x10);
@@ -176,7 +174,7 @@ int S2IP_Hsk(S2IP_S *ctrl, PF_S2IP_OUTPUT output_func, void *user_handle)
     return 0;
 }
 
-/* ack: 是否构造回应ack报文 */
+
 int S2IP_Data(S2IP_S *ctrl, void *data, int data_len, BOOL_T ack, PF_S2IP_OUTPUT output_func, void *user_handle)
 {
     unsigned char buf[STREAM2IP_MAX_IP_LEN];
@@ -211,7 +209,7 @@ int S2IP_Data(S2IP_S *ctrl, void *data, int data_len, BOOL_T ack, PF_S2IP_OUTPUT
         ctrl->seq += copy_len;
     }
 
-    /* 构造ack */
+    
     if (ack) {
         ip_total_len = sizeof(struct s2ip_tcp_hdr) + sizeof(struct s2ip_ipv4_hdr);
 
@@ -225,7 +223,7 @@ int S2IP_Data(S2IP_S *ctrl, void *data, int data_len, BOOL_T ack, PF_S2IP_OUTPUT
     return 0;
 }
 
-/* 四次挥手 */
+
 int S2IP_Bye(S2IP_S *ctrl, PF_S2IP_OUTPUT output_func, void *user_handle)
 {
     unsigned char buf[256];
@@ -238,14 +236,14 @@ int S2IP_Bye(S2IP_S *ctrl, PF_S2IP_OUTPUT output_func, void *user_handle)
     ip = (void*)(eth + 1);
     tcp_hdr = (void*)(ip + 1);
 
-    /* 构造FIN报文 */
+    
     ip_total_len = sizeof(struct s2ip_tcp_hdr) + sizeof(struct s2ip_ipv4_hdr);
 
     s2ip_fill_ip_hdr(ctrl, ip, ip_total_len);
     s2ip_fill_tcp_hdr(ctrl, tcp_hdr, 0x11);
     output_func(buf, ip_total_len + sizeof(ETH_HEADER_S), user_handle);
 
-    /* 构造应答FIN报文 */
+    
     S2IP_Switch(ctrl);
     s2ip_fill_ip_hdr(ctrl, ip, ip_total_len);
     s2ip_fill_tcp_hdr(ctrl, tcp_hdr, 0x11);

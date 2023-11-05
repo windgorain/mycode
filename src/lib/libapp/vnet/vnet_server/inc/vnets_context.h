@@ -5,18 +5,18 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define VNETS_CONTEXT_FLAG_ONLINE 0x1 /* 在线标志 */
+#define VNETS_CONTEXT_FLAG_ONLINE 0x1 
 
 typedef struct
 {
-    UINT           ulRecvSesId;    /* 收取报文的会话ID */
-    UINT           ulSendSesId;    /* 发送报文的会话ID */
+    UINT           ulRecvSesId;    
+    UINT           ulSendSesId;    
     UINT           uiDstNodeID;
     UINT           uiSrcNodeID;
     UINT           uiFlag;
-    MAC_ADDR_S     stSrcMac;       /* 接收到的报文的源MAC */
+    MAC_ADDR_S     stSrcMac;       
 }VNET_LINK_CONTEXT_S;
 
 typedef struct
@@ -61,7 +61,7 @@ MBUF_S * VNETS_Context_CreateMbufByCluster
 );
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_CONTEXT_H_*/
+#endif 
 

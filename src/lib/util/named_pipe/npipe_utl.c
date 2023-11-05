@@ -20,25 +20,25 @@ int NPIPE_OpenDgram(IN CHAR *name)
 	int					fd, len;
 	struct sockaddr_un	un;
 
-	/* create a UNIX domain stream socket */
+	
 	if ((fd = Socket_Create(AF_UNIX, SOCK_DGRAM)) < 0)
 		return(-1);
 
-	unlink(name);	/* in case it already exists */
+	unlink(name);	
 
-	/* fill in socket address structure */
+	
 	memset(&un, 0, sizeof(un));
 	un.sun_family = AF_UNIX;
 	TXT_Strlcpy(un.sun_path, name, sizeof(un.sun_path));
 	len = BS_OFFSET(struct sockaddr_un, sun_path) + strlen(name);
 
-	/* bind the name to the descriptor */
+	
 	if (bind(fd, (struct sockaddr *)&un, len) < 0) {
         close(fd);
         return -2;
 	}
 
-//    chmod(name, S_IRWXO);
+
 
 	return(fd);
 }
@@ -48,31 +48,31 @@ int NPIPE_OpenSeqpacket(IN CHAR *name)
 	int					fd, len;
 	struct sockaddr_un	un;
 
-	/* create a UNIX domain stream socket */
+	
 	if ((fd = Socket_Create(AF_UNIX, SOCK_SEQPACKET)) < 0) {
         return -1;
     }
 
-	unlink(name);	/* in case it already exists */
+	unlink(name);	
 
-	/* fill in socket address structure */
+	
 	memset(&un, 0, sizeof(un));
 	un.sun_family = AF_UNIX;
 	TXT_Strlcpy(un.sun_path, name, sizeof(un.sun_path));
 	len = BS_OFFSET(struct sockaddr_un, sun_path) + strlen(name);
 
-	/* bind the name to the descriptor */
+	
 	if (bind(fd, (struct sockaddr *)&un, len) < 0) {
         close(fd);
         return -2;
 	}
 
-	if (listen(fd, 10) < 0) {	/* tell kernel we're a server */
+	if (listen(fd, 10) < 0) {	
         close(fd);
         return -3;
 	}
 
-//    chmod(name, S_IRWXO);
+
 
 	return(fd);
 }
@@ -82,31 +82,31 @@ int NPIPE_OpenStream(IN CHAR *name)
 	int					fd, len;
 	struct sockaddr_un	un;
 
-	/* create a UNIX domain stream socket */
+	
 	if ((fd = Socket_Create(AF_UNIX, SOCK_STREAM)) < 0) {
         return -1;
     }
 
-	unlink(name);	/* in case it already exists */
+	unlink(name);	
 
-	/* fill in socket address structure */
+	
 	memset(&un, 0, sizeof(un));
 	un.sun_family = AF_UNIX;
 	TXT_Strlcpy(un.sun_path, name, sizeof(un.sun_path));
 	len = BS_OFFSET(struct sockaddr_un, sun_path) + strlen(name);
 
-	/* bind the name to the descriptor */
+	
 	if (bind(fd, (struct sockaddr *)&un, len) < 0) {
         close(fd);
         return -2;
 	}
 
-	if (listen(fd, 10) < 0) {	/* tell kernel we're a server */
+	if (listen(fd, 10) < 0) {	
         close(fd);
         return -3;
 	}
 
-//    chmod(name, S_IRWXO);
+
 
 	return(fd);
 }
@@ -118,7 +118,7 @@ int NPIPE_Accept(int listenfd)
 
 	len = sizeof(un);
 	if ((clifd = Socket_Accept(listenfd, (struct sockaddr *)&un, &len)) < 0) {
-		return(-1);		/* often errno=EINTR, if signal caught */
+		return(-1);		
 	}
 
     if (len >= sizeof(un)) {
@@ -126,7 +126,7 @@ int NPIPE_Accept(int listenfd)
         return -1;
     }
 
-	unlink(un.sun_path);		/* we're done with pathname now */
+	unlink(un.sun_path);		
 
 	return(clifd);
 }
@@ -136,11 +136,11 @@ static int _npipe_connect(int type, const char *name)
 	int					fd, len;
 	struct sockaddr_un	un;
 
-	/* create a UNIX domain stream socket */
+	
 	if ((fd = socket(AF_UNIX, type, 0)) < 0)
 		return(-1);
 
-	/* fill socket address structure with server's address */
+	
 	memset(&un, 0, sizeof(un));
 	un.sun_family = AF_UNIX;
 	strlcpy(un.sun_path, (void *)name, sizeof(un.sun_path));

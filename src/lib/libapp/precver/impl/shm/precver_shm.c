@@ -26,8 +26,8 @@ static DATA_QUE_S * precver_shm_open(int argc, char **argv)
 {
     UINT key;
     GETOPT2_NODE_S opts[] = {
-        {'o', 'h', "help", 0, NULL, NULL, 0},
-        {'o', 'k', "key", 'u', &key, "shm key", 0},
+        {'o', 'h', "help", GETOPT2_V_NONE, NULL, NULL, 0},
+        {'o', 'k', "key", GETOPT2_V_U32, &key, "shm key", 0},
         {0}
     };
     
@@ -114,7 +114,7 @@ static void precver_shm_run(PRECVER_RUNNER_S *runner, DATA_QUE_S *que)
         }
         precver_shm_read(runner, que, &ts);
 
-    } while ((cur_time - tick_base < RDTSC_HZ)); /* 1秒后停止循环 */
+    } while ((cur_time - tick_base < RDTSC_HZ)); 
 
     return;
 }

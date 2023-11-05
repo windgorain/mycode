@@ -135,13 +135,13 @@ static IPFWD_SERVICE_RET_E _wan_nat_UpPktInput
     return IPFWD_SERVICE_RET_TAKE_OVER;
 }
 
-static BS_WALK_RET_E _wan_nat_TimeOutEach(IN MAP_ELE_S *pstEle, IN VOID *pUserHandle)
+static int _wan_nat_TimeOutEach(IN MAP_ELE_S *pstEle, IN VOID *pUserHandle)
 {
     _WAN_NAT_IF_CTRL_S *pstIfData = pstEle->pData;
 
     NAT_TimerStep(pstIfData->hNatHandle);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static VOID _wan_nat_TimeOut(IN HANDLE hTimerHandle, IN USER_HANDLE_S *pstUserHandle)
@@ -288,24 +288,24 @@ static BS_STATUS _wan_nat_IfEvent(IN UINT uiIfIndex, IN UINT uiEvent, IN USER_HA
     return BS_OK;
 }
 
-static BS_WALK_RET_E _wan_nat_SetDbgFlag(IN MAP_ELE_S *pstEle, IN VOID *pUserHandle)
+static int _wan_nat_SetDbgFlag(IN MAP_ELE_S *pstEle, IN VOID *pUserHandle)
 {
     _WAN_NAT_IF_CTRL_S *pstIfData = pstEle->pData;
     UINT uiFlag = HANDLE_UINT(pUserHandle);
     
     NAT_SetDbgFlag(pstIfData->hNatHandle, uiFlag);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-static BS_WALK_RET_E _wan_nat_ClrDbgFlag(IN MAP_ELE_S *pstEle, IN VOID *pUserHandle)
+static int _wan_nat_ClrDbgFlag(IN MAP_ELE_S *pstEle, IN VOID *pUserHandle)
 {
     _WAN_NAT_IF_CTRL_S *pstIfData = pstEle->pData;
     UINT uiFlag = HANDLE_UINT(pUserHandle);
     
     NAT_ClrDbgFlag(pstIfData->hNatHandle, uiFlag);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static BS_STATUS _wan_nat_kf_Add(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, IN KFAPP_PARAM_S *pstParam)
@@ -479,10 +479,7 @@ BS_STATUS WAN_NAT_KfInit()
 	return BS_OK;
 }
 
-/*
- 接口视图下下:
-  [no] nat outbound
-*/
+
 PLUG_API BS_STATUS WAN_NAT_SetOutBoundCmd
 (
     IN UINT ulArgc,

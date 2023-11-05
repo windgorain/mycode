@@ -16,4 +16,4 @@ BS_STATUS WAN_KF_Init();
 #ifdef __cplusplus
 }
 #endif
-#endif //WAN_KF_H_
+#endif 

@@ -17,7 +17,7 @@ BS_STATUS WebProxyApp_Init()
     return BS_OK;
 }
 
-/* save */
+
 PLUG_API BS_STATUS WebProxyApp_Save(IN HANDLE hFile)
 {
     WebProxyApp_Cmd_Save(hFile);

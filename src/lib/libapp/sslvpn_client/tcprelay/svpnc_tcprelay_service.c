@@ -26,11 +26,11 @@
 typedef enum
 {
     S_INIT = 0,
-    S_DHSK,             /* 握手状态 */
-    S_CONNECTING,       /* Socket连接状态 */
-    S_SSL_CONNECTING,   /* SSL 连接状态 */
-    S_HANDSHAKE,        /* TCP Relay握手状态 */
-    S_FWD,              /* TCP Relay转发状态 */
+    S_DHSK,             
+    S_CONNECTING,       
+    S_SSL_CONNECTING,   
+    S_HANDSHAKE,        
+    S_FWD,              
 }_WEB_PROXY_STATE_E;
 
 typedef enum
@@ -160,37 +160,32 @@ static BS_STATUS _svpnc_tr_DownHandshake(IN FSM_S *pstFsm, IN UINT uiEvent)
     return BS_OK;
 }
 
-static BS_WALK_RET_E _svpnc_tr_UpEvent(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int _svpnc_tr_UpEvent(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     SVPNC_TCPRELAY_NODE_S *pstNode = pstUserHandle->ahUserHandle[0];
     BS_STATUS eRet = BS_OK;
 
-    if (uiEvent & MYPOLL_EVENT_IN)
-    {
+    if (uiEvent & MYPOLL_EVENT_IN) {
         eRet = FSM_EventHandle(&pstNode->stFsm, E_UP_IN);
     }
 
-    if (eRet == BS_STOP)
-    {
-        return BS_WALK_CONTINUE;
+    if (eRet == BS_STOP) {
+        return 0;
     }
 
-    if (uiEvent & MYPOLL_EVENT_OUT)
-    {
+    if (uiEvent & MYPOLL_EVENT_OUT) {
         eRet = FSM_EventHandle(&pstNode->stFsm, E_UP_OUT);
     }
 
-    if (eRet == BS_STOP)
-    {
-        return BS_WALK_CONTINUE;
+    if (eRet == BS_STOP) {
+        return 0;
     }
 
-    if (uiEvent & MYPOLL_EVENT_ERR)
-    {
+    if (uiEvent & MYPOLL_EVENT_ERR) {
         FSM_EventHandle(&pstNode->stFsm, E_UP_ERR);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static CONN_HANDLE _svpnc_tr_CreateUpConn()
@@ -268,7 +263,7 @@ static BS_STATUS _svpnc_tr_Handshake(IN FSM_S *pstFsm, IN UINT uiEvent)
     BS_STATUS eRet;
     CHAR *pcData;
 
-    while (1) /* SSL读取时,需要将SSL缓冲区读空,否则有可能不来Socket IN事件导致SSL缓冲区中数据无机会读取 */
+    while (1) 
     {
         iRet = CONN_Read(pstNode->hUpConn, szInfo, sizeof(szInfo));
         if (iRet <= 0)
@@ -453,7 +448,7 @@ static BS_STATUS _svpnc_tr_FwdDownOut(IN FSM_S *pstFsm, IN UINT uiEvent)
 
     if (VBUF_GetDataLength(&pstNode->stUpVBuf) == 0)
     {
-        /* 可能ssl中还有部分数据 */
+        
         _svpnc_tr_FwdUpIn(pstFsm, uiEvent);
     }
 
@@ -589,40 +584,35 @@ static FSM_SWITCH_MAP_S g_astSvpncTRSwitchMap[] =
 
 static FSM_SWITCH_TBL g_hSvpncTRSwitchTbl = NULL;
 
-static BS_WALK_RET_E _svpnc_tr_DownEvent(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int _svpnc_tr_DownEvent(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     SVPNC_TCPRELAY_NODE_S *pstNode = pstUserHandle->ahUserHandle[0];
     BS_STATUS eRet = BS_OK;
 
-    if (uiEvent & MYPOLL_EVENT_IN)
-    {
+    if (uiEvent & MYPOLL_EVENT_IN) {
         eRet = FSM_EventHandle(&pstNode->stFsm, E_DOWN_IN);
     }
 
-    if (eRet == BS_STOP)
-    {
-        return BS_WALK_CONTINUE;
+    if (eRet == BS_STOP) {
+        return 0;
     }
 
-    if (uiEvent & MYPOLL_EVENT_OUT)
-    {
+    if (uiEvent & MYPOLL_EVENT_OUT) {
         eRet = FSM_EventHandle(&pstNode->stFsm, E_DOWN_OUT);
     }
 
-    if (eRet == BS_STOP)
-    {
-        return BS_WALK_CONTINUE;
+    if (eRet == BS_STOP) {
+        return 0;
     }
 
-    if (uiEvent & MYPOLL_EVENT_ERR)
-    {
+    if (uiEvent & MYPOLL_EVENT_ERR) {
         eRet = FSM_EventHandle(&pstNode->stFsm, E_DOWN_ERR);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-static BS_WALK_RET_E _svpnc_tr_AcceptEventNotify(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int _svpnc_tr_AcceptEventNotify(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     INT iAcceptSocketId;
     CONN_HANDLE hDownConn;
@@ -632,7 +622,7 @@ static BS_WALK_RET_E _svpnc_tr_AcceptEventNotify(IN INT iSocketId, IN UINT uiEve
     iAcceptSocketId = Socket_Accept(iSocketId, NULL, NULL);
     if (iAcceptSocketId < 0)
     {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     Socket_SetNoBlock(iAcceptSocketId, TRUE);
@@ -641,7 +631,7 @@ static BS_WALK_RET_E _svpnc_tr_AcceptEventNotify(IN INT iSocketId, IN UINT uiEve
     if (hDownConn == NULL)
     {
         Socket_Close(iAcceptSocketId);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     CONN_SetPoller(hDownConn, SVPNC_TR_GetMyPoller());
@@ -650,7 +640,7 @@ static BS_WALK_RET_E _svpnc_tr_AcceptEventNotify(IN INT iSocketId, IN UINT uiEve
     if (NULL == pstNode)
     {
         CONN_Free(hDownConn);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     pstNode->hDownConn = hDownConn;
@@ -666,12 +656,12 @@ static BS_WALK_RET_E _svpnc_tr_AcceptEventNotify(IN INT iSocketId, IN UINT uiEve
     if (BS_OK != FSM_InitEventQue(&pstNode->stFsm, 10))
     {
         SVPNC_TRNode_Free(pstNode);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     FSM_EventHandle(&pstNode->stFsm, E_STEP);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static BS_STATUS _svpnc_tr_StartService()

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define DOMAIN_GROUP_LIST_NAME_SIZE 64
 
@@ -43,6 +43,6 @@ BOOL_T DomainGroup_Match(IN LIST_RULE_LIST_S *pstList, IN CHAR* pcDomain);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__DOMAIN_GROUP_UTL_H_*/
+#endif 

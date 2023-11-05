@@ -10,10 +10,10 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define EVENT_FLAG_CARE_ALL 0x1 /* 0: ANY; 1: ALL */
-#define EVENT_FLAG_WAIT     0x2 /* 0: NO wait; 1: Wait */
+#define EVENT_FLAG_CARE_ALL 0x1 
+#define EVENT_FLAG_WAIT     0x2 
 
 #define EVENT_ALL (0xffffffffffffffffULL)
 
@@ -27,8 +27,8 @@ extern BS_STATUS Event_Read(EVENT_HANDLE hEventID, UINT64 events,
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__EVENT_UTL_H_*/
+#endif 
 
 

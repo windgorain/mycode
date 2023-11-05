@@ -12,9 +12,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define VNET_CONF_MAX_DOMAIN_NAME_LEN 63  /* 至少要比user name大1,因为"@user_name"是个人域的名字 */
+#define VNET_CONF_MAX_DOMAIN_NAME_LEN 63  
 #define VNET_CONF_MAX_USER_NAME_LEN 31
 #define VNET_CONF_MAX_ALIAS_LEN 31
 #define VNET_CONF_MAX_DES_LEN 1023
@@ -25,8 +25,8 @@
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNET_CONF_H_*/
+#endif 
 
 

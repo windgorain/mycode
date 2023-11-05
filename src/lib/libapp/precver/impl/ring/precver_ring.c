@@ -24,11 +24,11 @@
 #include "rte_per_lcore.h"
 #include "rte_lcore.h"
 #include "rte_debug.h"
-//#include "rte_atomic.h"
+
 #include "rte_ring.h"
 #include "rte_mbuf.h"
 #include "rte_eal.h"
-//#include "rte_ip.h"
+
 #include "rte_tcp.h"
 #include "rte_udp.h"
 
@@ -300,7 +300,7 @@ static int precver_ring_run(PRECVER_RUNNER_S *runner)
 
             rte_pktmbuf_free(m);
         }
-    }while ((cur_time - tick_base < RDTSC_HZ)); /* 1秒后停止循环 */
+    }while ((cur_time - tick_base < RDTSC_HZ)); 
 
     return 0;
 }

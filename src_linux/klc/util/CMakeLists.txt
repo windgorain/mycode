@@ -4,7 +4,7 @@ set(SRC "")
 
 IF (UNIX AND NOT APPLE)
 aux_source_directory(./klctool SRC)
-aux_source_directory(./mapptool SRC)
+aux_source_directory(./mgwtool SRC)
 add_library(klc_lib ${SRC})
 set_property(TARGET klc_lib PROPERTY POSITION_INDEPENDENT_CODE ON)
 ENDIF()

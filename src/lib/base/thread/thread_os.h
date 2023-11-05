@@ -10,14 +10,14 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS _OSTHREAD_DisplayCallStack(IN UINT ulOSTID);
 UINT _OSTHREAD_GetRunTime (IN ULONG ulOsTID);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__THREAD_OS_H_*/
+#endif 
 

@@ -68,4 +68,4 @@ static inline char * IP46_IP2Str(UCHAR family, void *ip, OUT char *buf, int buf_
 #ifdef __cplusplus
 }
 #endif
-#endif //IP46_UTL_H_
+#endif 

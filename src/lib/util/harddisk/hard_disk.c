@@ -83,15 +83,11 @@ int hd_scsi_read_serial(int fd, char *devname, char *serial)
 
 	rsp_buf = (char *) &scsi_serial[4];
 
-	/* trim all whitespace and non-printable characters and convert
-	 * ':' to ';'
-	 */
+	
 	for (i = 0, dest = rsp_buf; i < rsp_len; i++) {
 		src = &rsp_buf[i];
 		if (*src > 0x20) {
-			/* ':' is reserved for use in placeholder serial
-			 * numbers for missing disks
-			 */
+			
 			if (*src == ':')
 				*dest++ = ';';
 			else
@@ -101,7 +97,7 @@ int hd_scsi_read_serial(int fd, char *devname, char *serial)
 	len = dest - rsp_buf;
 	dest = rsp_buf;
 
-	/* truncate leading characters */
+	
 	if (len > MAX_RAID_SERIAL_LEN) {
 		dest += len - MAX_RAID_SERIAL_LEN;
 		len = MAX_RAID_SERIAL_LEN;
@@ -137,7 +133,7 @@ static int hd_scsi_get_disk_sn(OUT char *id, IN int max)
     return err;
 }
 
-/* 获取硬盘序列号 */
+
 int HD_GetDiskSN(OUT char *id, IN int max)
 {
     if (hd_GetIdeDiskSn(id, max) == 0) {

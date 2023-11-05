@@ -93,7 +93,7 @@ static INT vs_soclose1(IN VS_SOCKET_S *so)
             return 0;
         }
 
-        /*对sock接收缓冲加锁，避免被软中断抢占后,so_state状态已经断开，导致soclose长时间无法唤醒*/
+        
         SOCK_LOCK(so);
         while (so->so_state & SS_ISCONNECTED)
         {

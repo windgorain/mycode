@@ -29,9 +29,7 @@ extern "C"
 #define TUN_TYPE_TUN 0
 #define TUN_TYPE_TAP 1
 
-/*
-* dev_name: 允许为NULL
-*/
+
 TUN_FD TUN_Open(char *dev_name, int dev_name_size);
 TUN_FD TAP_Open(char *dev_name, int dev_name_size);
 int TUN_MQUE_Open(INOUT char *dev_name, int dev_name_size, IN int que_num, OUT int *fds);
@@ -42,4 +40,4 @@ int TUN_Write(IN TUN_FD fd, IN void *buf, IN int len);
 #ifdef __cplusplus
 }
 #endif
-#endif //TUN_UTL_H_
+#endif 

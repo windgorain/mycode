@@ -11,13 +11,13 @@
 #include "../h/pcap_dbg.h"
 
 
-/* debug pcap packet */
+
 PLUG_API VOID PCAP_Debug_Cmd(IN UINT ulArgc, IN CHAR **argv)
 {
     PCAP_AGENT_DbgCmd(argv[1], argv[2]);
 }
 
-/* no debug pcap packet */
+
 PLUG_API VOID PCAP_NoDebug_Cmd(IN UINT ulArgc, IN CHAR **argv)
 {
     PCAP_AGENT_NoDbgCmd(argv[2], argv[3]);

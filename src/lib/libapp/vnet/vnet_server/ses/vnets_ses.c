@@ -19,13 +19,13 @@
 
 #define _VNETS_SES_MAX_NUM (1024 * 64)
 
-#define _VNETS_SES_TIME_OUT_TIME  1000  /* 1s */
+#define _VNETS_SES_TIME_OUT_TIME  1000  
 #define _VNETS_SES_KEEP_ALIVE_IDLE   300
 #define _VNETS_SES_KEEP_ALIVE_INTVAL 3
 #define _VNETS_SES_KEEP_ALIVE_MAX_TRYS 3
 
 static SES_HANDLE g_hVnetsSesHandle = NULL;
-static MUTEX_S g_stVnetsSesMutex; /* 只用于互斥删除和显示.其他不存在问题 */
+static MUTEX_S g_stVnetsSesMutex; 
 
 static BS_STATUS vnets_ses_RecvPkt(IN UINT uiSesID, IN MBUF_S *pstMbuf)
 {
@@ -183,7 +183,7 @@ HANDLE VNETS_SES_GetProperty(IN UINT uiSesID, IN UINT uiIndex)
     return SES_GetProperty(g_hVnetsSesHandle, uiSesID, uiIndex);
 }
 
-static BS_WALK_RET_E vnets_ses_show(IN UINT uiSesID, IN HANDLE hUserHandle)
+static int vnets_ses_show(IN UINT uiSesID, IN HANDLE hUserHandle)
 {
     VNETS_PHY_CONTEXT_S *pstPhyContext;
     UINT uiPeerIP;
@@ -192,7 +192,7 @@ static BS_WALK_RET_E vnets_ses_show(IN UINT uiSesID, IN HANDLE hUserHandle)
     pstPhyContext = SES_GetUsrContext(g_hVnetsSesHandle, uiSesID);
     if (NULL == pstPhyContext)
     {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     uiPeerIP = pstPhyContext->unPhyContext.stUdpPhyContext.uiPeerIp;
@@ -206,10 +206,10 @@ static BS_WALK_RET_E vnets_ses_show(IN UINT uiSesID, IN HANDLE hUserHandle)
 
     
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-/* show session */
+
 PLUG_API BS_STATUS VNETS_SES_Show(IN UINT ulArgc, IN CHAR **argv)
 {
     EXEC_OutInfo(" SESID    PeerSESID PeerIP          PeerPort Status\r\n"
@@ -224,28 +224,28 @@ PLUG_API BS_STATUS VNETS_SES_Show(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* debug session protodol packet*/
+
 PLUG_API BS_STATUS VNETS_SES_DebugProtocolPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     SES_AddDbgFlag(g_hVnetsSesHandle, SES_DBG_FLAG_PROTOCOL_PKT);
     return BS_OK;
 }
 
-/* no debug session protodol packet*/
+
 PLUG_API BS_STATUS VNETS_SES_NoDebugProtocolPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     SES_ClrDbgFlag(g_hVnetsSesHandle, SES_DBG_FLAG_PROTOCOL_PKT);
     return BS_OK;
 }
 
-/* debug session data packet*/
+
 PLUG_API BS_STATUS VNETS_SES_DebugDataPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     SES_AddDbgFlag(g_hVnetsSesHandle, SES_DBG_FLAG_DATA_PKT);
     return BS_OK;
 }
 
-/* no debug session data packet*/
+
 PLUG_API BS_STATUS VNETS_SES_NoDebugDataPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     SES_ClrDbgFlag(g_hVnetsSesHandle, SES_DBG_FLAG_DATA_PKT);

@@ -10,8 +10,8 @@
 #include "utl/in_checksum.h"
 #include "utl/ip_string.h"
 
-/* 返回网络序的校验和 */
-USHORT IP_CheckSum (IN UCHAR *pucBuf/* IP头 */, IN UINT ulLen/* IP头长度 */)
+
+USHORT IP_CheckSum (IN UCHAR *pucBuf, IN UINT ulLen)
 {
     return IN_CHKSUM_CheckSum(pucBuf, ulLen);
 }
@@ -57,7 +57,7 @@ IP_HEAD_S * IP_GetIPHeader(IN UCHAR *pucData, IN UINT uiDataLen, IN NET_PKT_TYPE
     return pstIpHead;
 }
 
-BOOL_T IPUtl_IsExistInIpArry(IN IP_MAKS_S *pstIpMask, IN UINT uiNum, IN UINT uiIP, IN UINT uiMask)
+BOOL_T IPUtl_IsExistInIpArry(IN IP_MASK_S *pstIpMask, IN UINT uiNum, IN UINT uiIP, IN UINT uiMask)
 {
     UINT i;
 
@@ -74,29 +74,23 @@ BOOL_T IPUtl_IsExistInIpArry(IN IP_MAKS_S *pstIpMask, IN UINT uiNum, IN UINT uiI
 
 char * inet_ntop4(const struct in_addr *addr, char *buf, socklen_t len)
 {
-  const u_int8_t *addr_p = (const u_int8_t *)&addr->s_addr;
-  char tmp[INET_ADDRSTRLEN]; /* max length of ipv4 addr string */
-  int fulllen;
+    const u_int8_t *addr_p = (const u_int8_t *)&addr->s_addr;
+    char tmp[INET_ADDRSTRLEN]; 
+    int fulllen;
 
-  fulllen = scnprintf(tmp, sizeof(tmp), "%d.%d.%d.%d",
-             addr_p[0], addr_p[1], addr_p[2], addr_p[3]);
-  if (fulllen >= (int)len) {
-    return NULL;
-  }
+    fulllen = scnprintf(tmp, sizeof(tmp), "%d.%d.%d.%d",
+            addr_p[0], addr_p[1], addr_p[2], addr_p[3]);
+    if (fulllen >= (int)len) {
+        return NULL;
+    }
 
-  bcopy(tmp, buf, fulllen + 1);
+    memcpy(buf, tmp, fulllen + 1);
 
-  return buf;
+    return buf;
 }
 
-/*
-私网IP地址，参考标准是RFC1918
-    "10.0.0.0/8"
-    "172.16.0.0/12"
-    "192.168.0.0/16"
-    169.254.0.0/16
-*/
-BOOL_T IP_IsPrivateIp(UINT ip/*net order*/)
+
+BOOL_T IP_IsPrivateIp(UINT ip)
 {
     UCHAR *pucData = (void*)&ip;
 

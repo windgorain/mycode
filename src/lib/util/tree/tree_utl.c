@@ -7,13 +7,8 @@
 #include "bs.h"
 #include "utl/tree_utl.h"
 
-/* 
-双向父优先深度遍历
-就像走路一样,经过每个节点，有去有回。
- 不像是深度遍历只去不回的跳跃遍历.
- root节点也遍历.每个节点都有来回两次.
- */
-static BS_WALK_RET_E _TREE_DepthBackWalk
+
+static int _tree_depth_back_walk
 (
     IN TREE_NODE_S *pstRoot,
     IN UINT ulDeepth,
@@ -22,36 +17,34 @@ static BS_WALK_RET_E _TREE_DepthBackWalk
 )
 {
     TREE_NODE_S *pstNode;
-    BS_WALK_RET_E eRet;
+    int ret;
     
-    eRet = pfFunc(pstRoot, ulDeepth, FALSE, pUserHandle);
-    if (eRet == BS_WALK_STOP)
-    {
-        return BS_WALK_STOP;
+    ret = pfFunc(pstRoot, ulDeepth, FALSE, pUserHandle);
+    if (ret < 0) {
+        return ret;
     }
 
-    DLL_SCAN(&pstRoot->stChildNode, pstNode)
-    {
-        if (BS_WALK_STOP == _TREE_DepthBackWalk(pstNode, ulDeepth + 1, pfFunc, pUserHandle))
-        {
-            return BS_WALK_STOP;
+    DLL_SCAN(&pstRoot->stChildNode, pstNode) {
+        ret = _tree_depth_back_walk(pstNode, ulDeepth + 1, pfFunc, pUserHandle);
+        if (ret < 0) {
+            return ret;
         }
     }
 
     return pfFunc(pstRoot, ulDeepth, TRUE, pUserHandle);
 }
 
-BS_WALK_RET_E TREE_DepthBackWalk
+int TREE_DepthBackWalk
 (
     IN TREE_NODE_S *pstRoot,
     IN PF_TREE_DepthWalkNode pfFunc,
     IN VOID *pUserHandle
 )
 {
-    return _TREE_DepthBackWalk(pstRoot, 1, pfFunc, pUserHandle);
+    return _tree_depth_back_walk(pstRoot, 1, pfFunc, pUserHandle);
 }
 
-static BS_WALK_RET_E _TREE_DepthParentFirstWalk
+static int _tree_depth_parent_first_walk
 (
     IN TREE_NODE_S *pstRoot,
     IN PF_TREE_DepthScanNode pfFunc,
@@ -59,73 +52,62 @@ static BS_WALK_RET_E _TREE_DepthParentFirstWalk
     IN VOID *pUserHandle)
 {
     TREE_NODE_S *pstNode;
-    BS_WALK_RET_E eRet;
+    int ret;
     
-    eRet = pfFunc(pstRoot, ulDeepth, pUserHandle);
-    if (eRet == BS_WALK_STOP)
-    {
-        return BS_WALK_STOP;
+    ret= pfFunc(pstRoot, ulDeepth, pUserHandle);
+    if (ret < 0) {
+        return ret;
     }
 
     ulDeepth ++;
 
-    DLL_SCAN(&pstRoot->stChildNode, pstNode)
-    {
-        if (BS_WALK_STOP == _TREE_DepthParentFirstWalk(pstNode, pfFunc, ulDeepth, pUserHandle))
-        {
-            return BS_WALK_STOP;
+    DLL_SCAN(&pstRoot->stChildNode, pstNode) {
+        ret = _tree_depth_parent_first_walk(pstNode, pfFunc, ulDeepth, pUserHandle);
+        if (ret < 0) {
+            return ret;
         }
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-/* 深度优先遍历. 父优先. root节点也遍历 */
-BS_WALK_RET_E TREE_DepthParentFirstWalk
+
+int TREE_DepthParentFirstWalk
 (
     IN TREE_NODE_S *pstRoot,
     IN PF_TREE_DepthScanNode pfFunc,
     IN VOID *pUserHandle
 )
 {
-    return _TREE_DepthParentFirstWalk(pstRoot, pfFunc, 1, pUserHandle);
+    return _tree_depth_parent_first_walk(pstRoot, pfFunc, 1, pUserHandle);
 }
 
 
-static BS_WALK_RET_E _TREE_DepthChildFirstWalk
-(
-    IN TREE_NODE_S *pstRoot,
-    IN PF_TREE_DepthScanNode pfFunc,
-    IN UINT ulDeepth,
-    IN VOID *pUserHandle)
+static int _tree_depth_child_first_walk(TREE_NODE_S *pstRoot,
+        PF_TREE_DepthScanNode pfFunc, UINT ulDeepth, void *pUserHandle)
 {
     TREE_NODE_S *pstNode;
+    int ret;
     
     ulDeepth ++;
 
-    DLL_SCAN(&pstRoot->stChildNode, pstNode)
-    {
-        if (BS_WALK_STOP == _TREE_DepthChildFirstWalk(pstNode, pfFunc, ulDeepth, pUserHandle))
-        {
-            return BS_WALK_STOP;
+    DLL_SCAN(&pstRoot->stChildNode, pstNode) {
+        ret = _tree_depth_child_first_walk(pstNode, pfFunc, ulDeepth, pUserHandle);
+        if (ret < 0) {
+            return ret;
         }
     }
 
     return pfFunc(pstRoot, ulDeepth - 1, pUserHandle);
 }
 
-/* 深度优先遍历. 子优先.root 节点也遍历 */
-BS_WALK_RET_E TREE_DepthChildFirstWalk
-(
-    IN TREE_NODE_S *pstRoot,
-    IN PF_TREE_DepthScanNode pfFunc,
-    IN VOID *pUserHandle
-)
+
+int TREE_DepthChildFirstWalk(TREE_NODE_S *pstRoot, PF_TREE_DepthScanNode pfFunc, VOID *pUserHandle)
 {
-    return _TREE_DepthChildFirstWalk(pstRoot, pfFunc, 1, pUserHandle);
+    return _tree_depth_child_first_walk(pstRoot, pfFunc, 1, pUserHandle);
 }
 
-BS_STATUS TREE_AddNode(IN TREE_NODE_S *pstParent, IN TREE_NODE_S *pstChildNode)
+int TREE_AddNode(IN TREE_NODE_S *pstParent, IN TREE_NODE_S *pstChildNode)
 {
     BS_DBGASSERT(NULL != pstParent);
     BS_DBGASSERT(NULL != pstChildNode);
@@ -135,7 +117,7 @@ BS_STATUS TREE_AddNode(IN TREE_NODE_S *pstParent, IN TREE_NODE_S *pstChildNode)
     return BS_OK;
 }
 
-BS_STATUS TREE_RemoveNode(IN TREE_NODE_S *pstNode)
+int TREE_RemoveNode(IN TREE_NODE_S *pstNode)
 {
     DLL_HEAD_S *pstHead;
     

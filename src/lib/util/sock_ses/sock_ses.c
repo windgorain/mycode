@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_SOCKSES
 
 #include "bs.h"
@@ -128,7 +128,7 @@ VOID SockSes_UnLock(IN HANDLE hSockSesId)
 }
 
 
-/* 初始化Socket 重定向模块 */
+
 BS_STATUS SockSes_CreateInstance(IN BOOL_T bNeedSem, OUT HANDLE *phSockSesId)
 {
     _SOCK_SES_HEAD_S *pstSesHead;

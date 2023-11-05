@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WebProxyApp_Deliver_Init();
 BS_STATUS WebProxyApp_Main_Init();
@@ -20,8 +20,8 @@ VOID WebProxyApp_Deliver_BindService(IN CHAR *pcWsService);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WEBPROXYAPP_FUNC_H_*/
+#endif 
 
 

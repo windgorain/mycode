@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define caddr_t UCHAR*
 
@@ -43,8 +43,8 @@ void bcopy(const void *src0, void *dst0, UINT length);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__UIPC_COMPAT_H_*/
+#endif 
 
 

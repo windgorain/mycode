@@ -10,14 +10,14 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 VOID VNETC_ArpMonitor_PacketMonitor(IN MBUF_S *pstMbuf);
 VOID VNETC_ArpMonitor_ProcArpRequest(IN UINT ulIfIndex, IN MBUF_S *pstMbuf);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_ARP_MONITOR_H_*/
+#endif 
 

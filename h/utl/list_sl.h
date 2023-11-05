@@ -10,35 +10,10 @@ extern "C"
 {
 #endif
 
-/*
- * Singly-linked List
- *
- * A singly-linked list is headed by a single forward pointer. The elements
- * are singly linked for minimum space and pointer manipulation overhead at
- * the expense of O(n) removal for arbitrary elements. New elements can be
- * added to the list after an existing element or at the head of the list.
- * Elements being removed from the head of the list should use the explicit
- * macro for this purpose for optimum efficiency. A singly-linked list may
- * only be traversed in the forward direction.  Singly-linked lists are ideal
- * for applications with large datasets and few or no removals or for
- * implementing a LIFO queue.
-                     +--------------+      +--------------+
-                     |user structure|      |user structure|
-                     +--------------+      +--------------+
-                     |   ......     |      |   ......     |
-                     +--------------+      +--------------+
- +------------+  +-->|+------------+|  +-->|+------------+|
- | SL_HEAD_S  |  |   || SL_NODE_S  ||  |   || SL_NODE_S  ||
- +------------+  |   |+------------+|  |   |+------------+|
- | pstFirst   |--+   || pstNext    ||--+   || pstNext    ||----+
- +------------+      |+------------+|      |+------------+|   -+-
-                     +--------------+      +--------------+
-                     |   ......     |      |   ......     |
-                     +--------------+      +--------------+
- */
+
 typedef struct tagSL_NODE
 {
-    struct tagSL_NODE* pstNext;  /* the next element */
+    struct tagSL_NODE* pstNext;  
 } SL_NODE_S;
 
 #define SL_ENTRY(ptr, type, member) (container_of(ptr, type, member))
@@ -102,12 +77,7 @@ static inline VOID SL_AddHead(IN SL_HEAD_S* pstList, IN SL_NODE_S* pstNode)
     return;
 }
 
-/*****************************************************************************
-       Return: the pointer to the deleted element, NULL if no element is deleted
-      Caution: This function only delete the element from the list, and does
-               NOT free the memory of the element.
 
-*****************************************************************************/
 static inline SL_NODE_S* SL_DelHead(IN SL_HEAD_S* pstList)
 {
     SL_NODE_S* pstNode = pstList->pstFirst;
@@ -136,11 +106,7 @@ static inline VOID SL_AddAfter(IN SL_HEAD_S* pstList,
     return;
 }
 
-/*****************************************************************************
-       Return: the pointer to the deleted element, NULL if no element is deleted
-      Caution: This function only delete the element from the list, and does
-               NOT free the memory of the element.
-*****************************************************************************/
+
 static inline SL_NODE_S* SL_DelAfter(IN SL_HEAD_S* pstList,
                                      IN SL_NODE_S* pstPrev)
 {
@@ -162,7 +128,7 @@ static inline SL_NODE_S* SL_DelAfter(IN SL_HEAD_S* pstList,
     return pstNode;
 }
 
-/* macro for walk the singly-linked list */
+
 #define SL_FOREACH(pstList, pstNode) \
     for ((pstNode) = SL_First(pstList); \
          NULL != (pstNode); \
@@ -204,13 +170,7 @@ static inline SL_NODE_S* SL_DelAfter(IN SL_HEAD_S* pstList,
           (VOID)({(pstPrevEntry) = (pstEntry); \
                    (pstEntry) = SL_ENTRY_NEXT(pstEntry, member);}))
 
-/*****************************************************************************
-      Caution: It takes the expense of O(n). If you have got a pointer to the
-               previous element, you'd better use SL_DelAfter whitch takes
-               the expense of O(1).
-               This function only delete the element from the list, and does
-               NOT free the memory of the element.
-*****************************************************************************/
+
 static inline VOID SL_Del(IN SL_HEAD_S* pstList, IN const SL_NODE_S* pstNode)
 {
     SL_NODE_S *pstCur, *pstPrev;
@@ -234,7 +194,7 @@ static inline VOID SL_Append(IN SL_HEAD_S* pstDstList, INOUT SL_HEAD_S* pstSrcLi
     {
         SL_FOREACH_PREVPTR(pstDstList, pstNode, pstPrev)
         {
-            ; /* do nothing */
+            ; 
         }
         
         if (NULL == pstPrev)
@@ -257,7 +217,7 @@ static inline VOID SL_FreeAll(IN SL_HEAD_S *pstList, IN VOID (*pfFree)(VOID *))
     SL_NODE_S *pstCurNode;
     SL_NODE_S *pstNextNode;
 
-    /* Free all node from list */
+    
     SL_FOREACH_SAFE(pstList, pstCurNode, pstNextNode)
     {
         pfFree(pstCurNode);

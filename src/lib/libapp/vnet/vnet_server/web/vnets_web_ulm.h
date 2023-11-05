@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 UINT VNETS_WebUlm_Add(IN CHAR *pcUserName);
 BS_STATUS VNETS_WebUlm_Del(IN UINT uiUserID);
@@ -22,8 +22,8 @@ BS_STATUS VNETS_WebUlm_GetUserInfo(IN UINT uiUserID, OUT ULM_USER_INFO_S *pstUse
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_WEB_ULM_H_*/
+#endif 
 
 

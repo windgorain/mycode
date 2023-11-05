@@ -14,7 +14,7 @@
 typedef struct
 {
     DLL_NODE_S stLinkNode;
-    USHORT usProtoType;     /* 协议类型, 主机序 */
+    USHORT usProtoType;     
     PF_PCAP_AGENT_PKT_INPUT_FUNC pfFunc;
     USER_HANDLE_S stUserHandle;
 }PCAP_AGENT_SERVICE_S;
@@ -118,7 +118,7 @@ PCAP_AGENT_HANDLE PCAP_AGENT_CreateInstance(IN UINT uiMaxAgentNum)
     return pstAgentCtrl;
 }
 
-/* 获取一个空闲的Index */
+
 UINT PCAP_AGENT_GetAFreeIndex(IN PCAP_AGENT_HANDLE hPcapAgent)
 {
     PCAP_AGENT_CTRL_S *pstAgentCtrl = hPcapAgent;

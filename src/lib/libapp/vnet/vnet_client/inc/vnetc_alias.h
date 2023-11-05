@@ -11,7 +11,7 @@ CHAR * VNETC_Alias_GetAlias();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_ALIAS_H_*/
+#endif 
 

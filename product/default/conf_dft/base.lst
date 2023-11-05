@@ -40,7 +40,7 @@ cmd, config-view, memory check, MemDebug_Check
 cmd, user-view|config-view, show memory-debug size {32|64|128|256|512|1024|2048|4096|large|all} [file %STRING<1-128>], MemDebug_ShowSizeOfMem
 cmd, user-view|config-view, show memory-debug line conflict, MemDebug_ShowLineConflict
 cmd, user-view|config-view, show memory(Show the memory used), MEM_ShowStat
-cmd, user-view|config-view, show memory size(Spec the size) {32|64|128|256|512|1024|2048|4096|large|all} [file %STRING<1-128>], MEM_ShowSizeOfMemStat
+cmd, user-view|config-view, show memory size(Spec the size) {%INT<32-2147483648>|large|all} [file %STRING<1-128>], MEM_ShowSizeOfMemStat
 cmd, config-view, load(load) plugin(load plugin) %STRING<1-512>, PLUGCT_LoadPlug
 cmd, user-view|config-view, show loaded(loaded) plugin(show loaded plugins), PLUGCT_ShowPlug
 cmd, user-view|config-view, show process-key, ProcessKey_ShowStatus

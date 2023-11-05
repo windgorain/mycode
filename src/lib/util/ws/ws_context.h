@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 BS_STATUS _WS_Context_InitContainer(INOUT _WS_VHOST_S *pstVHost);
@@ -20,8 +20,8 @@ WS_CONTEXT_HANDLE _WS_Context_Match(IN WS_VHOST_HANDLE hVHost, IN CHAR *pcContex
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WS_CONTEXT_H_*/
+#endif 
 
 

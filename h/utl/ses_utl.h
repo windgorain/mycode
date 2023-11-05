@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define SES_INVALID_ID 0
 
@@ -24,7 +24,7 @@
 #define SES_EVENT_CONNECT_FAILED  3
 #define SES_EVENT_PEER_CLOSED 4
 
-/* 状态 */
+
 typedef enum
 {
     SES_STATUS_INIT = 0,
@@ -38,16 +38,16 @@ typedef enum
 
 typedef enum
 {
-    SES_OPT_KEEP_ALIVE_TIME = 0,  /* SES_OPT_KEEP_ALIVE_TIME_S */
+    SES_OPT_KEEP_ALIVE_TIME = 0,  
 
     SES_OPT_MAX
 }SES_OPT_E;
 
 typedef struct
 {
-    USHORT usIdle;    /* 多长时间空闲触发KeepAlive */
-    USHORT usIntval;  /* KeepAlive间隔 */
-    USHORT usMaxProbeCount; /* 连续探测多少次 */
+    USHORT usIdle;    
+    USHORT usIntval;  
+    USHORT usMaxProbeCount; 
 }SES_OPT_KEEP_ALIVE_TIME_S;
 
 typedef HANDLE SES_HANDLE;
@@ -56,7 +56,7 @@ typedef BS_STATUS (*PF_SES_SEND_PKT)(IN MBUF_S *pstMbuf, IN VOID *pUserContext);
 typedef BS_STATUS (*PF_SES_RECV_PKT)(IN UINT uiSesID, IN MBUF_S *pstMbuf);
 typedef BS_STATUS (*PF_SES_DFT_EVENT_NOTIFY)(IN UINT uiSesID, IN UINT uiEvent);
 typedef BS_STATUS (*PF_SES_EVENT_NOTIFY)(IN UINT uiSesID, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle);
-typedef BS_WALK_RET_E (*PF_SES_WALK_FUNC)(IN UINT uiSesID, IN HANDLE hUserHandle);
+typedef int (*PF_SES_WALK_FUNC)(IN UINT uiSesID, IN HANDLE hUserHandle);
 
 typedef VOID (*PF_SES_CLOSE_NOTIFY_FUNC)(IN UINT uiSesID, IN HANDLE *phPropertys, IN USER_HANDLE_S *pstUserHandle);
 
@@ -71,7 +71,7 @@ SES_HANDLE SES_CreateInstance
 );
 VOID SES_DestroyInstance(IN SES_HANDLE hSesHandle);
 BS_STATUS SES_SetDftKeepAlive(IN SES_HANDLE hSesHandle, IN SES_OPT_KEEP_ALIVE_TIME_S *pstKeepAlive);
-/* 注册Close响应函数 */
+
 BS_STATUS SES_RegCloseNotifyEvent
 (
     IN SES_HANDLE hSesHandle,
@@ -79,7 +79,7 @@ BS_STATUS SES_RegCloseNotifyEvent
     IN USER_HANDLE_S *pstUserHandle
 );
 
-/* 创建Client Session, 返回SesID */
+
 UINT SES_CreateClient(IN SES_HANDLE hSesHandle, IN VOID *pContext);
 
 typedef enum
@@ -91,7 +91,7 @@ typedef enum
 }SES_TYPE_E;
 SES_TYPE_E SES_GetType(IN SES_HANDLE hSesHandle, IN UINT uiSesID);
 
-/* 设置这个SESID的Event事件通知函数. */
+
 BS_STATUS SES_SetEventNotify(IN SES_HANDLE hSesHandle, IN UINT uiSesID, IN PF_SES_EVENT_NOTIFY pfEventNotify, IN USER_HANDLE_S *pstUserHandle);
 VOID SES_Close(IN SES_HANDLE hSesHandle, IN UINT uiSesID);
 BS_STATUS SES_Connect(IN SES_HANDLE hSesHandle, IN UINT uiSesID);
@@ -112,8 +112,8 @@ VOID SES_ClrDbgFlag(IN SES_HANDLE hSesHandle, IN UINT uiDbgFlag);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SES_UTL_H_*/
+#endif 
 
 

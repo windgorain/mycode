@@ -70,7 +70,7 @@ static inline VOID _rangefib_UnLock(IN _RANGE_FIB_CTRL_S *pstFibCtrl)
     }
 }
 
-static BS_WALK_RET_E _rangefib_ShowEach(IN VOID *pNode, IN VOID * pUserHandle)
+static int _rangefib_ShowEach(IN VOID *pNode, IN VOID * pUserHandle)
 {
     _RANGE_FIB_NODE_S *pstFibHashNode = (_RANGE_FIB_NODE_S*)pNode;
     UINT uiStartIP, uiEndIP;
@@ -86,7 +86,7 @@ static BS_WALK_RET_E _rangefib_ShowEach(IN VOID *pNode, IN VOID * pUserHandle)
         &pstFibHashNode->stFibNode.uiNextHop,
         szIfName);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 RANGE_FIB_HANDLE RangeFib_Create(IN BOOL_T bCreateLock)
@@ -194,7 +194,7 @@ VOID RangeFib_Del(IN RANGE_FIB_HANDLE hFibHandle, IN FIB_KEY_S *pstFibKey)
     return;
 }
 
-BS_STATUS RangeFib_Match(IN RANGE_FIB_HANDLE hFibHandle, IN UINT uiDstIp /* 主机序 */, OUT FIB_NODE_S *pstFibNode)
+BS_STATUS RangeFib_Match(IN RANGE_FIB_HANDLE hFibHandle, IN UINT uiDstIp , OUT FIB_NODE_S *pstFibNode)
 {
     _RANGE_FIB_CTRL_S *pstFibCtrl = hFibHandle;
     _RANGE_FIB_NODE_S *pstNode = NULL;

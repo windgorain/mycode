@@ -243,7 +243,7 @@ UINT IPACL_GetListByName(IN IPACL_HANDLE hIpAcl, IN CHAR *pcListName)
     return ListRule_GetListIDByName(hIpAcl, pcListName);
 }
 
-UINT IPACL_GetNextListID(IN IPACL_HANDLE hIpAcl, IN UINT uiCurrentListID/* 0表示获取第一个 */)
+UINT IPACL_GetNextListID(IN IPACL_HANDLE hIpAcl, IN UINT uiCurrentListID)
 {
     return ListRule_GetNextListID(hIpAcl, uiCurrentListID);
 }
@@ -359,7 +359,7 @@ BS_STATUS IPACL_MoveRule(IN IPACL_HANDLE hIpAcl, IN UINT uiListID, IN UINT uiOld
     return ListRule_MoveRule(hIpAcl, uiListID, uiOldRuleID, uiNewRuleID);
 }
 
-/*每个规则的ID都递增step，另一种方案是每两条规则的ID相差step，暂时未实现*/
+
 BS_STATUS IPACL_RebaseID(IN IPACL_HANDLE hIpAcl, IN UINT uiListID, IN UINT uiStep)
 {
     return ListRule_ResetID(hIpAcl, uiListID, uiStep);
@@ -422,7 +422,7 @@ BS_ACTION_E IPACL_Match(IPACL_HANDLE hIpAcl, UINT uiListID, IPACL_MATCH_INFO_S *
 
     pstList = ListRule_GetListByID(hIpAcl, uiListID);
     if (pstList) {
-        /* 按rule匹配 */
+        
         RuleList_ScanRule(&pstList->stRuleList, _ipacl_match_rule, &stMatchDesc);
         if (!stMatchDesc.bIsMatch) {
             stMatchDesc.enAction = pstList->default_action;

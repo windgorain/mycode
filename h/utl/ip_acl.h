@@ -13,7 +13,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef LIST_RULE_HANDLE IPACL_HANDLE;
 typedef HANDLE IPACL_LIST_HANDLE;
@@ -23,16 +23,16 @@ typedef HANDLE IPACL_LIST_HANDLE;
 
 #define IPACL_RULE_ID_MAX 10000000
 
-/* IPV4基本和高级ACL: */
-#define IPACL_KEY_SIP         0x01          /* 源IP地址 */
-#define IPACL_KEY_DIP        (0x01 << 1)    /* 目的IP地址 */
-#define IPACL_KEY_SPORT      (0x01 << 2)    /* 源端口号 */
-#define IPACL_KEY_DPORT      (0x01 << 3)    /* 目的端口号 */
-#define IPACL_KEY_PROTO      (0x01 << 4)    /* 协议号 */
-#define IPACL_KEY_POOL_SIP   (0x01 << 5)    /* 源地址池 */
-#define IPACL_KEY_POOL_DIP   (0x01 << 6)    /* 目的地址池 */
-#define IPACL_KEY_POOL_SPORT (0x01 << 7)    /* 源端口池 */
-#define IPACL_KEY_POOL_DPORT (0x01 << 8)    /* 源目的端口池 */
+
+#define IPACL_KEY_SIP         0x01          
+#define IPACL_KEY_DIP        (0x01 << 1)    
+#define IPACL_KEY_SPORT      (0x01 << 2)    
+#define IPACL_KEY_DPORT      (0x01 << 3)    
+#define IPACL_KEY_PROTO      (0x01 << 4)    
+#define IPACL_KEY_POOL_SIP   (0x01 << 5)    
+#define IPACL_KEY_POOL_DIP   (0x01 << 6)    
+#define IPACL_KEY_POOL_SPORT (0x01 << 7)    
+#define IPACL_KEY_POOL_DPORT (0x01 << 8)    
 
 typedef struct {
     UINT uiIP;
@@ -65,7 +65,7 @@ typedef struct {
 
 typedef struct {
     UINT bEnable : 1;
-    BS_ACTION_E enAction;    /* 命中后的动作 */
+    BS_ACTION_E enAction;    
 
     UINT uiKeyMask;
     IPACL_KEY_S stKey;
@@ -73,9 +73,9 @@ typedef struct {
 }IPACL_RULE_CFG_S;
 
 typedef struct {
-    /* 统计计数 */
-    volatile ULONG ulMatchCount;    /* 命中次数 */
-    UINT uiLatestMatchTime;         /* 规则命中最新时间 */
+    
+    volatile ULONG ulMatchCount;    
+    UINT uiLatestMatchTime;         
 }IPACL_RULE_STATISTICS_S;
 
 typedef struct {
@@ -107,7 +107,7 @@ BS_STATUS IPACL_AddListRef(IN IPACL_HANDLE hIpAcl, IN UINT uiListID);
 BS_STATUS IPACL_DelListRef(IN IPACL_HANDLE hIpAcl, IN UINT uiListID);
 UINT IPACL_ListGetRef(IN IPACL_HANDLE hIpAcl, IN UINT uiListID);
 UINT IPACL_GetListByName(IN IPACL_HANDLE hIpAcl, IN CHAR *pcListName);
-UINT IPACL_GetNextListID(IN IPACL_HANDLE hIpAcl, IN UINT uiCurrentListID/* 0表示获取第一个 */);
+UINT IPACL_GetNextListID(IN IPACL_HANDLE hIpAcl, IN UINT uiCurrentListID);
 CHAR * IPACL_GetListNameByID(IN IPACL_HANDLE hIpAcl, IN UINT ulListID);
 BS_ACTION_E IPACL_GetDefaultActionByID(IN IPACL_HANDLE hIpAcl, IN UINT uiListID);
 BS_STATUS IPACL_SetDefaultActionByID(IN IPACL_HANDLE hIpAcl, IN UINT uiListID, BS_ACTION_E enAction);
@@ -129,8 +129,8 @@ BS_ACTION_E IPACL_Match(IPACL_HANDLE hIpAcl, UINT uiListID, IPACL_MATCH_INFO_S *
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__IP_ACL_H_*/
+#endif 
 
 

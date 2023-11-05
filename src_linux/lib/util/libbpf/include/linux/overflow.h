@@ -34,9 +34,7 @@
 
 #else
 
-/*
- * If one of a or b is a compile-time constant, this avoids a division.
- */
+
 #define __unsigned_mul_overflow(a, b, d) ({		\
 	typeof(a) __a = (a);				\
 	typeof(b) __b = (b);				\
@@ -49,21 +47,7 @@
 	  __a > 0 && __b > type_max(typeof(__b)) / __a;	 \
 })
 
-/*
- * Signed multiplication is rather hard. gcc always follows C99, so
- * division is truncated towards 0. This means that we can write the
- * overflow check like this:
- *
- * (a > 0 && (b > MAX/a || b < MIN/a)) ||
- * (a < -1 && (b > MIN/a || b < MAX/a) ||
- * (a == -1 && b == MIN)
- *
- * The redundant casts of -1 are to silence an annoying -Wtype-limits
- * (included in -Wextra) warning: When the type is u8 or u16, the
- * __b_c_e in check_mul_overflow obviously selects
- * __unsigned_mul_overflow, but unfortunately gcc still parses this
- * code and warns about the limited range of __b.
- */
+
 
 #define __signed_mul_overflow(a, b, d) ({				\
 	typeof(a) __a = (a);						\
@@ -85,6 +69,6 @@
 			__unsigned_mul_overflow(a, b, d))
 
 
-#endif /* COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW */
+#endif 
 
 #endif

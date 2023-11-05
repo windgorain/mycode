@@ -29,7 +29,7 @@ BS_STATUS WindowsFirewallPortIsEnabled
 (
     IN HANDLE hFwProfile,
     IN LONG portNumber,
-    IN UINT ipProtocol, /* TCP:6, UDP:17 */
+    IN UINT ipProtocol, 
     OUT BOOL_T * bFwPortEnabled
 );
 BS_STATUS WindowsFirewallPortAdd
@@ -41,6 +41,6 @@ BS_STATUS WindowsFirewallPortAdd
 );
 
 
-#endif /*__NETFW_UTL_H_*/
+#endif 
 
 

@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_UPDATEUTL
         
 #include "bs.h"
@@ -44,11 +44,11 @@ static _UPD_UPDATE_MODE_E _UPD_GetModeByModeString(IN CHAR *pszMode)
         }
     }
 
-    /* 默认使用Time方式 */
+    
     return _UPD_UPDATE_MODE_TIME;
 }
 
-/* BS_ALREADY_EXIST:不用更新; BS_OK:更新成功; 其他:失败 */
+
 static BS_STATUS _UPD_UpdateFileByTime
 (
     IN CHAR *pszFileName,
@@ -78,7 +78,7 @@ static BS_STATUS _UPD_UpdateFileByTime
 	return eRet;
 }
 
-/* BS_ALREADY_EXIST:不用更新; BS_OK:更新成功; 其他:失败 */
+
 static BS_STATUS _UPD_UpdateFileByVer
 (
     IN HANDLE hOldVerCff,
@@ -105,7 +105,7 @@ static BS_STATUS _UPD_UpdateFileByVer
         if ((BS_OK == CFF_GetPropAsString(hOldVerCff, pszFileName, "ver", &pcOldVer))
             && (strcmp(pcOldVer, pcNewVer) == 0))
         {
-            return BS_ALREADY_EXIST;   /* 版本号相同,不用更新 */
+            return BS_ALREADY_EXIST;   
         }
     }
 
@@ -158,7 +158,7 @@ static UPDATE_RET_E _UPD_UpdateByVerFile
         return UPDATE_RET_ERR;
     }
 
-    hOldVerCff = CFF_INI_Open(pszOldVerFileName, CFF_FLAG_CREATE_IF_NOT_EXIST | CFF_FLAG_READ_ONLY);    /* 有可能是NULL,没关系,继续向下执行 */
+    hOldVerCff = CFF_INI_Open(pszOldVerFileName, CFF_FLAG_CREATE_IF_NOT_EXIST | CFF_FLAG_READ_ONLY);    
 
     uiTotleCount = CFF_GetTagNum(hNewVerCff);
     uiCurrentCount = 0;
@@ -196,7 +196,7 @@ static UPDATE_RET_E _UPD_UpdateByVerFile
             break;
         }
 
-        /* 如果下载新版本文件成功, 写预安装文件 */
+        
         if (BS_OK == eRet)
         {
             TXT_Strlcpy(szFileNameUpd, pszSection, sizeof(szFileNameUpd));

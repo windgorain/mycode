@@ -10,12 +10,12 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef enum
 {
     SYS_OS_VER_OTHER,
-    SYS_OS_VER_WIN_OLD,  /* 已经废弃的老系统, 如win32,win98 */
+    SYS_OS_VER_WIN_OLD,  
     SYS_OS_VER_WIN2000,
     SYS_OS_VER_WINXP,
     SYS_OS_VER_WIN_SERVER2003,
@@ -24,31 +24,31 @@ typedef enum
     SYS_OS_VER_WIN8,
     SYS_OS_VER_WIN8_1,
 
-    SYS_OS_VER_WIN_LATTER /* 更新的系统 */
+    SYS_OS_VER_WIN_LATTER 
 }SYS_OS_VER_E;
 
 typedef enum
 {
-    SYS_OS_BIT_32,  /* 32位系统 */
-    SYS_OS_BIT_64,  /* 32位系统 */
+    SYS_OS_BIT_32,  
+    SYS_OS_BIT_64,  
 
-    SYS_OS_BIT_UNKNOWN,  /* 不知道 */
+    SYS_OS_BIT_UNKNOWN,  
 }SYS_OS_BIT_E;
 
 BOOL_T SYS_IsInstanceExist(IN VOID *pszName);
 SYS_OS_VER_E SYS_GetOsVer(void);
 SYS_OS_BIT_E SYS_GetOsBit(void);
 CHAR * SYS_GetSelfFileName(void);
-/* 不带有文件名的路径 */
+
 CHAR * SYS_GetSelfFilePath(void);
-/* 设置自启动*/
+
 BS_STATUS SYS_SetSelfStart(IN CHAR *pcRegName, IN BOOL_T bSelfStart, IN char *arg);
 void ShowCmdWin(int show);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SYS_UTL_H_*/
+#endif 
 
 

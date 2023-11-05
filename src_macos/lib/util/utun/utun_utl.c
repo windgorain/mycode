@@ -78,11 +78,11 @@ int UTUN_OpenByID(int id)
     addr.sc_len = sizeof(addr);
     addr.sc_family = AF_SYSTEM;
     addr.ss_sysaddr = AF_SYS_CONTROL;
-    addr.sc_unit = id + 1; // utunX where X is sc.sc_unit -1
+    addr.sc_unit = id + 1; 
 
     err = connect(fd, (struct sockaddr*)&addr, sizeof(addr));
     if (err < 0) {
-        // this utun is in use
+        
         close(fd);
         return err;
     }

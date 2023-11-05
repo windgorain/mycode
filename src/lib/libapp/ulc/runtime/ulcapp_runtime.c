@@ -67,7 +67,7 @@ static int _ulcapp_replace_file(char *filename, char *instance, UINT keep_map)
 
 int ULCAPP_RuntimeInit(void)
 {
-    MYBPF_RuntimeInit(&g_ulcapp_runtime, 1024);
+    MYBPF_RuntimeInit(&g_ulcapp_runtime);
     EHUB_Reg(EHUB_EV_PRECVER_PKT, "ulc", ulcapp_precver_xdp_pkt_input, NULL);
     return 0;
 }
@@ -122,14 +122,14 @@ int ULCAPP_RuntimeSave(HANDLE hFile)
 void ULCAPP_ShowMap(void)
 {
     ULCAPP_CfgLock();
-    UMAP_ShowMap(g_ulcapp_runtime.ufd_ctx, EXEC_OutInfo);
+    MYBPF_LoaderShowMaps(&g_ulcapp_runtime, EXEC_OutInfo);
     ULCAPP_CfgUnlock();
 }
 
 void ULCAPP_DumpMap(int map_fd)
 {
     ULCAPP_CfgLock();
-    UMAP_DumpMap(g_ulcapp_runtime.ufd_ctx, map_fd, EXEC_OutInfo);
+    
     ULCAPP_CfgUnlock();
 }
 

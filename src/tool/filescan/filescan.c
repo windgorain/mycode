@@ -24,21 +24,21 @@ static CHAR *g_pcFileScanPath = NULL;
 static CHAR *g_pcFileScanModuleFile = NULL;
 static CHAR *g_pcFileScanPattern = NULL;
 static CHAR *g_pcFileScanKeyList = NULL;
-static FILE_MEM_S *g_pstFileScanMouldMemMap;  /* 模板内容 */
+static FILE_MEM_S *g_pstFileScanMouldMemMap;  
 static DRP_HANDLE g_hFileScanDrp;
 
 static GETOPT2_NODE_S g_astFileScanOpts[]    =
 {
-    { 'o', 0, "key-list", 's', &g_pcFileScanKeyList, "key list", 0 },
-    { 'p', 0, NULL, 's', &g_pcFileScanPath, NULL, 0 },
-    { 'p', 0, NULL, 's', &g_pcFileScanModuleFile, NULL, 0 },
-    { 'p', 0, NULL, 's', &g_pcFileScanPattern,  NULL, 0 },
+    { 'o', 0, "key-list", GETOPT2_V_STRING, &g_pcFileScanKeyList, "key list", 0 },
+    { 'p', 0, NULL, GETOPT2_V_STRING, &g_pcFileScanPath, NULL, 0 },
+    { 'p', 0, NULL, GETOPT2_V_STRING, &g_pcFileScanModuleFile, NULL, 0 },
+    { 'p', 0, NULL, GETOPT2_V_STRING, &g_pcFileScanPattern,  NULL, 0 },
     {0}
 };
 
 static VOID filescan_ScanFileOutput
 (
-    IN CHAR *pcCurrentScanDir, /* 文件所在的相对于UserScanDir的相对目录 */
+    IN CHAR *pcCurrentScanDir, 
     IN CHAR *pcFileName,
     IN VOID *pUserData
 )
@@ -159,11 +159,10 @@ static BS_STATUS filescan_ProcessKey
     return DRP_CtxOutput(pDrpCtx, pcValue, strlen(pcValue));
 }
 
-static BS_WALK_RET_E filescan_WalkKeyList(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE hUserHandle)
+static int filescan_WalkKeyList(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE hUserHandle)
 {
     DRP_Set(g_hFileScanDrp, pcKey, filescan_ProcessKey, pcValue);
-
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static VOID filescan_help()

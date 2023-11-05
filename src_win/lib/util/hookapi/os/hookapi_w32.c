@@ -17,7 +17,7 @@
 #include "../toolhelp_os.h"
 
 
-const UCHAR cPushOpCode = 0x68;   // The PUSH opcode on x86 platforms
+const UCHAR cPushOpCode = 0x68;   
 
 HMODULE WINAPI _OS_LoadLibraryA_Hook(IN CHAR * pszFileName);
 HMODULE WINAPI _OS_LoadLibraryW_Hook(IN CHAR * pszFileName);
@@ -70,16 +70,16 @@ VOID OS_HOOKAPI_ReplaceIATEntryInOne
         ulMaxAppAddr = (UINT)si.lpMaximumApplicationAddress;
     }
 
-    /* 得到输入节 */
+    
     pstImportDesc = (PIMAGE_IMPORT_DESCRIPTOR) 
     		ImageDirectoryEntryToData((PVOID)hCallerHandle, TRUE, IMAGE_DIRECTORY_ENTRY_IMPORT, &ulSize);
 
-    if (pstImportDesc == NULL)  /* 没有输入节 */
+    if (pstImportDesc == NULL)  
     {
     	return;
     }
     
-    /* 查找对应的引入DLL */
+    
     for (; pstImportDesc->Name != 0; pstImportDesc++)
     {
         CHAR * pszModName = (CHAR *) ((PBYTE) hCallerHandle + pstImportDesc->Name);
@@ -92,42 +92,42 @@ VOID OS_HOOKAPI_ReplaceIATEntryInOne
 
     if (pstImportDesc->Name == 0)
     {
-        return;  /* 没有对应的引入DLL */
+        return;  
     }
 
-    /* 得到引用函数列表 */
+    
     pThunk = (PIMAGE_THUNK_DATA) ((PBYTE) hCallerHandle + pstImportDesc->FirstThunk);
 
-    /* 查找对应函数 */
+    
     for (; pThunk->u1.Function; pThunk++)
     {
-        /* 得到函数对应地址 */
+        
         ppfn = (PROC*) &pThunk->u1.Function;
 
-        // Is this the function we're looking for?
+        
         fFound = ((HANDLE)*ppfn == pfCurrentEntry);
 
         if (!fFound && ((UINT)*ppfn > ulMaxAppAddr))
         {
-            // If this is not the function and the address is in a shared DLL, 
-            // then maybe we're running under a debugger on Windows 98. In this 
-            // case, this address points to an instruction that may have the 
-            // correct address.
+            
+            
+            
+            
 
             pbInFunc = (PBYTE) *ppfn;
             if (pbInFunc[0] == cPushOpCode)
             {
-                // We see the PUSH instruction, the real function address follows
+                
                 ppfn = (PROC*) &pbInFunc[1];
 
-                // Is this the function we're looking for?
+                
                 fFound = ((HANDLE)*ppfn == pfCurrentEntry);
             }
         }
 
         if (fFound)
         {
-            // The addresses match, change the import section address
+            
             VirtualProtect(ppfn,sizeof(pfNewEntry), PAGE_READWRITE, &dwOldProtect); 
             ulRet = WriteProcessMemory(GetCurrentProcess(), ppfn, &pfNewEntry, sizeof(pfNewEntry), NULL);
             VirtualProtect(ppfn,sizeof(pfNewEntry),dwOldProtect,0);
@@ -148,7 +148,7 @@ VOID OS_HOOKAPI_ReplaceIATEntryInOne
     }
 }
 
-// Returns the HMODULE that contains the specified memory address
+
 static HMODULE _OS_HOOKAPI_ModuleFromAddress(PVOID pv)
 {
    MEMORY_BASIC_INFORMATION mbi;

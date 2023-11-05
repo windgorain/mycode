@@ -13,7 +13,7 @@
 #include "utl/socket_utl.h"
 #include "utl/ip_list.h"
 
-/* 转换为主机序IP地址 */
+
 static BS_STATUS _iplist_SingleString2Ip(IN LSTR_S *pstString, OUT UINT *puiIp)
 {
     CHAR szTmp[32];
@@ -42,9 +42,7 @@ static BS_STATUS _iplist_SingleString2Ip(IN LSTR_S *pstString, OUT UINT *puiIp)
 }
 
 
-/*
-    例如: 1.1.1.1-1.1.1.5
-*/
+
 static VOID _iplist_ParseGroupString(IN IPLIST_S *pstList, IN LSTR_S *pstIpGroupString)
 {
     LSTR_S stTrimed;
@@ -61,7 +59,7 @@ static VOID _iplist_ParseGroupString(IN IPLIST_S *pstList, IN LSTR_S *pstIpGroup
     }
     
     pcSplit = TXT_MStrnchr(stTrimed.pcData, stTrimed.uiLen, "-/");
-    if (NULL == pcSplit) {   /* 单个IP, 非范围形式 */
+    if (NULL == pcSplit) {   
         if (BS_OK != _iplist_SingleString2Ip(&stTrimed, &uiBegin)) {
             return;
         }
@@ -73,13 +71,13 @@ static VOID _iplist_ParseGroupString(IN IPLIST_S *pstList, IN LSTR_S *pstIpGroup
             return;
         }
 
-        if (*pcSplit == '-') { /* 1.1.1.1-2.2.2.2的形式 */
+        if (*pcSplit == '-') { 
             stTmp.pcData = pcSplit + 1;
             stTmp.uiLen = (stTrimed.pcData + stTrimed.uiLen) - stTmp.pcData;
             if (BS_OK != _iplist_SingleString2Ip(&stTmp, &uiEnd)) {
                 return;
             }
-        } else { /* 1.1.1.0/24的形式 */
+        } else { 
             UCHAR prefix;
             UINT mask;
             stTmp.pcData = pcSplit + 1;
@@ -140,10 +138,7 @@ VOID IPList_Finit(IN IPLIST_S *pstList)
     }
 }
 
-/* 
-  将字符串格式的IP地址地址列表转换为地址段表
-  格式为: 1.1.1.1-1.1.1.5, 2.1.1.1, 3.1.1.1-4.1.1.1, 1.1.1.0/24
-*/
+
 BS_STATUS IPList_ParseString(IN IPLIST_S *pstList, IN LSTR_S *pstIpStrList)
 {
     LSTR_S stGroupString;
@@ -156,8 +151,8 @@ BS_STATUS IPList_ParseString(IN IPLIST_S *pstList, IN LSTR_S *pstIpStrList)
     return BS_OK;
 }
 
-/* 判断一个IP地址段是否和IpList 有重叠(部分重叠也算) */
-BOOL_T IPLIst_IsOverlap(IN IPLIST_S *pstList, IN UINT uiStartIP/* 主机序 */, IN UINT uiEndIP/* 主机序 */)
+
+BOOL_T IPLIst_IsOverlap(IN IPLIST_S *pstList, IN UINT uiStartIP, IN UINT uiEndIP)
 {
     UINT uiStartIPTmp, uiEndIPTmp;
 
@@ -172,8 +167,8 @@ BOOL_T IPLIst_IsOverlap(IN IPLIST_S *pstList, IN UINT uiStartIP/* 主机序 */, 
     return FALSE;
 }
 
-/* 判断一个IP是否在IpList 内 */
-BOOL_T IPList_IsIPInTheList(IN IPLIST_S *pstList, IN UINT uiIP/* 主机序 */)
+
+BOOL_T IPList_IsIPInTheList(IN IPLIST_S *pstList, IN UINT uiIP)
 {
     UINT uiStartIP, uiEndIP;
 
@@ -206,8 +201,8 @@ BS_STATUS IPList_AddRange(IN IPLIST_S *pstList, IN UINT uiBeginIP, IN UINT uiEnd
     return BS_OK;
 }
 
-/* 删除一个Range, 只查找完全匹配的第一个节点删除 */
-BS_STATUS IPList_DelRange(IN IPLIST_S *pstList, IN UINT uiBeginIP/* 主机序 */, IN UINT uiEndIP/* 主机序 */)
+
+BS_STATUS IPList_DelRange(IN IPLIST_S *pstList, IN UINT uiBeginIP, IN UINT uiEndIP)
 {
     IPLIST_NODE_S *pstNode;
 
@@ -226,10 +221,10 @@ BS_STATUS IPList_DelRange(IN IPLIST_S *pstList, IN UINT uiBeginIP/* 主机序 */
 BS_STATUS IPList_ModifyRange
 (
     IN IPLIST_S *pstList,
-    IN UINT uiOldBeginIP/* 主机序 */,
-    IN UINT uiOldEndIP/* 主机序 */,
-    IN UINT uiBeginIP/* 主机序 */,
-    IN UINT uiEndIP/* 主机序 */
+    IN UINT uiOldBeginIP,
+    IN UINT uiOldEndIP,
+    IN UINT uiBeginIP,
+    IN UINT uiEndIP
 )
 {
     IPLIST_NODE_S *pstNode;
@@ -247,27 +242,27 @@ BS_STATUS IPList_ModifyRange
     return BS_NOT_FOUND;
 }
 
-/* 将两个List串成一个 */
+
 VOID IPLIst_Cat(INOUT IPLIST_S *pstListDst, INOUT IPLIST_S *pstListSrc)
 {
     DLL_Cat(&pstListDst->stList, &pstListSrc->stList);
 }
 
-/* 对地址段进行排序 */
+
 VOID IPList_Sort(IN IPLIST_S *pstList)
 {
     DLL_Sort(&pstList->stList, _iplist_Cmp, 0);
 }
 
-/* 将有重叠部分的地址段合并 */
+
 VOID IPList_Compress(IN IPLIST_S *pstList)
 {
     IPLIST_NODE_S *pstNode, *pstNodeNext;
     
-    /* 1. 进行排序 */
+    
     IPList_Sort(pstList);
 
-    /* 2. 进行消重 */
+    
     pstNode = DLL_FIRST(&pstList->stList);
 
     if (NULL == pstNode)
@@ -285,7 +280,7 @@ VOID IPList_Compress(IN IPLIST_S *pstList)
 
         if (pstNodeNext->uiEndIp <= pstNode->uiEndIp)
         {
-            /* 前一个节点完全包含后面一个节点, 删除此节点 */
+            
             DLL_DEL(&pstList->stList, pstNodeNext);
             MEM_Free(pstNodeNext);
             continue;
@@ -302,15 +297,15 @@ VOID IPList_Compress(IN IPLIST_S *pstList)
     return;
 }
 
-/* 将可以连续的部分进行连续化 */
+
 VOID IPList_Continue(IN IPLIST_S *pstList)
 {
     IPLIST_NODE_S *pstNode, *pstNodeNext;
 
-    /* 先进性排序和消重 */
+    
     IPList_Compress(pstList);
 
-    /* 2. 进行连续化 */
+    
     pstNode = DLL_FIRST(&pstList->stList);
 
     if (NULL == pstNode)
@@ -340,13 +335,12 @@ VOID IPList_Continue(IN IPLIST_S *pstList)
     return;
 }
 
-/* 按照网段方式将连续地址进行分割, 比如将:
-  1.1.1.1-1.1.1.5分割为 1.1.1.1/255, 1.1.1.2/254, 1.1.1.4/254三个网段*/
+
 BS_STATUS IPList_Range2SubNetList
 (
     INOUT IPLIST_S *pstList,
-    IN UINT uiBeginIP/* 主机序 */,
-    IN UINT uiEndIP/* 主机序 */
+    IN UINT uiBeginIP,
+    IN UINT uiEndIP
 )
 {
     UINT uiMask;
@@ -366,8 +360,7 @@ BS_STATUS IPList_Range2SubNetList
     return eRet;
 }
 
-/* 按照网段方式将IpList进行分割, 比如将:
-  1.1.1.1-1.1.1.5分割为 1.1.1.1/255, 1.1.1.2/254, 1.1.1.4/254三个网段*/
+
 BS_STATUS IPLIst_SplitBySubNet(INOUT IPLIST_S *pstList)
 {
     IPLIST_S stTmpList;

@@ -10,29 +10,29 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* typedefs */
+
 typedef struct {
-    VOID *  left;   /* pointer to the left subtree */
-    VOID *  right;  /* pointer to the right subtree */
-    INT     height; /* height of the subtree rooted at this node */
+    VOID *  left;   
+    VOID *  right;  
+    INT     height; 
 } AVL_NODE;
 
-/* typedefs */
+
 typedef struct {
     AVL_NODE    avl;
     UINT        key;
 }AVL_UNSIGNED_NODE;
 
-typedef AVL_NODE * AVL_TREE;    /* points to the root node of the tree */
+typedef AVL_NODE * AVL_TREE;    
 
 typedef VOID (*PF_AVL_FREE_FUNC)(IN VOID *pNode, IN VOID *pUserHandle);
 typedef int (*PF_AVL_CMP_FUNC)(IN void *key, IN void *node);
-typedef BS_WALK_RET_E (*PF_AVL_WALK_FUNC)(void *node, void *ud);
+typedef int (*PF_AVL_WALK_FUNC)(void *node, void *ud);
 typedef void (*PF_AVL_PRINT_FUNC)(void *nodep);
 
-/* function declarations */
+
 
 void avlRebalance (AVL_NODE *** ancestors, INT count);
 
@@ -54,7 +54,7 @@ void * avlRemoveInsert (AVL_TREE * pRoot, void *pNewNode, void *key, PF_AVL_CMP_
 
 void * avlDelete(AVL_TREE *root, void *key, PF_AVL_CMP_FUNC cmp_func);
 
-BS_WALK_RET_E avlTreeWalk(AVL_TREE *pRoot, PF_AVL_WALK_FUNC walk_func, void *ud);
+int avlTreeWalk(AVL_TREE *pRoot, PF_AVL_WALK_FUNC walk_func, void *ud);
 
 BS_STATUS avlTreePrint(AVL_TREE * pRoot, PF_AVL_PRINT_FUNC print_func);
 
@@ -62,7 +62,7 @@ BS_STATUS avlTreeErase(AVL_TREE * pRoot, PF_AVL_FREE_FUNC pfFree, void *ud);
 
 BS_STATUS avlTreePrintErase(AVL_TREE * pRoot, PF_AVL_PRINT_FUNC print_func);
 
-/* specialized implementation functions */
+
 
 VOID * avlSearchUnsigned (AVL_TREE root, UINT key);
 
@@ -73,7 +73,7 @@ VOID * avlDeleteUnsigned (AVL_TREE * root, UINT key);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__AVLLIB_UTL_H_*/
+#endif 
 

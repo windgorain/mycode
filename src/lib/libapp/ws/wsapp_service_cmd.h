@@ -10,14 +10,14 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WSAPP_ServiceCmd_Save(IN HANDLE hFile);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WSAPP_Service_CMD_H_*/
+#endif 
 
 

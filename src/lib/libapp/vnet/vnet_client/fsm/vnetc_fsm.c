@@ -138,7 +138,7 @@ VOID VNETC_FSM_EventHandle(IN UINT uiEvent)
     FSM_EventHandle(&g_stVnetcFsm, uiEvent);
 }
 
-BS_STATUS VNETC_FSM_RegStateListener(IN PF_FSM_STATE_LISTEN pfListenFunc, IN USER_HANDLE_S *pstUserHandle/* 可以为NULL */)
+BS_STATUS VNETC_FSM_RegStateListener(IN PF_FSM_STATE_LISTEN pfListenFunc, IN USER_HANDLE_S *pstUserHandle)
 {
     return FSM_RegStateListener(g_hVnetcFsmSwitchTbl, pfListenFunc, pstUserHandle);
 }
@@ -159,7 +159,7 @@ BS_STATUS VNETC_FSM_Init()
     return BS_OK;
 }
 
-/* debug fsm */
+
 PLUG_API BS_STATUS VNETC_FSM_Debug(IN UINT ulArgc, IN CHAR **argv)
 {
     FSM_SetDbgFlag(&g_stVnetcFsm, FSM_DBG_FLAG_ALL);
@@ -167,7 +167,7 @@ PLUG_API BS_STATUS VNETC_FSM_Debug(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* no debug fsm */
+
 PLUG_API BS_STATUS VNETC_FSM_NoDebug(IN UINT ulArgc, IN CHAR **argv)
 {
     FSM_ClrDbgFlag(&g_stVnetcFsm, FSM_DBG_FLAG_ALL);

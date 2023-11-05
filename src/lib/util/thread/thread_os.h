@@ -19,4 +19,4 @@ THREAD_ID _ThreadOs_GetSelfID(void);
 #ifdef __cplusplus
 }
 #endif
-#endif //THREAD_OS_H_
+#endif 

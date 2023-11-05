@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_HTTPGET
     
 #include "bs.h"
@@ -113,14 +113,14 @@ static BS_STATUS httpget_ProcBody
     return eRet;
 }
 
-/* BS_ALREADY_EXIST:不用更新; BS_OK:更新成功; 其他:失败 */
+
 BS_STATUS HTTPGET_GetFile
 (
     IN CHAR *pszServer,
-    IN USHORT usPort, /* 主机序 */
+    IN USHORT usPort, 
     IN CHAR *pszPath,
-    IN time_t ulOldFileTime, /* 原来文件的时间. 如果服务器上的文件时间和这个不同,则下载 */
-    IN CHAR *pszSaveAsFile  /* 如果为NULL, 则使用取到的文件名 */
+    IN time_t ulOldFileTime, 
+    IN CHAR *pszSaveAsFile  
 )
 {
     static CHAR * pszGetRequest =
@@ -150,7 +150,7 @@ BS_STATUS HTTPGET_GetFile
 
     (VOID)TM_Utc2String(ulOldFileTime, szStringTime);
 
-    /* 发送HTTP请求 */
+    
     snprintf(szRequest, sizeof(szRequest), pszGetRequest, pszPath, szStringTime, pszServer);
 
     ulIp = Socket_NameToIpHost(pszServer);

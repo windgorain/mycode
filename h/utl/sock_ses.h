@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define SOCK_SES_READABLE     0x1
 #define SOCK_SES_WRITEABLE    0x2
@@ -19,11 +19,11 @@
 typedef struct
 {
     UINT ulSslTcpId;
-    UINT ulStatus;  /* 读、写、关闭标志 */
+    UINT ulStatus;  
     HANDLE hRbufId;
 }SOCK_SES_SIDE_S;
 
-/* Socket 配对会话表 */
+
 typedef struct
 {
     DLL_NODE_S stDllNode;
@@ -34,7 +34,7 @@ typedef struct
     HANDLE hUserHandle2;
 }SOCK_SES_S;
 
-/* 初始化Socket 重定向模块 */
+
 extern BS_STATUS SockSes_CreateInstance(IN BOOL_T bNeedSem, OUT HANDLE *phSockSesId);
 extern VOID SockSes_DeleteInstance(IN HANDLE hSockSesId);
 extern BS_STATUS SockSes_AddNode(IN HANDLE hSockSesId, IN UINT ulSslTcpSideA, IN UINT ulSslTcpSideB);
@@ -46,9 +46,9 @@ extern VOID SockSes_UnLock(IN HANDLE hSockSesId);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SOCK_SES_H_*/
+#endif 
 
 
 

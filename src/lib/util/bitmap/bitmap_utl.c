@@ -9,8 +9,8 @@
 #include "utl/array_bit.h"
 #include "utl/bitmap_utl.h"
 
-/* 初始化方法之一 */
-void BITMAP_Init(BITMAP_S *pstBitMap, UINT bitnum, UINT *bitmap_mem/* 必须是由UINT构成的数组 */)
+
+void BITMAP_Init(BITMAP_S *pstBitMap, UINT bitnum, UINT *bitmap_mem)
 {
     memset(pstBitMap, 0, sizeof(BITMAP_S));
 
@@ -26,7 +26,7 @@ void BITMAP_Fini(BITMAP_S *pstBitMap)
     memset(pstBitMap, 0, sizeof(BITMAP_S));
 }
 
-/* 初始化方法之二 */
+
 BS_STATUS BITMAP_Create(IN BITMAP_S * pstBitMap, IN UINT ulBitNum)
 {
     if (pstBitMap == NULL)
@@ -48,7 +48,7 @@ BS_STATUS BITMAP_Create(IN BITMAP_S * pstBitMap, IN UINT ulBitNum)
     return BS_OK;
 }
 
-/* 销毁方法之二 */
+
 BS_STATUS BITMAP_Destory(IN BITMAP_S * pstBitMap)
 {
     if (NULL != pstBitMap->pulBitMap)
@@ -62,31 +62,31 @@ BS_STATUS BITMAP_Destory(IN BITMAP_S * pstBitMap)
     return BS_OK;
 }
 
-/* 获取一个setted位的Index */
+
 INT64 BITMAP_GetBusy(BITMAP_S *pstBitMap)
 {
     return ArrayBit_GetBusy(pstBitMap->pulBitMap, pstBitMap->ulBitNum);
 }
 
-/* 获取某个指定位置之后的setted位的Index */
+
 INT64 BITMAP_GetBusyFrom(BITMAP_S *pstBitMap, INT64 from)
 {
     return ArrayBit_GetBusyFrom(pstBitMap->pulBitMap, pstBitMap->ulBitNum, from);
 }
 
-/* 获取一个unsetted位的Index */
+
 INT64 BITMAP_GetFree(BITMAP_S *pstBitMap)
 {
     return ArrayBit_GetFree(pstBitMap->pulBitMap, pstBitMap->ulBitNum);
 }
 
-/* 获取after之后的一个unsetted位的Index */
+
 INT64 BITMAP_GetFreeFrom(BITMAP_S *pstBitMap, INT64 from)
 {
     return ArrayBit_GetFreeFrom(pstBitMap->pulBitMap, pstBitMap->ulBitNum, from);
 }
 
-/* 环绕形式的获取一个unsetted位的Index */
+
 INT64 BITMAP_GetFreeCycle(BITMAP_S *pstBitMap)
 {
     INT64 index = ArrayBit_GetFreeFrom(pstBitMap->pulBitMap, pstBitMap->ulBitNum, pstBitMap->uiScanIndex);
@@ -105,7 +105,7 @@ INT64 BITMAP_GetFreeCycle(BITMAP_S *pstBitMap)
     return index;
 }
 
-/* 从两个bitmap中获取都被设置的位的Index */
+
 INT64 BITMAP_2GetSettedIndex(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2)
 {
     UINT uiIndex;
@@ -119,7 +119,7 @@ INT64 BITMAP_2GetSettedIndex(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2)
     return -1;
 }
 
-/* 从两个bitmap中获取都未被设置的位的Index */
+
 INT64 BITMAP_2GetUnsettedIndex(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2)
 {
     UINT uiIndex;
@@ -133,7 +133,7 @@ INT64 BITMAP_2GetUnsettedIndex(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap
     return -1;
 }
 
-/* dst = src */
+
 void BITMAP_Copy(BITMAP_S *src, BITMAP_S *dst)
 {
     BS_DBGASSERT(src->uiUintNum == dst->uiUintNum);
@@ -141,7 +141,7 @@ void BITMAP_Copy(BITMAP_S *src, BITMAP_S *dst)
     memcpy(dst->pulBitMap, src->pulBitMap, dst->uiUintNum * 4);
 }
 
-/* dst = ~src */
+
 void BITMAP_Not(BITMAP_S *src, BITMAP_S *dst)
 {
     BS_DBGASSERT(src->uiUintNum == dst->uiUintNum);
@@ -152,7 +152,7 @@ void BITMAP_Not(BITMAP_S *src, BITMAP_S *dst)
     }
 }
 
-/* dst = src1 | src2 */
+
 void BITMAP_Or(BITMAP_S *src1, BITMAP_S *src2, BITMAP_S *dst)
 {
     BS_DBGASSERT(src1->uiUintNum == src2->uiUintNum);
@@ -164,7 +164,7 @@ void BITMAP_Or(BITMAP_S *src1, BITMAP_S *src2, BITMAP_S *dst)
     }
 }
 
-/* dst = src1 & src2 */
+
 void BITMAP_And(BITMAP_S *src1, BITMAP_S *src2, BITMAP_S *dst)
 {
     BS_DBGASSERT(src1->uiUintNum == src2->uiUintNum);
@@ -176,7 +176,7 @@ void BITMAP_And(BITMAP_S *src1, BITMAP_S *src2, BITMAP_S *dst)
     }
 }
 
-/* dst = src1 ^ src2 */
+
 void BITMAP_Xor(BITMAP_S *src1, BITMAP_S *src2, BITMAP_S *dst)
 {
     BS_DBGASSERT(src1->uiUintNum == src2->uiUintNum);

@@ -47,8 +47,7 @@ int serviceagent_ListenTcp(unsigned short port)
     return fd;
 }
 
-static BS_WALK_RET_E serviceagent_InEvent(int fd, UINT event,
-        USER_HANDLE_S *userhandle)
+static int serviceagent_InEvent(int fd, UINT event, USER_HANDLE_S *userhandle)
 {
     SERVICE_AGENT_S *ctrl = userhandle->ahUserHandle[0];
     unsigned char data[1024];
@@ -57,7 +56,7 @@ static BS_WALK_RET_E serviceagent_InEvent(int fd, UINT event,
     if (event & MYPOLL_EVENT_IN) {
         len = recv(fd, data, sizeof(data) - 1, 0);
         if (len < 0) {
-            return BS_WALK_CONTINUE;
+            return 0;
         }
 
         if (len == 0) {
@@ -66,24 +65,23 @@ static BS_WALK_RET_E serviceagent_InEvent(int fd, UINT event,
             }
             MyPoll_Del(ctrl->my_poll, fd);
             Socket_Close(fd);
-            return BS_WALK_CONTINUE;
+            return 0;
         }
 
         ctrl->data_func(ctrl, fd, data, len);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-static BS_WALK_RET_E serviceagent_AcceptEvent(int fd, UINT uiEvent,
-        USER_HANDLE_S *userhandle)
+static int serviceagent_AcceptEvent(int fd, UINT uiEvent, USER_HANDLE_S *userhandle)
 {
     int accept_fd;
     SERVICE_AGENT_S *ctrl = userhandle->ahUserHandle[0];
 
     accept_fd = Socket_Accept(fd, NULL, NULL);
     if (accept_fd < 0) {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     MyPoll_SetEvent(ctrl->my_poll, accept_fd, MYPOLL_EVENT_IN,
@@ -96,10 +94,10 @@ static BS_WALK_RET_E serviceagent_AcceptEvent(int fd, UINT uiEvent,
         }
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-/* 设置关联到连接上的用户数据 */
+
 void ServiceAgent_SetFdUd(SERVICE_AGENT_S *ctrl, int fd, void *fd_ud)
 {
     USER_HANDLE_S ud;
@@ -122,7 +120,7 @@ void * ServiceAgent_GetFdUd(SERVICE_AGENT_S *ctrl, int fd)
     return ud->ahUserHandle[1];
 }
 
-int ServiceAgent_OpenTcp(SERVICE_AGENT_S *ctrl, USHORT port/* host order */)
+int ServiceAgent_OpenTcp(SERVICE_AGENT_S *ctrl, USHORT port)
 {
     USER_HANDLE_S userhandle;
 

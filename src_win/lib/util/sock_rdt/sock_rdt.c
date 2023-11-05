@@ -17,25 +17,25 @@ typedef struct tagSOCK_RDT_EVENT_CALL_BACK_S
     UINT ulUserHandle;
 }SOCK_EVENT_CALL_BACK_S;
 
-/* 声明 */
+
 PLUG_API INT _SockRDT_ConnectHook(IN INT lSocketId, IN struct sockaddr_in *pstName, IN INT lNameLen);
 
-/* var */
+
 static CHAR * g_pszSockRdtConnectType = "tcp";
 static UINT g_ulSockRdtServerIp = 0;
 static USHORT g_usSockRdtServerPort = 0;
 static DLL_HEAD_S g_stEventCbList = DLL_HEAD_INIT_VALUE(&g_stEventCbList);
 
-/* 重定向函数表 */
+
 static HOOKAPI_ENTRY_TBL_S g_astSockRdtEntryTbl[]  =
 {
     {"WS2_32.dll", "connect", 0, (HANDLE)_SockRDT_ConnectHook},
     {"wsock32.dll", "connect", 0, (HANDLE)_SockRDT_ConnectHook},
 };
 
-/* function */
 
-/* connect函数的钩子 */
+
+
 PLUG_API INT _SockRDT_ConnectHook(IN INT lSocketId, IN struct sockaddr_in *pstName, IN INT lNameLen)
 {
     struct sockaddr_in server_addr;
@@ -79,7 +79,7 @@ PLUG_API INT _SockRDT_ConnectHook(IN INT lSocketId, IN struct sockaddr_in *pstNa
     return 0;
 }
 
-/* 将本进程的Socket重定向 */
+
 BS_STATUS SockRDT_RedirectTo(IN CHAR *pszProtocolName, IN UINT ulRdtIp, IN USHORT usRdtPort)
 {
     g_pszSockRdtConnectType = pszProtocolName;

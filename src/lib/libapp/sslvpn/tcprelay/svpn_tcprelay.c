@@ -157,7 +157,7 @@ static BS_STATUS svpn_tcprelay_FwdData
     return BS_OK;
 }
 
-static BS_WALK_RET_E svpn_tcprelay_DownEvent(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int svpn_tcprelay_DownEvent(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     SVPN_TCPRELAY_NODE_S *pstNode = pstUserHandle->ahUserHandle[0];
     BS_STATUS eRet = BS_OK;
@@ -177,7 +177,7 @@ static BS_WALK_RET_E svpn_tcprelay_DownEvent(IN INT iSocketId, IN UINT uiEvent, 
             SVPN_TcpRelayNode_Free(pstNode);
         }
 
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     if (uiEvent & MYPOLL_EVENT_IN)
@@ -195,10 +195,10 @@ static BS_WALK_RET_E svpn_tcprelay_DownEvent(IN INT iSocketId, IN UINT uiEvent, 
         SVPN_TcpRelayNode_Free(pstNode);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-static BS_WALK_RET_E svpn_tcprelay_UpEvent(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int svpn_tcprelay_UpEvent(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     SVPN_TCPRELAY_NODE_S *pstNode = pstUserHandle->ahUserHandle[0];
     BS_STATUS eRet = BS_OK;
@@ -218,7 +218,7 @@ static BS_WALK_RET_E svpn_tcprelay_UpEvent(IN INT iSocketId, IN UINT uiEvent, IN
             SVPN_TcpRelayNode_Free(pstNode);
         }
 
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     if (uiEvent & MYPOLL_EVENT_IN)
@@ -236,7 +236,7 @@ static BS_WALK_RET_E svpn_tcprelay_UpEvent(IN INT iSocketId, IN UINT uiEvent, IN
         SVPN_TcpRelayNode_Free(pstNode);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static BS_STATUS svpn_tcprelay_StartFwd(IN SVPN_TCPRELAY_NODE_S *pstNode)
@@ -257,7 +257,7 @@ static BS_STATUS svpn_tcprelay_StartFwd(IN SVPN_TCPRELAY_NODE_S *pstNode)
     return BS_OK;
 }
 
-static BS_WALK_RET_E svpn_tcprelay_ConnectEvent(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int svpn_tcprelay_ConnectEvent(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     SVPN_TCPRELAY_NODE_S *pstNode = pstUserHandle->ahUserHandle[0];
 
@@ -268,7 +268,7 @@ static BS_WALK_RET_E svpn_tcprelay_ConnectEvent(IN INT iSocketId, IN UINT uiEven
     {
         CONN_WriteString(pstNode->hDownConn, "HTTP/1.1 503 ERR\r\n\r\n");
         SVPN_TcpRelayNode_Free(pstNode);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     CONN_WriteString(pstNode->hDownConn, "HTTP/1.1 200 OK\r\n\r\n");
@@ -276,10 +276,10 @@ static BS_WALK_RET_E svpn_tcprelay_ConnectEvent(IN INT iSocketId, IN UINT uiEven
     if (BS_OK != svpn_tcprelay_StartFwd(pstNode))
     {
         SVPN_TcpRelayNode_Free(pstNode);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static BS_STATUS svpn_tcprelay_ParserServerField
@@ -426,7 +426,7 @@ static VOID svpn_tcprelay_RecvHeadOK(IN WS_TRANS_HANDLE hWsTrans)
     SVPN_DBG_OUTPUT(SVPN_DBG_ID_TCP_RELAY, SVPN_DBG_FLAG_TR_PACKET,
         "Recv request %s:%d.\r\n", szServer, usPort);
 
-    /* 权限检查 */
+    
     if (TRUE != svpn_tcprelay_CheckPermit(hWsTrans, szServer, usPort))
     {
         SVPN_DBG_OUTPUT(SVPN_DBG_ID_TCP_RELAY, SVPN_DBG_FLAG_TR_PACKET,

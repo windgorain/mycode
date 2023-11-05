@@ -27,7 +27,7 @@ typedef struct
     VBUF_S stVBuf;
     HTTP_HEAD_PARSER hHttpParser;
     HTTP_BODY_TRAN_TYPE_E eTransType;
-    UINT64 uiRemainLen; /* 剩余体长度,或者是当前trunk块当前剩余长度 */
+    UINT64 uiRemainLen; 
 }HTTPC_RECVER_S;
 
 static INT httpcrecver_ReadBodyOfVBuf(IN HTTPC_RECVER_S *pstRecver, IN UCHAR *pucBuf, IN UINT uiMaxReadLen)
@@ -66,7 +66,7 @@ static INT httpcrecver_ReadBodyByLen(IN HTTPC_RECVER_S *pstRecver, IN UCHAR *puc
     return iLen;
 }
 
-/* 处理Content-length模式的体数据 */
+
 static INT httpcrecver_ReadBodyTypeLength(IN HTTPC_RECVER_S *pstRecver, IN UCHAR *pucBuf, IN UINT uiBufSize)
 {
     INT iLen;

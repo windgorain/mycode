@@ -11,10 +11,10 @@ extern "C"
 #endif
 
 UINT Route_GetDefaultGw();
-int RouteCmd_Add(unsigned int dst/*net order*/, unsigned int prefix_len, unsigned int nexthop/*net order*/);
-int RouteCmd_Del(unsigned int dst/*net order*/, unsigned int prefix_len);
+int RouteCmd_Add(unsigned int dst, unsigned int prefix_len, unsigned int nexthop);
+int RouteCmd_Del(unsigned int dst, unsigned int prefix_len);
 
 #ifdef __cplusplus
 }
 #endif
-#endif //ROUTE_UTL_H_
+#endif 

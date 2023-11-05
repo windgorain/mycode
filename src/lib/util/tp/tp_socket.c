@@ -7,8 +7,8 @@
 
 #include "tp_inner.h"
 
-#define _TP_SEND_MBUF_COUNT 16   /* 发送缓冲区大小, 单位为MBuf个数  */
-#define _TP_RECV_MBUF_COUNT 16   /* 接收缓冲区大小, 单位为MBuf个数  */
+#define _TP_SEND_MBUF_COUNT 16   
+#define _TP_RECV_MBUF_COUNT 16   
 
 static VOID tp_socket_DeleteAllTimer(IN _TP_CTRL_S *pstCtrl, IN _TP_SOCKET_S *pstTpSocket)
 {

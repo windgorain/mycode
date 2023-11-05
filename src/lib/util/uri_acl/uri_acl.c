@@ -16,10 +16,7 @@
 #include "utl/bit_opt.h"
 #include "utl/uri_acl.h"
 
-/*****************************************************************************
-  Description: 是否是简单字符串
-      Caution: 通配符包括"*"、"?"、"%" 
-*****************************************************************************/
+
 STATIC inline BOOL_T uri_acl_IsSimpStr(IN const CHAR *pcStrStart, IN const CHAR *pcStrEnd)
 {
     BOOL_T bIsSimpStr = BOOL_TRUE;
@@ -35,27 +32,25 @@ STATIC inline BOOL_T uri_acl_IsSimpStr(IN const CHAR *pcStrStart, IN const CHAR 
     return bIsSimpStr;
 }
 
-/*****************************************************************************
-  Description: 解析输入的字符类型
-*****************************************************************************/
+
 STATIC inline URI_ACL_CHAR_TYPE_E uri_acl_GetCharType(IN CHAR cChar)
 {
     URI_ACL_CHAR_TYPE_E enType;
     
     switch(cChar) {
-        /* 通配符 */
+        
         case '*':
         case '?':
         case '%': {
             enType = URI_ACL_CHAR_WILDCARD;
             break;
         }
-        /* 需要转义的字符 */
+        
         case '.': {
             enType = URI_ACL_CHAR_NEEDTRANSFER;
             break;
         }
-        /* 普通字符 */
+        
         default: {
             enType = URI_ACL_CHAR_NORMAL;
             break;
@@ -65,9 +60,7 @@ STATIC inline URI_ACL_CHAR_TYPE_E uri_acl_GetCharType(IN CHAR cChar)
     return enType;
 }
 
-/*****************************************************************************
-  Description: 转换通配符为正则的形式
-*****************************************************************************/
+
 STATIC inline CHAR *uri_acl_TransWildCard2Reg(IN CHAR cChar)
 {
     CHAR *pcString = "";
@@ -76,16 +69,14 @@ STATIC inline CHAR *uri_acl_TransWildCard2Reg(IN CHAR cChar)
         pcString = ".*";
     } else if (cChar == '?') {
         pcString = ".";
-    } else { /* cChar == '%' */
+    } else { 
         pcString = "[^./]*";
     }
     
     return pcString;
 }
 
-/*****************************************************************************
-  Description: pcre 编译处理
-*****************************************************************************/
+
 STATIC VOID uri_acl_pcre_Compile(IN const CHAR *pcPattern, IN INT iOptions, OUT URI_ACL_PCRE_S *pstPcre)
 {
     const CHAR* pcError = NULL;
@@ -106,18 +97,14 @@ STATIC VOID uri_acl_pcre_Compile(IN const CHAR *pcPattern, IN INT iOptions, OUT 
     }
 }
 
-/*****************************************************************************
-  Description: pcre 高级编译不区分大小写
-*****************************************************************************/
+
 VOID URI_ACL_KPCRE_Compile2(IN const CHAR* pcPattern, OUT URI_ACL_PCRE_S *pstPcre)
 {
     uri_acl_pcre_Compile(pcPattern, PCRE_NEWLINE_ANY | PCRE_DOTALL | PCRE_CASELESS, pstPcre);
     return;
 }
 
-/*****************************************************************************
-  Description: 正则释放
-*****************************************************************************/
+
 VOID URI_ACL_KPCRE_Free(IN URI_ACL_PCRE_S *pstPcre)
 {
     if (NULL != pstPcre->pstReg)
@@ -137,10 +124,7 @@ VOID URI_ACL_KPCRE_Free(IN URI_ACL_PCRE_S *pstPcre)
     return;
 }
 
-/*****************************************************************************
-  Description: 正则查找
-       Return: 匹配的个数
-*****************************************************************************/
+
 INT URI_ACL_KPCRE_Exec(IN const URI_ACL_PCRE_S *pstPcre, 
                        IN const UCHAR* pucStr, 
                        IN INT iLeng, 
@@ -153,9 +137,7 @@ INT URI_ACL_KPCRE_Exec(IN const URI_ACL_PCRE_S *pstPcre,
                      piOffsets, iOffsetCount);
 }
 
-/*****************************************************************************
-  Description: 解析模式字符串
-*****************************************************************************/
+
 STATIC ULONG uri_acl_ProcPattern(IN const CHAR *pcStrCur, IN const CHAR *pcStrEnd, OUT URI_ACL_PATTERN_S *pstPattern)
 {
     CHAR *pcRegString; 
@@ -170,26 +152,26 @@ STATIC ULONG uri_acl_ProcPattern(IN const CHAR *pcStrCur, IN const CHAR *pcStrEn
         return ERROR_FAILED;
     }
     
-    /* 通配符模式 */
+    
     uiOffset = 0;
     while (pcStrCur < pcStrEnd)
     {
-        /* 解析输入的字符类型 */
+        
         enCharType = uri_acl_GetCharType(*pcStrCur);
         
-        /* 通配符 */
+        
         if (URI_ACL_CHAR_WILDCARD == enCharType)
         {            
-            /* 转换为正则形式 */
+            
             pcRegString = uri_acl_TransWildCard2Reg(*pcStrCur);
             uiOffset += (UINT)snprintf(pcPattern + uiOffset, URI_ACL_PATTERN_BUF_MAX - uiOffset, "%s", pcRegString);
         }        
-        /* 需要转义的字符 */
+        
         else if (URI_ACL_CHAR_NEEDTRANSFER == enCharType) 
         {
             uiOffset += (UINT)snprintf(pcPattern + uiOffset, URI_ACL_PATTERN_BUF_MAX - uiOffset, "\\%c", *pcStrCur);
         }  
-        /* 普通字符 */
+        
         else 
         {
             uiOffset += (UINT)snprintf(pcPattern + uiOffset, URI_ACL_PATTERN_BUF_MAX - uiOffset, "%c", *pcStrCur);
@@ -208,7 +190,7 @@ STATIC URI_ACL_RULE_S * uri_acl_AllocRule()
 {
     URI_ACL_RULE_S *pstRule;
     
-    /* 分配URI_ACL_KNODE_S */
+    
     pstRule = MEM_ZMalloc(sizeof(URI_ACL_RULE_S));
 
     return pstRule;
@@ -220,27 +202,13 @@ STATIC VOID uri_acl_FreeRule(IN URI_ACL_RULE_S *pstRule)
 
     URI_ACL_KPCRE_Free(&pstRule->stPattern.stPcre);
     MEM_Free(pstRule->stPattern.pcPcreStr);
-    /* 释放Rule */
+    
     MEM_Free(pstRule);
 
     return;
 }
 
-/*****************************************************************************
-  Description: 匹配字符串
-       Return: BOOL_TRUE   匹配
-               BOOL_FALSE  不匹配
-      Caution: 1、 usr: http://1.2.3.1/path1/path2
-                  rule: http://1.2.3.1/path1/
-                    ----matched
-               2、 usr: http://1.2.3.1/path1/
-                  rule: http://1.2.3.1/path1
-                    ----not-matched
-               3、 usr: http://1.2.3.1/path313/ 或者
-                        http://1.2.3.1/path313
-                  rule: http://1.2.3.1/path
-                    ----not-matched
-*****************************************************************************/
+
 STATIC BOOL_T uri_acl_MatchUsrStrGtPtnStr(IN const UCHAR *pucUsrString, IN const UCHAR *pucPtnString)
 {
     ULONG ulPtnStrLen;
@@ -262,11 +230,7 @@ STATIC BOOL_T uri_acl_MatchUsrStrGtPtnStr(IN const UCHAR *pucUsrString, IN const
     return TRUE;
 }
 
-/*****************************************************************************
-  Description: 匹配字符串
-       Return: BOOL_TRUE   匹配
-               BOOL_FALSE  不匹配
-*****************************************************************************/
+
 STATIC BOOL_T uri_acl_MatchSimpStr(IN const UCHAR *pucUsrString, IN const URI_ACL_PATTERN_S *pstPattern)
 {
     BOOL_T bIsMatch = BOOL_FALSE;
@@ -275,17 +239,17 @@ STATIC BOOL_T uri_acl_MatchSimpStr(IN const UCHAR *pucUsrString, IN const URI_AC
 
     pucPatStr = pstPattern->szPattern;
 
-    /* 要求path区分大小写 */
+    
     iRet = strcmp((CHAR *)pucUsrString, (CHAR *)pucPatStr);
     if (0 == iRet)
     {
         bIsMatch = BOOL_TRUE;
     }
-    else if (0 < iRet) /* pucUsrString长于pattern*/
+    else if (0 < iRet) 
     {   
         bIsMatch = uri_acl_MatchUsrStrGtPtnStr(pucUsrString, pucPatStr);
     }
-    else /* pucUsrString短于pattern */
+    else 
     {
         bIsMatch = BOOL_FALSE;
     }
@@ -389,14 +353,14 @@ STATIC ULONG uri_acl_ParseURI(IN const CHAR *pcURI,
     ULONG ulRet = ERROR_SUCCESS;
     
     bIsSimpStr = uri_acl_IsSimpStr(pcStart, pcEnd); 
-    /* 简单字符串方式，精确匹配 */
+    
     if (BOOL_TRUE == bIsSimpStr)
     {
         pattern->enType = URI_ACL_PATTERN_STRING;
         memcpy(pattern->szPattern, pcStart, ulURILen);
         pattern->szPattern[ulURILen] = '\0';
     }
-    /* 通配符模式 */
+    
     else
     {        
         pattern->enType = URI_ACL_PATTERN_PCRE;        
@@ -432,7 +396,7 @@ BS_STATUS URI_ACL_AddRule(IN LIST_RULE_HANDLE hCtx, IN LIST_RULE_LIST_S* rule_li
         RETURNI(BS_CONFLICT, "confilict with rule %d!\r\n",conflict_id);
     }
 
-    /* 创建rule */
+    
     pstRule = uri_acl_AllocRule();
     if (NULL == pstRule)
     {
@@ -491,19 +455,19 @@ STATIC BOOL_T uri_acl_MatchRule(IN const URI_ACL_MATCH_INFO_S *pstMatchInfo, IN 
     pucStr = pstMatchInfo->szDomain;
     pstPattern = &(pstRule->stPattern);
 
-    /* 简单字符串 */
+    
     if (URI_ACL_PATTERN_STRING == pstPattern->enType)
     {
         bIsMatch = uri_acl_MatchSimpStr(pucStr, pstPattern);
     }
-    /* 正则 */
+    
     else
     {
         iRet = URI_ACL_KPCRE_Exec(&(pstPattern->stPcre), 
                                   pucStr, 
                                   (INT)strlen((CHAR *)pucStr), 
                                   2, aiOvector);
-        /* 能够匹配且从起始处完全匹配 */
+        
         if ((iRet >= 0) && (0 == aiOvector[0]))
         {
             bIsMatch = BOOL_TRUE;
@@ -533,7 +497,7 @@ BS_STATUS URI_ACL_Match
     {
         uiRuleID = pstListRuleNode->uiRuleID;
         pstRule = container_of(pstListRuleNode, URI_ACL_RULE_S, stListRuleNode);
-        /* 按rule匹配 */
+        
         bIsMatch = uri_acl_MatchRule(pstMatchInfo, pstRule);
         if (BOOL_TRUE == bIsMatch)
         {

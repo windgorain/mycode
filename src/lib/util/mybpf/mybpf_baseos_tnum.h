@@ -25,4 +25,4 @@ static inline struct tnum tnum_const(u64 value)
 #ifdef __cplusplus
 }
 #endif
-#endif //MYBPF_BASEOS_TNUM_H_
+#endif 

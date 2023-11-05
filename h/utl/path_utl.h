@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #include "tree_utl.h"
 
@@ -32,8 +32,8 @@
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__PATH_UTL_H_*/
+#endif 
 
 

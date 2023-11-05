@@ -4,13 +4,13 @@
 *
 ================================================================*/
 #include "bs.h"
+#include "pcap.h"
 #include "utl/ubpf_utl.h"
 #include "utl/ubpf/ebpf.h"
 #include "ubpf_int.h"
-#include "pcap.h"
 
-/* cbpf string to cbpf code */
-int UBPF_S2c(int linktype, char *cbpf_string, OUT struct bpf_program *bpf_prog)
+
+int UBPF_S2c(int linktype, char *cbpf_string, OUT void *bpf_prog)
 {
     pcap_t *pcap = NULL;
     int ret;
@@ -30,7 +30,7 @@ int UBPF_S2c(int linktype, char *cbpf_string, OUT struct bpf_program *bpf_prog)
     return 0;
 }
 
-/* cbpf string to ebpf vm */
+
 UBPF_VM_HANDLE UBPF_S2e(int linktype, char *cbpf_string)
 {
 	struct bpf_program bpf_prog;

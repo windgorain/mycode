@@ -18,7 +18,7 @@
 
 const struct tnum tnum_unknown = { .value = 0, .mask = -1 };
 
-/* Reset the min/max bounds of a register */
+
 static void __mark_reg_unbounded(struct bpf_reg_state *reg)
 {
 	reg->smin_value = S64_MIN;
@@ -32,14 +32,11 @@ static void __mark_reg_unbounded(struct bpf_reg_state *reg)
 	reg->u32_max_value = U32_MAX;
 }
 
-/* Mark a register as having a completely unknown (scalar) value. */
+
 static void __mark_reg_unknown(const struct bpf_verifier_env *env,
 			       struct bpf_reg_state *reg)
 {
-	/*
-	 * Clear type, id, off, and union(map_ptr, range) and
-	 * padding between 'type' and union
-	 */
+	
 	memset(reg, 0, offsetof(struct bpf_reg_state, var_off));
 	reg->type = SCALAR_VALUE;
 	reg->var_off = tnum_unknown;
@@ -48,7 +45,7 @@ static void __mark_reg_unknown(const struct bpf_verifier_env *env,
 	__mark_reg_unbounded(reg);
 }
 
-/* This helper doesn't clear reg->id */
+
 static void ___mark_reg_known(struct bpf_reg_state *reg, u64 imm)
 {
 	reg->var_off = tnum_const(imm);
@@ -65,7 +62,7 @@ static void ___mark_reg_known(struct bpf_reg_state *reg, u64 imm)
 
 static void __mark_reg_known(struct bpf_reg_state *reg, u64 imm)
 {
-	/* Clear id, off, and union(map_ptr, range) */
+	
 	memset(((u8 *)reg) + sizeof(reg->type), 0,
 	       offsetof(struct bpf_reg_state, var_off) - sizeof(reg->type));
 	___mark_reg_known(reg, imm);
@@ -119,7 +116,7 @@ static void init_reg_state(struct bpf_verifier_env *env,
 		regs[i].subreg_def = DEF_NOT_SUBREG;
 	}
 
-	/* frame pointer */
+	
 	regs[BPF_REG_FP].type = PTR_TO_STACK;
 	mark_reg_known_zero(env, regs, BPF_REG_FP);
 	regs[BPF_REG_FP].frameno = state->frameno;
@@ -242,20 +239,20 @@ static int _mybpf_verifier_do_check(MYBPF_VERIFIER_ENV_S *env, void *insts, int 
 {
 	int prev_insn_idx = -1;
 	int insn_cnt = len / sizeof(MYBPF_INSN_S);
-	//MYBPF_INSN_S *insns = insts;
+	
 
     for (;;) {
-        //MYBPF_INSN_S *insn;
-        //u8 class;
-        //int err;
+        
+        
+        
 
         env->prev_insn_idx = prev_insn_idx;
         if (env->insn_idx >= insn_cnt) {
             RETURNI(BS_ERR, "invalid insn idx %d insn_cnt %d\n", env->insn_idx, insn_cnt);
         }
 
-        //insn = &insns[env->insn_idx];
-		//class = BPF_CLASS(insn->opcode);
+        
+		
 
 		if (++env->insn_processed > BPF_COMPLEXITY_LIMIT_INSNS) {
 			RETURNI(BS_OUT_OF_RANGE,
@@ -263,14 +260,14 @@ static int _mybpf_verifier_do_check(MYBPF_VERIFIER_ENV_S *env, void *insts, int 
 				env->insn_processed);
 		}
 
-        //TODO
+        
 
     }
 
     return 0;
 }
 
-int MYBPF_VERIFIER_DoCheck(void *insts, int len/* 字节数 */, int subprog)
+int MYBPF_VERIFIER_DoCheck(void *insts, int len, int subprog)
 {
     MYBPF_VERIFIER_ENV_S the_env = {0};
     MYBPF_VERIFIER_ENV_S *env = &the_env;
@@ -288,7 +285,7 @@ int MYBPF_VERIFIER_DoCheck(void *insts, int len/* 字节数 */, int subprog)
 		env->cur_state = NULL;
 	}
 
-//	while (!pop_stack(env, NULL, NULL, false));
+
 
 	free_states(env);
 

@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 
     WASME_InitThunk(m);
 
-    // emscripten initialization
+    
     WASM_BLOCK_S *func = WASM_GetExport(m, "__post_instantiate");
     if (func) {
         WASM_Run(m, func->fidx);

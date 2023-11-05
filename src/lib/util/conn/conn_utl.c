@@ -194,7 +194,7 @@ BS_STATUS CONN_DelEvent(IN CONN_HANDLE hConn, IN UINT uiEvent)
     return MyPoll_DelEvent(pstConn->hPollHandle, pstConn->iSocketID, uiEvent);
 }
 
-/* 清除所有事件位 */
+
 BS_STATUS CONN_ClearEvent(IN CONN_HANDLE hConn)
 {
     CONN_S *pstConn = hConn;
@@ -219,10 +219,7 @@ BS_STATUS CONN_ModifyEvent(IN CONN_HANDLE hConn, IN UINT uiEvent)
     return MyPoll_ModifyEvent(pstConn->hPollHandle, pstConn->iSocketID, uiEvent);
 }
 
-/* 
- > 0: 读取的字节数
- <= 0: SOCKET_EXXX
-*/
+
 INT CONN_Read(IN CONN_HANDLE hConn, OUT UCHAR *pucBuf, IN UINT uiBufLen)
 {
     CONN_S *pstConn = hConn;
@@ -257,7 +254,7 @@ INT CONN_Write(IN CONN_HANDLE hConn, IN VOID *pBuf, IN UINT uiLen)
     return SSL_UTL_Write(pstConn->pstSsl, pBuf, uiLen);
 }
 
-/* 循环写,直到发送完毕或出错 */
+
 INT CONN_WriteAll(IN CONN_HANDLE hConn, IN UCHAR *pucBuf, IN UINT uiLen)
 {
     INT iLen;

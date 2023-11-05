@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID* HTML_UP_HANDLE;
 
@@ -49,8 +49,8 @@ VOID HTML_UP_InputHtmlEnd(IN HTML_UP_HANDLE hUp);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__HTML_UP_H_*/
+#endif 
 
 

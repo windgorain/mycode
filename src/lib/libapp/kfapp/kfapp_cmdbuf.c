@@ -43,7 +43,7 @@ static BS_STATUS _kfapp_cmdbuf_list(IN MIME_HANDLE hMime, IN HANDLE hUserHandle,
         return 0;
     }
 
-    /* 处理首行 */
+    
     char *first_line = buf;
     TXT_GetLine(first_line, &ulLineLen, &bIsFoundLineEnd, &pcLineNext);
     first_line[ulLineLen] = '\0';
@@ -55,7 +55,7 @@ static BS_STATUS _kfapp_cmdbuf_list(IN MIME_HANDLE hMime, IN HANDLE hUserHandle,
         return 0;
     }
 
-    /* 跳过隔离行 */
+    
     pcBufTmp = pcLineNext;
     TXT_GetLine(pcBufTmp, &ulLineLen, &bIsFoundLineEnd, &pcLineNext);
 

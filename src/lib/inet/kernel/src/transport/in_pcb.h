@@ -13,10 +13,10 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define INPCB_MSG_BLOCK     0    /* 阻塞发送 */
-#define INPCB_MSG_NOBLOCK   1    /* 非阻塞发送 */
+#define INPCB_MSG_BLOCK     0    
+#define INPCB_MSG_NOBLOCK   1    
 
 #define    INPLOOKUP_WILDCARD    1
 #define    sotoinpcb(so)    ((INPCB_S *)(so)->so_pcb)
@@ -43,29 +43,26 @@
 
 
 enum inpcbversion {
-    INV4,      /* IPv4 */
-    INV6,      /* IPv6 */
+    INV4,      
+    INV6,      
     INV_BUTT
 };
 
 
-/*
- * NOTE: ipv6 addrs should be 64-bit aligned, per RFC 2553.  in_conninfo has
- * some extra padding to accomplish this.
- */
+
 typedef struct in_endpoints {
-    USHORT ie_fport;        /* foreign port */
-    USHORT ie_lport;        /* local port */
-    VRF_INDEX    ie_svrf;      /* send vrf */
-    VRF_INDEX    ie_rvrf;      /* recieve vrf */
-    /* protocol dependent part, local and foreign addr */
+    USHORT ie_fport;        
+    USHORT ie_lport;        
+    VRF_INDEX    ie_svrf;      
+    VRF_INDEX    ie_rvrf;      
+    
     union {
-        /* foreign host table entry */
+        
         struct    in_addr_4in6 ie46_foreign;
         IN6_ADDR_S ie6_foreign;
     } ie_dependfaddr;
     union {
-        /* local host table entry */
+        
         struct    in_addr_4in6 ie46_local;
         IN6_ADDR_S ie6_local;
     } ie_dependladdr;
@@ -76,14 +73,11 @@ typedef struct in_endpoints {
 #define    ie6_laddr    ie_dependladdr.ie6_local
 }IN_END_POINTS_S;
 
-/*
- * XXX The defines for inc_* are hacks and should be changed to direct
- * references.
- */
+
 typedef struct in_conninfo {
     UCHAR    inc_flags;
     UCHAR    inc_len;
-    USHORT   inc_pad;    /* alignment for in_endpoints */
+    USHORT   inc_pad;    
     IN_END_POINTS_S inc_ie;
 
 #define    inc_fport    inc_ie.ie_fport
@@ -97,45 +91,45 @@ typedef struct in_conninfo {
 
 }IN_CONNINFO_S;
 
-/* inp_vflag */
+
 #define    INP_IPV4    0x1
 #define    INP_IPV6    0x2
-#define    INP_IPV6PROTO    0x4        /* opened under IPv6 protocol */
-#define    INP_ONESBCAST    0x10        /* send all-ones broadcast */
-#define    INP_DROPPED    0x20        /* protocol drop flag */
-#define    INP_SOCKREF    0x40        /* strong socket reference */
-#define    INP_DONTBLOCK    0x80       /* cannot block when sync */
+#define    INP_IPV6PROTO    0x4        
+#define    INP_ONESBCAST    0x10        
+#define    INP_DROPPED    0x20        
+#define    INP_SOCKREF    0x40        
+#define    INP_DONTBLOCK    0x80       
 
-/* flags in inp_flags: */
-#define INP_RECVOPTS       0x01    /* receive incoming IP options */
-#define INP_RECVRETOPTS    0x02    /* receive IP options for reply */
-#define INP_RECVDSTADDR    0x04    /* receive IP dst address */
-#define INP_HDRINCL        0x08    /* user supplies entire IP header */
-#define INP_REUSEADDR      0x10    /* reuse address (SO_REUSEADDR) */
-#define INP_REUSEPORT      0x20    /* reuse port (SO_REUSEPORT) */
-#define INP_ANONPORT       0x40    /* port chosen for user */
-#define INP_RECVIF         0x80    /* receive incoming interface */
-#define INP_MTUDISC        0x100   /* user can do MTU discovery */
-#define INP_FAITH          0x200   /* accept FAITH'ed connections */
-#define INP_RECVTTL        0x400   /* receive incoming IP TTL */
-#define INP_DONTFRAG       0x800   /* don't fragment packet */
-#define	INP_HIGHPORT       0x001000 /* user wants "high" port binding */
-#define	INP_LOWPORT		   0x002000 /* user wants "low" port binding */
+
+#define INP_RECVOPTS       0x01    
+#define INP_RECVRETOPTS    0x02    
+#define INP_RECVDSTADDR    0x04    
+#define INP_HDRINCL        0x08    
+#define INP_REUSEADDR      0x10    
+#define INP_REUSEPORT      0x20    
+#define INP_ANONPORT       0x40    
+#define INP_RECVIF         0x80    
+#define INP_MTUDISC        0x100   
+#define INP_FAITH          0x200   
+#define INP_RECVTTL        0x400   
+#define INP_DONTFRAG       0x800   
+#define	INP_HIGHPORT       0x001000 
+#define	INP_LOWPORT		   0x002000 
 #define INP_RCVVLANID      0x004000
-#define IN6P_IPV6_V6ONLY   0x008000 /* restrict AF_INET6 socket for v6 */
-#define IN6P_PKTINFO       0x010000 /* receive IP6 dst and I/F */
-#define IN6P_HOPLIMIT      0x020000 /* receive hoplimit */
-#define IN6P_HOPOPTS       0x040000 /* receive hop-by-hop options */
-#define IN6P_DSTOPTS       0x080000 /* receive dst options after rthdr */
-#define IN6P_RTHDR         0x100000 /* receive routing header */
-#define IN6P_RTHDRDSTOPTS  0x200000 /* receive dstoptions before rthdr */
-#define IN6P_TCLASS        0x400000 /* receive traffic class value */
-#define IN6P_AUTOFLOWLABEL 0x800000 /* attach flowlabel automatically */
-#define IN6P_RFC2292       0x1000000 /* used RFC2292 API on the socket */
-#define IN6P_MTU           0x2000000 /* receive path MTU */
-#define INP_RCVMACADDR     0x4000000 /* receive packet's mac address. */
+#define IN6P_IPV6_V6ONLY   0x008000 
+#define IN6P_PKTINFO       0x010000 
+#define IN6P_HOPLIMIT      0x020000 
+#define IN6P_HOPOPTS       0x040000 
+#define IN6P_DSTOPTS       0x080000 
+#define IN6P_RTHDR         0x100000 
+#define IN6P_RTHDRDSTOPTS  0x200000 
+#define IN6P_TCLASS        0x400000 
+#define IN6P_AUTOFLOWLABEL 0x800000 
+#define IN6P_RFC2292       0x1000000 
+#define IN6P_MTU           0x2000000 
+#define INP_RCVMACADDR     0x4000000 
 #define INP_SNDBYLSPV      0x8000000
-#define INP_RECVTOS        0x10000000 /* receive IP TOS */
+#define INP_RECVTOS        0x10000000 
 #define    INP_CONTROLOPTS        (INP_RECVOPTS|INP_RECVRETOPTS|INP_RECVDSTADDR|\
                  INP_RECVIF|INP_RECVTTL|INP_RCVVLANID|INP_RCVMACADDR|\
                  IN6P_PKTINFO|IN6P_HOPLIMIT|IN6P_HOPOPTS|\
@@ -159,15 +153,15 @@ typedef struct inpcbport {
 typedef struct inpcb
 {
     INPCB_LIST_ENTRY_S inp_hash;
-    INPCB_LIST_ENTRY_S inp_list; /* list node for all PCBs of this proto */
-    struct    inpcbinfo *inp_pcbinfo;    /* PCB list info */
-    SOCKET_S *inp_socket;   /* back pointer to socket */
+    INPCB_LIST_ENTRY_S inp_list; 
+    struct    inpcbinfo *inp_pcbinfo;    
+    SOCKET_S *inp_socket;   
     MUTEX_S inp_mtx;
 
-    UCHAR    inp_vflag;        /* IP version flag (v4/v6) */
-    UCHAR    inp_ip_ttl;       /* time to live proto */
-    UCHAR    inp_ip_minttl;    /* minimum TTL or drop */
-    UINT     inp_flags;        /* generic IP/datagram flags */
+    UCHAR    inp_vflag;        
+    UCHAR    inp_ip_ttl;       
+    UCHAR    inp_ip_minttl;    
+    UINT     inp_flags;        
 
 	struct snd_mac *inp_dmac;
     SND_IF_S *inp_outif;
@@ -185,16 +179,16 @@ typedef struct inpcb
 
     struct
     {
-        UCHAR     inp4_ip_tos;        /* type of service proto */
-        MBUF_S *inp4_options;    /* IP options */
-        struct    ip_moptions *inp4_moptions; /* IP multicast options */
+        UCHAR     inp4_ip_tos;        
+        MBUF_S *inp4_options;    
+        struct    ip_moptions *inp4_moptions; 
     } inp_depend4;
 #define    inp_ip_tos    inp_depend4.inp4_ip_tos
 #define    inp_options    inp_depend4.inp4_options
 #define    inp_moptions    inp_depend4.inp4_moptions
 
     INPCB_LIST_ENTRY_S inp_portlist;
-    INPCB_PORT_S *inp_phd;    /* head of this list */
+    INPCB_PORT_S *inp_phd;    
 }INPCB_S;
 
 
@@ -204,27 +198,19 @@ typedef struct inpcbinfo
     INPCB_HEAD_S    *ipi_listhead;
     UINT            ipi_count[INV_BUTT];
 
-    /*
-     * Global hash of inpcbs, hashed by local and foreign addresses and
-     * port numbers.
-     */
+    
     INPCB_HEAD_S    *ipi_hashbase;
     ULONG             ipi_hashmask;
 
-    /*
-     * Global hash of inpcbs, hashed by only local port number.
-     */
+    
     INPCB_PORT_HEAD_S    *ipi_porthashbase;
     ULONG             ipi_porthashmask;
 
-    /*
-     * Generation count--incremented each time a connection is allocated
-     * or freed.
-     */
+    
     UINT64            ipi_gencnt;
     MUTEX_S           ipi_lock;
 
-    /* 协议类型: IPPROTO_TCP/IPPROTO_UDP/IPPROTO_RAW */
+    
     USHORT   ipi_protocol;
 
 }INPCB_INFO_S;
@@ -302,8 +288,8 @@ void in_pcbnotifyall
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__IN_PCB_H_*/
+#endif 
 
 

@@ -47,7 +47,7 @@ HSTRING SVPN_Role_GetACL(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN CHAR *pcRoleNam
     return SVPN_CtxData_GetPropAsHString(hSvpnContext, SVPN_CTXDATA_ROLE, pcRoleName, "ACL");
 }
 
-/********MF接口*********/
+
 static CHAR *g_apcSvpnRoleProperty[] = {"Description", "ACL","WebRes","TcpRes","IpRes"};
 static UINT g_uiSvpnRolePropertyCount = sizeof(g_apcSvpnRoleProperty)/sizeof(CHAR*);
 static VOID svpn_rolemf_IsExist(IN MIME_HANDLE hMime, IN SVPN_DWEB_S *pstDweb)
@@ -100,40 +100,40 @@ BS_STATUS SVPN_Role_Init()
     return SVPN_MF_Reg(g_astSvpnRoleMfMap, sizeof(g_astSvpnRoleMfMap)/sizeof(SVPN_MF_MAP_S));
 }
 
-/* 命令行 */
 
-/* role xxx */
+
+
 PLUG_API BS_STATUS SVPN_RoleCmd_EnterView(UINT ulArgc, char **argv, VOID *pEnv)
 {
     return SVPN_CD_EnterView(pEnv, SVPN_CTXDATA_ROLE, argv[1]);
 }
 
-/* description xxx */
+
 PLUG_API BS_STATUS SVPN_RoleCmd_SetDescription(UINT argc,
         char **argv, VOID *pEnv)
 {
     return SVPN_CD_SetProp(pEnv, SVPN_CTXDATA_ROLE, "Description", argv[1]);
 }
 
-/* acl xxx */
+
 PLUG_API BS_STATUS SVPN_RoleCmd_SetAcl(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     return SVPN_CD_AddPropElement(pEnv, SVPN_CTXDATA_ROLE, "ACL", argv[1], SVPN_PROPERTY_SPLIT);
 }
 
-/* web-resource xxx */
+
 PLUG_API BS_STATUS SVPN_RoleCmd_AddWebRes(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     return SVPN_CD_AddPropElement(pEnv, SVPN_CTXDATA_ROLE, "WebRes", argv[1], SVPN_PROPERTY_SPLIT);
 }
 
-/* tcp-resource xxx */
+
 PLUG_API BS_STATUS SVPN_RoleCmd_AddTcpRes(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     return SVPN_CD_AddPropElement(pEnv, SVPN_CTXDATA_ROLE, "tcpRes", argv[1], SVPN_PROPERTY_SPLIT);
 }
 
-/* ip-resource xxx */
+
 PLUG_API BS_STATUS SVPN_RoleCmd_AddIpRes(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     return SVPN_CD_AddPropElement(pEnv, SVPN_CTXDATA_ROLE, "IpRes", argv[1], SVPN_PROPERTY_SPLIT);

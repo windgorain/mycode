@@ -5,7 +5,7 @@
 * History:     
 ******************************************************************************/
 
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_CMD_CFG
 
 #include "bs.h"
@@ -18,12 +18,12 @@
 #include "cmd_func.h"
 
 
-/* ---define--- */
+
 #define _DEF_NAME_AND_ELEMENT(element)  {#element, (PF_CMD_EXP_RUN)element}
 #define _DEF_CMD_CFG_FILE_PATH  "base.lst"
 
 
-/* ---structs--- */
+
 typedef struct
 {
     CHAR            *pcFuncName;
@@ -37,7 +37,7 @@ typedef struct {
 
 static DLL_HEAD_S g_cmd_cfg_list = DLL_HEAD_INIT_VALUE(&g_cmd_cfg_list);
 
-/* ---var--- */
+
 static _CMD_CFG_NODE_S g_stCmdCfg[] = 
 {
     _DEF_NAME_AND_ELEMENT(THREAD_Display),
@@ -63,7 +63,7 @@ static _CMD_CFG_NODE_S g_stCmdCfg[] =
 };
 
 
-/* ---func--- */
+
 static void cmd_cfg_RegLocalCfg()
 {
     _CMD_CFG_NODE_S *node;
@@ -85,7 +85,7 @@ static PF_CMD_EXP_RUN cmd_cfg_GetFunc(IN PLUG_HDL ulPlugId, IN CHAR *pszFuncName
         pfFunc = (PF_CMD_EXP_RUN)PLUG_GET_FUNC_BY_NAME(ulPlugId, pszFuncName);
     }
 
-    if (NULL == pfFunc) { /*  使用本地的函数符号表 */
+    if (NULL == pfFunc) { 
         DLL_SCAN(&g_cmd_cfg_list, node) {
             if (strcmp(node->cmd_cfg.pcFuncName, pszFuncName) == 0) {
                 pfFunc = node->cmd_cfg.pfFunc;
@@ -184,7 +184,7 @@ static int cmd_cfg_UnRegLine(void *cmdlst, CMDLST_ELE_S *ele)
         return CMD_EXP_UnregCmd(&stCmdParam);
     }
 }
- /* ulPlugId: 0表示使用本地的函数符号表,非零表示是dll的handle,使用那里面的函数*/
+ 
 BS_STATUS CMD_CFG_RegCmd(CHAR *pszFileName, PLUG_HDL plug, char *save_path)
 {
     CMD_CFG_S cfg;
@@ -206,7 +206,7 @@ BS_STATUS CMD_CFG_UnRegCmd(CHAR *pszFileName, char *save_path)
     return CMDLST_ScanByFile(&cfg.cmdlst, pszFileName);
 }
 
-/* 注册base命令 */
+
 BS_STATUS CMD_CFG_Init()
 {
     char buf1[128];

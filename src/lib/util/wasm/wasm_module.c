@@ -93,7 +93,7 @@ static BOOL_T _wasm_resolve_sym(char *filename, char *symbol, void **val, char *
 {
     void *handle = NULL;
 
-    dlerror(); //clear errors
+    dlerror(); 
 
     if (filename) {
         handle = dlopen(filename, RTLD_LAZY);
@@ -169,7 +169,7 @@ static int _wasm_load_import_id(UCHAR *bytes, UINT curpos, OUT WASM_MODULE_S *m)
                 break;
             case WASM_KIND_GLOBAL:
                 global_type = LEB_Read(bytes, &pos);
-                LEB_Read(bytes, &pos); // mutability
+                LEB_Read(bytes, &pos); 
                 break;
             default:
                 break;
@@ -190,8 +190,8 @@ static int _wasm_load_import_id(UCHAR *bytes, UINT curpos, OUT WASM_MODULE_S *m)
                 break; 
             }
 
-            // If enabled, try without the leading underscore (added
-            // by emscripten for external symbols)
+            
+            
             if (m->options.dlsym_trim_underscore &&
                     (strncmp("env", import_module, 4) == 0) &&
                     (strncmp("_", import_field, 1) == 0)) {
@@ -201,7 +201,7 @@ static int _wasm_load_import_id(UCHAR *bytes, UINT curpos, OUT WASM_MODULE_S *m)
                 }
             }
 
-            // Try the plain symbol by itself with module name/handle
+            
             sprintf(sym, "%s", import_field);
             if (_wasm_resolve_sym(NULL, sym, &val, &err)) {
                 break; 
@@ -339,7 +339,7 @@ static int _wasm_load_global_id(UCHAR *bytes, UINT cur_pos, OUT WASM_MODULE_S *m
 
     for (g = 0; g < global_count; g++) {
         UCHAR type = LEB_Read(bytes, &pos);
-        LEB_Read(bytes, &pos); //mutability
+        LEB_Read(bytes, &pos); 
         UINT gidx = m->global_count;
         m->global_count += 1;
         m->globals = MEM_ZRealloc(m->globals,
@@ -432,7 +432,7 @@ static int _wasm_load_elem_id(UCHAR *bytes, UINT cur_pos, OUT WASM_MODULE_S *m)
 static int _wasm_load_code_id(UCHAR *bytes, UINT curpos, OUT WASM_MODULE_S *m)
 {
     UINT pos = curpos;
-    UINT code_count = LEB_Read(bytes, &pos); // 代码项数量
+    UINT code_count = LEB_Read(bytes, &pos); 
     UCHAR val_type;
     UINT save_pos, lidx, lecount;
     UINT c, l, n;

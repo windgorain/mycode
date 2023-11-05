@@ -14,4 +14,4 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-#endif //CIOCTL_DEF_H_
+#endif 

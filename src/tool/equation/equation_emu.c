@@ -13,7 +13,7 @@
 #include "utl/rand_utl.h"
 
 #define EQUATION_MAX_DATA 1000000
-#define EQUATION_SLOVE_MAX_STEP 0 /* 求解过程最多迭代多少次, 0表示无限 */
+#define EQUATION_SLOVE_MAX_STEP 0 
 #define EQUATION_DEPTH (1024 * 16)
 #define EQUATION_WITH (16)
 
@@ -36,7 +36,7 @@ static void _equation_print_X();
 
 static EQUATION_EMU_S g_equation;
 
-/* 判断y值在Y中是否已经存在 */
+
 static int _equation_is_exist_y(UINT y)
 {
     int i;
@@ -60,7 +60,7 @@ static void _equation_build_index(UCHAR *data, OUT UINT *index)
     }
 }
 
-/* 处理引用计数 */
+
 static void _equation_process_ref(UCHAR *data)
 {
     UINT index[EQUATION_WITH];
@@ -73,12 +73,12 @@ static void _equation_process_ref(UCHAR *data)
     }
 }
 
-/* 向Y中添加y */
+
 static int _equation_try_add(UCHAR *data)
 {
     int y = _equation_f(data, 0);
 
-    /* 判断y值是否已经存在 */
+    
     if (_equation_is_exist_y(y)) {
         return -1;
     }
@@ -92,7 +92,7 @@ static int _equation_try_add(UCHAR *data)
 }
 
 
-/* 获取引用计数最少的位置 */
+
 static char * _equation_get_flag_min_ref(UINT *index)
 {
     int i;
@@ -102,7 +102,7 @@ static char * _equation_get_flag_min_ref(UINT *index)
 
     for (i=0; i<EQUATION_WITH; i++) {
         pos = &g_equation.flag[i][index[i]];
-        if (*pos) { //已经被标记的位置不能选择
+        if (*pos) { 
             continue;
         }
         if ((!found) || (ref < g_equation.ref[i][index[i]])) {
@@ -114,13 +114,13 @@ static char * _equation_get_flag_min_ref(UINT *index)
     return found;
 }
 
-/* 随机获得位置 */
+
 static char * _equation_get_flag_random(UINT *index)
 {
     int i;
     char *pos;
 
-    /* 随机获得位置 */
+    
     for (i=0; i<EQUATION_WITH*4; i++) {
         int rand = RAND_Get() % EQUATION_WITH;
         pos = &g_equation.flag[rand][index[rand]];
@@ -129,7 +129,7 @@ static char * _equation_get_flag_random(UINT *index)
         }
     }
 
-    /* 随机没有获得，则遍历获得一个 */
+    
     for (i=0; i<EQUATION_WITH; i++) {
         pos = &g_equation.flag[i][index[i]];
         if (*pos == 0) {
@@ -140,7 +140,7 @@ static char * _equation_get_flag_random(UINT *index)
     return NULL;
 }
 
-/* 选择一个标记位置 */
+
 static char * _equation_get_flag(UCHAR *data)
 {
     UINT index[EQUATION_WITH];
@@ -150,7 +150,7 @@ static char * _equation_get_flag(UCHAR *data)
 
     int rand = RAND_Get() % 1024;
 
-    /* 80%的可能性选择最小引用计数位置 */
+    
     if (rand < 820) {
         pos = _equation_get_flag_min_ref(index);
         if (pos) {
@@ -161,7 +161,7 @@ static char * _equation_get_flag(UCHAR *data)
     return _equation_get_flag_random(index);
 }
 
-/* 求f(h,X) */
+
 static int _equation_f(UCHAR *data, int factor)
 {
     int i;
@@ -178,11 +178,11 @@ static int _equation_f(UCHAR *data, int factor)
     v ^= factor;
     v ^= h;
 
-    /* 求y值 */
+    
     return  JHASH_GeneralBuffer(&v, sizeof(v), 0) % (EQUATION_MAX_DATA * 2);
 }
 
-/* 更新X并添加data */
+
 static int _equation_update(UCHAR *data)
 {
     int i, j;
@@ -220,7 +220,7 @@ static void _equation_pre_solve(UCHAR *data)
     g_equation.flag[rand][index[rand]] = 1;
 }
 
-/* 判断对应的y会否变化 */
+
 static int _equation_is_y_change(UCHAR *data)
 {
     int v = 0;
@@ -236,9 +236,7 @@ static int _equation_is_y_change(UCHAR *data)
     return v;
 }
 
-/* 调整flag标记 
- * return 0: 调整成功. <0: 调整失败
- */
+
 static int _equation_adjust_flag()
 {
     int changed;
@@ -254,7 +252,7 @@ static int _equation_adjust_flag()
             if (_equation_is_y_change(data)) { 
                 changed = 1;
 
-                //进行纠正使y不变
+                
                 p = _equation_get_flag(data);
                 if (! p) {
                     return -1;
@@ -267,7 +265,7 @@ static int _equation_adjust_flag()
     return 0;
 }
 
-/* 求解 */
+
 static int _equation_solve(UCHAR *data)
 {
     int count = 0;
@@ -287,7 +285,7 @@ static int _equation_solve(UCHAR *data)
         _equation_pre_solve(data);
         if (_equation_adjust_flag() == 0) {
             if (_equation_is_y_change(data)) {
-                /* y会产生变化,接受 */
+                
                 break;
             }
         }
@@ -310,7 +308,7 @@ static int _equation_add(UCHAR *data)
         return 0;
     }
 
-    /* 重新求解 */
+    
     return _equation_solve(data);
 }
 
@@ -326,7 +324,7 @@ static void _equation_print_X()
     }
 }
 
-/* 判断Y里面的值是否有冲突 */
+
 static int _equation_is_y_conflict()
 {
     int i;
@@ -343,7 +341,7 @@ static int _equation_is_y_conflict()
     return 0;
 }
 
-/* 调试使用,检查状态对不对 */
+
 static int _equation_check()
 {
     int i;

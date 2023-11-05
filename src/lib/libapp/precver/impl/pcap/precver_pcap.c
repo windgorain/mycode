@@ -65,10 +65,10 @@ static void * precver_pcap_open(int argc, char **argv)
     PRECVER_PCAP_S *handle;
     char *source = NULL;
     GETOPT2_NODE_S opts[] = {
-        {'o', 'h', "help", 0, NULL, NULL, 0},
-        {'o', 'r', "read", 's', &source, "read pcap file", 0},
-        {'o', 'l', "loop", 0, NULL, "read loop", 0},
-        {'o', 'i', "interface", 's', &source, "interface name", 0},
+        {'o', 'h', "help", GETOPT2_V_NONE, NULL, NULL, 0},
+        {'o', 'r', "read", GETOPT2_V_STRING, &source, "read pcap file", 0},
+        {'o', 'l', "loop", GETOPT2_V_NONE, NULL, "read loop", 0},
+        {'o', 'i', "interface", GETOPT2_V_STRING, &source, "interface name", 0},
         {0}
     };
 

@@ -19,4 +19,4 @@ int SprintfCache_Sprintf(SPRINTF_CACHE_HDL hdl, char *buf, int size, char *fmt, 
 #ifdef __cplusplus
 }
 #endif
-#endif //SPRINTF_CACHE_H_
+#endif 

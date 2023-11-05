@@ -15,7 +15,7 @@ typedef struct {
     char *base_dir;
     char *log_file_name;
     FILE *log_file_fp;
-    char *log_count_file; /* 记录日志count的文件名 */
+    char *log_count_file; 
     char *uds_file;
     PF_LOG_OUT_FUNC output_func;
     UINT64 log_file_size;
@@ -64,4 +64,4 @@ int Log_FillTail(char *buf, int buflen);
 #ifdef __cplusplus
 }
 #endif
-#endif //LOG_UTL_H_
+#endif 

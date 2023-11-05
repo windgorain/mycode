@@ -22,7 +22,7 @@ static inline void timersingel_init()
     AtomOnce_WaitDo(&once, timersingel_InitOnce, NULL);
 }
 
-HANDLE TimerSingle_Create(UINT time/*ms*/, UINT flag, PF_TIME_OUT_FUNC func, USER_HANDLE_S *user_data)
+HANDLE TimerSingle_Create(UINT time, UINT flag, PF_TIME_OUT_FUNC func, USER_HANDLE_S *user_data)
 {
     timersingel_init();
     return TimerUtl_Create(&g_timer_single, time, flag, func, user_data);

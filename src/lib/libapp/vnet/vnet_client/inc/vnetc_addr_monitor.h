@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID (*PF_VNETC_AddrMonitor_Notify_Func)(IN USER_HANDLE_S *pstUserHandle);
 
@@ -25,8 +25,8 @@ BS_STATUS VNETC_AddrMonitor_RegNotify
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_ADDR_MONITOR_H_*/
+#endif 
 
 

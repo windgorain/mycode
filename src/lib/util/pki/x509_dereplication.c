@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
                 save_path = optarg;
                 break;
             case 'h':
-            default: /* '?' */
+            default: 
                 print_help(argv[0]);
                 exit(EXIT_FAILURE);
         }

@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 int VNETS_RMT_DomainReboot(U64 p1);
@@ -21,8 +21,8 @@ HSTRING VNETS_RMT_GetNodeInfo(U64 p1);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_RMT_H_*/
+#endif 
 
 

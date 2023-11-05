@@ -5,7 +5,7 @@
 
 
 static VNET_USER_STATUS_E g_enVnetcUserStatus = VNET_USER_STATUS_INIT;
-static VNET_USER_REASON_E g_enVnetcUserReason = VNET_USER_REASON_NONE;    /* 失败原因 */
+static VNET_USER_REASON_E g_enVnetcUserReason = VNET_USER_REASON_NONE;    
 
 
 VOID VNETC_User_SetStatus(IN VNET_USER_STATUS_E enStatus, IN VNET_USER_REASON_E enReason)

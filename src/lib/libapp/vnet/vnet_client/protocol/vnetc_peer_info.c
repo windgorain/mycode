@@ -36,7 +36,7 @@ static BS_STATUS vnetc_peerinfo_SendPeerInfoRequest
     return VNETC_Protocol_SendData(VNETC_TP_GetC2STP(), szInfo, strlen(szInfo) + 1);
 }
 
-/* 请求C2C的对端信息 */
+
 BS_STATUS VNETC_PeerInfo_StartPeerInfoRequest(IN UINT uiNodeID)
 {
     return vnetc_peerinfo_SendPeerInfoRequest(uiNodeID);
@@ -46,8 +46,8 @@ static BS_STATUS vnetc_peerinfo_DealPeerInfoReply
 (
     IN UINT uiTpID,
     IN UINT uiNodeID,
-    IN UINT uiDetectIp/* 网络序 */,
-    IN USHORT usDetectPort/* 网络序 */
+    IN UINT uiDetectIp,
+    IN USHORT usDetectPort
 )
 {
     VNETC_C2C_Direct_StartDetect(uiNodeID, uiDetectIp, usDetectPort);

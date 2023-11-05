@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 BS_STATUS VNET_VNIC_LinkInput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf);
@@ -19,8 +19,8 @@ BS_STATUS VNET_VNIC_LinkOutput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_VNIC_LINK_H_*/
+#endif 
 
 

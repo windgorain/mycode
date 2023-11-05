@@ -34,4 +34,4 @@ void POLLER_INS_Trigger(POLLER_INS_S *ins);
 #ifdef __cplusplus
 }
 #endif
-#endif //POLLER_CORE_H_
+#endif 

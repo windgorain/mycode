@@ -42,7 +42,7 @@ static UINT _precver_rand_init(int argc, char **argv)
 {
     UINT flag = 0;
     GETOPT2_NODE_S opts[] = {
-        {'o', 's', "slow", 0, NULL, "slow down", 0},
+        {'o', 's', "slow", GETOPT2_V_NONE, NULL, "slow down", 0},
         {0}
     };
 

@@ -18,4 +18,4 @@ size_t strset__data_size(const struct strset *set);
 int strset__find_str(struct strset *set, const char *s);
 int strset__add_str(struct strset *set, const char *s);
 
-#endif /* __LIBBPF_STRSET_H */
+#endif 

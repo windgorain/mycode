@@ -70,9 +70,8 @@ struct xsk_socket_info
     UINT outstanding_tx;
 };
 
-struct xsk_prog_info
-{
-    int prog_fd;
+struct xsk_prog_info {
+    struct bpf_object *obj;
     int xsks_map_fd;
     UINT xdp_flags;
 };
@@ -181,7 +180,7 @@ static struct xsk_socket_info *afxdp_configure_socket(struct xsk_umem_info *umem
         return NULL;
     }
 
-    ret = bpf_get_link_xdp_id(if_nametoindex(if_name), &prog_id, opt_xdp_flags);
+    ret = bpf_xdp_query_id(if_nametoindex(if_name), opt_xdp_flags, &prog_id);
     if (ret)
     {
         MEM_Free(xsk);
@@ -231,8 +230,8 @@ static int afxdp_SendPackets(struct xsk_socket_info *xsk, LDATA_S *pkts, int bat
     for (i = 0; i < batch_size; i++)
     {
         struct xdp_desc *tx_desc = xsk_ring_prod__tx_desc(&xsk->tx, idx + i);
-        tx_desc->addr = (UINT64)pkts[i].pucData;
-        tx_desc->len = pkts[i].uiLen;
+        tx_desc->addr = (UINT64)pkts[i].data;
+        tx_desc->len = pkts[i].len;
     }
 
     xsk_ring_prod__submit(&xsk->tx, batch_size);
@@ -250,14 +249,12 @@ static void afxdp_init_free_list(AFXDP_CTRL_S *ctrl, AFXDP_PARAM_S *p)
 
 static int afxdp_load_program(AFXDP_CTRL_S *ctrl, AFXDP_PARAM_S *p, CHAR *file_path)
 {
-    struct bpf_prog_load_attr prog_load_attr = {
-        .prog_type = BPF_PROG_TYPE_XDP,
-    };
     char xdp_filename[256];
     int prog_fd;
-    struct bpf_object *obj;
+    struct bpf_object *obj = NULL;
+    struct xsk_prog_info *prog_info = NULL;
+    struct bpf_program *prog;
     struct bpf_map *map;
-    struct xsk_prog_info *prog_info;
     int xsks_map_fd;
 
     if (ctrl->prog)
@@ -267,79 +264,74 @@ static int afxdp_load_program(AFXDP_CTRL_S *ctrl, AFXDP_PARAM_S *p, CHAR *file_p
     }
 
     prog_info = MEM_ZMalloc(sizeof(struct xsk_prog_info));
-    if (!prog_info)
-    {
+    if (!prog_info) {
         return BS_NO_MEMORY;
     }
 
     snprintf(xdp_filename, sizeof(xdp_filename), "%s", file_path);
-    prog_load_attr.file = xdp_filename;
 
-    if (bpf_prog_load_xattr(&prog_load_attr, &obj, &prog_fd))
-    {
-        MEM_Free(prog_info);
-        fprintf(stderr, "ERROR: failed to bpf_prog_load_xattr\n");
-        return BS_ERR;
+    obj = bpf_object__open(xdp_filename);
+    if (! obj) {
+        fprintf(stderr, "ERROR: Can't open %s \n", xdp_filename);
+        goto OUT_ERR;
     }
 
-    if (prog_fd < 0)
-    {
-        MEM_Free(prog_info);
-        fprintf(stderr, "ERROR: no program found: %s\n", strerror(prog_fd));
-        return BS_ERR;
+    if (bpf_object__load(obj) != 0) {
+        fprintf(stderr, "ERROR: Can't load obj \n");
+        goto OUT_ERR;
     }
 
     map = bpf_object__find_map_by_name(obj, "xsks_map");
     xsks_map_fd = bpf_map__fd(map);
-    if (xsks_map_fd < 0)
-    {
-
-        MEM_Free(prog_info);
-        close(prog_fd);
+    if (xsks_map_fd < 0) {
         fprintf(stderr, "ERROR: no xsks map found: %s\n", strerror(xsks_map_fd));
-        return BS_ERR;
+        goto OUT_ERR;
     }
 
-    if (bpf_set_link_xdp_fd(ctrl->if_index, prog_fd, p->xdp_flags) < 0)
-    {
-        MEM_Free(prog_info);
-        close(prog_fd);
+    prog = bpf_object__next_program(obj, NULL);
+    if (! prog) {
+        fprintf(stderr, "ERROR: Can't get prog \n");
+        goto OUT_ERR;
+    }
+
+	prog_fd = bpf_program__fd(prog);
+    if (bpf_xdp_attach(ctrl->if_index, prog_fd, p->xdp_flags, NULL) != 0) {
         fprintf(stderr, "ERROR: link set xdp fd failed\n");
-        return BS_ERR;
+        goto OUT_ERR;
     }
 
-    prog_info->prog_fd = prog_fd;
+    prog_info->obj = obj;
     prog_info->xsks_map_fd = xsks_map_fd;
     prog_info->xdp_flags = p->xdp_flags;
     ctrl->prog = prog_info;
 
     return BS_OK;
+
+OUT_ERR:
+    if (prog_info) {
+        MEM_Free(prog_info);
+    }
+    if (obj) {
+        bpf_object__close(obj);
+    }
+    return BS_ERR;
+
 }
 
 static void afxdp_remove_program(AFXDP_CTRL_S *ctrl)
 {
-    UINT curr_prog_id = 0;
-
-    if (!ctrl->prog)
-    {
+    if (!ctrl->prog) {
         return;
     }
 
-    if (ctrl->prog->prog_fd > 0)
-    {
-        if (bpf_get_link_xdp_id(ctrl->if_index, &curr_prog_id, ctrl->prog->xdp_flags))
-        {
-            fprintf(stderr, "bpf_get_link_xdp_id failed\n");
-        }
-        else
-        {
-            bpf_set_link_xdp_fd(ctrl->if_index, -1, ctrl->prog->xdp_flags);
-        }
-        close(ctrl->prog->prog_fd);
+    if (ctrl->prog->obj) {
+        bpf_xdp_detach(ctrl->if_index, ctrl->prog->xdp_flags, NULL);
+		bpf_object__close(ctrl->prog->obj);
     }
 
     MEM_Free(ctrl->prog);
     ctrl->prog = NULL;
+
     return;
 }
 
@@ -376,10 +368,8 @@ AFXDP_HANDLE AFXDP_Create(char *if_name, char *bpf_prog, AFXDP_PARAM_S *p)
     strlcpy(ctrl->if_name, if_name, sizeof(ctrl->if_name));
     ctrl->if_index = if_nametoindex(if_name);
 
-    if (bpf_prog)
-    {
-        if (0 != afxdp_load_program(ctrl, p, bpf_prog))
-        {
+    if (bpf_prog) {
+        if (0 != afxdp_load_program(ctrl, p, bpf_prog)) {
             AFXDP_Destroy(ctrl);
             return NULL;
         }
@@ -387,8 +377,7 @@ AFXDP_HANDLE AFXDP_Create(char *if_name, char *bpf_prog, AFXDP_PARAM_S *p)
 
     size = p->frame_size * p->frame_count;
     void *bufs = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if (bufs == MAP_FAILED)
-    {
+    if (bufs == MAP_FAILED) {
         AFXDP_Destroy(ctrl);
         return NULL;
     }
@@ -399,32 +388,26 @@ AFXDP_HANDLE AFXDP_Create(char *if_name, char *bpf_prog, AFXDP_PARAM_S *p)
     afxdp_init_free_list(ctrl, p);
 
     ctrl->umem = afxdp_configure_umem(bufs, size, p);
-    if (!ctrl->umem)
-    {
+    if (!ctrl->umem) {
         AFXDP_Destroy(ctrl);
         return NULL;
     }
 
-    if (p->flag & AFXDP_FLAG_RX)
-    {
-        if (0 != afxdp_populate_fill_ring(ctrl, p))
-        {
+    if (p->flag & AFXDP_FLAG_RX) {
+        if (0 != afxdp_populate_fill_ring(ctrl, p)) {
             AFXDP_Destroy(ctrl);
             return NULL;
         }
     }
 
     ctrl->xsk = afxdp_configure_socket(ctrl->umem, if_name, p);
-    if (!ctrl->xsk)
-    {
+    if (!ctrl->xsk) {
         AFXDP_Destroy(ctrl);
         return NULL;
     }
 
-    if (bpf_prog)
-    {
-        if (0 != afxdp_update_map(ctrl))
-        {
+    if (bpf_prog) {
+        if (0 != afxdp_update_map(ctrl)) {
             AFXDP_Destroy(ctrl);
             return NULL;
         }
@@ -437,31 +420,25 @@ void AFXDP_Destroy(AFXDP_HANDLE hAfXdp)
 {
     AFXDP_CTRL_S *ctrl = hAfXdp;
 
-    if (ctrl->xsk)
-    {
-        if (ctrl->xsk->xsk)
-        {
+    if (ctrl->xsk) {
+        if (ctrl->xsk->xsk) {
             xsk_socket__delete(ctrl->xsk->xsk);
         }
         MEM_Free(ctrl->xsk);
     }
 
-    if (ctrl->umem)
-    {
-        if (ctrl->umem->umem)
-        {
+    if (ctrl->umem) {
+        if (ctrl->umem->umem) {
             xsk_umem__delete(ctrl->umem->umem);
         }
         MEM_Free(ctrl->umem);
     }
 
-    if (ctrl->bufs)
-    {
+    if (ctrl->bufs) {
         munmap(ctrl->bufs, ctrl->buf_size);
     }
 
-    if (ctrl->prog)
-    {
+    if (ctrl->prog) {
         afxdp_remove_program(ctrl);
     }
 
@@ -477,15 +454,13 @@ void AFXDP_RecvPkt(AFXDP_HANDLE hAfXdp, UINT batch_size, PF_AFXDP_RECV_PKT func,
     UINT i;
 
     UINT rcvd = xsk_cons_nb_avail(&xsk->rx, batch_size);
-    if (rcvd == 0)
-    {
+    if (rcvd == 0) {
         return;
     }
     UINT free_count = xsk_prod_nb_free(&xsk->umem->fq, rcvd);
 
     rcvd = MIN(free_count, rcvd);
-    if (rcvd == 0)
-    {
+    if (rcvd == 0) {
         return;
     }
 
@@ -494,8 +469,7 @@ void AFXDP_RecvPkt(AFXDP_HANDLE hAfXdp, UINT batch_size, PF_AFXDP_RECV_PKT func,
     idx_fq = xsk->umem->fq.cached_prod;
     xsk->umem->fq.cached_prod += rcvd;
 
-    for (i = 0; i < rcvd; i++)
-    {
+    for (i = 0; i < rcvd; i++) {
         desc = xsk_ring_cons__rx_desc(&xsk->rx, idx_rx);
         UINT64 addr = desc->addr;
         UINT len = desc->len;
@@ -521,15 +495,14 @@ int AFXDP_SendPkt(AFXDP_HANDLE hAfXdp, void *data, int data_len)
     void *node;
 
     node = FreeList_Get(&ctrl->free_list);
-    if (!node)
-    {
+    if (!node) {
         RETURN(BS_NO_MEMORY);
     }
 
     MEM_Copy(node, data, data_len);
 
-    pkt.pucData = (void *)((char *)node - (char *)ctrl->bufs);
-    pkt.uiLen = data_len;
+    pkt.data = (void *)((char *)node - (char *)ctrl->bufs);
+    pkt.len = data_len;
 
     return afxdp_SendPackets(ctrl->xsk, &pkt, 1);
 }

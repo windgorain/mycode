@@ -18,14 +18,14 @@ typedef int (*PF_BINARY_HEAP_CMP)(IN void *data1, IN void * data2);
 typedef struct {
     DARRAY_HANDLE hDarray;
     PF_BINARY_HEAP_CMP pfCmp;
-    UINT count; /* 数组中节点的个数 */
+    UINT count; 
 }BINARY_HEAP_S;
 
 int BinaryHeap_Init(IN BINARY_HEAP_S *heap, IN PF_BINARY_HEAP_CMP pfCmp);
 void BinaryHeap_SetCmpFunc(IN BINARY_HEAP_S *heap, IN PF_BINARY_HEAP_CMP pfCmp);
 
 int BinaryHeap_Insert(IN BINARY_HEAP_S *heap, IN void *new_data);
-/* 删除指定index位置的元素, 并返回这个元素 */
+
 void * BinaryHeap_RemoveIndex(IN BINARY_HEAP_S *heap, IN UINT index);
 int BinaryHeap_RemoveData(IN BINARY_HEAP_S *heap, IN void *data);
 

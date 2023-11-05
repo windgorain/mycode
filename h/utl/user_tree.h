@@ -12,11 +12,11 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE USER_TREE_HANDLE;
 
-typedef BS_WALK_RET_E (*PF_UserTree_Walk_Func)(IN USER_TREE_HANDLE hUserTree, IN UINT64 uiID, IN HANDLE hUserHandle);
+typedef int (*PF_UserTree_Walk_Func)(IN USER_TREE_HANDLE hUserTree, IN UINT64 uiID, IN HANDLE hUserHandle);
 
 USER_TREE_HANDLE UserTree_Create();
 VOID UserTree_Destroy(IN USER_TREE_HANDLE hUserTree);
@@ -88,19 +88,19 @@ UINT64 UserTree_FindUserByName
     IN CHAR *pcUserName
 );
 
-/* 根据Index顺序获取下一个 */
+
 UINT64 UserTree_GetNextOrgByIndexOrder(IN USER_TREE_HANDLE hUserTree, IN UINT64 uiCurrentOrgID);
 UINT64 UserTree_GetNextUserByIndexOrder(IN USER_TREE_HANDLE hUserTree, IN UINT64 uiCurrentUserID);
 
-/* 序列化 */
+
 CHAR * UserTree_Sequence(IN USER_TREE_HANDLE hUserTree);
-/* 反序列化 */
+
 USER_TREE_HANDLE UserTree_DeSequence(IN CHAR *pcInfo);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__USER_TREE_H_*/
+#endif 
 
 

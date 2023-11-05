@@ -16,8 +16,8 @@ typedef enum
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__NAT_IF_H_*/
+#endif 
 
 

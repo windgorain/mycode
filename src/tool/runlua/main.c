@@ -37,7 +37,7 @@ static void runlua_run_file(char *file)
     error = luaL_dofile(L, file);
     if (error) {
         fprintf(stderr, "%s\r\n", lua_tostring(L, -1));
-        lua_pop(L, 1);/* pop error message from the stack */
+        lua_pop(L, 1);
     }
     lua_close(L);
 }
@@ -51,7 +51,7 @@ static void runlua_run_string(char *str)
     error = luaL_dostring(L, str);
     if (error) {
         fprintf(stderr, "%s\r\n", lua_tostring(L, -1));
-        lua_pop(L, 1);/* pop error message from the stack */
+        lua_pop(L, 1);
     }
     lua_close(L);
 }
@@ -67,7 +67,7 @@ static int runlua_run(int argc, char **argv)
         error = luaL_dostring(L, buff);
         if (error) {
             fprintf(stderr, "%s", lua_tostring(L, -1));
-            lua_pop(L, 1);/* pop error message from the stack */
+            lua_pop(L, 1);
         }
     }
 
@@ -79,8 +79,8 @@ static int runlua_string(int argc, char **argv)
 {
     static char *str=NULL;
     static GETOPT2_NODE_S opt[] = {
-        {'o', 'h', "help", 0, NULL, NULL, 0},
-        {'P', 0, "lua-string", 's', &str, NULL, 0},
+        {'o', 'h', "help", GETOPT2_V_NONE, NULL, NULL, 0},
+        {'P', 0, "lua-string", GETOPT2_V_STRING, &str, NULL, 0},
         {0} };
 
     if (0 != GETOPT2_Parse(argc, argv, opt)) {
@@ -102,8 +102,8 @@ static int runlua_file(int argc, char **argv)
 {
     static char *filename=NULL;
     static GETOPT2_NODE_S opt[] = {
-        {'o', 'h', "help", 0, NULL, NULL, 0},
-        {'p', 0, "lua-file", 's', &filename, NULL, 0},
+        {'o', 'h', "help", GETOPT2_V_NONE, NULL, NULL, 0},
+        {'p', 0, "lua-file", GETOPT2_V_STRING, &filename, NULL, 0},
         {0} };
 
     if (argc < 2) {

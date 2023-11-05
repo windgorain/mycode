@@ -106,7 +106,7 @@ static int _pipecmd_server_recv_msg(void *cfg, STREAM_CONN_S *conn)
     EXEC_Attach(hExec);
     ret = CmdExp_RunString(hRunner, data, data_len);
 
-    if ((data[data_len - 1] == '\n') || (data[data_len - 1] == '?')) { /* 输入结束 */
+    if ((data[data_len - 1] == '\n') || (data[data_len - 1] == '?')) { 
         _pipecmd_process_line_end(cfg, conn, ret);
     }
 
@@ -166,7 +166,7 @@ int PIPECMDS_Init()
     return 0;
 }
 
-/* name process-key */
+
 PLUG_API BS_STATUS PIPECMDS_CmdNamePKey(int argc, char **argv)
 {
     char *name = ProcessKey_GetKey();
@@ -186,7 +186,7 @@ PLUG_API BS_STATUS PIPECMDS_CmdNamePKey(int argc, char **argv)
     return 0;
 }
 
-/* name string %STRING<1-127> */
+
 PLUG_API BS_STATUS PIPECMDS_CmdNameString(int argc, char **argv)
 {
     if (g_pipecmd_server.server.enable) {
@@ -200,7 +200,7 @@ PLUG_API BS_STATUS PIPECMDS_CmdNameString(int argc, char **argv)
     return 0;
 }
 
-/* no name */
+
 PLUG_API BS_STATUS PIPECMDS_CmdNoName(int argc, char **argv)
 {
     if (g_pipecmd_server.server.enable) {
@@ -214,7 +214,7 @@ PLUG_API BS_STATUS PIPECMDS_CmdNoName(int argc, char **argv)
     return 0;
 }
 
-/* server enable */
+
 PLUG_API BS_STATUS PIPECMDS_CmdEnable(IN UINT ulArgc, IN CHAR ** argv)
 {
     int ret;
@@ -228,7 +228,7 @@ PLUG_API BS_STATUS PIPECMDS_CmdEnable(IN UINT ulArgc, IN CHAR ** argv)
     return ret;
 }
 
-/* no server enable */
+
 PLUG_API BS_STATUS PIPECMDS_CmdDisable(IN UINT ulArgc, IN CHAR ** argv)
 {
     PipeApp_Stop(&g_pipecmd_server);

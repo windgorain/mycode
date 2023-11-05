@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef INT (*PF_VS_ATTACH)(IN VOID *pstSocket, IN INT uiProto);
 
@@ -33,8 +33,8 @@ typedef struct
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VS_PROTOSW_H_*/
+#endif 
 
 

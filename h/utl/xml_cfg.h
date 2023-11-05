@@ -13,7 +13,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #if 1
 
@@ -45,7 +45,7 @@ typedef struct
     UINT       uiFileSize;
     CHAR       *pucFileName;
     CHAR       *pucFileContent;
-    UINT      ulMemSize;   /*申请的内存大小*/
+    UINT      ulMemSize;   
 }XMLC_HEAD_S;
 
 HANDLE XMLC_Open
@@ -63,16 +63,16 @@ BS_STATUS XMLC_DelKeyInMark(IN MKV_MARK_S *pstMark, IN MKV_KEY_S *pstKey);
 BS_STATUS XMLC_DelKey(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections, IN CHAR *pszKey);
 BS_STATUS XMLC_DelAllKeyOfMark(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections);
 BS_STATUS XMLC_DelMark(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections);
-/* 覆盖已经重复的Mark */
+
 BS_STATUS XMLC_AddMark(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections);
-/* 不覆盖已经重复的Mark, 而是生成一个新的 */
+
 MKV_MARK_S * XMLC_AddMark2Mark(IN HANDLE hXmlcHandle, IN MKV_MARK_S *pstMark, IN CHAR *pcMark);
 MKV_MARK_S * XMLC_FindMarkInMark(IN HANDLE hXmlcHandle, IN MKV_MARK_S *pstMark, IN CHAR *pcMark);
 MKV_MARK_S * XMLC_GetMark(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections);
 BOOL_T XMLC_IsMarkExist(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections);
 CHAR * XMLC_GetNextMarkInMark(IN HANDLE hXmlcHandle, IN MKV_MARK_S *pstMarkRoot, IN CHAR *pcCurSecName);
 CHAR * XMLC_GetNextMark(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections, IN CHAR *pcCurSecName);
-CHAR * XMLC_GetMarkByIndex(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections, IN UINT uiIndex/* 从0开始计算 */);
+CHAR * XMLC_GetMarkByIndex(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections, IN UINT uiIndex);
 BS_STATUS XMLC_GetNextKeyInMark(IN MKV_MARK_S *pstMarkRoot, INOUT CHAR **ppszKeyName);
 BS_STATUS XMLC_GetNextKey(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections, INOUT CHAR **ppszKeyName);
 BS_STATUS XMLC_SetKeyValueAsString(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections, IN CHAR *pszKeyName, IN CHAR *pszValue);
@@ -130,8 +130,8 @@ CHAR * XMLC_GetKeyValueInMark(IN MKV_MARK_S *pstMark, IN CHAR *pcKey);
 	}while (0)
 
 
-typedef BS_WALK_RET_E (*PF_SXMLC_SEC_WALK_FUNC)(IN HANDLE hIniHandle, IN CHAR *pszSecName, IN HANDLE hUsrHandle);
-typedef BS_WALK_RET_E (*PF_SXMLC_KEY_WALK_FUNC)(IN HANDLE hIniHandle, IN CHAR *pszSecName, IN CHAR *pszKeyName, IN HANDLE hUsrHandle);
+typedef int (*PF_SXMLC_SEC_WALK_FUNC)(HANDLE hIniHandle, CHAR *pszSecName, HANDLE hUsrHandle);
+typedef int (*PF_SXMLC_KEY_WALK_FUNC)(HANDLE hIniHandle, CHAR *pszSecName, CHAR *pszKeyName, HANDLE hUsrHandle);
 
 extern HANDLE SXMLC_Open
 (
@@ -154,23 +154,23 @@ extern BS_STATUS SXMLC_DelSection(IN HANDLE hIniHandle, IN CHAR *pucMarkName);
 extern BOOL_T SXMLC_IsSecExist(IN HANDLE hIniHandle, IN CHAR *pucMarkName);
 extern BOOL_T SXMLC_IsKeyExist(IN HANDLE hIniHandle, IN CHAR *pucMarkName, IN CHAR *pucKeyName);
 extern CHAR * SXMLC_GetNextSec(IN HANDLE hHandle, IN CHAR *pcCruSecName);
-extern CHAR * SXMLC_GetSecByIndex(IN HANDLE hHandle, IN UINT uiIndex/* 从0开始计算 */);
+extern CHAR * SXMLC_GetSecByIndex(IN HANDLE hHandle, IN UINT uiIndex);
 extern BS_STATUS SXMLC_GetNextKey(IN HANDLE hIniHandle, IN CHAR *pucMarkName, INOUT CHAR **ppszKeyName);
 extern VOID SXMLC_WalkSection(IN HANDLE hHandle, IN PF_SXMLC_SEC_WALK_FUNC pfFunc, IN HANDLE hUsrHandle);
 extern VOID SXMLC_WalkKey(IN HANDLE hIniHandle, IN CHAR *pszSecName, IN PF_SXMLC_KEY_WALK_FUNC pfFunc, IN HANDLE hUsrHandle);
 
-/* 返回section的个数 */
+
 extern UINT SXMLC_GetSectionNum(IN HANDLE hIniHandle);
 
-/* 返回section中属性的个数 */
+
 extern UINT SXMLC_GetKeyNumOfSection(IN HANDLE hIniHandle, IN CHAR *pucMarkName);
 
 #endif
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__XMLC_CFG_H_*/
+#endif 
 
 

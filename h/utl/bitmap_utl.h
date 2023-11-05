@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct
 {
@@ -67,24 +67,24 @@ void BITMAP_Fini(BITMAP_S *pstBitMap);
 BS_STATUS BITMAP_Create(IN BITMAP_S * pstBitMap, UINT ulBitNum);
 BS_STATUS BITMAP_Destory(IN BITMAP_S * pstBitMap);
 
-/* 获取一个setted位的Index */
+
 INT64 BITMAP_GetBusy(IN BITMAP_S * pstBitMap);
 
-/* 获取某个指定位置之后的setted位的Index */
+
 INT64 BITMAP_GetBusyFrom(BITMAP_S *pstBitMap, INT64 from);
 
-/* 获取一个unsetted位的Index */
+
 INT64 BITMAP_GetFree(IN BITMAP_S * pstBitMap);
 
 INT64 BITMAP_GetFreeFrom(BITMAP_S *pstBitMap, INT64 from);
 
-/* 环绕形式的获取一个unsetted位的Index */
+
 INT64 BITMAP_GetFreeCycle(IN BITMAP_S *pstBitMap);
 
-/* 从两个bitmap中获取都未被设置的位的Index */
+
 INT64 BITMAP_2GetUnsettedIndex(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2);
 
-/* 从两个bitmap中获取都被设置的位的Index */
+
 INT64 BITMAP_2GetSettedIndex(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2);
 
 VOID BITMAP_Zero(IN BITMAP_S * pstBitMap);
@@ -99,20 +99,20 @@ BS_STATUS BITMAP_ClrBits(BITMAP_S *pstBitMap, INT64 start_bit, UINT uiCount);
 BOOL_T BITMAP_IsSetBits(BITMAP_S *pstBitMap, INT64 start_bit, UINT uiCount);
 BOOL_T BITMAP_IsAllSetted(BITMAP_S *pstBitMap);
 
-/* dst = src */
+
 void BITMAP_Copy(BITMAP_S *src, BITMAP_S *dst);
-/* dst = ~src */
+
 void BITMAP_Not(BITMAP_S *src, BITMAP_S *dst);
-/* dst = src1 | src2 */
+
 void BITMAP_Or(BITMAP_S *src1, BITMAP_S *src2, BITMAP_S *dst);
-/* dst = src1 & src2 */
+
 void BITMAP_And(BITMAP_S *src1, BITMAP_S *src2, BITMAP_S *dst);
-/* dst = src1 ^ src2 */
+
 void BITMAP_Xor(BITMAP_S *src1, BITMAP_S *src2, BITMAP_S *dst);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
 #endif
 

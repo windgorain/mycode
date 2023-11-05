@@ -10,48 +10,48 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* 消息类型 */
+
 #define RPC_MSG_TYPE_REQUEST    0
 #define RPC_MSG_TYPE_RESPONSE   1
 #define RPC_MSG_TYPE_ERRINFO    2
 
-/* 参数类型 */
-#define RPC_PARAM_TYPE_VOID         0   /* 无效参数 */
+
+#define RPC_PARAM_TYPE_VOID         0   
 #define RPC_PARAM_TYPE_UINT32        1
 #define RPC_PARAM_TYPE_STRING       2
 
-/* 返回值类型 */
+
 #define RPC_RETURN_TYPE_VOID        0
 #define RPC_RETURN_TYPE_UINT32       1
 #define RPC_RETURN_TYPE_STRING      2
 #define RPC_RETURN_TYPE_BOOL        3
 
-/* 支持最多参数个数 */
+
 #define _RPC_MAX_PARAM_NUM  16
 
-/* 参数节点结构 */
+
 typedef struct
 {
-    UCHAR ucType;           /* RPC_PARAM_TYPE_UINT32等, RPC_PARAM_TYPE_VOID表示本参数无效 */
-    UCHAR ucIsMemMalloc;    /* 是否申请内存: 1-申请了内存; 0-未申请内存 */
+    UCHAR ucType;           
+    UCHAR ucIsMemMalloc;    
     UCHAR ucReserved1;
     UCHAR ucReserved2;
-    UINT ulParamLen;       /* 参数长度 */
-    UCHAR *pucParam;        /* 参数内容 */
+    UINT ulParamLen;       
+    UCHAR *pucParam;        
 }RPC_PARAM_NODE_S;
 
-/* 用户RFTB 参数结构 */
+
 typedef struct
 {
-    UCHAR ucMsgType;            /* _RPC_TYPE_REQUEST or _RPC_TYPE_RESPONSE */
-    UCHAR ucReturnType;         /* 只用于返回值, RPC_RETURN_TYPE_VOID等  */
-    UCHAR ucIsMemMalloc;        /* pucRpcHeadDataValue是否申请了内存 */
+    UCHAR ucMsgType;            
+    UCHAR ucReturnType;         
+    UCHAR ucIsMemMalloc;        
     UCHAR ucReserved1;
-    UINT ulRpcHeadDataLen;        /* pucRpcHeadDataValue 长度 */
-    UCHAR *pucRpcHeadDataValue;         /* 函数名/ 返回值 */
-    UINT ulParamNum;           /* 参数个数 */
+    UINT ulRpcHeadDataLen;        
+    UCHAR *pucRpcHeadDataValue;         
+    UINT ulParamNum;           
     RPC_PARAM_NODE_S astParams[_RPC_MAX_PARAM_NUM];
 }RPC_MSG_S;
 
@@ -78,16 +78,16 @@ UINT RPC_GetTotalSizeOfData(IN UCHAR *pucData);
 VOID RPC_FreeData(IN UCHAR *pucData);
 
 
-/* 客户端 */
-HANDLE RPCC_UDP_Create(IN UINT ulIp/* 主机序 */, IN USHORT usPort/* 主机序*/);
+
+HANDLE RPCC_UDP_Create(IN UINT ulIp, IN USHORT usPort);
 
 RPC_MSG_S * RPCC_Send(IN HANDLE hRpcHandle, IN RPC_MSG_S *pstRpcMsg);
 
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__RPC_UTL_H_*/
+#endif 
 
 

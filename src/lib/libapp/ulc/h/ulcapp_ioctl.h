@@ -15,4 +15,4 @@ int ULCAPP_IOCTL_Init();
 #ifdef __cplusplus
 }
 #endif
-#endif //ULCAPP_IOCTL_H_
+#endif 

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 extern VOID OS_HOOKAPI_ReplaceIATEntryInOne
 (
@@ -49,8 +49,8 @@ HANDLE _HOOKAPI_GetLogId();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__HOOKAPI_OS_H_*/
+#endif 
 
 

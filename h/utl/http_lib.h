@@ -8,49 +8,49 @@
 extern "C"{
 #endif
 
-#if 1   /* HTTP头解析 */
+#if 1   
 
 #define HTTP_MIN_FIRST_LINE_LEN (sizeof("GET / HTTP/1.1\r\n") - 1)
 
 #define HTTPD_SERVICE_MAX_URLPATH_LEN 255UL
 
-/* HTTP协议解析器 */
 
-#define HTTP_CRLFCRLF                       "\r\n\r\n"      /* HTTP协议请求/响应头分隔符 */
-#define HTTP_CRLFCRLF_LEN 4UL                               /* HTTP协议请求/响应头分隔符长度 */
-#define HTTP_LINE_END_FLAG                  "\r\n"          /* HTTP协议请求/响应/头域行结束标记 */
-#define HTTP_LINE_END_FLAG_LEN 2UL                          /* HTTP协议请求/响应/头域行结束标记长度 */
 
-#define HTTP_CHUNK_FLAG_MAX_LEN     18UL                    /* Chunk块开始标记的长度, 16进制表示的UINT64型, 包含\r\n */
-#define HTTP_CHUNK_EOF_FLAG                 "0\r\n\r\n"     /* 所有Chunk数据传输完成的标记 */
-#define HTTP_CHUNK_EOF_FLAG_LEN 5UL                         /* 所有Chunk数据传输完成的标记长度 */
+#define HTTP_CRLFCRLF                       "\r\n\r\n"      
+#define HTTP_CRLFCRLF_LEN 4UL                               
+#define HTTP_LINE_END_FLAG                  "\r\n"          
+#define HTTP_LINE_END_FLAG_LEN 2UL                          
 
-#define HTTP_MAX_UINT64_LEN       20UL      /* UINT64 类型字符串表示的最长长度 */
-#define HTTP_MAX_UINT_HEX_LEN     8UL       /* UINT数字的十六进制字符串表示的最大长度 */
-#define HTTP_MAX_UINT64_HEX_LEN   16UL      /* UINT64数字的十六进制字符串表示的最大长度 */
+#define HTTP_CHUNK_FLAG_MAX_LEN     18UL                    
+#define HTTP_CHUNK_EOF_FLAG                 "0\r\n\r\n"     
+#define HTTP_CHUNK_EOF_FLAG_LEN 5UL                         
+
+#define HTTP_MAX_UINT64_LEN       20UL      
+#define HTTP_MAX_UINT_HEX_LEN     8UL       
+#define HTTP_MAX_UINT64_HEX_LEN   16UL      
 #define HTTP_MAX_COOKIE_PORT_NUM  16UL
 #define HTTP_MAX_COOKIE_LEN       4096UL
 #define HTTP_MAX_HEAD_LENGTH      8192UL
 #define HTTP_INVALID_VALUE       0xffffffff
 
-#define HTTP_FIELD_BODY_FIRST_MEMBER_DNS             "dns"      /* HTTPDNS协议响应头标识符 */
-#define HTTP_FIELD_BODY_FIRST_MEMBER_DNS_LEN         3UL        /* HTTPDNS协议响应头标识符长度 */
-#define HTTP_FIELD_BODY_FIRST_MEMBER_HOST            "host"     /* HTTPDNS协议响应头标识符 */
-#define HTTP_FIELD_BODY_FIRST_MEMBER_HOST_LEN        4UL        /* HTTPDNS协议响应头标识符长度 */
+#define HTTP_FIELD_BODY_FIRST_MEMBER_DNS             "dns"      
+#define HTTP_FIELD_BODY_FIRST_MEMBER_DNS_LEN         3UL        
+#define HTTP_FIELD_BODY_FIRST_MEMBER_HOST            "host"     
+#define HTTP_FIELD_BODY_FIRST_MEMBER_HOST_LEN        4UL        
 
-#define HTTP_FIELD_BODY_MEMBER_IPS                  "ips"           /* HTTPDNS协议响应体,Member */
-#define HTTP_FIELD_BODY_MEMBER_TYPE                 "type"          /* HTTPDNS协议响应体,Member */
-#define HTTP_FIELD_BODY_MEMBER_TTL                  "ttl"           /* HTTPDNS协议响应体,Member */
-#define HTTP_FIELD_BODY_MEMBER_CLIENT_IP            "client_ip"     /* HTTPDNS协议响应体,Member */
+#define HTTP_FIELD_BODY_MEMBER_IPS                  "ips"           
+#define HTTP_FIELD_BODY_MEMBER_TYPE                 "type"          
+#define HTTP_FIELD_BODY_MEMBER_TTL                  "ttl"           
+#define HTTP_FIELD_BODY_MEMBER_CLIENT_IP            "client_ip"     
 
-#define HTTP_FIELD_BODY_RESPONS_DNS_MAX              16         /* HTTPDNS协议响应体支持DNS请求数量 */
+#define HTTP_FIELD_BODY_RESPONS_DNS_MAX              16         
 
-/* 协议解析器需要用到的固定字符串 */
+
 #define HTTP_HEAD_FIELD_STATUS                 "Status"           
 #define HTTP_PART_HEAD_DISPOSITION_TYPE        "Disposition-Type" 
 
 
-/* 请求头域 */
+
 #define HTTP_FIELD_ACCEPT                      "Accept"
 #define HTTP_FIELD_ACCEPT_CHARSET              "Accept-Charset"
 #define HTTP_FIELD_ACCEPT_ENCODING             "Accept-Encoding"
@@ -79,7 +79,7 @@ extern "C"{
 
 
 
-/* 响应头域 */
+
 #define HTTP_FIELD_ACCEPT_RANGES               "Accept-Ranges"                             
 #define HTTP_FIELD_AGE                         "Age"                                       
 #define HTTP_FIELD_ETAG                        "ETag"                                      
@@ -93,7 +93,7 @@ extern "C"{
 #define HTTP_FIELD_SET_COOKIE2                 "Set-Cookie2"
 
 
-/* 通用头域 */
+
 #define HTTP_FIELD_CATCH_CONTROL               "Cache-Control"     
 #define HTTP_FIELD_CONNECTION                  "Connection"
 #define HTTP_FIELD_DATE                        "Date"      
@@ -104,7 +104,7 @@ extern "C"{
 #define HTTP_FIELD_VIA                         "Via"                            
 #define HTTP_FIELD_WARNING                     "Warning"                        
 
-/* 体属性头域 */
+
 #define HTTP_FIELD_ALLOW                       "Allow"                                        
 #define HTTP_FIELD_CONTENT_ENCODING            "Content-Encoding"       
 #define HTTP_FIELD_CONTENT_LANGUAGE            "Content-Language"       
@@ -117,24 +117,24 @@ extern "C"{
 #define HTTP_FIELD_LAST_MODIFIED               "Last-Modified"                                 
 #define HTTP_FIELD_CONTENT_DISPOSITION         "Content-Disposition"    
                
-/* HTTP协议ULR中不同字段的分隔符 */
+
 #define HTTP_EQUAL_CHAR                    '='
 #define HTTP_AND_CHAR                      '&'
 #define HTTP_SEMICOLON_CHAR                ';'
 #define HTTP_SEMICOLON_STRING              ";"
-#define HTTP_BACKSLASH_CHAR                '/'                     /* 反斜线字符 */     
-#define HTTP_BACKSLASH_STRING              "/"                     /* 反斜线字符串 */ 
-#define HTTP_HEAD_FIELD_SPLIT_CHAR         ':'                     /* head field中的分隔符 */
-#define HTTP_HEAD_URI_QUERY_CHAR           '?'                     /* HTTP请求行中URL中Query的标记 */
-#define HTTP_HEAD_URI_QUERY_STRING         "?"                     /* 问号字符串 */
-#define HTTP_HEAD_URI_FRAGMENT_CHAR        '#'                     /* HTTP请求行中URL中Fragment的标记 */
-#define HTTP_HEAD_URI_FRAGMENT_STRING      "#"                     /* 井号字符串 */
-#define HTTP_HEAD_DOUBLE_QUOTATION_STRING  "\""                    /* PartHead解析时参数名两边字符 */
-#define HTTP_SP_HT_STRING                  " \t"                   /* 空格和TAB字符集 */
+#define HTTP_BACKSLASH_CHAR                '/'                          
+#define HTTP_BACKSLASH_STRING              "/"                      
+#define HTTP_HEAD_FIELD_SPLIT_CHAR         ':'                     
+#define HTTP_HEAD_URI_QUERY_CHAR           '?'                     
+#define HTTP_HEAD_URI_QUERY_STRING         "?"                     
+#define HTTP_HEAD_URI_FRAGMENT_CHAR        '#'                     
+#define HTTP_HEAD_URI_FRAGMENT_STRING      "#"                     
+#define HTTP_HEAD_DOUBLE_QUOTATION_STRING  "\""                    
+#define HTTP_SP_HT_STRING                  " \t"                   
 
-#define HTTP_RFC1123_DATESTR_LEN           29UL                   /* RFC 1123 中定义的时间串长度 */
+#define HTTP_RFC1123_DATESTR_LEN           29UL                   
 
-/* 常用头域,用于加速GetHeadField */
+
 #define HTTP_HF_DEFS  \
     _(HTTP_HF_HOST, HTTP_FIELD_HOST) \
     _(HTTP_HF_CONTENT_LENGTH, HTTP_FIELD_CONTENT_LENGTH)  \
@@ -149,173 +149,173 @@ typedef enum {
     HTTP_HF_MAX
 }HTTP_HEAD_FIELD_E;
 
-/*HTTP 头解析器*/
+
 typedef     VOID*     HTTP_HEAD_PARSER;
 
 typedef enum tagHTTP_Version{
-    HTTP_VERSION_0_9,                   /* HTTP Version 0.9 */
-    HTTP_VERSION_1_0,                   /* HTTP Version 1.0 */
-    HTTP_VERSION_1_1,                   /* HTTP Version 1.1 */
-    HTTP_VERSION_BUTT                   /* Butt */                  
+    HTTP_VERSION_0_9,                   
+    HTTP_VERSION_1_0,                   
+    HTTP_VERSION_1_1,                   
+    HTTP_VERSION_BUTT                                     
 } HTTP_VERSION_E;
 
 
 typedef struct tagHTTP_HeadField{
-    DLL_NODE_S stListNode;                  /* HeadField链表节点, 要放在第一个成员位置 */
-    CHAR *pcFieldName;                      /* 头域名 */              
-    CHAR *pcFieldValue;                     /* 头域值 */
-    UCHAR uiFieldNameLen;                   /* 头域名长度 */
+    DLL_NODE_S stListNode;                  
+    CHAR *pcFieldName;                                    
+    CHAR *pcFieldValue;                     
+    UCHAR uiFieldNameLen;                   
 }HTTP_HEAD_FIELD_S;
 
 typedef enum tagHTTP_Method{
-    HTTP_METHOD_OPTIONS,                /* OPTIONS方法 */
-    HTTP_METHOD_GET,                    /* GET方法 */
-    HTTP_METHOD_HEAD,                   /* HEAD方法 */
-    HTTP_METHOD_POST,                   /* POST方法 */
-    HTTP_METHOD_PUT,                    /* PUT方法 */    
-    HTTP_METHOD_DELETE,                 /* DELETE方法 */
-    HTTP_METHOD_TRACE,                  /* TRACE方法 */    
-    HTTP_METHOD_CONNECT,                /* CONNECT方法 */
+    HTTP_METHOD_OPTIONS,                
+    HTTP_METHOD_GET,                    
+    HTTP_METHOD_HEAD,                   
+    HTTP_METHOD_POST,                   
+    HTTP_METHOD_PUT,                        
+    HTTP_METHOD_DELETE,                 
+    HTTP_METHOD_TRACE,                      
+    HTTP_METHOD_CONNECT,                
     
-    HTTP_METHOD_BUTT                    /* Butt */                   
+    HTTP_METHOD_BUTT                                       
 } HTTP_METHOD_E;
 
-/* Cookie */
+
 typedef enum tagHTTP_CookieType {
-    HTTP_COOKIE_SERVER,    /* SERVER回应的cookie，见RFC2109 SESSION 4.2.2 */
-    HTTP_COOKIE_SERVER2,   /* SERVER回应的cookie，见RFC2965 SESSION 3.2 */
-    HTTP_COOKIE_CLIENT,    /* CLIENT请求中的cookie，见RFC2965 SESSION 3.3 */
-    HTTP_COOKIE_CLIENT2,   /* CLIENT请求中的cookie2，见RFC2965 SESSION 3.3.5 */
+    HTTP_COOKIE_SERVER,    
+    HTTP_COOKIE_SERVER2,   
+    HTTP_COOKIE_CLIENT,    
+    HTTP_COOKIE_CLIENT2,   
     
-    HTTP_COOKIE_BUTT       /* Butt */      
+    HTTP_COOKIE_BUTT             
 }HTTP_COOKIE_TYPE_E;
 
 typedef enum tagHTTP_CookieAV{
-    /* Name = Value; 值是一个字符串 */
+    
     COOKIE_AV_COMMENT,
     COOKIE_AV_COMMENTURL,
     COOKIE_AV_DOMAIN,
     COOKIE_AV_PATH,
     COOKIE_AV_PORT,
 
-    /* name = Value, 值是一个数值，以串的形式出现 */
+    
     COOKIE_AV_MAXAGE,
     COOKIE_AV_VERSION,
 
-    /* name; has no value. */
+    
     COOKIE_AV_DISCARD,
     COOKIE_AV_SECURE,
 
-    /* Butt */
+    
     COOKIE_AV_BUTT    
 }HTTP_COOKIE_AV_E;
 
 typedef struct tagHTTP_CookieKey                               
 {                                                                    
-    CHAR  *pcName;                         /* Cookie名字，必选 */    
-    CHAR  *pcDomain;                       /* Cookie生效的domain，可以是NULL */
-    CHAR  *pcPath;                         /* 可选，见RFC2965 SESSION 3.2.2 */
+    CHAR  *pcName;                             
+    CHAR  *pcDomain;                       
+    CHAR  *pcPath;                         
 } HTTP_COOKIE_KEY_S;                                                 
                                                                      
 typedef struct tagHTTP_ServerCookie{                                
-    HTTP_COOKIE_KEY_S stCookieKey;              /* Cookie的关键字 */ 
-    CHAR  *pcValue;                             /* Cookie的值，必选 */
-    CHAR  *pcComment;                           /* 可选，见RFC2965 SESSION 3.2.2 */
-    CHAR  *pcCommentUrl;                        /* 可选，见RFC2965 SESSION 3.2.2 */ 
-    ULONG  ulMaxAge;                            /* 可选，见RFC2965 SESSION 3.2.2 */
-    USHORT ausPort[HTTP_MAX_COOKIE_PORT_NUM];   /* 可选，见RFC2965 */
-    BOOL_T bDiscard;                            /* 可选，见RFC2965 SESSION 3.2.2 */
-    BOOL_T bSecure;                             /* 可选，见RFC2965 SESSION 3.2.2 */
-    ULONG  ulVersion;                           /* Cookie版本，十进制数字. RFC2965定义为 1*DIGIT */
+    HTTP_COOKIE_KEY_S stCookieKey;               
+    CHAR  *pcValue;                             
+    CHAR  *pcComment;                           
+    CHAR  *pcCommentUrl;                         
+    ULONG  ulMaxAge;                            
+    USHORT ausPort[HTTP_MAX_COOKIE_PORT_NUM];   
+    BOOL_T bDiscard;                            
+    BOOL_T bSecure;                             
+    ULONG  ulVersion;                           
 } HTTP_SERVER_COOKIE_S;                                              
                                
 
 
-/* Cookie */
+
 
 typedef struct tagHTTP_RangePart
 {
-    UINT uiKeyLow;      /* Range的低值 */
-    UINT uiKeyHigh;     /* Range的高值 */
+    UINT uiKeyLow;      
+    UINT uiKeyHigh;     
 } HTTP_RANGE_PART_S;
 
 typedef struct tagHTTP_Range
 {
-    ULONG ulRangeNum;                   /* Range 个数 */
-    HTTP_RANGE_PART_S *pstRangePart;    /* 指向一系列Range字段结构体 */
+    ULONG ulRangeNum;                   
+    HTTP_RANGE_PART_S *pstRangePart;    
 }HTTP_RANGE_S;
 
 typedef enum tagHTTP_Source{
-    HTTP_REQUEST,                   /* HTTP请求头 */
-    HTTP_RESPONSE,                  /* HTTP响应头 */
-    HTTP_PART_HEADER,               /* Multipart PART Header */
-    HTTP_FCGI_RESPONSE,             /* FCGI响应头 */
-    HTTP_SOURCE_BUTT                /* Butt */
+    HTTP_REQUEST,                   
+    HTTP_RESPONSE,                  
+    HTTP_PART_HEADER,               
+    HTTP_FCGI_RESPONSE,             
+    HTTP_SOURCE_BUTT                
 } HTTP_SOURCE_E;
 
 
 typedef enum tagHTTP_StatusCode{
-    HTTP_STATUS_CONTINUE=0,       /*"100 continue"                        */
-    HTTP_STATUS_SWITCH_PROTO,     /*"101 Switching Protocols"             */          
-    HTTP_STATUS_OK,               /*"200 OK"                              */ 
-    HTTP_STATUS_CREATED,          /*"201 Created"                         */ 
-    HTTP_STATUS_ACCEPTED,         /*"202 Accepted"                        */ 
-    HTTP_STATUS_NON_AUTHO,        /*"203 Non-Authoritative Information"   */ 
-    HTTP_STATUS_NO_CONTENT,       /*"204 No Content"                      */ 
-    HTTP_STATUS_RESET_CONTENT,    /*"205 Reset Content"                   */ 
-    HTTP_STATUS_PARTIAL_CONTENT,  /*"206 Partial Content"                 */ 
-    HTTP_STATUS_MULTI_CHCS,       /*"300 Multiple Choices"                */ 
-    HTTP_STATUS_MOVED_PMT,        /*"301 Moved Permanently"               */ 
-    HTTP_STATUS_MOVED_TEMP,       /*"302 Found"                           */ 
-    HTTP_STATUS_SEE_OTHER,        /*"303 See Other"                       */       
-    HTTP_STATUS_NOT_MODI,         /*"304 Not Modified"                    */       
-    HTTP_STATUS_USE_PXY,          /*"305 Use Proxy"                       */ 
-    HTTP_STATUS_REDIRECT_TEMP,    /*"307 Temporary Redirect"              */
-    HTTP_STATUS_BAD_RQ,           /*"400 Bad Request"                     */     
-    HTTP_STATUS_UAUTHO,           /*"401 Unauthorized"                    */    
-    HTTP_STATUS_PAY_RQ,           /*"402 Payment Required"                */    
-    HTTP_STATUS_FORBIDDEN,        /*"403 Forbidden"                       */       
-    HTTP_STATUS_NOT_FOUND,        /*"404 Not Found"                       */       
-    HTTP_STATUS_NOT_ALLOWED,      /*"405 Method Not Allowed"              */      
-    HTTP_STATUS_NOT_ACC,          /*"406 Not Acceptable"                  */     
-    HTTP_STATUS_PXY_AUTH_RQ,      /*"407 Proxy Authentication Required"   */    
-    HTTP_STATUS_RQ_TIME_OUT,      /*"408 Request Time-out"                */    
-    HTTP_STATUS_CONFLICT,         /*"409 Conflict"                        */       
-    HTTP_STATUS_GONE,             /*"410 Gone"                            */       
-    HTTP_STATUS_LEN_RQ,           /*"411 Length Required"                 */      
-    HTTP_STATUS_PRECOND_FAIL,     /*"412 Precondition Failed"             */     
-    HTTP_STATUS_BODY_TOO_LARGE,   /*"413 Request Entity Too Large"        */    
-    HTTP_STATUS_URL_TOO_LARGE,    /*"414 Request-URI Too Large"           */    
-    HTTP_STATUS_USUPPORT_MEDIA,   /*"415 Unsupported Media Type"          */       
-    HTTP_STATUS_RANGE_ERR,        /*"416 Requested range not satisfiable" */       
-    HTTP_STATUS_EXPECT_FAILED,    /*"417 Expectation Failed"              */       
-    HTTP_STATUS_INTERNAL_ERR,     /*"500 Internal Server Error"           */       
-    HTTP_STATUS_NOT_IMPLE,        /*"501 Method Not Implemented"          */      
-    HTTP_STATUS_BAD_GATEWAY,      /*"502 Bad Gateway"                     */     
-    HTTP_STATUS_SERVICE_UAVAIL,   /*"503 Service Unavailable"             */    
-    HTTP_STATUS_GATWAY_TIME_OUT,  /*"504 Gateway Time-out"                */    
-    HTTP_STATUS_VER_NOT_SUPPORT,  /*"505 HTTP Version not supported"      */
+    HTTP_STATUS_CONTINUE=0,       
+    HTTP_STATUS_SWITCH_PROTO,               
+    HTTP_STATUS_OK,                
+    HTTP_STATUS_CREATED,           
+    HTTP_STATUS_ACCEPTED,          
+    HTTP_STATUS_NON_AUTHO,         
+    HTTP_STATUS_NO_CONTENT,        
+    HTTP_STATUS_RESET_CONTENT,     
+    HTTP_STATUS_PARTIAL_CONTENT,   
+    HTTP_STATUS_MULTI_CHCS,        
+    HTTP_STATUS_MOVED_PMT,         
+    HTTP_STATUS_MOVED_TEMP,        
+    HTTP_STATUS_SEE_OTHER,               
+    HTTP_STATUS_NOT_MODI,                
+    HTTP_STATUS_USE_PXY,           
+    HTTP_STATUS_REDIRECT_TEMP,    
+    HTTP_STATUS_BAD_RQ,                
+    HTTP_STATUS_UAUTHO,               
+    HTTP_STATUS_PAY_RQ,               
+    HTTP_STATUS_FORBIDDEN,               
+    HTTP_STATUS_NOT_FOUND,               
+    HTTP_STATUS_NOT_ALLOWED,            
+    HTTP_STATUS_NOT_ACC,               
+    HTTP_STATUS_PXY_AUTH_RQ,          
+    HTTP_STATUS_RQ_TIME_OUT,          
+    HTTP_STATUS_CONFLICT,                
+    HTTP_STATUS_GONE,                    
+    HTTP_STATUS_LEN_RQ,                 
+    HTTP_STATUS_PRECOND_FAIL,          
+    HTTP_STATUS_BODY_TOO_LARGE,       
+    HTTP_STATUS_URL_TOO_LARGE,        
+    HTTP_STATUS_USUPPORT_MEDIA,          
+    HTTP_STATUS_RANGE_ERR,               
+    HTTP_STATUS_EXPECT_FAILED,           
+    HTTP_STATUS_INTERNAL_ERR,            
+    HTTP_STATUS_NOT_IMPLE,              
+    HTTP_STATUS_BAD_GATEWAY,           
+    HTTP_STATUS_SERVICE_UAVAIL,       
+    HTTP_STATUS_GATWAY_TIME_OUT,      
+    HTTP_STATUS_VER_NOT_SUPPORT,  
     
-    HTTP_STATUS_CODE_BUTT         /* Butt */
+    HTTP_STATUS_CODE_BUTT         
 }HTTP_STATUS_CODE_E;                                                              
                                                                    
-typedef enum tagHTTP_Connection {  /* RFC2616 14.10 */
-    HTTP_CONNECTION_CLOSE,             /* close */
-    HTTP_CONNECTION_KEEPALIVE,         /* Keep-Alive */
+typedef enum tagHTTP_Connection {  
+    HTTP_CONNECTION_CLOSE,             
+    HTTP_CONNECTION_KEEPALIVE,         
     
-    HTTP_CONNECTION_BUTT               /* Butt */
+    HTTP_CONNECTION_BUTT               
 }HTTP_CONNECTION_E;
 
-/* 传输的类型 */
+
 typedef enum
 {
-    HTTP_BODY_TRAN_TYPE_CONTENT_LENGTH, /* content-length方式 */
-    HTTP_BODY_TRAN_TYPE_CLOSED,         /* Close方式 */
-    HTTP_BODY_TRAN_TYPE_CHUNKED,        /* CHUNKED方式 */
-    HTTP_BODY_TRAN_TYPE_NONE            /* 不是上述任何方式,则认为没有体 */
+    HTTP_BODY_TRAN_TYPE_CONTENT_LENGTH, 
+    HTTP_BODY_TRAN_TYPE_CLOSED,         
+    HTTP_BODY_TRAN_TYPE_CHUNKED,        
+    HTTP_BODY_TRAN_TYPE_NONE            
 }HTTP_BODY_TRAN_TYPE_E;
 
-/* 传输内容的type */
+
 typedef enum
 {
     HTTP_BODY_CONTENT_TYPE_NORMAL,
@@ -328,10 +328,10 @@ typedef enum
 
 
 typedef enum tagHTTP_TransferEncoding {                            
-    HTTP_TRANSFER_ENCODING_CHUNK,        /* chunked */               
-    HTTP_TRANSFER_ENCODING_NOCHUNK,      /* 不是chunked */
+    HTTP_TRANSFER_ENCODING_CHUNK,                       
+    HTTP_TRANSFER_ENCODING_NOCHUNK,      
 
-    HTTP_TRANSFER_ENCODING_BUTT          /* Butt */
+    HTTP_TRANSFER_ENCODING_BUTT          
 }HTTP_TRANSFER_ENCODING_E;
 
 
@@ -344,7 +344,7 @@ BS_STATUS  HTTP_DateToStr(IN time_t ulTimeSrc, OUT CHAR szDataStr[HTTP_RFC1123_D
 VOID HTTP_DelHeadField(IN HTTP_HEAD_PARSER hHttpInstance, IN CHAR *pcFieldName);
 BS_STATUS  HTTP_SetHeadField(IN HTTP_HEAD_PARSER hHttpInstance, IN CHAR *pcFieldName, IN CHAR *pcFieldValue);
 VOID HTTP_SetNoCache(IN HTTP_HEAD_PARSER hHttpInstance);
-/* 要求客户端每次确认页面是否有更新 */
+
 VOID HTTP_SetRevalidate(IN HTTP_HEAD_PARSER hHttpInstance);
 CHAR * HTTP_GetHeadField(IN HTTP_HEAD_PARSER hHttpInstance, IN CHAR *pcFieldName);
 CHAR * HTTP_GetHF(HTTP_HEAD_PARSER hHttpInstance, HTTP_HEAD_FIELD_E field);
@@ -401,9 +401,9 @@ CHAR * HTTP_Strim(IN CHAR *pcData, IN ULONG ulDataLen, IN CHAR *pcSkipChars, OUT
 BOOL_T HTTP_IsValidHeadChars(unsigned char *buf, int len);
 BOOL_T HTTP_IsHttpHead(char *buf, int len);
 
-#endif  /* End: HTTP头解析 */
+#endif  
 
-#if 1  /* HTTP Raw */
+#if 1  
 typedef int (*PF_HTTP_RAW_SCAN)(char *field, int field_len, char *value, int value_len, void *ud);
 int HTTP_HeadRawScan(char *head, int head_len, PF_HTTP_RAW_SCAN out_func, void *ud);
 
@@ -419,11 +419,11 @@ int HTTP_HeadRawParse(HTTP_HEAD_RAW_S *ctrl, char *head, int head_len);
 LSTR_S * HTTP_HeadRawGetField(HTTP_HEAD_RAW_S *ctrl, char *field);
 #endif
 
-#if 1   /* Chunk解析 */
+#if 1   
 
 typedef     VOID*     HTTP_CHUNK_HANDLE;
 
-/* Chunk解析 */
+
 VOID  HTTP_Chunk_BuildChunkFlag (IN UINT64 ui64DataLen, OUT CHAR szChunkBeginFlag[HTTP_CHUNK_FLAG_MAX_LEN + 1]);
 
 typedef BS_STATUS (*PF_HTTP_CHUNK_FUNC)(IN UCHAR *pucData, IN UINT uiDataLen, IN VOID *pUserPointer);
@@ -445,19 +445,19 @@ BS_STATUS HTTP_Chunk_Parse
     OUT UINT *uiParsedLen
 );
 
-#endif  /* End: Chunk解析 */
+#endif  
 
-#if 1   /* 多体解析 */
+#if 1   
 
 typedef     VOID*     HTTP_PARTHEADER_HANDLE;
 typedef     VOID*     HTTP_MULTIPART_HANDLE;
 
 typedef enum tagHTTP_PartType
 {
-    HTTP_PART_DATA_BEGIN,   /* 解析数据 */
-    HTTP_PART_DATA_BODY,    /* 解析体数据 */
-    HTTP_PART_DATA_END,     /* 解析体数据结束 */
-    HTTP_PART_DATA_BUTT     /* Butt */
+    HTTP_PART_DATA_BEGIN,   
+    HTTP_PART_DATA_BODY,    
+    HTTP_PART_DATA_END,     
+    HTTP_PART_DATA_BUTT     
 }HTTP_PART_TYPE_E;
 
 
@@ -480,9 +480,9 @@ HTTP_MULTIPART_HANDLE HTTP_Multipart_CreateParser
 VOID  HTTP_Multipart_DestoryParser(IN HTTP_MULTIPART_HANDLE hMultiParser);
 BS_STATUS HTTP_Multipart_Parse(IN HTTP_MULTIPART_HANDLE hMultiParser, IN UCHAR *pucData, IN ULONG ulDataLen);
 
-#endif  /* End: 多体解析 */
+#endif  
 
-#if 1   /* BODY解析 */
+#if 1   
 
 typedef HANDLE HTTP_BODY_PARSER;
 
@@ -495,24 +495,20 @@ HTTP_BODY_PARSER HTTP_BODY_CreateParser
     IN USER_HANDLE_S *pstUserHandle
 );
 VOID HTTP_BODY_DestroyParser(IN HTTP_BODY_PARSER hBodyParser);
-/*
-    OK: 接收完成
-    NOT_COMPLETE: 需要继续接收数据
-    其他: 错误原因
-*/
+
 BS_STATUS HTTP_BODY_Parse
 (
     IN HTTP_BODY_PARSER hBodyParser,
     IN UCHAR *pucData,
     IN UINT uiDataLen,
-    OUT UINT *puiParsedLen  /* 解析了多少数据 */
+    OUT UINT *puiParsedLen  
 );
 
 BOOL_T HTTP_BODY_IsFinish(IN HTTP_BODY_PARSER hBodyParser);
 
-#endif  /* End : BODY解析 */
+#endif  
 
-#if 1 /* HTTPC Recver */
+#if 1 
 
 typedef enum
 {
@@ -522,11 +518,7 @@ typedef enum
     HTTPC_E_ERR,
 }HTTPC_ERR_E;
 
-/*
- 返回值:
-   > 0: 读取了多少数据
-   < 0: HTTPC_ERR_E
-*/
+
 typedef INT (*PF_HTTP_RECV)(IN ULONG ulFd, OUT UCHAR *pucBuf, IN UINT uiBufSize);
 
 
@@ -548,8 +540,8 @@ HTTP_HEAD_PARSER HttpcRecver_GetHttpParser(IN HTTPC_RECVER_HANDLE hRecver);
 
 #ifdef  __cplusplus
 }
-#endif  /* end of __cplusplus */
+#endif  
 
-#endif  /* end of __HTTP_LIB_H_ */
+#endif  
 
 

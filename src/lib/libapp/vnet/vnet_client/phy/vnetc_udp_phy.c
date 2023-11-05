@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM VNET_RETCODE_FILE_NUM_UDPPHY
     
 #include "bs.h"
@@ -24,29 +24,29 @@
 #include "../inc/vnetc_ses.h"
 #include "../inc/vnetc_vpn_link.h"
 
-/* 头部预留空间 */
+
 #define _VNETC_UDP_PHY_RESERVED_MBUF_HEAD_SPACE 0
 
-/* VNET UDP PHY的事件 */
+
 #define _VNETC_UDP_PHY_SEND_DATA_EVENT 0x1
 
-/* VNET UDP PHY的消息 */
+
 #define _VNETC_UDP_PHY_SEND_DATA_MSG   0x1
 
-/* udp PHY的Debug选项*/
+
 #define _VNETC_UDP_PHY_DBG_FLAG_PACKET    0x1
 
-/* var */
+
 static INT g_iVnetcUdpPhySocketId = 0;
-static UINT g_ulVnetcUdpPhyIfIndex = 0;     /* UDP PHY的接口IfIndex */
-static UINT g_ulVnetcUdpPhyRecvTid = 0;     /* 接收数据的线程 */
-static UINT g_ulVnetcUdpPhySendTid = 0;     /* 发送数据的线程 */
-static MSGQUE_HANDLE g_hVnetcUdpPhySendQid = NULL;     /* 发送报文队列 */
+static UINT g_ulVnetcUdpPhyIfIndex = 0;     
+static UINT g_ulVnetcUdpPhyRecvTid = 0;     
+static UINT g_ulVnetcUdpPhySendTid = 0;     
+static MSGQUE_HANDLE g_hVnetcUdpPhySendQid = NULL;     
 static EVENT_HANDLE g_hVnetcUdpPhySendEventid = 0;
 static UINT g_ulVnetcUdpPhyDbgFlag = 0;
 static BOOL_T g_bVnetcUdpPhyStarted = FALSE;
 
-/* 每个pstMbuf中都包含一个且仅一个完整的 报文 */
+
 static BS_STATUS _VNETC_UDP_PHY_OutPut
 (
     IN UINT ulIfIndex,
@@ -71,7 +71,7 @@ static BS_STATUS _VNETC_UDP_PHY_OutPut
 
 static BS_STATUS _VNETC_UDP_PHY_CreateIf ()
 {
-    /* 如果已经创建，则返回OK */ 
+     
     if (g_ulVnetcUdpPhyIfIndex != 0)
     {
         return BS_OK;
@@ -281,7 +281,7 @@ static BS_STATUS _VNETC_UDP_PHY_Start()
 
     IFNET_AddIfType("vnets.l2.udp", &stTypeParam);
 
-    /* 创建UDP接口 */
+    
     if (BS_OK != _VNETC_UDP_PHY_CreateIf ())
     {
         RETURN(BS_ERR);
@@ -344,7 +344,7 @@ BS_STATUS VNETC_UDP_PHY_Start()
 
     if (BS_OK != Socket_SetRecvBufSize(g_iVnetcUdpPhySocketId, 1024*1024))
     {
-        /* 如果设置不成功,也不用返回失败,而是以小缓冲继续工作 */
+        
         BS_WARNNING(("Can't set socket receive buffer size!"));
     }
 
@@ -360,13 +360,13 @@ UINT VNETC_UDP_PHY_GetIfIndex()
     return g_ulVnetcUdpPhyIfIndex;
 }
 
-/* debug vnet udp-phy packet */
+
 PLUG_API VOID VNETC_UDP_PHY_DebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetcUdpPhyDbgFlag |= _VNETC_UDP_PHY_DBG_FLAG_PACKET;
 }
 
-/* no debug vnet udp-phy packet */
+
 PLUG_API VOID VNETC_UDP_PHY_NoDebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetcUdpPhyDbgFlag &= ~_VNETC_UDP_PHY_DBG_FLAG_PACKET;

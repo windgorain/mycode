@@ -6,7 +6,7 @@
 #include "bs.h"
 #include "utl/consistent_hash.h"
 
-/* 查找比key大的最小节点 */
+
 int ConsistentHash_FindBigger(CONSISTENT_HASH_S *ctrl, int start, int end, UINT key)
 {
     int left, right, mid;

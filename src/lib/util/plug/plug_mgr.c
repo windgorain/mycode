@@ -183,7 +183,7 @@ static VOID plugmgr_LoadOne(PLUG_MGR_S *mgr, CFF_HANDLE hCff, char *plug_name)
     plugmgr_Load(mgr, plug_name, ext_file, ext_conf_path, ext_save_path);
 }
 
-/* 加载各个插件 */
+
 static VOID plugmgr_EachLoad(CFF_HANDLE hCff, char *tag, void *ud)
 {
     USER_HANDLE_S *uh = ud;
@@ -245,7 +245,7 @@ static VOID plugmgr_RegCmd(PLUG_MGR_S *mgr, char *plug_name, char *filename,
 
 	plug = node->hPlug;
 
-    /* 注册命令 */
+    
     CHAR buf[FILE_MAX_PATH_LEN + 1];
     scnprintf(buf, sizeof(buf), "%s/%s", conf_path, cmdfile);
     CMD_CFG_RegCmd(buf, plug, save_path);
@@ -259,7 +259,7 @@ static VOID plugmgr_UnRegCmd(PLUG_MGR_S *mgr, char *plug_name,
         return;
     }
 
-    /* 取消注册命令 */
+    
     CHAR buf[FILE_MAX_PATH_LEN + 1];
     scnprintf(buf, sizeof(buf), "%s/%s", conf_path, cmdfile);
     CMD_CFG_UnRegCmd(buf, save_path);
@@ -345,7 +345,7 @@ static VOID plugmgr_RunCmd(PLUG_MGR_S *mgr, char *plug_name, char *file,
     return;
 }
 
-/* 恢复命令行配置 */
+
 static VOID plugmgr_EachLoadCfg(CFF_HANDLE hCff, char *tag, void *ud)
 {
     USER_HANDLE_S *uh = ud;
@@ -565,7 +565,7 @@ int PlugMgr_Unload(PLUG_MGR_S *mgr, char *ini_file, char *plug_name)
     return 0;
 }
 
-PLUG_MGR_NODE_S * PlugMgr_Next(PLUG_MGR_S *mgr, PLUG_MGR_NODE_S *curr/* NULL表示获取第一个 */)
+PLUG_MGR_NODE_S * PlugMgr_Next(PLUG_MGR_S *mgr, PLUG_MGR_NODE_S *curr)
 {
     if (! curr) {
         return DLL_FIRST(&mgr->plug_list);

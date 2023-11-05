@@ -294,7 +294,7 @@ BS_STATUS SIF_LinkInput(IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf)
     return pfFunc(ifIndex, pstMbuf);
 }
 
-BS_STATUS SIF_LinkOutput (IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType/* 网络序 */)
+BS_STATUS SIF_LinkOutput (IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType)
 {
     IF_LINK_OUTPUT_FUNC pfFunc;
     VOID *pProcesserList;
@@ -320,7 +320,7 @@ BS_STATUS SIF_LinkOutput (IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usP
     return pfFunc(ifIndex, pstMbuf, usProtoType);
 }
 
-BS_STATUS SIF_ProtoInput(IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType/* 网络序 */)
+BS_STATUS SIF_ProtoInput(IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType)
 {
     IF_PROTO_INPUT_FUNC pfFunc;
     VOID *pProcesserList;
@@ -368,7 +368,7 @@ BS_STATUS SIF_GetUserData(IN IF_INDEX ifIndex, IN UINT uiIndex, IN HANDLE *phDat
     return eRet;
 }
 
-IF_INDEX SIF_GetNext(IN IF_INDEX ifIndexCurrent/* 0表示从头开始 */)
+IF_INDEX SIF_GetNext(IN IF_INDEX ifIndexCurrent)
 {
     IF_INDEX ifIndex;
     
@@ -383,7 +383,7 @@ BS_STATUS SIF_RegPktProcesser
 (
     IN IF_INDEX ifIndex,
     IN IF_PKT_PROCESSER_TYPE_E enType,
-    IN UINT uiPri,  /* 优先级,数字越小优先级越高 */
+    IN UINT uiPri,  
     IN PF_IF_PKT_PORCESSER_FUNC pfFunc
 )
 {

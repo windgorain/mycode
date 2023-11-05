@@ -15,4 +15,4 @@ int ATEXIT_Reg(VOID_FUNC func);
 #ifdef __cplusplus
 }
 #endif
-#endif //ATEXIT_UTL_H_
+#endif 

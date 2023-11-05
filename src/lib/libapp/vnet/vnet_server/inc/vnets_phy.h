@@ -5,7 +5,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef enum
 {
@@ -16,8 +16,8 @@ typedef enum
 
 typedef struct
 {
-    UINT uiPeerIp;     /* 利大會 */
-    USHORT usPeerPort; /* 利大會 */
+    UINT uiPeerIp;     
+    USHORT usPeerPort; 
 }VNETS_UDP_PHY_CONTEXT_S;
 
 typedef union
@@ -34,7 +34,7 @@ typedef struct
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_PHY_H_*/
+#endif 
 

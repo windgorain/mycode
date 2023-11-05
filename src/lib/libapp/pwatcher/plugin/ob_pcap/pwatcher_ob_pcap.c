@@ -4,6 +4,7 @@
 *
 ================================================================*/
 #include "bs.h"
+#include "pcap.h"
 #include "utl/cff_utl.h"
 #include "utl/txt_utl.h"
 #include "utl/exec_utl.h"
@@ -239,17 +240,17 @@ static int pwatcher_ob_pcap_cmd_help(GETOPT2_NODE_S *opts)
     return 0;
 }
 
-/* ob pcap run -w filename -c count -t seconds -f filter */
+
 PLUG_API int PWatcherObPcap_CmdRun(int argc, char **argv)
 {
     PWATCHER_PCAP_SVR_S *svr = &g_pwatcher_pcap_svr;
     void *filter = NULL;
     char *file;
     GETOPT2_NODE_S opts[] = {
-        {'o', 'w', "write", 's', &file, "write to file", 0},
-        {'o', 'c', "count", 'u', &svr->count_limit, "read pcap file", 0},
-        {'o', 't', "time", 'u', &svr->time_limit, "seconds", 0},
-        {'o', 'f', "filter", 's', &filter, "seconds", 0},
+        {'o', 'w', "write", GETOPT2_V_STRING, &file, "write to file", 0},
+        {'o', 'c', "count", GETOPT2_V_U32, &svr->count_limit, "read pcap file", 0},
+        {'o', 't', "time", GETOPT2_V_U32, &svr->time_limit, "seconds", 0},
+        {'o', 'f', "filter", GETOPT2_V_STRING, &filter, "seconds", 0},
         {0}
     };
 

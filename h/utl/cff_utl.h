@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 typedef HANDLE CFF_HANDLE;
@@ -20,7 +20,7 @@ typedef HANDLE CFF_HANDLE;
 #define CFF_FLAG_CREATE_IF_NOT_EXIST   0x1
 #define CFF_FLAG_SORT                  0x2
 #define CFF_FLAG_READ_ONLY             0x4
-#define CFF_FLAG_UTF8_BOM              0x8  /* 文件携带UTF8 BOM */
+#define CFF_FLAG_UTF8_BOM              0x8  
 
 
 typedef VOID (*PF_CFF_TAG_WALK_FUNC)(IN HANDLE hIniHandle, IN CHAR *pcTag, IN HANDLE hUsrHandle);
@@ -79,7 +79,7 @@ CFF_HANDLE CFF_TRE_OpenBuf(IN CHAR *buf, IN UINT uiFlag);
 CFF_HANDLE CFF_MCF_OpenBuf(IN CHAR *buf, IN UINT uiFlag);
 CFF_HANDLE CFF_BRACE_OpenBuf(IN CHAR *buf, IN UINT uiFlag);
 
-/* 将cff设置成xx格式 */
+
 VOID CFF_INI_SetAs(IN CFF_HANDLE hCff);
 VOID CFF_TRE_SetAs(IN CFF_HANDLE hCff);
 VOID CFF_MCF_SetAs(IN CFF_HANDLE hCff);
@@ -110,17 +110,17 @@ BS_STATUS CFF_GetPropAsUint64(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag, IN CHAR 
 BS_STATUS CFF_GetPropAsUint(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag, IN CHAR *pcProp, OUT UINT *puiValue);
 BS_STATUS CFF_GetPropAsInt(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag, IN CHAR *pcProp, OUT INT *piValue);
 
-/* 如果获取失败,则返回dft */
+
 UINT CFF_GetPropAsUintDft(CFF_HANDLE hCffHandle, char *pcTag, char *pcProp, UINT dft);
 int CFF_GetPropAsIntDft(CFF_HANDLE hCffHandle, char *pcTag, char *pcProp, int dft);
 UINT64 CFF_GetPropAsUint64Dft(CFF_HANDLE hCffHandle, char *pcTag, char *pcProp, UINT64 dft);
 char * CFF_GetPropAsStringDft(CFF_HANDLE hCffHandle, char *pcTag, char *pcProp, char *dft);
 
-/* 返回section的个数 */
+
 UINT CFF_GetTagNum(IN CFF_HANDLE hCffHandle);
 VOID CFF_WalkTag(IN CFF_HANDLE hCffHandle, IN PF_CFF_TAG_WALK_FUNC pfFunc, IN HANDLE hUsrHandle);
 VOID CFF_WalkProp(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag, IN PF_CFF_PROP_WALK_FUNC pfFunc, IN HANDLE hUsrHandle);
-/* 返回section中属性的个数 */
+
 UINT CFF_GetPorpNumOfTag(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag);
 
 
@@ -187,8 +187,8 @@ char * CFF_X_GetTagDuplicate(IN CFF_HANDLE hCffHandle, IN MKV_X_PARA_S *pstTags)
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__CFF_UTL_H_*/
+#endif 
 
 

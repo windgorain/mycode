@@ -167,7 +167,7 @@ static BS_STATUS svpn_acl_ContextCreate(IN SVPN_CONTEXT_HANDLE hSvpnContext)
 
     SVPN_Context_SetUserData(hSvpnContext, SVPN_CONTEXT_DATA_INDEX_ACL, pstAclCtx);
 
-    /* 恢复配置 */
+    
     while (BS_OK == SVPN_CtxData_GetNextObject(hSvpnContext,
         SVPN_CTXDATA_ACL, szAclList, szAclList, sizeof(szAclList)))
     {
@@ -259,7 +259,7 @@ BS_STATUS SVPN_ACL_Match
     return BS_OK;
 }
 
-/********MF接口*********/
+
 static CHAR *g_apcSvpnAclProperty[] = {"Description", "Rules"};
 static UINT g_uiSvpnAclPropertyCount = sizeof(g_apcSvpnAclProperty)/sizeof(CHAR*);
 
@@ -333,22 +333,22 @@ BS_STATUS SVPN_ACL_Init()
 }
 
 
-/* 命令行 */
 
-/* acl xxx */
+
+
 PLUG_API BS_STATUS SVPN_AclCmd_EnterView(UINT ulArgc, CHAR **argv, VOID *pEnv)
 {
     return SVPN_CD_EnterView(pEnv, SVPN_CTXDATA_ACL, argv[1]);
 }
 
-/* description xxx */
+
 PLUG_API BS_STATUS SVPN_AclCmd_SetDescription(UINT ulArgc,
         char **argv, VOID *pEnv)
 {
     return SVPN_CD_SetProp(pEnv, SVPN_CTXDATA_ACL, "Description", argv[1]);
 }
 
-/* rule {permit|deny} xxx */
+
 PLUG_API BS_STATUS SVPN_AclCmd_SetRule(IN UINT ulArgc, IN UCHAR **argv, IN VOID *pEnv)
 {
     CHAR szTmp[512];
@@ -358,7 +358,7 @@ PLUG_API BS_STATUS SVPN_AclCmd_SetRule(IN UINT ulArgc, IN UCHAR **argv, IN VOID 
     return SVPN_CD_AddPropElement(pEnv, SVPN_CTXDATA_ACL, "Rules", szTmp, SVPN_PROPERTY_LINE_SPLIT);
 }
 
-/* submit */
+
 PLUG_API BS_STATUS SVPN_AclCmd_Submit(IN UINT ulArgc, IN UCHAR **argv, IN VOID *pEnv)
 {
     SVPN_CONTEXT_HANDLE hSvpnContext;

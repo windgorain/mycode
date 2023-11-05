@@ -28,7 +28,7 @@ BS_STATUS IN_IP_Output
     return g_stInRegTbl.pfIpOutput(pstMBuf, pstMOpt, lFlags, pstIpMo);
 }
 
-/* 源地址选择 */
+
 BS_STATUS IN_IPAddr_SelectSrcAddr
 (
     IN UINT uiDstAddr,
@@ -41,7 +41,7 @@ BS_STATUS IN_IPAddr_SelectSrcAddr
     return g_stInRegTbl.pfSelectSrcAddr(uiDstAddr, vrfIndex, ifIndexOut, uiNextHop, puiSrcAddr);
 }
 
-/* 在VRF中查找和目的地址网段匹配的地址 */
+
 BS_STATUS IN_IPAddr_GetAddrInVrf
 (
     IN VRF_INDEX vrfIndex,
@@ -64,7 +64,7 @@ BS_STATUS IN_IPAddr_MatchBestNetInVrf
     return g_stInRegTbl.pfMatchBestNetInVrf(vrfIndex, uiIPAddr, uiAddrType, pstAddrInfo);
 }
 
-/* 在VRF内找一个任意地址 */
+
 BS_STATUS IN_IPAddr_GetFwdAddrInVrf
 (
     IN VRF_INDEX vrfIndex,
@@ -74,7 +74,7 @@ BS_STATUS IN_IPAddr_GetFwdAddrInVrf
     return g_stInRegTbl.pfGetFwdAddrInVrf(vrfIndex, pstAddrInfo);
 }
 
-/* 在接口上获取一个合适的地址 */
+
 BS_STATUS IN_IPAddr_GetPriorAddr
 (
     IN IF_INDEX ifIndex,

@@ -24,9 +24,9 @@ typedef struct
 
 NAT_HANDLE NAT_Create
 (
-    IN USHORT usMinPort,   /* 主机序 ,对外可转换的端口号最小值 */
-    IN USHORT usMaxPort,    /* 主机序 ,对外可转换的端口号最大值 */
-    IN UINT   uiMsInTick,  /* 多少ms为一个Tick */
+    IN USHORT usMinPort,   
+    IN USHORT usMaxPort,    
+    IN UINT   uiMsInTick,  
     IN BOOL_T bCreateMutex
 )
 {
@@ -75,7 +75,7 @@ VOID NAT_Destory(IN NAT_HANDLE hNatHandle)
 VOID NAT_SetPubIp
 (
     IN NAT_HANDLE hNatHandle,
-    IN UINT auiPubIp[NAT_MAX_PUB_IP_NUM] /* 网络序，提供的对外公网IP */
+    IN UINT auiPubIp[NAT_MAX_PUB_IP_NUM] 
 )
 {
     NAT_CTRL_S *pstCtrl = hNatHandle;
@@ -125,10 +125,10 @@ BS_STATUS NAT_SetUdpTimeOutTick
 BS_STATUS NAT_PacketTranslate
 (
     IN NAT_HANDLE hNatHandle,
-    INOUT UCHAR *pucData, /* IP报文 */
+    INOUT UCHAR *pucData, 
     IN UINT uiDataLen,
     IN BOOL_T bFromPub,
-    INOUT UINT *puiDomainId   /* 私有报文为IN, Pub报文为OUT */
+    INOUT UINT *puiDomainId   
 )
 {
 	IP_HEAD_S  *pstIpHead  = NULL;
@@ -191,13 +191,13 @@ BS_STATUS NAT_PacketTranslate
 	return eRet;
 }
 
-/* 调用者负责释放Mbuf，此函数不释放 */
+
 BS_STATUS NAT_PacketTranslateByMbuf
 (
     IN NAT_HANDLE hNatHandle,
-    INOUT MBUF_S *pstMbuf, /* IP报文 */
+    INOUT MBUF_S *pstMbuf, 
     IN BOOL_T bFromPub,
-    INOUT UINT *puiDomainId   /* 私有报文为IN, Pub报文为OUT */
+    INOUT UINT *puiDomainId   
 )
 {
     UCHAR *pucData;

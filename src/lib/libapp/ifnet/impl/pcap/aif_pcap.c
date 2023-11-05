@@ -40,7 +40,7 @@ static BS_STATUS _aifpcap_PhyOutput(IN UINT uiIfIndex, IN MBUF_S *pstMbuf)
     return PCAP_SendPkt(pstCtrl->uiUsePcapIndex, pstMbuf);
 }
 
-static BS_STATUS _aifpcap_PhyIoctl(IN IF_INDEX ifIndex, IN UINT uiCmd/* IF_PHY_IOCTL_CMD_E */, INOUT VOID *pData)
+static BS_STATUS _aifpcap_PhyIoctl(IN IF_INDEX ifIndex, IN UINT uiCmd, INOUT VOID *pData)
 {
     _AIF_PCAP_CTRL_S *pstCtrl;
     BS_STATUS eRet = BS_OK;
@@ -105,7 +105,7 @@ static VOID _aifpcap_PhyPktIn
     IFNET_Ioctl(pstPcapCtrl->ifIndex, IFNET_CMD_GET_MAC, &stSrcMac);
     pstEthHeader = (VOID*)pucPktData;
 
-    /* 目的MAC地址不是自己且不是广播 */
+    
     if ( (! MAC_ADDR_IS_EQUAL(stSrcMac.aucMac, pstEthHeader->stDMac.aucMac))
         && (! MAC_ADDR_IS_BROADCAST(pstEthHeader->stDMac.aucMac)))
     {

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define ULM_MAX_USER_NAME_LEN   63
 #define ULM_USER_COOKIE_LEN     31
@@ -22,11 +22,11 @@ typedef VOID (*PF_ULM_USER_DEL_NOTIFY)(IN ULM_HANDLE hUlmHandle, IN UINT ulUserI
 typedef struct
 {
     CHAR szUserName[ULM_MAX_USER_NAME_LEN + 1];
-    UINT ulLoginTime; /* 登录时间. 格式:Time from init , 单位:s */
+    UINT ulLoginTime; 
 }ULM_USER_INFO_S;
 
 
-ULM_HANDLE ULM_CreateInstance(IN UINT ulMaxUserNum /* 0表示不限制 */);
+ULM_HANDLE ULM_CreateInstance(IN UINT ulMaxUserNum );
 BS_STATUS ULM_DesTroyInstance(IN ULM_HANDLE hUlmHandle);
 UINT ULM_AddUser(IN ULM_HANDLE hUlmHandle, IN CHAR *pszUserName);
 BS_STATUS ULM_DelUser(IN ULM_HANDLE hUlmHandle, IN UINT ulUserId);
@@ -49,19 +49,19 @@ BS_STATUS ULM_SetMaxUserRefNum(IN ULM_HANDLE hUlmHandle, IN UINT ulUserId, IN UI
 BS_STATUS ULM_IncUserRefNum(IN ULM_HANDLE hUlmHandle, IN UINT ulUserId);
 BS_STATUS ULM_DecUserRefNum(IN ULM_HANDLE hUlmHandle, IN UINT ulUserId);
 BS_STATUS ULM_GetUserRefNum(IN ULM_HANDLE hUlmHandle, IN UINT ulUserId, OUT UINT *pulRefNum);
-BS_STATUS ULM_SetTimeOutTime(IN ULM_HANDLE hUlmHandle, IN UINT ulTimeOutTime /* ms. 0表示永不超时 */);
-BS_STATUS ULM_GetTimeOutTime(IN ULM_HANDLE hUlmHandle, OUT UINT *pulTimeOutTime /* ms. 0表示永不超时 */);
+BS_STATUS ULM_SetTimeOutTime(IN ULM_HANDLE hUlmHandle, IN UINT ulTimeOutTime );
+BS_STATUS ULM_GetTimeOutTime(IN ULM_HANDLE hUlmHandle, OUT UINT *pulTimeOutTime );
 BS_STATUS ULM_StartTimeOut(IN ULM_HANDLE hUlmHandle, IN UINT ulUserId);
 BS_STATUS ULM_StopTimeOut(IN ULM_HANDLE hUlmHandle, IN UINT ulUserId);
 BS_STATUS ULM_StopAllUserTimeOut(IN ULM_HANDLE hUlmHandle);
 BS_STATUS ULM_StartAllUserTimeOut(IN ULM_HANDLE hUlmHandle);
 VOID ULM_SetIfTimeOutIgnoreRef(IN ULM_HANDLE hUlmHandle, IN BOOL_T bIgnore);
-/* 执行一次老化触发 */
+
 VOID ULM_TimeOut(IN ULM_HANDLE hUlmHandle);
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__ULM_UTL_H_*/
+#endif 
 
 

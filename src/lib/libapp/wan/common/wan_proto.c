@@ -18,10 +18,10 @@
 #include "../h/wan_proto.h"
 
 
-PF_WAN_PROTO_INPUT g_apfWanProtoTbl[65536];     /* 以网络序的协议号为下标 */
+PF_WAN_PROTO_INPUT g_apfWanProtoTbl[65536];     
 
 
-BS_STATUS WAN_Proto_Input(IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType/* 网络序 */)
+BS_STATUS WAN_Proto_Input(IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType)
 {
     PF_WAN_PROTO_INPUT pfFunc;
 
@@ -49,7 +49,7 @@ BS_STATUS WAN_Proto_Init()
     return BS_OK;
 }
 
-BS_STATUS WAN_Proto_RegProto(IN USHORT usProtoType/* 网络序 */,  IN PF_WAN_PROTO_INPUT pfFunc)
+BS_STATUS WAN_Proto_RegProto(IN USHORT usProtoType,  IN PF_WAN_PROTO_INPUT pfFunc)
 {
     g_apfWanProtoTbl[usProtoType] = pfFunc;
 

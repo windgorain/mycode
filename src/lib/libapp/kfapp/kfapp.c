@@ -103,7 +103,7 @@ BS_STATUS KFAPP_Init()
     return BS_OK;
 }
 
-/* debug kfapp */
+
 PLUG_API BS_STATUS KFAPP_Debug(IN UINT ulArgc, IN CHAR **argv)
 {
     BIT_SET(g_uiKfAppDbgFlag, KFAPP_DBG_FLAG_RUN);
@@ -111,7 +111,7 @@ PLUG_API BS_STATUS KFAPP_Debug(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* no debug kfapp */
+
 PLUG_API BS_STATUS KFAPP_NoDebug(IN UINT ulArgc, IN CHAR **argv)
 {
     BIT_CLR(g_uiKfAppDbgFlag, KFAPP_DBG_FLAG_RUN);

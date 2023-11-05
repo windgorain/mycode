@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct
 {
@@ -23,7 +23,7 @@ typedef struct
 
     UINT uiLine: 15;
     UINT inited: 1;
-    UINT count: 16; /* 嵌套次数 */
+    UINT count: 16; 
     const char *pcFile;
 }MUTEX_S;
 
@@ -58,8 +58,8 @@ void COND_WakeAll(COND_S *cond);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /* __UTL_MUTEX_H_ */
+#endif 
 
 

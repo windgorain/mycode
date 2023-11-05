@@ -45,12 +45,12 @@ UFD_FILE_S * UFD_GetFile(UFD_S *ctx, int fd);
 void * UFD_GetFileData(UFD_S *ctx, int fd);
 UFD_FILE_S * UFD_RefFile(UFD_S *ctx, int fd);
 void * UFD_RefFileData(UFD_S *ctx, int fd);
-/* 返回-1表示结束 */
-int UFD_GetNext(UFD_S *ctx, int curr /* -1表示获取第一个 */);
-/* 返回-1表示结束 */
-int UFD_GetNextOfType(UFD_S *ctx, int type, int curr /* -1表示获取第一个 */);
+
+int UFD_GetNext(UFD_S *ctx, int curr );
+
+int UFD_GetNextOfType(UFD_S *ctx, int type, int curr );
 
 #ifdef __cplusplus
 }
 #endif
-#endif //UFD_UTL_H_
+#endif 

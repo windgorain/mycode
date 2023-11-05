@@ -66,7 +66,7 @@ BS_STATUS TcpFinger_AddFinger(TCP_FINGER_S *tcp_finger,
     return BS_OK;
 }
 
-/* WWWW:_MSS:TL:WS:S:N:D:T:F:LT:OS */
+
 static void tcpfinger_FillIPFinger(VOID *ip, char *finger)
 {
     IP_HEAD_S *iph = ip;
@@ -83,7 +83,7 @@ static void tcpfinger_FillIPFinger(VOID *ip, char *finger)
     memcpy(finger + 26, sz, 2);
 }
 
-/* WWWW:_MSS:TL:WS:S:N:D:T:F:LT:OS */
+
 static void tcpfinger_FillTcpFinger(VOID *tcp, char *finger)
 {
     TCP_HEAD_S *tcph = tcp;
@@ -146,7 +146,7 @@ TCP_FINGER_NODE_S * TcpFinger_Match(TCP_FINGER_S *tcp_finger,
     return TcpFinger_Search(tcp_finger, finger);
 }
 
-/* WWWW:_MSS:TL:WS:S:N:D:T:F:LT:OS */
+
 static int _tcpfinger_ProcessFileLine(TCP_FINGER_S *tcp_finger,
         char *line, int id)
 {
@@ -166,7 +166,7 @@ static int _tcpfinger_ProcessFileLine(TCP_FINGER_S *tcp_finger,
     finger[28] = '\0';
     os = &finger[29];
 
-    /* 添加精确指纹 */
+    
     int ret = TcpFinger_AddFinger(tcp_finger, finger, os, id);
     if (ret < 0) {
         return ret;
@@ -176,13 +176,13 @@ static int _tcpfinger_ProcessFileLine(TCP_FINGER_S *tcp_finger,
     char vague_finger[28];
     char vague_os[TCP_FINGER_MAX_OS_LEN + 1];
 
-    /* 忽略MSS  WWWW:*:TL:WS:S:N:D:T:F:LT:OS */
+    
     memcpy(vague_finger, finger, 5);
     vague_finger[5] = '*';
     strcpy(vague_finger+6, finger+9);
     snprintf(vague_os, sizeof(vague_os), "%s <vague>", os);
 
-    /* 添加模糊指纹 */
+    
     ret = TcpFinger_AddFinger(tcp_finger, vague_finger, vague_os, id);
     if (0 != ret) {
         return ret;

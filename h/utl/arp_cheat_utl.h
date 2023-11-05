@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE ARP_CHEAT_HANDLE;
 
@@ -27,9 +27,9 @@ BS_STATUS ARPCheat_SendCheatPkt(IN ARP_CHEAT_HANDLE hArpCheat);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__ARP_CHEAT_UTL_H_*/
+#endif 
 
 
 

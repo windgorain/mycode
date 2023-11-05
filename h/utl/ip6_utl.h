@@ -39,12 +39,12 @@ struct in6_addr
 #endif
 
 typedef struct ip6 {
-    UINT            vcl;      /* 4bit ver, 8b class, 20bit label */
-    USHORT           len;      /* length of the payload */
-    UCHAR           next;     /* next header */
-    UCHAR           hop_lmt;  /* hop limit */
-    struct in6_addr ip6_src;  /* source address */
-    struct in6_addr ip6_dst;  /* destination address */
+    UINT            vcl;      
+    USHORT           len;      
+    UCHAR           next;     
+    UCHAR           hop_lmt;  
+    struct in6_addr ip6_src;  
+    struct in6_addr ip6_dst;  
 } IP6_HEAD_S;
 
 typedef struct {
@@ -53,19 +53,19 @@ typedef struct {
 }IP6_OPT_S;
 
 typedef struct {
-    UCHAR  next;        /* next header */
-    UCHAR  len;        /* length in units of 8 octets, exclude first 8 octets */
-    UCHAR  type;       /* routing type */
-    UCHAR  seg_left;    /* segments left */
-    /* followed by routing type specific data */
+    UCHAR  next;        
+    UCHAR  len;        
+    UCHAR  type;       
+    UCHAR  seg_left;    
+    
 }IP6_OPT_ROUTE_S;
 
-/* Fragment Header */
+
 typedef struct tagIP6_FRAG {
-    UCHAR  next;        /* next header */
-    UCHAR  reserved;   /* reserved field */
-    USHORT offset_flag;      /* offset, reserved, and flag */
-    UINT id;      /* identification */
+    UCHAR  next;        
+    UCHAR  reserved;   
+    USHORT offset_flag;      
+    UINT id;      
 }IP6_FRAG_S;
 #pragma pack()
 
@@ -77,7 +77,7 @@ typedef struct {
 
 char * inet_ntop6_full(const struct in6_addr *addr, char *dst, socklen_t size);
 IP6_HEAD_S * IP6_GetIPHeader(UCHAR *pucData, UINT uiDataLen, NET_PKT_TYPE_E enPktType);
-int IP6_GetUpLayer(IP6_HEAD_S *ip6_header, int len/*包含IP6头的长度*/, OUT IP6_UPLAYER_S *uplayer);
+int IP6_GetUpLayer(IP6_HEAD_S *ip6_header, int len, OUT IP6_UPLAYER_S *uplayer);
 
 static inline UCHAR IP6_HEAD_DSCP(IP6_HEAD_S *ip6_header)
 {
@@ -150,4 +150,4 @@ static inline void * IP6_ADDR_MAX(void *addr1, void *addr2) {
 #ifdef __cplusplus
 }
 #endif
-#endif //IP6_UTL_H_
+#endif 

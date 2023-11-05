@@ -9,10 +9,10 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* ---define--- */
-#define LOOPBACK_IP 0x7f000001    /* 127.0.0.1, 主机序 */
+
+#define LOOPBACK_IP 0x7f000001    
 
 #ifdef IN_WINDOWS
 #define NET_GET_ADDR_BY_SOCKADDR(pstSockAddr) (((struct sockaddr_in *)(pstSockAddr))->sin_addr.S_un.S_addr)
@@ -28,12 +28,12 @@ extern "C" {
     (((x) >> 8) & 0xFF),\
     (((x) >> 0) & 0xFF)
 
-#define PREFIX_2_COUNT(depth) (1UL << (depth)) /* 整个地址段可以有多少个prefix的网段 */
+#define PREFIX_2_COUNT(depth) (1UL << (depth)) 
 
-/* 将Prefix转换成主机序的Mask */
+
 static inline UINT PREFIX_2_MASK(IN UCHAR ucPrefixLen)
 {
-    /* 很多CPU只取右移的低5bit, 所以右移32相当于右移0了. 所以32要特殊处理 */
+    
     if (ucPrefixLen == 32) {
         return 0xffffffff;
     }
@@ -41,13 +41,13 @@ static inline UINT PREFIX_2_MASK(IN UCHAR ucPrefixLen)
     return ~(((UINT)0xFFFFFFFF) >> ucPrefixLen);
 }
 
-/* 根据Prefix得到容量 */
+
 static inline UINT PREFIX_2_CAPACITY(IN UCHAR ucPrefixLen)
 {
 	return 1 << (32 - ucPrefixLen);
 }
 
-static inline UCHAR MASK_2_PREFIX(IN UINT uiMask/* 主机序 */)
+static inline UCHAR MASK_2_PREFIX(IN UINT uiMask)
 {
     UINT i;
 
@@ -60,8 +60,8 @@ static inline UCHAR MASK_2_PREFIX(IN UINT uiMask/* 主机序 */)
     return 32;
 }
 
-/* 判断是否一个合法Mask */
-static inline BOOL_T MASK_IS_VALID(IN UINT uiMask/* 主机序 */)
+
+static inline BOOL_T MASK_IS_VALID(IN UINT uiMask)
 {
     if (uiMask == PREFIX_2_MASK(MASK_2_PREFIX(uiMask))) {
         return TRUE;
@@ -70,17 +70,14 @@ static inline BOOL_T MASK_IS_VALID(IN UINT uiMask/* 主机序 */)
     return FALSE;
 }
 
-/* 
-    根据地址和子网掩码转换为地址范围
-    uiBeginIp和uiEndIp的字节序和uiIp+uiMask是一致的
-*/
+
 static inline VOID IpMask_2_Range(IN UINT uiIp, IN UINT uiMask, OUT UINT *puiBeginIP, OUT UINT *puiEndIP)
 {
     *puiBeginIP = uiIp & uiMask;
     *puiEndIP = uiIp | (~uiMask);
 }
 
-/* 判断IP是否是子网边界 */
+
 static inline BOOL_T IP_IsSubNetEdge(IN UINT uiIP, IN UINT uiMask)
 {
     if ((uiIP & uiMask) == uiIP) {
@@ -92,17 +89,14 @@ static inline BOOL_T IP_IsSubNetEdge(IN UINT uiIP, IN UINT uiMask)
     return FALSE;
 }
 
-/* 
-    根据子网的自身地址(即起始地址)和广播地址(即结束地址)得到子网掩码
-    得到的掩码字节序和输入情况一致
-*/
+
 static inline UINT SubNet_2_Mask(IN UINT uiSubNetSelf, IN UINT uiSubNetBroadIP)
 {
     return ~(uiSubNetSelf ^ uiSubNetBroadIP);
 }
 
-/* 判断两个地址是否正好能构成一个网段的两个边界 */
-static inline BOOL_T IP_IsSubNetEdge2(IN UINT uiStart/* 主机序 */, IN UINT uiEnd/* 主机序 */)
+
+static inline BOOL_T IP_IsSubNetEdge2(IN UINT uiStart, IN UINT uiEnd)
 {
     UINT uiMask = SubNet_2_Mask(uiStart, uiEnd);
     if(MASK_IS_VALID(uiMask)) {
@@ -111,8 +105,8 @@ static inline BOOL_T IP_IsSubNetEdge2(IN UINT uiStart/* 主机序 */, IN UINT ui
     return FALSE;
 }
 
-/* 获取能包下这个网段的最小的掩码,主机序 */
-static inline UINT IP_GetMiniMask(IN UINT uiStartIP/* 主机序 */, IN UINT uiEndIP/* 主机序 */)
+
+static inline UINT IP_GetMiniMask(IN UINT uiStartIP, IN UINT uiEndIP)
 {
     UINT uiPrefix;
     UINT uiMask;
@@ -127,10 +121,8 @@ static inline UINT IP_GetMiniMask(IN UINT uiStartIP/* 主机序 */, IN UINT uiEn
     return 0;
 }
 
-/* 
-    根据地址范围, 可以将其分割为多个子网, 此函数获得第一个子网的主机序掩码
-*/
-static inline UINT Range_GetFirstMask(IN UINT uiBeginIP/* 主机序 */, IN UINT uiEndIP/* 主机序 */)
+
+static inline UINT Range_GetFirstMask(IN UINT uiBeginIP, IN UINT uiEndIP)
 {
     UINT uiPrefix;
     UINT uiMask = 0;
@@ -148,8 +140,8 @@ static inline UINT Range_GetFirstMask(IN UINT uiBeginIP/* 主机序 */, IN UINT 
     return uiMask;
 }
 
-/* 获取共同前缀的位数 */
-static inline UINT IP_GetCommonPrefix(IN UINT uiIP1/* 主机序 */, IN UINT uiIP2/* 主机序 */)
+
+static inline UINT IP_GetCommonPrefix(IN UINT uiIP1, IN UINT uiIP2)
 {
     UINT i;
 
@@ -162,7 +154,7 @@ static inline UINT IP_GetCommonPrefix(IN UINT uiIP1/* 主机序 */, IN UINT uiIP
     return i;
 }
 
-/* 根据掩码将地址段分成多个段 */
+
 #define IP_SPLIT_SUBNET_BY_MASK_BEGIN(_uiStartIP, _uiEndIP, _uiMask, _uiNetStart, _uiNetEnd) \
     do { \
         UINT _uiBeginTmp = _uiStartIP;  \
@@ -214,7 +206,7 @@ typedef struct net_in6_addr {
         unsigned char   __u6_addr8[IN6ADDR_SIZE8];
         unsigned short  __u6_addr16[IN6ADDR_SIZE16];
         unsigned int    __u6_addr32[IN6ADDR_SIZE32];
-    } __u6_addr;            /* 128-bit IP6 address */
+    } __u6_addr;            
     
     #define net_s6_addr   __u6_addr.__u6_addr8
     #define net_s6_addr16 __u6_addr.__u6_addr16
@@ -241,7 +233,7 @@ typedef enum
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__NET_H_*/
+#endif 
 

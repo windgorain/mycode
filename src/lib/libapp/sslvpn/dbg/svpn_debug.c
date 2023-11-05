@@ -32,13 +32,13 @@ static DBG_UTL_DEF_S g_astSvpnDbgDef[] =
 DBG_UTL_CTRL_S g_stSvpnDbgCtrl
     = DBG_INIT_VALUE("SVPN",g_auiSvpnDbgFlag, g_astSvpnDbgDef, SVPN_DBG_ID_MAX);
 
-/* debug (module-name) (xxx) */
+
 PLUG_API VOID SVPN_Debug_Cmd(IN UINT ulArgc, IN CHAR **argv)
 {
     DBG_UTL_DebugCmd(&g_stSvpnDbgCtrl, argv[1], argv[2]);
 }
 
-/* no debug (module-name) (xxx) */
+
 PLUG_API VOID SVPN_NoDebug_Cmd(IN UINT ulArgc, IN CHAR **argv)
 {
     DBG_UTL_NoDebugCmd(&g_stSvpnDbgCtrl, argv[2], argv[3]);

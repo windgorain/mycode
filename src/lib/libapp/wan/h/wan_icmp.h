@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 BS_STATUS WAN_ICMP_Input(IN MBUF_S *pstMbuf);
@@ -18,8 +18,8 @@ BS_STATUS WAN_ICMP_Input(IN MBUF_S *pstMbuf);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_ICMP_H_*/
+#endif 
 
 

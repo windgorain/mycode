@@ -41,7 +41,7 @@ static inline void pwatcher_ob_first_payload_process_pkt(PWATCHER_PKT_DESC_S *pk
     }
 
     if (! (stream->tcp_status.flags & TCP_FLAG_SYN)) {
-        return; /* 还未收到syn,所以无法计算first payload */
+        return; 
     }
 
     if (pkt->l4_payload_len == 0) {

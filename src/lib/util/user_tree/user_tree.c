@@ -23,8 +23,8 @@ typedef struct
 {
     DLL_NODE_S stLinkNode;
     CHAR szOrgName[USER_TREE_MAX_ORG_NAME_LEN + 1];
-    VOID *pParentOrg;    /* 父组织 */
-    KV_HANDLE hKvList;   /* kvlist */
+    VOID *pParentOrg;    
+    KV_HANDLE hKvList;   
     DLL_HEAD_S stChildOrgList;
     DLL_HEAD_S stChildUserList;
 }USER_TREE_ORG_S;
@@ -35,8 +35,8 @@ typedef struct
 {
     DLL_NODE_S stLinkNode;
     CHAR szUserName[USER_TREE_MAX_USER_NAME_LEN + 1];
-    USER_TREE_ORG_S *pstParentOrg;  /* 父组织 */
-    KV_HANDLE hKvList;   /* kvlist */
+    USER_TREE_ORG_S *pstParentOrg;  
+    KV_HANDLE hKvList;   
 }USER_TREE_USER_S;
 
 typedef struct
@@ -94,13 +94,13 @@ static VOID usertree_DeleteOrg(IN USER_TREE_S *pstUserTree, IN USER_TREE_ORG_S *
     USER_TREE_USER_S *pstUserTmp;
     USER_TREE_ORG_S *pstParentOrg;
 
-    /* 删除子组织 */
+    
     DLL_SAFE_SCAN(&pstOrg->stChildOrgList, pstOrgChild, pstOrgTmp)
     {
         usertree_DeleteOrg(pstUserTree, pstOrgChild);
     }
 
-    /* 删除子用户 */
+    
     DLL_SAFE_SCAN(&pstOrg->stChildUserList, pstUserChild, pstUserTmp)
     {
         usertree_DeleteUser(pstUserTree, pstUserChild);
@@ -733,7 +733,7 @@ UINT64 UserTree_FindUserByName
     return 0;
 }
 
-/* 根据Index顺序获取下一个 */
+
 UINT64 UserTree_GetNextOrgByIndexOrder(IN USER_TREE_HANDLE hUserTree, IN UINT64 uiCurrentOrgID)
 {
     USER_TREE_S *pstUserTree = hUserTree;
@@ -748,7 +748,7 @@ UINT64 UserTree_GetNextUserByIndexOrder(IN USER_TREE_HANDLE hUserTree, IN UINT64
     return NAP_GetNextID(pstUserTree->hUserNap, uiCurrentUserID);
 }
 
-/* Index顺序遍历用户 */
+
 VOID UserTree_WalkUserByIndexOrder
 (
     IN USER_TREE_HANDLE hUserTree,
@@ -757,19 +757,17 @@ VOID UserTree_WalkUserByIndexOrder
 )
 {
     UINT64 uiUserID = 0;
-    BS_WALK_RET_E eRet;
+    int ret;
 
-    while ((uiUserID = UserTree_GetNextUserByIndexOrder(hUserTree, uiUserID)) != 0)
-    {
-        eRet = pfWalkFunc(hUserTree, uiUserID, hUserHandle);
-        if (eRet == BS_WALK_STOP)
-        {
+    while ((uiUserID = UserTree_GetNextUserByIndexOrder(hUserTree, uiUserID)) != 0) {
+        ret = pfWalkFunc(hUserTree, uiUserID, hUserHandle);
+        if (ret < 0) {
             break;
         }
     }
 }
 
-static BS_WALK_RET_E usertree_WalkOrgByDeepOrder
+static int usertree_WalkOrgByDeepOrder
 (
     IN USER_TREE_S *pstUserTree,
     IN USER_TREE_ORG_S *pstOrg,
@@ -779,27 +777,24 @@ static BS_WALK_RET_E usertree_WalkOrgByDeepOrder
 {
     USER_TREE_ORG_S *pstOrg1;
     USER_TREE_ORG_S *pstOrg2;
-    BS_WALK_RET_E eRet = BS_WALK_CONTINUE;
+    int ret;
     
-    eRet = pfWalkFunc(pstUserTree, NAP_GetIDByNode(pstUserTree->hOrgNap, pstOrg), hUserHandle);
-    if (eRet == BS_WALK_STOP)
-    {
-        return eRet;
+    ret = pfWalkFunc(pstUserTree, NAP_GetIDByNode(pstUserTree->hOrgNap, pstOrg), hUserHandle);
+    if (ret < 0) {
+        return ret;
     }
 
-    DLL_SAFE_SCAN(&pstOrg->stChildOrgList, pstOrg1, pstOrg2)
-    {
-        eRet = usertree_WalkOrgByDeepOrder(pstUserTree, pstOrg1, pfWalkFunc, hUserHandle);
-        if (eRet == BS_WALK_STOP)
-        {
+    DLL_SAFE_SCAN(&pstOrg->stChildOrgList, pstOrg1, pstOrg2) {
+        ret = usertree_WalkOrgByDeepOrder(pstUserTree, pstOrg1, pfWalkFunc, hUserHandle);
+        if (ret < 0) {
             break;
         }
     }
 
-    return eRet;
+    return ret;
 }
 
-/* 深度优先遍历 */
+
 VOID UserTree_WalkOrgByDeepOrder
 (
     IN USER_TREE_HANDLE hUserTree,
@@ -819,7 +814,7 @@ VOID UserTree_WalkOrgByDeepOrder
     usertree_WalkOrgByDeepOrder(pstUserTree, pstOrg, pfWalkFunc, hUserHandle);
 }
 
-static BS_WALK_RET_E usertree_SequenceWalkOrg(IN USER_TREE_HANDLE hUserTree, IN UINT64 uiID, IN HANDLE hUserHandle)
+static int usertree_SequenceWalkOrg(IN USER_TREE_HANDLE hUserTree, IN UINT64 uiID, IN HANDLE hUserHandle)
 {
     USER_TREE_S *pstUserTree = hUserTree;
     cJSON *pstOrgJson = hUserHandle;
@@ -852,10 +847,10 @@ static BS_WALK_RET_E usertree_SequenceWalkOrg(IN USER_TREE_HANDLE hUserTree, IN 
 
     cJSON_AddItemToArray(pstOrgJson, pstItem);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-static BS_WALK_RET_E usertree_SequenceWalkUser(IN USER_TREE_HANDLE hUserTree, IN UINT64 uiID, IN HANDLE hUserHandle)
+static int usertree_SequenceWalkUser(IN USER_TREE_HANDLE hUserTree, IN UINT64 uiID, IN HANDLE hUserHandle)
 {
     USER_TREE_S *pstUserTree = hUserTree;    
     USER_TREE_USER_S *pstUser;
@@ -886,10 +881,10 @@ static BS_WALK_RET_E usertree_SequenceWalkUser(IN USER_TREE_HANDLE hUserTree, IN
 
     cJSON_AddItemToArray(pstUserJson, pstItem);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-/* 序列化 */
+
 CHAR * UserTree_Sequence(IN USER_TREE_HANDLE hUserTree)
 {
     cJSON *pstJson;
@@ -998,7 +993,7 @@ static BS_STATUS usertree_RestoreUser(IN USER_TREE_S *pstUserTree, IN cJSON *pst
     return BS_OK;
 }
 
-/* 反序列化 */
+
 USER_TREE_HANDLE UserTree_DeSequence(IN CHAR *pcInfo)
 {
     cJSON * pstJson;

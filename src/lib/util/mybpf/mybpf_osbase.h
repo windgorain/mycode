@@ -12,7 +12,7 @@ extern "C"
 {
 #endif
 
-/* Register numbers */
+
 enum {
 	BPF_REG_0 = 0,
 	BPF_REG_1,
@@ -39,14 +39,14 @@ enum {
 #define BPF_REG_CTX	BPF_REG_6
 #define BPF_REG_FP	BPF_REG_10
 
-/* Additional register mappings for converted user programs. */
+
 #define BPF_REG_A	BPF_REG_0
 #define BPF_REG_X	BPF_REG_7
-#define BPF_REG_TMP	BPF_REG_2	/* scratch reg */
-#define BPF_REG_D	BPF_REG_8	/* data, callee-saved */
-#define BPF_REG_H	BPF_REG_9	/* hlen, callee-saved */
+#define BPF_REG_TMP	BPF_REG_2	
+#define BPF_REG_D	BPF_REG_8	
+#define BPF_REG_H	BPF_REG_9	
 
-/* Kernel hidden auxiliary/helper register. */
+
 #define BPF_REG_AX		MAX_BPF_REG
 #define MAX_BPF_EXT_REG		(MAX_BPF_REG + 1)
 #define MAX_BPF_JIT_REG		MAX_BPF_EXT_REG
@@ -58,18 +58,18 @@ enum {
 	 __bpf_call_base)
 #endif
 
-/* instruction classes */
-#define BPF_JMP32	0x06	/* jmp mode in word width */
 
-#define BPF_JNE		0x50	/* jump != */
-#define BPF_JLT		0xa0	/* LT is unsigned, '<' */
-#define BPF_JLE		0xb0	/* LE is unsigned, '<=' */
-#define BPF_JSGT	0x60	/* SGT is signed '>', GT in x86 */
-#define BPF_JSGE	0x70	/* SGE is signed '>=', GE in x86 */
-#define BPF_JSLT	0xc0	/* SLT is signed, '<' */
-#define BPF_JSLE	0xd0	/* SLE is signed, '<=' */
-#define BPF_CALL	0x80	/* function call */
-#define BPF_EXIT	0x90	/* function return */
+#define BPF_JMP32	0x06	
+
+#define BPF_JNE		0x50	
+#define BPF_JLT		0xa0	
+#define BPF_JLE		0xb0	
+#define BPF_JSGT	0x60	
+#define BPF_JSGE	0x70	
+#define BPF_JSLT	0xc0	
+#define BPF_JSLE	0xd0	
+#define BPF_CALL	0x80	
+#define BPF_EXIT	0x90	
 
 #define BPF_REG_AX		MAX_BPF_REG
 #define MAX_BPF_EXT_REG		(MAX_BPF_REG + 1)
@@ -83,9 +83,9 @@ enum {
 #define BPF_NOSPEC	0xc0
 #define BPF_PROBE_MEM	0x20
 
-#define BPF_FETCH	0x01	/* not an opcode on its own, used to build others */
-#define BPF_XCHG	(0xe0 | BPF_FETCH)	/* atomic exchange */
-#define BPF_CMPXCHG	(0xf0 | BPF_FETCH)	/* atomic compare-and-write */
+#define BPF_FETCH	0x01	
+#define BPF_XCHG	(0xe0 | BPF_FETCH)	
+#define BPF_CMPXCHG	(0xf0 | BPF_FETCH)	
 
 #define BPF_PSEUDO_CALL		1
 
@@ -125,57 +125,43 @@ enum {
 		.imm   = 0 })
 
 enum bpf_reg_type {
-	NOT_INIT = 0,		 /* nothing was written into register */
-	SCALAR_VALUE,		 /* reg doesn't contain a valid pointer */
-	PTR_TO_CTX,		 /* reg points to bpf_context */
-	CONST_PTR_TO_MAP,	 /* reg points to struct bpf_map */
-	PTR_TO_MAP_VALUE,	 /* reg points to map element value */
-	PTR_TO_MAP_KEY,		 /* reg points to a map element key */
-	PTR_TO_STACK,		 /* reg == frame_pointer + offset */
-	PTR_TO_PACKET_META,	 /* skb->data - meta_len */
-	PTR_TO_PACKET,		 /* reg points to skb->data */
-	PTR_TO_PACKET_END,	 /* skb->data + headlen */
-	PTR_TO_FLOW_KEYS,	 /* reg points to bpf_flow_keys */
-	PTR_TO_SOCKET,		 /* reg points to struct bpf_sock */
-	PTR_TO_SOCK_COMMON,	 /* reg points to sock_common */
-	PTR_TO_TCP_SOCK,	 /* reg points to struct tcp_sock */
-	PTR_TO_TP_BUFFER,	 /* reg points to a writable raw tp's buffer */
-	PTR_TO_XDP_SOCK,	 /* reg points to struct xdp_sock */
-	/* PTR_TO_BTF_ID points to a kernel struct that does not need
-	 * to be null checked by the BPF program. This does not imply the
-	 * pointer is _not_ null and in practice this can easily be a null
-	 * pointer when reading pointer chains. The assumption is program
-	 * context will handle null pointer dereference typically via fault
-	 * handling. The verifier must keep this in mind and can make no
-	 * assumptions about null or non-null when doing branch analysis.
-	 * Further, when passed into helpers the helpers can not, without
-	 * additional context, assume the value is non-null.
-	 */
+	NOT_INIT = 0,		 
+	SCALAR_VALUE,		 
+	PTR_TO_CTX,		 
+	CONST_PTR_TO_MAP,	 
+	PTR_TO_MAP_VALUE,	 
+	PTR_TO_MAP_KEY,		 
+	PTR_TO_STACK,		 
+	PTR_TO_PACKET_META,	 
+	PTR_TO_PACKET,		 
+	PTR_TO_PACKET_END,	 
+	PTR_TO_FLOW_KEYS,	 
+	PTR_TO_SOCKET,		 
+	PTR_TO_SOCK_COMMON,	 
+	PTR_TO_TCP_SOCK,	 
+	PTR_TO_TP_BUFFER,	 
+	PTR_TO_XDP_SOCK,	 
+	
 	PTR_TO_BTF_ID,
-	/* PTR_TO_BTF_ID_OR_NULL points to a kernel struct that has not
-	 * been checked for null. Used primarily to inform the verifier
-	 * an explicit null check is required for this struct.
-	 */
-	PTR_TO_MEM,		 /* reg points to valid memory region */
-	PTR_TO_BUF,		 /* reg points to a read/write buffer */
-	PTR_TO_PERCPU_BTF_ID,	 /* reg points to a percpu kernel variable */
-	PTR_TO_FUNC,		 /* reg points to a bpf program function */
+	
+	PTR_TO_MEM,		 
+	PTR_TO_BUF,		 
+	PTR_TO_PERCPU_BTF_ID,	 
+	PTR_TO_FUNC,		 
 	__BPF_REG_TYPE_MAX,
 
 #define	PTR_MAYBE_NULL (0x100)
 #define MEM_RDONLY	   (0x200)
-#define BPF_TYPE_LIMIT		(MEM_RDONLY	| (MEM_RDONLY-1)) /* Max number of all types. */
+#define BPF_TYPE_LIMIT		(MEM_RDONLY	| (MEM_RDONLY-1)) 
 
-	/* Extended reg_types. */
+	
 	PTR_TO_MAP_VALUE_OR_NULL	= PTR_MAYBE_NULL | PTR_TO_MAP_VALUE,
 	PTR_TO_SOCKET_OR_NULL		= PTR_MAYBE_NULL | PTR_TO_SOCKET,
 	PTR_TO_SOCK_COMMON_OR_NULL	= PTR_MAYBE_NULL | PTR_TO_SOCK_COMMON,
 	PTR_TO_TCP_SOCK_OR_NULL		= PTR_MAYBE_NULL | PTR_TO_TCP_SOCK,
 	PTR_TO_BTF_ID_OR_NULL		= PTR_MAYBE_NULL | PTR_TO_BTF_ID,
 
-	/* This must be the last entry. Its purpose is to ensure the enum is
-	 * wide enough to hold the higher bits reserved for bpf_type_flag.
-	 */
+	
 	__BPF_REG_TYPE_LIMIT	= BPF_TYPE_LIMIT,
 };
 
@@ -190,4 +176,4 @@ struct reg_state {
 #ifdef __cplusplus
 }
 #endif
-#endif //MYBPF_OSBASE_H_
+#endif 

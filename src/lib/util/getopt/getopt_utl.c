@@ -66,7 +66,7 @@ INT GETOPT_GetOpt
 
     for (i=pstCtrl->uiOffset; i<pstCtrl->uiAgrc; i++)
     {
-        /* 判断是否"-" */
+        
         if (pstCtrl->ppcArgv[i][0] != '-')
         {
             continue;

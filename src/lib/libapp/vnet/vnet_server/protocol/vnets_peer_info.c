@@ -54,7 +54,7 @@ BS_STATUS VNETS_PeerInfo_Input(IN MIME_HANDLE hMime, IN VNETS_PROTOCOL_PACKET_IN
         return BS_NO_SUCH;
     }
 
-    if (stPhyInfo.enType != VNETS_PHY_TYPE_UDP)   /* 目前只有它们支持直连信息检测 */
+    if (stPhyInfo.enType != VNETS_PHY_TYPE_UDP)   
     {
         return BS_NOT_SUPPORT;
     }

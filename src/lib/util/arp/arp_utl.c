@@ -31,11 +31,11 @@ BOOL_T ARP_IsArpPacket(IN MBUF_S *pstMbuf)
 
 MBUF_S * ARP_BuildPacket
 (
-    IN UINT uiSrcIp,  /* 网络序 */
-    IN UINT uiDstIp, /* 网络序 */
+    IN UINT uiSrcIp,  
+    IN UINT uiDstIp, 
     IN UCHAR *pucSrcMac,
     IN UCHAR *pucDstMac,
-    IN USHORT usArpType /* 主机序 */
+    IN USHORT usArpType 
 )
 {
     ARP_HEADER_S *pstArpHeader;
@@ -84,11 +84,11 @@ MBUF_S * ARP_BuildPacket
 
 MBUF_S * ARP_BuildPacketWithEthHeader
 (
-    IN UINT uiSrcIp,  /* 网络序 */
-    IN UINT uiDstIp, /* 网络序 */
+    IN UINT uiSrcIp,  
+    IN UINT uiDstIp, 
     IN UCHAR *pucSrcMac,
     IN UCHAR *pucDstMac,
-    IN USHORT usArpType /* 主机序 */
+    IN USHORT usArpType 
 )
 {
     MBUF_S *pstMbuf;

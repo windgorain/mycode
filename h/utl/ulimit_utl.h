@@ -22,4 +22,4 @@ static inline void ULIMIT_SetMemLock(unsigned long long cur, unsigned long long 
 #ifdef __cplusplus
 }
 #endif
-#endif //ULIMIT_UTL_H_
+#endif 

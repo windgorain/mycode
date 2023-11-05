@@ -13,7 +13,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #ifdef IN_WINDOWS
 
@@ -77,8 +77,8 @@ static inline VOID RWLOCK_WriteUnLock(IN RWLOCK_S *pstLock)
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__RWLOCK_UTL_H_*/
+#endif 
 
 

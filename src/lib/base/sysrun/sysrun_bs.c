@@ -12,7 +12,7 @@ VOID _SysrunBs_Exit(INT lExitNum)
     _SysrunUtl_Exit(lExitNum);
 }
 
-BS_STATUS _SysrunBs_RegExitNotifyFunc(IN PF_SYSRUN_EXIT_NOTIFY_FUNC pfFunc, IN USER_HANDLE_S *ud/* 可以为NULL */)
+BS_STATUS _SysrunBs_RegExitNotifyFunc(IN PF_SYSRUN_EXIT_NOTIFY_FUNC pfFunc, IN USER_HANDLE_S *ud)
 {
     return _SysrunUtl_RegExitNotifyFunc(pfFunc, ud);
 }

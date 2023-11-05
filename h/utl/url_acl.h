@@ -14,7 +14,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 typedef LIST_RULE_HANDLE URL_ACL_HANDLE;
@@ -23,7 +23,7 @@ typedef HANDLE URL_ACL_LIST_HANDLE;
 #define URL_ACL_RULE_MAX_LEN 255
 #define COMMON_URL_MAX_LEN   255
 
-#define URL_ACL_KEY_MATCH_ALL    0x01  /* 匹配所有,相当于配置了 "permit/deny *" */
+#define URL_ACL_KEY_MATCH_ALL    0x01  
 #define URL_ACL_KEY_PROTOCOL     0x02
 #define URL_ACL_KEY_IPADDR       0x04
 #define URL_ACL_KEY_DOMAIN       0x08
@@ -35,7 +35,7 @@ typedef HANDLE URL_ACL_LIST_HANDLE;
 #define URL_ACL_MAX_PATH_LEN        255
 
 #define ACL_INVALID_LIST_ID 0
-//#define ACL_POOL_NAME_LEN_MAX 64
+
 
 #define URL_ACL_RULE_ID_MAX 10000000
 
@@ -52,12 +52,12 @@ typedef enum
 
 typedef struct tagURL_ACL_MATCH_INFO
 {
-    UINT   uiFlag;                               /* 有效比较位，如URL_ACL_KEY_PORT */
-    URL_ACL_PROTOCOL_E enProtocol;               /* 协议 */
-    INET_ADDR_S stAddr;                          /* 地址 */
-    UCHAR szDomain[URL_ACL_MAX_DOMAIN_LEN + 1];  /* 域名 */
-    USHORT usPort;                               /* 端口 */
-    UCHAR szPath[URL_ACL_MAX_PATH_LEN + 1];      /* 路径 */
+    UINT   uiFlag;                               
+    URL_ACL_PROTOCOL_E enProtocol;               
+    INET_ADDR_S stAddr;                          
+    UCHAR szDomain[URL_ACL_MAX_DOMAIN_LEN + 1];  
+    USHORT usPort;                               
+    UCHAR szPath[URL_ACL_MAX_PATH_LEN + 1];      
 }URL_ACL_MATCH_INFO_S;
 
 #define URL_ACL_LIST_NAME_MAX_LEN 63
@@ -78,27 +78,27 @@ typedef enum
 
 typedef enum enUrlAcl_PATTERN
 {
-    URL_ACL_PATTERN_STRING,    /* 精确字符串 */
-    URL_ACL_PATTERN_PCRE,      /* 正则字符串 */
+    URL_ACL_PATTERN_STRING,    
+    URL_ACL_PATTERN_PCRE,      
     URL_ACL_PATTERN_BUTT
 }URL_ACL_PATTERN_E;
 
 typedef struct
 {
-    VOID *pstReg;       /* 正则表达式编译结果 */
-    VOID *pstExtraData; /* 正则表达式，学习数据 */
+    VOID *pstReg;       
+    VOID *pstExtraData; 
 }URL_ACL_PCRE_S;
 
 typedef enum enUrlAcl_HOST
 {
-    URL_ACL_HOST_IPADDR,   /* ip地址方式 */
-    URL_ACL_HOST_DOMAIN,   /* 域名方式 */
+    URL_ACL_HOST_IPADDR,   
+    URL_ACL_HOST_DOMAIN,   
     URL_ACL_HOST_BUTT
 }URL_ACL_HOST_E;
 
 typedef struct tagUrlAcl_PATTERN
 {
-    URL_ACL_PATTERN_E enType;       /*简单字符串、正则表达式*/
+    URL_ACL_PATTERN_E enType;       
     UCHAR szPattern[URL_ACL_MAX_PATTERN_LEN + 1];
     CHAR *pcPcreStr;
 	RE_HDL pstPcre;
@@ -106,24 +106,24 @@ typedef struct tagUrlAcl_PATTERN
 
 typedef struct tagUrlAcl_IPGROUP
 {
-    DLL_NODE_S stNode;      /* ip group list */
+    DLL_NODE_S stNode;      
     INET_ADDR_S stAddrStart;
     INET_ADDR_S stAddrStop;
 }URL_ACL_IPGROUP_S;
 
 typedef struct tagUrlAcl_PORTGROUP
 {
-    DLL_NODE_S stNode;     /* Port group list */
-    USHORT usPortStart;    /* start port */
-    USHORT usPortEnd;      /* end port */
+    DLL_NODE_S stNode;     
+    USHORT usPortStart;    
+    USHORT usPortEnd;      
 }URL_ACL_PORTGROUP_S;
 
 typedef struct tagUrlAcl_HOST
 {
-    URL_ACL_HOST_E enType;                /* ip/host-name */
+    URL_ACL_HOST_E enType;                
     union
     {
-        DLL_HEAD_S stIpList;             /* URL_ACL_IPGROUP_S list*/
+        DLL_HEAD_S stIpList;             
         URL_ACL_PATTERN_S stHostDomain;
     }un_host;
 #define uIpList un_host.stIpList
@@ -133,14 +133,14 @@ typedef struct tagUrlAcl_HOST
 
 typedef struct
 {
-    /* 统计计数 */
-    volatile ULONG ulMatchCount;    /* 命中次数 */
-    UINT uiLatestMatchTime;         /* 规则命中最新时间 */
+    
+    volatile ULONG ulMatchCount;    
+    UINT uiLatestMatchTime;         
 }URL_ACL_RULE_STATISTICS_S;
 
 typedef struct tagURLAcl_Rule
 {
-    BS_ACTION_E enAction;       /* URL ACL Action */
+    BS_ACTION_E enAction;       
 	URL_ACL_RULE_CFG_S stRuleCfg;
 	URL_ACL_RULE_STATISTICS_S statistics;
 }URL_ACL_RULE_S;
@@ -157,7 +157,7 @@ int URL_ACL_AddListRef(URL_ACL_HANDLE acl, UINT list_id);
 int URL_ACL_DelListRef(URL_ACL_HANDLE acl, UINT list_id);
 UINT URL_ACL_ListGetRef(URL_ACL_HANDLE acl, UINT list_id);
 UINT URL_ACL_GetListByName(URL_ACL_HANDLE acl, char *list_name);
-UINT URL_ACL_GetNextListID(URL_ACL_HANDLE acl, UINT curr_list_id/* 0表示获取第一个 */);
+UINT URL_ACL_GetNextListID(URL_ACL_HANDLE acl, UINT curr_list_id);
 char * URL_ACL_GetListNameByID(URL_ACL_HANDLE acl, UINT list_id);
 BS_ACTION_E URL_ACL_GetDefaultActionByID(URL_ACL_HANDLE acl, UINT list_id);
 int URL_ACL_SetDefaultActionByID(URL_ACL_HANDLE acl, UINT list_id, BS_ACTION_E enAction);
@@ -177,8 +177,8 @@ BS_ACTION_E URL_ACL_Match(URL_ACL_HANDLE acl, UINT list_id, URL_ACL_MATCH_INFO_S
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__URL_ACL_H_*/
+#endif 
 
 

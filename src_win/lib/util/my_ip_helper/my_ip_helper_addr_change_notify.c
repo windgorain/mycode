@@ -46,16 +46,16 @@ static VOID _os_my_ip_helper_StartAddrChangeNotify()
     HANDLE hHandle;
     USER_HANDLE_S stUserHandle;
     
-    hHandle=CreateEvent(NULL, // SD 
-        FALSE, // reset type 
-        FALSE, // initial state 
-        "IPChang.data" // object name 
+    hHandle=CreateEvent(NULL, 
+        FALSE, 
+        FALSE, 
+        "IPChang.data" 
         ); 
     
     overLapped.hEvent=hHandle; 
     NotifyAddrChange(&h2,&overLapped);
 
-    /* 创建一个子进程来等待消息 */
+    
     stUserHandle.ahUserHandle[0] = hHandle;
 
     THREAD_Create("MyIpHelper", NULL, _os_my_ip_helper_Main, &stUserHandle);

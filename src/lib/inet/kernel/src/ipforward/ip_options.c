@@ -27,7 +27,7 @@ VOID IP_SaveSrcOption ( IN MBUF_S *pstMBuf, OUT UCHAR *ucOldIPHeader )
     uiIpHeadLen = (UINT)pstIp->ucHLen << 2;
     if (uiIpHeadLen > sizeof(IP_HEAD_S))
     {
-        /* 源路由选项报文 */
+        
         if (0 != (MBUF_GET_IP_PKTTYPE(pstMBuf) & IP_PKT_SRCROUTE))
         {    
             (VOID) memcpy(ucOldIPHeader, (void *) pstIp, uiIpHeadLen);

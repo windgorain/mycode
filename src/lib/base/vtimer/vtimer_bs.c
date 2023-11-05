@@ -142,7 +142,7 @@ static BS_STATUS _vtimer_InitOnce(void *ud)
     {
         goto Err;
     }
-    /* 递增数, 初始值随机，所以不用清零 */
+    
 
     ulLen = g_ulMaxVTimerNum * sizeof(_VTIMER_CTRL_S);
     g_pstVTimerCtrl = MEM_Malloc(ulLen);

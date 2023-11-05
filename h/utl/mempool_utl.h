@@ -10,9 +10,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define MEMPOOL_FLAG_WITH_LOCK 0x1 /* 内置锁,用于并发申请/释放内存的情况 */
+#define MEMPOOL_FLAG_WITH_LOCK 0x1 
 
 
 typedef HANDLE MEMPOOL_HANDLE;
@@ -42,8 +42,8 @@ CHAR * MEMPOOL_Strdup(IN MEMPOOL_HANDLE hMemPool, IN CHAR *pcStr);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__MEMPOOL_UTL_H_*/
+#endif 
 
 

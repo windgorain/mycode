@@ -12,15 +12,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETC_MAC_FW_Input (IN MBUF_S *pstMbuf);
 VOID VNETC_MAC_FW_SetPermitBoradcast(IN BOOL_T bPermit);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_MAC_FW_H_*/
+#endif 
 
 

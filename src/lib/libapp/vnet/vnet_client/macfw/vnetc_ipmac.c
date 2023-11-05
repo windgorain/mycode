@@ -33,7 +33,7 @@ VOID VNETC_Ipmac_Fin()
     IPMAC_TBL_DelInstance(g_hVnetClientIpMacTbl);
 }
 
-BS_STATUS VNETC_Ipmac_Add(IN UINT uiIp/* ÍøÂçÐò */, IN MAC_ADDR_S *pstMac)
+BS_STATUS VNETC_Ipmac_Add(IN UINT uiIp, IN MAC_ADDR_S *pstMac)
 {
     BS_STATUS enStatus = BS_ERR;
     IPMAC_TBL_NODE_S *pstIpMacNode;
@@ -50,14 +50,14 @@ BS_STATUS VNETC_Ipmac_Add(IN UINT uiIp/* ÍøÂçÐò */, IN MAC_ADDR_S *pstMac)
     return enStatus;
 }
 
-VOID VNETC_Ipmac_Del(IN UINT uiIp/* ÍøÂçÐò */)
+VOID VNETC_Ipmac_Del(IN UINT uiIp)
 {
     MUTEX_P(&g_stVnetClientIpMacTblMutex);
     IPMAC_TBL_Del(g_hVnetClientIpMacTbl, uiIp);
     MUTEX_V(&g_stVnetClientIpMacTblMutex);
 }
 
-MAC_ADDR_S * VNETC_Ipmac_GetMacByIp(IN UINT uiIp/* ÍøÂçÐò */, OUT MAC_ADDR_S *pstMac)
+MAC_ADDR_S * VNETC_Ipmac_GetMacByIp(IN UINT uiIp, OUT MAC_ADDR_S *pstMac)
 {
     IPMAC_TBL_NODE_S *pstIpMacNode;
 

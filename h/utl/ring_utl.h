@@ -29,13 +29,11 @@ extern "C"
 #define __IS_MC 0
 
 enum {
-    RING_QUEUE_FIXED = 0, /* Enq/Deq a fixed number of items from a ring */
-    RING_QUEUE_VARIABLE   /* Enq/Deq as many items as possible from ring */
+    RING_QUEUE_FIXED = 0, 
+    RING_QUEUE_VARIABLE   
 };
 
-/* the actual enqueue of pointers on the ring.
- * Placed here since identical code needed in both
- * single and multi producer enqueue functions */
+
 #define RING_ENQUEUE_PTRS(r, ring_start, prod_head, obj_table, n, obj_type) \
     do { \
         unsigned int i; \
@@ -51,9 +49,9 @@ enum {
             } \
             switch (n & 0x3) { \
                 case 3: \
-                        ring[idx++] = obj_table[i++]; /* fallthrough */ \
+                        ring[idx++] = obj_table[i++];  \
                 case 2: \
-                        ring[idx++] = obj_table[i++]; /* fallthrough */ \
+                        ring[idx++] = obj_table[i++];  \
                 case 1: \
                         ring[idx++] = obj_table[i++]; \
             } \
@@ -65,9 +63,7 @@ enum {
         } \
     } while (0)
 
-/* the actual copy of pointers on the ring to obj_table.
- * Placed here since identical code needed in both
- * single and multi consumer dequeue functions */
+
 #define RING_DEQUEUE_PTRS(r, ring_start, cons_head, obj_table, n, obj_type) \
     do { \
         unsigned int i; \
@@ -83,9 +79,9 @@ enum {
             } \
             switch (n & 0x3) { \
                 case 3: \
-                        obj_table[i++] = ring[idx++]; /* fallthrough */ \
+                        obj_table[i++] = ring[idx++];  \
                 case 2: \
-                        obj_table[i++] = ring[idx++]; /* fallthrough */ \
+                        obj_table[i++] = ring[idx++];  \
                 case 1: \
                         obj_table[i++] = ring[idx++]; \
             } \
@@ -99,25 +95,25 @@ enum {
 
 
 typedef struct {
-    volatile UINT head;  /**< Prod/consumer head. */
-    volatile UINT tail;  /**< Prod/consumer tail. */
-    UINT single: 1;      /**< True if single prod/cons */
+    volatile UINT head;  
+    volatile UINT tail;  
+    UINT single: 1;      
 }RING_HEADTAIL_S;
 
 typedef struct {
-    UINT size;           /**< Size of ring. */
-    UINT mask;           /**< Mask (size-1) of ring. */
-    UINT capacity;       /**< Usable size of ring */
+    UINT size;           
+    UINT mask;           
+    UINT capacity;       
 
-	char pad0 CACHE_ALIGNED; /**< empty cache line */
+	char pad0 CACHE_ALIGNED; 
 
-	/** Ring producer status. */
+	
 	RING_HEADTAIL_S prod CACHE_ALIGNED;
-	char pad1 CACHE_ALIGNED; /**< empty cache line */
+	char pad1 CACHE_ALIGNED; 
 
-	/** Ring consumer status. */
+	
 	RING_HEADTAIL_S cons CACHE_ALIGNED;
-	char pad2 CACHE_ALIGNED; /**< empty cache line */
+	char pad2 CACHE_ALIGNED; 
     void *data[0];
 }RING_S;
 
@@ -132,15 +128,15 @@ static inline UINT RING_MoveProdHead(RING_S *r, UINT is_sp, UINT n,
 	int success;
 
 	do {
-		/* Reset n to the initial burst count */
+		
 		n = max;
         *old_head = ATOM_GET(&r->prod.head);
-        /* Ensure the head is read before tail */
+        
         ATOM_BARRIER();
 		cons_tail = ATOM_GET(&r->cons.tail);
 		*free_entries = (capacity + cons_tail - *old_head);
 
-		/* check that we have enough room in ring */
+		
 		if (unlikely(n > *free_entries))
 			n = (behavior == RING_QUEUE_FIXED) ?  0 : *free_entries;
 
@@ -164,7 +160,7 @@ static inline UINT RING_MoveConsHead(RING_S *r, int is_sc, UINT n,
 	UINT prod_tail;
 	int success;
 
-	/* move cons.head atomically */
+	
 	*old_head = __atomic_load_n(&r->cons.head, __ATOMIC_RELAXED);
 	do {
 		n = max;
@@ -194,10 +190,7 @@ static inline UINT RING_MoveConsHead(RING_S *r, int is_sc, UINT n,
 static inline void RING_UpdateTail(RING_HEADTAIL_S *ht, uint32_t old_val,
         uint32_t new_val, uint32_t single)
 {
-	/*
-	 * If there are other enqueues/dequeues in progress that preceded us,
-	 * we need to wait for them to complete
-	 */
+	
 	if (!single)
 		while (unlikely(ht->tail != old_val)) {
 #ifdef __x86_64__
@@ -399,4 +392,4 @@ static inline UINT RING_DequeueBurst(RING_S *r, void **obj_table,
 #ifdef __cplusplus
 }
 #endif
-#endif //RING_UTL_H_
+#endif 

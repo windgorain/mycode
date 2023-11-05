@@ -10,8 +10,8 @@
 #include "utl/wasm_utl.h"
 
 
-#define BEGIN(x, y) "\033[" #x ";" #y "m"// x: 背景，y: 前景
-#define CLOSE "\033[0m"                  // 关闭所有属性
+#define BEGIN(x, y) "\033[" #x ";" #y "m"
+#define CLOSE "\033[0m"                  
 
 static void wasmc_usage(char *prog)
 {

@@ -21,4 +21,4 @@ unsigned int CPU_GetModel();
 #ifdef __cplusplus
 }
 #endif
-#endif //CPU_UTL_H_
+#endif 

@@ -35,11 +35,11 @@ static void * precver_xdp_open(int argc, char **argv)
     bool force = false;
     bool skb = false;
     GETOPT2_NODE_S opts[] = {
-        {'o', 'h', "help", 0, NULL, NULL, 0},
-        {'o', 'i', "interface", 's', &ifname, "interface", 0},
-        {'o', 'b', "bpfprog", 's', &bpf_prog, "will load bpf program insteading of xdp default program", 0},
-        {'o', 's', "skb", 'b', &skb, "skb mode, default mode is drv", 0},
-        {'o', 'f', "force", 'b', &force, "force to load bpf program", 0},
+        {'o', 'h', "help", GETOPT2_V_NONE, NULL, NULL, 0},
+        {'o', 'i', "interface", GETOPT2_V_STRING, &ifname, "interface", 0},
+        {'o', 'b', "bpfprog", GETOPT2_V_STRING, &bpf_prog, "will load bpf program insteading of xdp default program", 0},
+        {'o', 's', "skb", GETOPT2_V_BOOL, &skb, "skb mode, default mode is drv", 0},
+        {'o', 'f', "force", GETOPT2_V_BOOL, &force, "force to load bpf program", 0},
         {0}
     };
     AFXDP_PARAM_S xdp_para = {
@@ -148,7 +148,7 @@ static void precver_xdp_run(PRECVER_RUNNER_S *runner, void *xdp)
         }
         precver_xdp_read(runner, xdp, &ts);
 
-    } while ((cur_time - tick_base < RDTSC_HZ)); /* 1秒后停止循环 */
+    } while ((cur_time - tick_base < RDTSC_HZ)); 
 
     return;
 }

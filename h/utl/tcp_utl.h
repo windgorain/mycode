@@ -7,25 +7,25 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define TCP_HEADER_LENGTH 20
 
-/* TCP状态 */
-#define TCPS_CLOSED        0    /* closed */
-#define TCPS_LISTEN        1    /* listening for connection */
-#define TCPS_SYN_SENT      2    /* active, have sent syn */
-#define TCPS_SYN_RECEIVED  3    /* have sent and received syn */
-/* states < TCPS_ESTABLISHED are those where connections not established */
-#define TCPS_ESTABLISHED   4    /* established */
-#define TCPS_CLOSE_WAIT    5    /* rcvd fin, waiting for close */
-/* states > TCPS_CLOSE_WAIT are those where user has closed */
-#define TCPS_FIN_WAIT_1    6    /* have closed, sent fin */
-#define TCPS_CLOSING       7    /* closed xchd FIN; await FIN ACK */
-#define TCPS_LAST_ACK      8    /* had fin and close; await FIN ACK */
-/* states > TCPS_CLOSE_WAIT && < TCPS_FIN_WAIT_2 await ACK of FIN */
-#define TCPS_FIN_WAIT_2    9    /* have closed, fin is acked */
-#define TCPS_TIME_WAIT    10    /* in 2*msl quiet wait after close */
+
+#define TCPS_CLOSED        0    
+#define TCPS_LISTEN        1    
+#define TCPS_SYN_SENT      2    
+#define TCPS_SYN_RECEIVED  3    
+
+#define TCPS_ESTABLISHED   4    
+#define TCPS_CLOSE_WAIT    5    
+
+#define TCPS_FIN_WAIT_1    6    
+#define TCPS_CLOSING       7    
+#define TCPS_LAST_ACK      8    
+
+#define TCPS_FIN_WAIT_2    9    
+#define TCPS_TIME_WAIT    10    
 
 #define TCP_HEAD_LEN(pstTcpHead) ((((pstTcpHead)->ucHeadLenAndOther & 0xf0) >> 4) * 4)
 
@@ -38,14 +38,14 @@
 #define    TCP_FLAG_ECE    0x40
 #define    TCP_FLAG_CWR    0x80
 
-#define    TCP_URG_PSH_RST_FIN    0x002D/*syn ack mask*/
-#define    TCP_URG_ACK_PSH_RST_FIN  0x003D/*syn mask*/
-#define    TCP_URG_PSH_SYN_FIN    0x002B/*rst ack mask*/
-#define    TCP_URG_ACK_PSH_SYN_FIN  0x003B/*rst mask*/
-#define    TCP_URG_PSH_RST_SYN    0x002E/*fin ack mask*/
-#define    TCP_URG_RST_SYN_FIN    0x0027/*psh ack mask*/
-#define    TCP_PSH_RST_SYN_FIN    0x000F/*urg ack mask*/
-#define    TCP_URG_PSH_RST_SYN_FIN  0x002F/*ack mask*/
+#define    TCP_URG_PSH_RST_FIN    0x002D
+#define    TCP_URG_ACK_PSH_RST_FIN  0x003D
+#define    TCP_URG_PSH_SYN_FIN    0x002B
+#define    TCP_URG_ACK_PSH_SYN_FIN  0x003B
+#define    TCP_URG_PSH_RST_SYN    0x002E
+#define    TCP_URG_RST_SYN_FIN    0x0027
+#define    TCP_PSH_RST_SYN_FIN    0x000F
+#define    TCP_URG_PSH_RST_SYN_FIN  0x002F
 
 #define    TCP_OPT_EOL     0
 #define    TCP_OPT_NOP     1
@@ -64,15 +64,15 @@
 #define TCP_Set_Window(hdr,val) ((hdr)->usWindow = val)
 
 #pragma pack(1)
-/* TCP header*/
+
 typedef struct tagTCP_HEAD_S
 {
-	USHORT usSrcPort;		/* Source port */
-	USHORT usDstPort; 		/* Destination port */
+	USHORT usSrcPort;		
+	USHORT usDstPort; 		
 	UINT  ulSequence;
 	UINT  ulAckSequence;
-	UCHAR  ucHeadLenAndOther; /*首部长度占4位, 单位是4字节*/
-	UCHAR  ucFlag;            /* TCP_FLAG_XXX */
+	UCHAR  ucHeadLenAndOther; 
+	UCHAR  ucFlag;            
 	USHORT usWindow;
 	USHORT usCrc;
 	USHORT usUrg;
@@ -90,7 +90,7 @@ typedef struct {
     UINT   timestamp_echo;
 }TCP_OPT_INFO_S;
 
-/* 返回网络序的校验和 */
+
 USHORT TCP_CheckSum
 (
     IN UCHAR *pucBuf,
@@ -108,7 +108,7 @@ UINT TCP_String2Flag(char *str);
 int TCP_LoadIPFile(void *sip_monitor);
 char * TCP_GetStatusString(int state);
 
-/* 检查TCP头长度是否足够 */
+
 static inline BOOL_T TCP_IsHeaderEnough(TCP_HEAD_S *tcp_head, int len)
 {
     if (len < sizeof(TCP_HEAD_S)) {
@@ -124,8 +124,8 @@ static inline BOOL_T TCP_IsHeaderEnough(TCP_HEAD_S *tcp_head, int len)
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__TCP_UTL_H_*/
+#endif 
 
 

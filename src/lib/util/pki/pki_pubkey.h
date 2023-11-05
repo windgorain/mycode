@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define PKI_PKEY_EC_P192_LEN 192
 #define PKI_PKEY_EC_P256_LEN 256
@@ -19,8 +19,8 @@
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__PKI_PUBKEY_H_*/
+#endif 
 
 

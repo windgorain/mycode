@@ -10,7 +10,7 @@ extern "C"
 {
 #endif
 
-/* 一些常用时间的定义 */
+
 #define TIME_ONE_SECOND   1000
 #define TIME_ONE_MINUTE   (60*TIME_ONE_SECOND)
 #define TIME_ONE_HOUR     (60*TIME_ONE_MINUTE)
@@ -18,8 +18,8 @@ extern "C"
 #define TIME_ONE_WEEK     (7*TIME_ONE_WEEK)
 #define TIME_30_DAY       (30*TIME_ONE_DAY)
 
-#define TIMER_FLAG_CYCLE 0x1  /* 循环定时器 */
-#define TIMER_FLAG_PAUSE 0x2  /* 暂停 */
+#define TIMER_FLAG_CYCLE 0x1  
+#define TIMER_FLAG_PAUSE 0x2  
 
 #define TIMER_IS_CYCLE(flag) ((flag) & TIMER_FLAG_CYCLE)
 #define TIMER_IS_PAUSE(flag) ((flag) & TIMER_FLAG_PAUSE)
@@ -39,4 +39,4 @@ typedef struct
 #ifdef __cplusplus
 }
 #endif
-#endif //TIMER_COMMON_H_
+#endif 

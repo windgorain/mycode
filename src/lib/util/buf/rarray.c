@@ -4,7 +4,7 @@
 * Description: 环形数组
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_RARRAY
 
 #include "bs.h"
@@ -40,7 +40,7 @@ HANDLE RArray_Create(IN UINT ulRowsCount, IN UINT ulColCount)
     Mem_Zero(pstRArryCtrl, sizeof(_RARRAY_CTRL_S));
 
     pstRArryCtrl->pucData = (UCHAR*)(pstRArryCtrl + 1);
-    pstRArryCtrl->ulColCount = ulColCount + sizeof(UINT); /* 之所以要加4个字节,是因为要用四个自己来表示当前行中有多少数据 */
+    pstRArryCtrl->ulColCount = ulColCount + sizeof(UINT); 
     pstRArryCtrl->ulRowsCount = ulRowsCount;
     pstRArryCtrl->ulReadIndex = 0;
     pstRArryCtrl->ulWriteIndex = 0;
@@ -97,7 +97,7 @@ BS_STATUS RArray_WriteForce(IN HANDLE hHandle, IN UCHAR *pucData, IN UINT ulData
     pstRArryCtrl->ulWriteIndex = (pstRArryCtrl->ulWriteIndex + 1) % (pstRArryCtrl->ulRowsCount);
 
     if (_RARRY_IS_FULL(pstRArryCtrl))
-    {/* 因为已经覆盖了一条记录, ReadIndex需要指向下一条  */
+    {
         pstRArryCtrl->ulReadIndex = pstRArryCtrl->ulWriteIndex;
     }
     else
@@ -132,7 +132,7 @@ BS_STATUS RArray_Write(IN HANDLE hHandle, IN UCHAR *pucData, IN UINT ulDataLen)
     return RArray_WriteForce(hHandle, pucData, ulDataLen);
 }
 
-/* 得到第一条记录的指针，read指针并不移动*/
+
 BS_STATUS RArray_ReadNoDel(IN HANDLE hHandle, OUT UCHAR **ppucData, OUT UINT *pulDataLen)
 {
     _RARRAY_CTRL_S *pstRArryCtrl = (_RARRAY_CTRL_S*)hHandle;
@@ -145,7 +145,7 @@ BS_STATUS RArray_ReadNoDel(IN HANDLE hHandle, OUT UCHAR **ppucData, OUT UINT *pu
 
     if (pstRArryCtrl->ulCount == 0)
     {
-        /* 只有满和空两种情况下readIndex和writeIndex 相等，既然不是满，那么一定是空*/
+        
         RETURN(BS_EMPTY);
     }
 
@@ -159,7 +159,7 @@ BS_STATUS RArray_ReadNoDel(IN HANDLE hHandle, OUT UCHAR **ppucData, OUT UINT *pu
     return BS_OK;    
 }
 
-/* 得到第一条记录的指针，read指针指向下一条记录 */
+
 BS_STATUS RArray_Read(IN HANDLE hHandle, OUT UCHAR **ppucData, OUT UINT *pulDataLen)
 {
     _RARRAY_CTRL_S *pstRArryCtrl = (_RARRAY_CTRL_S*)hHandle;
@@ -176,7 +176,7 @@ BS_STATUS RArray_Read(IN HANDLE hHandle, OUT UCHAR **ppucData, OUT UINT *pulData
     return ulRet;
 }
 
-/* 得到第ulIndex 条记录的指针，read指针并不移动*/
+
 BS_STATUS RArray_ReadIndex(IN HANDLE hHandle, IN UINT ulIndex, OUT UCHAR **ppucData, OUT UINT *pulDataLen)
 {
     _RARRAY_CTRL_S *pstRArryCtrl = (_RARRAY_CTRL_S*)hHandle;
@@ -204,7 +204,7 @@ BS_STATUS RArray_ReadIndex(IN HANDLE hHandle, IN UINT ulIndex, OUT UCHAR **ppucD
     return BS_OK;
 }
 
-/* 得到倒数第ulIndex 条记录的指针，read指针并不移动*/
+
 BS_STATUS RArray_ReadReversedIndex(IN HANDLE hHandle, IN UINT ulIndex, OUT UCHAR **ppucData, OUT UINT *pulDataLen)
 {
     _RARRAY_CTRL_S *pstRArryCtrl = (_RARRAY_CTRL_S*)hHandle;

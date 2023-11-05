@@ -13,7 +13,7 @@
 #include "utl/match_utl.h"
 #include "../h/log_agent_tcp.h"
 
-/* [no] tcp log enable */
+
 PLUG_API int LOGAGENT_TCP_CmdHttpLogEnable(int argc, char **argv)
 {
     TCP_LOG_S *log = LOGAGENT_TCP_GetCtrl();
@@ -27,7 +27,7 @@ PLUG_API int LOGAGENT_TCP_CmdHttpLogEnable(int argc, char **argv)
     return 0;
 }
 
-/* tcp match %INT {sip|dip} %IP mask %INT */
+
 PLUG_API int LOGAGENT_TCP_CmdMatchIP(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_TCP_GetMatch();
@@ -55,7 +55,7 @@ PLUG_API int LOGAGENT_TCP_CmdMatchIP(int argc, char **argv)
     return 0;
 }
 
-/* tcp match %INT {sport|dport} %INT */
+
 PLUG_API int LOGAGENT_TCP_CmdMatchPort(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_TCP_GetMatch();
@@ -77,7 +77,7 @@ PLUG_API int LOGAGENT_TCP_CmdMatchPort(int argc, char **argv)
     return 0;
 }
 
-/* tcp match %INT enable */
+
 PLUG_API int LOGAGENT_TCP_CmdMatchEnable(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_TCP_GetMatch();
@@ -93,7 +93,7 @@ PLUG_API int LOGAGENT_TCP_CmdMatchEnable(int argc, char **argv)
     return 0;
 }
 
-/* no tcp match %INT enable */
+
 PLUG_API int LOGAGENT_TCP_CmdMatchDisable(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_TCP_GetMatch();
@@ -131,7 +131,7 @@ static void logagent_tcp_ShowMatchedCountOne(MATCH_HANDLE hMatch, int index)
             index, saddr, daddr, pattern->protocol, enable, count);
 }
 
-/* show tcp match count [%INT] */
+
 PLUG_API int LOGAGENT_TCP_CmdShowMatchCount(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_TCP_GetMatch();
@@ -154,7 +154,7 @@ PLUG_API int LOGAGENT_TCP_CmdShowMatchCount(int argc, char **argv)
     return 0;
 }
 
-/* reset tcp match count [%INT] */
+
 PLUG_API int LOGAGENT_TCP_CmdResetMatchCount(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_TCP_GetMatch();

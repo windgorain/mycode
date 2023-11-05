@@ -2,14 +2,7 @@
 #ifndef __BPF_ENDIAN__
 #define __BPF_ENDIAN__
 
-/*
- * Isolate byte #n and put it into byte #m, for __u##b type.
- * E.g., moving byte #6 (nnnnnnnn) into byte #1 (mmmmmmmm) for __u64:
- * 1) xxxxxxxx nnnnnnnn xxxxxxxx xxxxxxxx xxxxxxxx xxxxxxxx mmmmmmmm xxxxxxxx
- * 2) nnnnnnnn xxxxxxxx xxxxxxxx xxxxxxxx xxxxxxxx mmmmmmmm xxxxxxxx 00000000
- * 3) 00000000 00000000 00000000 00000000 00000000 00000000 00000000 nnnnnnnn
- * 4) 00000000 00000000 00000000 00000000 00000000 00000000 nnnnnnnn 00000000
- */
+
 #define ___bpf_mvb(x, b, n, m) ((__u##b)(x) << (b-(n+1)*8) >> (b-8) << (m*8))
 
 #define ___bpf_swab16(x) ((__u16)(			\
@@ -32,21 +25,7 @@
 			  ___bpf_mvb(x, 64, 6, 1) |	\
 			  ___bpf_mvb(x, 64, 7, 0)))
 
-/* LLVM's BPF target selects the endianness of the CPU
- * it compiles on, or the user specifies (bpfel/bpfeb),
- * respectively. The used __BYTE_ORDER__ is defined by
- * the compiler, we cannot rely on __BYTE_ORDER from
- * libc headers, since it doesn't reflect the actual
- * requested byte order.
- *
- * Note, LLVM's BPF target has different __builtin_bswapX()
- * semantics. It does map to BPF_ALU | BPF_END | BPF_TO_BE
- * in bpfel and bpfeb case, which means below, that we map
- * to cpu_to_be16(). We could use it unconditionally in BPF
- * case, but better not rely on it, so that this header here
- * can be used from application and BPF program side, which
- * use different targets.
- */
+
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 # define __bpf_ntohs(x)			__builtin_bswap16(x)
 # define __bpf_htons(x)			__builtin_bswap16(x)
@@ -96,4 +75,4 @@
 	(__builtin_constant_p(x) ?		\
 	 __bpf_constant_be64_to_cpu(x) : __bpf_be64_to_cpu(x))
 
-#endif /* __BPF_ENDIAN__ */
+#endif 

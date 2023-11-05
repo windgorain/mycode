@@ -6,6 +6,7 @@
 #include "bs.h"
 #include "utl/mybpf_utl.h"
 #include "utl/mybpf_elf.h"
+#include "utl/mybpf_relo.h"
 #include "utl/mybpf_dbg.h"
 
 ELF_SECTION_S * MYBPF_ELF_GetProg(ELF_S *elf, char *func_name, OUT ELF_SECTION_S *sec)
@@ -31,6 +32,44 @@ ELF_SECTION_S * MYBPF_ELF_GetProg(ELF_S *elf, char *func_name, OUT ELF_SECTION_S
     return NULL;
 }
 
+static void _mybpf_def_get_global_maps(ELF_S *elf, OUT ELF_GLOBAL_DATA_S *data)
+{
+    ELF_GetGlobalData(elf, data);
+
+    if (data->have_bss) {
+        if (! MYBPF_RELO_IsMapUsed(elf, data->bss_sec.sec_id, 0, 1)) {
+            data->have_bss = 0;
+            data->sec_count --;
+        }
+    }
+
+    if (data->have_data) {
+        if (! MYBPF_RELO_IsMapUsed(elf, data->data_sec.sec_id, 0, 1)) {
+            data->have_data = 0;
+            data->sec_count --;
+        }
+    }
+
+    for (int i=0; i<data->rodata_count; i++) {
+        if (! MYBPF_RELO_IsMapUsed(elf, data->rodata_sec[i].sec_id, 0, 1)) {
+            int left_count = data->rodata_count - (i + 1);
+            if (left_count > 0) {
+                memcpy(&data->rodata_sec[i], &data->rodata_sec[i + 1], sizeof(ELF_SECTION_S) * left_count);
+            }
+
+            data->sec_count --;
+            data->rodata_count --;
+            i --;
+        }
+    }
+}
+
+
+void MYBPF_ELF_GetGlobalDataUsed(ELF_S *elf, OUT ELF_GLOBAL_DATA_S *global_data)
+{
+    _mybpf_def_get_global_maps(elf, global_data);
+}
+
 int MYBPF_ELF_GetMapsSection(ELF_S *elf, OUT MYBPF_MAPS_SEC_S *map_sec)
 {
     ELF_SECTION_S sec;
@@ -41,7 +80,9 @@ int MYBPF_ELF_GetMapsSection(ELF_S *elf, OUT MYBPF_MAPS_SEC_S *map_sec)
     map_sec->maps = NULL;
 
     if (ELF_GetSecByName(elf, "maps", &sec) < 0) {
-        return -1;
+        if (ELF_GetSecByName(elf, ".maps", &sec) < 0) {
+            return -1;
+        }
     }
 
     map_count = ELF_SecSymbolCount(elf, sec.sec_id, 0);
@@ -50,7 +91,7 @@ int MYBPF_ELF_GetMapsSection(ELF_S *elf, OUT MYBPF_MAPS_SEC_S *map_sec)
     }
 
     map_sec->map_count = map_count;
-    map_sec->map_def_size = sec.data->d_size / map_count; /* 计算map结构体的大小 */
+    map_sec->map_def_size = sec.data->d_size / map_count; 
     map_sec->maps = sec.data->d_buf;
     map_sec->sec_id = sec.sec_id;
 
@@ -119,3 +160,4 @@ int MYBPF_ELF_WalkProgByFile(char *file, PF_ELF_WALK_PROG walk_func, void *ud)
 
     return ret;
 }
+

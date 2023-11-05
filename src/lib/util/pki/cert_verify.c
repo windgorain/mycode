@@ -93,7 +93,7 @@ end:
 }
 
 #if 0
-/* need test to turn on */
+
 int cert_verify_by_X509(STACK_OF(X509) *trusted, STACK_OF(X509) *untrusted, X509 *cert) 
 {
     int show_chain = 1;
@@ -132,7 +132,7 @@ static int check_cert(X509_STORE *ctx, X509 *verify_cert,
     }
     if (tchain != NULL)
         X509_STORE_CTX_trusted_stack(csc, tchain);
-        //X509_STORE_CTX_set0_trusted_stack(csc, tchain);
+        
     if (crls != NULL)
         X509_STORE_CTX_set0_crls(csc, crls);
 

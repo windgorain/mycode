@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_DATA2HEX
 
 #include "bs.h"
@@ -19,7 +19,7 @@ void UCHAR_2_HEX(UCHAR c, OUT CHAR *hex)
     hex[1] = hexchars[(c) & 0xf];
 }
 
-/* funcs */
+
 BS_STATUS DH_Data2Hex(IN UCHAR *pucData, IN UINT ulLen, OUT CHAR *pszOutString)
 {
     UINT i;

@@ -12,15 +12,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WAN_PCAP_Init();
 BS_STATUS WAN_PCAP_AutoCreateInterface();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_PCAP_H_*/
+#endif 
 
 

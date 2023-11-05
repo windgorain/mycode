@@ -156,9 +156,9 @@ static SCM_NODE_S * scm_CreateNode(IN HANDLE hCff, IN char *pcSection)
     pstNode->cfg.dog_enable = dog_enable;
     pstNode->cfg.dog_beg_interval = dog_beg_interval;
     pstNode->cfg.dog_beg_limit = dog_beg_limit;
-    pstNode->cfg.dog_beg_greetings.pucData = (void*)TXT_Strdup(dog_beg_greetings);
-    if (pstNode->cfg.dog_beg_greetings.pucData) {
-        pstNode->cfg.dog_beg_greetings.uiLen = strlen((char*)pstNode->cfg.dog_beg_greetings.pucData);
+    pstNode->cfg.dog_beg_greetings.data = (void*)TXT_Strdup(dog_beg_greetings);
+    if (pstNode->cfg.dog_beg_greetings.data) {
+        pstNode->cfg.dog_beg_greetings.len = strlen((char*)pstNode->cfg.dog_beg_greetings.data);
     }
     pstNode->cfg.dog_beg_mode = TXT_Strdup(dog_beg_mode);
 
@@ -179,8 +179,8 @@ static void scm_FreeNode(SCM_NODE_S *pstNode)
         MEM_Free(pstNode->cfg.param);
     if (pstNode->cfg.pidfile) 
         MEM_Free(pstNode->cfg.pidfile);
-    if (pstNode->cfg.dog_beg_greetings.pucData) 
-        MEM_Free(pstNode->cfg.dog_beg_greetings.pucData);
+    if (pstNode->cfg.dog_beg_greetings.data) 
+        MEM_Free(pstNode->cfg.dog_beg_greetings.data);
     if (pstNode->cfg.dog_beg_mode) 
         MEM_Free(pstNode->cfg.dog_beg_mode);
     if (pstNode->state.beg_fd > 0) {
@@ -238,34 +238,31 @@ static int scm_Restart(SCM_NODE_S *pstNode)
     return scm_Start(pstNode);
 }
 
-static BS_WALK_RET_E scm_RecvFood(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int scm_RecvFood(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     SCM_NODE_S *pstNode = pstUserHandle->ahUserHandle[0];
-
     pstNode->state.beg_count = 0;
-
     scm_CloseBegFd(pstNode);
-
-    return BS_WALK_CONTINUE;;
+    return 0;;
 }
 
-static BS_WALK_RET_E scm_Connected(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int scm_Connected(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     SCM_NODE_S *pstNode = pstUserHandle->ahUserHandle[0];
 
     if (uiEvent & MYPOLL_EVENT_ERR) {
         scm_CloseBegFd(pstNode);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
-    if (Socket_Write(iSocketId, pstNode->cfg.dog_beg_greetings.pucData, pstNode->cfg.dog_beg_greetings.uiLen, 0) < 0) {
+    if (Socket_Write(iSocketId, pstNode->cfg.dog_beg_greetings.data, pstNode->cfg.dog_beg_greetings.len, 0) < 0) {
         scm_CloseBegFd(pstNode);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     MyPoll_SetEvent(g_scm_mypoll, iSocketId, MYPOLL_EVENT_IN, scm_RecvFood, pstUserHandle);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static void scm_BegTcp(IN SCM_NODE_S *pstNode, URL_FIELD_S *fields)
@@ -299,7 +296,7 @@ static void scm_BegTcp(IN SCM_NODE_S *pstNode, URL_FIELD_S *fields)
     return;
 }
 
-#if 0 /* 因为编译告警此函数没有用到 */
+#if 0 
 static void scm_BegUnixStream(IN SCM_NODE_S *pstNode, URL_FIELD_S *fields)
 {
     int fd;
@@ -318,13 +315,13 @@ static void scm_BegUnixStream(IN SCM_NODE_S *pstNode, URL_FIELD_S *fields)
     MyPoll_SetEvent(g_scm_mypoll, fd, MYPOLL_EVENT_OUT, scm_Connected, &user_data);
     pstNode->state.beg_fd = fd;
 
-	/* fill socket address structure with our address */
+	
 	memset(&un, 0, sizeof(un));
 	un.sun_family = AF_UNIX;
 	sprintf(un.sun_path, "/var/tmp/%s%05d", pstNode->cfg.name, getpid());
 	len = BS_OFFSET(struct sockaddr_un, sun_path) + strlen(un.sun_path);
 
-	unlink(un.sun_path);		/* in case it already exists */
+	unlink(un.sun_path);		
 	if (bind(fd, (struct sockaddr *)&un, len) < 0) {
         scm_CloseBegFd(pstNode);
         return;
@@ -334,7 +331,7 @@ static void scm_BegUnixStream(IN SCM_NODE_S *pstNode, URL_FIELD_S *fields)
         return;
 	}
 
-	/* fill socket address structure with server's address */
+	
 	memset(&un, 0, sizeof(un));
 	un.sun_family = AF_UNIX;
 	memcpy(un.sun_path, fields->host.pcData, fields->host.uiLen);
@@ -353,7 +350,7 @@ static void scm_Beg(IN SCM_NODE_S *pstNode)
 {
     URL_FIELD_S fields;
 
-    /* 关闭上次还未响应的beg请求 */
+    
     if (pstNode->state.beg_fd > 0) {
         scm_CloseBegFd(pstNode);
     }
@@ -408,22 +405,22 @@ static void scm_RecvSigChld(pid_t pid)
     return;
 }
 
-static BS_WALK_RET_E scm_ProcessSignal(int signo)
+static int scm_ProcessSignal(int signo)
 {
     pid_t pid;
 
     if (g_bScmRcvTerm == TRUE) {
-        return BS_WALK_STOP;
+        return BS_STOP;
     }
 
     while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
         scm_RecvSigChld(pid);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-static BS_WALK_RET_E scm_Timeout(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int scm_Timeout(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     char buf[256];
     SCM_NODE_S *pstNode, *pstTmp;
@@ -450,7 +447,7 @@ static BS_WALK_RET_E scm_Timeout(IN INT iSocketId, IN UINT uiEvent, IN USER_HAND
         }
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static int scm_Init()
@@ -538,8 +535,8 @@ int main(int argc, char* argv[])
 
     CFF_Close(hCff);
 
-//    LoadBs_SetArgv(argc, argv);
-//    LoadBs_Init();
+
+
 
     scm_Schedule();
 

@@ -45,13 +45,7 @@ extern unsigned char __check_ascii[0x100];
 		TMPV(sense);                                   \
 	})
 
-/*
-	search_nosense
-	search not sense characters, include ' ', '\t', '\n', '\r' and '\0'
-	is_forward: true  - forward
-			   false - backward
-	NULL: not found
-*/
+
 static inline char *_search_nosense(char *begin, int num_search, bool is_forward)
 {
 	return SEARCH_SENSE_FUNC(IS_NOSENSE);
@@ -61,13 +55,7 @@ static inline char *_search_nosense(char *begin, int num_search, bool is_forward
 #define search_nosense_r(begin, num_search)    \
 	_search_nosense((char *)(begin), (int)(num_search), false)
 
-/*
-	search_sense
-	search sense characters, exclude ' ', '\t', '\n', '\r' and '\0'
-	is_forward: true  - forward
-			   false - backward
-	NULL: not found
-*/
+
 static inline char *_search_sense(char *begin, int num_search, bool is_forward)
 {
     return SEARCH_SENSE_FUNC(IS_SENSE);
@@ -126,7 +114,7 @@ static inline void rstrim(char *str, int *str_len)
 
 static inline void rstrim_str(char *str)
 {
-	//CHECK_ARG_RET(str, str[0]);
+	
 
 	int str_len = strlen(str);
 	char *p = search_sense_r(str, str_len);
@@ -147,9 +135,9 @@ typedef struct _split_field_t {
 #if __WORDSIZE == 64
 	int resv_32;
 #endif
-} split_field_t;   /* -- end of split_field_t -- */
+} split_field_t;   
 
-/* extend_last_node: extend the left string to the last part */
+
 int split_pos(char *subject, int len, char ch, split_field_t *split_list, int max_split_num, bool need_strim, bool extend_last_node);
 
 #define SPLIT_POS(__subj, __len, __ch, __list) \

@@ -26,7 +26,7 @@ static int precver_rawsocket_help(GETOPT2_NODE_S *opts)
 static int precver_rawsocket_open(int argc, char **argv)
 {
     GETOPT2_NODE_S opts[] = {
-        {'o', 'h', "help", 0, NULL, NULL, 0},
+        {'o', 'h', "help", GETOPT2_V_NONE, NULL, NULL, 0},
         {0}
     };
     
@@ -88,7 +88,7 @@ static void precver_rawsocket_run(PRECVER_RUNNER_S *runner, int fd)
 
         precver_rawsocket_read(runner, fd, &ts);
 
-    } while ((cur_time - tick_base < RDTSC_HZ)); /* 1秒后停止循环 */
+    } while ((cur_time - tick_base < RDTSC_HZ)); 
 
     return;
 }

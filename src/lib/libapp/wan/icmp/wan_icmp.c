@@ -18,7 +18,7 @@ BS_STATUS WAN_ICMP_Input(IN MBUF_S *pstMbuf)
 {
     ICMP_HEAD_S *pstIcmpHeader;
     IP_HEAD_S *pstIpHeader;
-    UINT uiPrevLen;  /* icmp头前面的长度 */
+    UINT uiPrevLen;  
     USHORT usRawSum;
     UINT uiDstIp;
     UINT uiSrcIp;

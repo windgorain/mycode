@@ -8,7 +8,7 @@
 
 #include "utl/in_checksum.h"
 
-/* 返回原始的checksum */
+
 USHORT IN_CHKSUM_AddRaw(IN USHORT usCurrentSum, IN UCHAR *pucData, IN UINT uiDataLen)
 {
     UINT uiTmp;
@@ -27,7 +27,7 @@ USHORT IN_CHKSUM_AddRaw(IN USHORT usCurrentSum, IN UCHAR *pucData, IN UINT uiDat
         uiCheckSum += ((pucData[i] << 8) & 0xFF00);
     }
 
-    /* 将高16叠加到低16位 */
+    
     while (uiCheckSum & 0xffff0000)
     {
         uiCheckSum = (uiCheckSum & 0xFFFF) + ((uiCheckSum >> 16) & 0xFFFF);

@@ -15,4 +15,4 @@ int _IRP_DelAllRule(IRP_CTRL_S *ctrl);
 #ifdef __cplusplus
 }
 #endif
-#endif //IDS_RULE_DEF_H_
+#endif 

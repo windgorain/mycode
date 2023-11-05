@@ -27,11 +27,11 @@
 
 static BOOL_T g_bNatMainStartted = FALSE;
 static CHAR g_szNatPubIpAddress[16] = "";
-static UINT g_uiNatPubIpAddress; /* 网络序 */
+static UINT g_uiNatPubIpAddress; 
 static NAT_HANDLE g_hNatMainHandle = NULL;
 
 static CHAR g_szNatGateWay[16] = "";
-static UINT g_uiNatGateWay = 0;   /* 网络序 */
+static UINT g_uiNatGateWay = 0;   
 static CHAR g_szNatPubMac[18] = "";
 static MAC_ADDR_S g_stNatPubMac;
 static MTIMER_S g_stNatMTimer;
@@ -55,7 +55,7 @@ static VOID nat_main_PubPktIn(IN MBUF_S *pstMbuf)
     NAT_Link_OutPut(uiIfIndex, pstMbuf, ETH_P_IP);
 }
 
-/* 私网IP报文 */
+
 static BS_STATUS nat_main_PrivatePktInput(IN MBUF_S *pstMbuf)
 {
     UINT uiIfIndex;
@@ -98,19 +98,19 @@ static BOOL_T nat_main_IsPrivatePkt(IN MBUF_S *pstMbuf)
 
     pstHead = MBUF_MTOD(pstMbuf);
 
-	/* 如果目的地址和本接口在同一网段, 则认为不是Private报文 */
+	
     if ((pstHead->unDstIp.uiIp & uiMask) == (uiIP & uiMask))
     {
         return FALSE;
     }
 
-    /* 如果源地址和本接口不是同一个网段, 则认为不是Private报文 */
+    
     if ((pstHead->unSrcIp.uiIp & uiMask) != (uiIP & uiMask))
     {
         return FALSE;
     }
 
-    /* 如果源地址和本接口地址相同, 则认为不是Private报文 */
+    
     if (pstHead->unSrcIp.uiIp == uiIP)
     {
         return FALSE;
@@ -135,7 +135,7 @@ static BOOL_T nat_main_IsPubPkt(IN MBUF_S *pstMbuf)
     uiIP = NAT_PHY_GetIP(uiIfIndex);
     pstHead = MBUF_MTOD(pstMbuf);
 
-	/* 如果目的地址和本接口地址不同, 则认为不是pub报文 */
+	
     if (pstHead->unDstIp.uiIp != uiIP)
     {
         return FALSE;
@@ -340,7 +340,7 @@ VOID NAT_Main_SetPubMac(IN CHAR *pcMac)
     return;
 }
 
-static BS_WALK_RET_E nat_main_ShowEach(IN NAT_NODE_S *pstNatNode, IN HANDLE hUserHandle)
+static int nat_main_ShowEach(IN NAT_NODE_S *pstNatNode, IN HANDLE hUserHandle)
 {
     CHAR szPrivateAddress[24];
     CHAR szPubAddress[24];
@@ -352,11 +352,11 @@ static BS_WALK_RET_E nat_main_ShowEach(IN NAT_NODE_S *pstNatNode, IN HANDLE hUse
 
     EXEC_OutInfo(" %-20s %-20s %-5s %-6d %s\r\n",
         szPrivateAddress, szPubAddress,
-        IPProtocol_GetName(pstNatNode->ucType),
+        IPProtocol_GetNameExt(pstNatNode->ucType),
         pstNatNode->uiDomainId,
         NAT_GetStatusString(pstNatNode->ucType, pstNatNode->ucStatus));
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 VOID NAT_Main_Show()

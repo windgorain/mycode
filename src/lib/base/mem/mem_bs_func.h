@@ -18,4 +18,4 @@ void _MEM_RmFromList(_MEM_HEAD_S *head);
 #ifdef __cplusplus
 }
 #endif
-#endif //MEM_BS_FUNC_H_
+#endif 

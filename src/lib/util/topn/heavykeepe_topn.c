@@ -11,7 +11,7 @@
 #include "utl/rand_utl.h"
 #include "utl/heavykeep_topn.h"
 
-/*pow(1.08,n), n最大288，计算概率*/
+
 static UINT g_topn_topn_index[]={
 1,1,1,1,1,1,1,1,1,1,
 2,2,2,2,2,3,3,3,3,4,
@@ -157,7 +157,7 @@ static inline void _heavykeep_build_hash(UINT mask, UINT hash_factor, OUT UINT *
     }
 }
 
-/* score with hash factor */
+
 void HeavyKeep_Topn_FScore(HEAVYKEEP_TOPN_S *topn, void *key, int key_len, UINT hash_factor, UINT score)
 {
     int i;
@@ -206,7 +206,7 @@ static void heavykeep_topn_add_result(OUT HEAVYKEEP_TOPN_RESULT_S *result, HEAVY
     HEAVYKEEP_TOPN_NODE_S *node2;
     UINT64 min_freq;
 
-    /* 判断是否已经存在 */
+    
     for (i=0; i<result->current_num; i++) {
         node2 = result->nodes[i];
         if (node->factor == node2->factor) {
@@ -217,14 +217,14 @@ static void heavykeep_topn_add_result(OUT HEAVYKEEP_TOPN_RESULT_S *result, HEAVY
         }
     }
 
-    /* 如果不满,则直接添加 */
+    
     if (result->current_num < result->n) {
         result->nodes[result->current_num] = node;
         result->current_num ++;
         return;
     }
 
-    /* 替换掉最小的那个 */
+    
     min_index = 0;
     min_freq = result->nodes[0]->freq;
     for (i=1; i<result->current_num; i++) {

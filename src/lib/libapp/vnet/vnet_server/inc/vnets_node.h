@@ -11,7 +11,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define VNETS_NODE_INVALID_ID 0
 
@@ -24,8 +24,8 @@ typedef struct
     UINT uiDomainID;
     UINT uiSesID;
     UINT uiTpID;
-    UINT uiIP;   /* 网络序 */
-    UINT uiMask; /* 网络序 */
+    UINT uiIP;   
+    UINT uiMask; 
     MAC_ADDR_S stMACAddr;
     CHAR szUserName[VNET_CONF_MAX_USER_NAME_LEN + 1];
     CHAR szAlias[VNET_CONF_MAX_ALIAS_LEN + 1];
@@ -36,17 +36,17 @@ typedef struct
 {
     UINT uiNodeID;
 
-    UINT uiIP;   /* 网络序 */
-    UINT uiMask; /* 网络序 */
+    UINT uiIP;   
+    UINT uiMask; 
     UINT uiSesID;
-    UINT uiLoginTime; /* 登录时间. 格式:Time from init , 单位:s */
+    UINT uiLoginTime; 
     MAC_ADDR_S stMACAddr;
     CHAR szUserName[VNET_CONF_MAX_USER_NAME_LEN + 1];
     CHAR szAlias[VNET_CONF_MAX_ALIAS_LEN + 1];
     CHAR szDescription[VNET_CONF_MAX_DES_LEN + 1];
 }VNETS_NODE_INFO_S;
 
-typedef BS_WALK_RET_E (*PF_VNETS_NODE_WALK_EACH)(IN UINT uiNodeID, IN HANDLE hUserHandle);
+typedef int (*PF_VNETS_NODE_WALK_EACH)(IN UINT uiNodeID, IN HANDLE hUserHandle);
 
 BS_STATUS VNETS_NODE_Init();
 BS_STATUS VNETS_NODE_Init2();
@@ -69,8 +69,8 @@ UINT VNETS_NODE_Self();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_NODE_H_*/
+#endif 
 
 

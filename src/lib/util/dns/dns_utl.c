@@ -11,7 +11,7 @@
 #include "utl/dns_utl.h"
 #include "utl/bit_opt.h"
 
-/* 遇到了cxxx, 获取offset  */
+
 static int _dns_get_offset(char *name, int len)
 {
     USHORT offset = 0;
@@ -85,7 +85,7 @@ static int _dns_EachRR(void *dns_header, UINT pkt_len,
 }
 
 
-/* 返回解析出了多少个Label, 如果返回0表示出错 */
+
 UINT DNS_DomainName2Labels(IN CHAR *pcDomainName, OUT DNS_LABELS_S *pstLabels)
 {
     UINT uiLabelNum;
@@ -116,7 +116,7 @@ UINT DNS_DomainName2Labels(IN CHAR *pcDomainName, OUT DNS_LABELS_S *pstLabels)
     return uiLabelNum;
 }
 
-/* 获得DNS的数字分格式的域名的长度(不展开),包含开头的第一个数字和最后的'\0' . 返回0表示出错 */
+
 UINT DNS_GetDnsNameSize(IN UCHAR *pucData, IN UINT uiMaxSize)
 {
     UINT uiDnsNameSize = 0;
@@ -149,7 +149,7 @@ UINT DNS_GetDnsNameSize(IN UCHAR *pucData, IN UINT uiMaxSize)
     return uiDnsNameSize + 1;
 }
 
-/* 将普通的点分格式的域名转成DNS的数字分格式的域名. 返回组装后的长度(含'\0'). 返回0为失败 */
+
 UINT DNS_DomainName2DnsName
 (
     IN CHAR *pcDomainName,
@@ -209,7 +209,7 @@ UINT DNS_DomainName2DnsName
     return uiCountOffset + 1;
 }
 
-/* 返回第一个RR的指针, 包含这个RR的域名 */
+
 UCHAR * DNS_GetFirstRR(IN DNS_HEADER_S *pstDnsHeader, IN UINT uiDataLen)
 {
     UINT uiPrefixLen;
@@ -254,7 +254,7 @@ UCHAR * DNS_GetFirstRR(IN DNS_HEADER_S *pstDnsHeader, IN UINT uiDataLen)
     return pucRRData;
 }
 
-/* 根据包含域名的RR获得其RD的长度和指针, 返回值为RD指针 */
+
 UCHAR * DNS_GetRDByRR(IN UCHAR *pucRRWithDomain, IN UINT uiDataLen, OUT USHORT *pusRdLen)
 {
     UINT uiDnsNameSize;
@@ -289,7 +289,7 @@ UCHAR * DNS_GetRDByRR(IN UCHAR *pucRRWithDomain, IN UINT uiDataLen, OUT USHORT *
     return pucRRWithDomain + uiPrefixLen;
 }
 
-/* 遍历Query和RR */
+
 void DNS_WalkQR(DNS_HEADER_S *pstDnsHeader, UINT uiDataLen, PF_DNS_WALK_RR func, void *ud)
 {
     UCHAR *rrhead;
@@ -346,7 +346,7 @@ void DNS_WalkQR(DNS_HEADER_S *pstDnsHeader, UINT uiDataLen, PF_DNS_WALK_RR func,
     }
 }
 
-/* 返回构造之后的报文长度 */
+
 UINT DNS_BuildQuestPacket(CHAR *pcDomainName, USHORT usType, OUT DNS_PKT_S *pstPkt)
 {
     UINT uiLen;
@@ -354,7 +354,7 @@ UINT DNS_BuildQuestPacket(CHAR *pcDomainName, USHORT usType, OUT DNS_PKT_S *pstP
     DNS_HEADER_S *pstDnsHeader;
     UINT uiRemainSize;
     DNS_QST_S *pstQst;
-    static USHORT g_usDnsTID; /* DNS标识 */
+    static USHORT g_usDnsTID; 
 
     if (strlen(pcDomainName) > DNS_MAX_DOMAIN_NAME_LEN) {
         return 0;
@@ -384,13 +384,13 @@ UINT DNS_BuildQuestPacket(CHAR *pcDomainName, USHORT usType, OUT DNS_PKT_S *pstP
     return sizeof(DNS_HEADER_S) + uiLen + 4;
 }
 
-/* 返回构造之后的数据长度 */
+
 UINT DNS_BuildRR
 (
     IN CHAR *pcDomainName,
     IN USHORT usType,
     IN USHORT usClass,
-    IN UINT uiTTL,  /* 秒 */
+    IN UINT uiTTL,  
     IN USHORT usRDLen,
     IN UCHAR *pucRDData,
     OUT UCHAR *pucData,
@@ -401,7 +401,7 @@ UINT DNS_BuildRR
     DNS_RR_S *pstRR;
     UCHAR *pucDataTmp;
     UINT uiDomainNameLen;
-    UINT uiBuildSize; /* 构造之后的长度 */
+    UINT uiBuildSize; 
 
     uiDomainNameLen = strlen(pcDomainName);
 
@@ -440,13 +440,13 @@ UINT DNS_BuildRR
     return uiBuildSize;
 }
 
-/* 返回构造之后的数据长度. 返回0表示失败 */
+
 UINT DNS_BuildRRCompress
 (
     IN USHORT usDomainNameOffset,
     IN USHORT usType,
     IN USHORT usClass,
-    IN UINT uiTTL,  /* 秒 */
+    IN UINT uiTTL,  
     IN USHORT usRDLen,
     IN UCHAR *pucRDData,
     OUT UCHAR *pucData,
@@ -455,7 +455,7 @@ UINT DNS_BuildRRCompress
 {
     DNS_RR_S *pstRR;
     UCHAR *pucDataTmp;
-    UINT uiBuildSize; /* 构造之后的长度 */
+    UINT uiBuildSize; 
     USHORT *pusDomainNameCompress;
 
     uiBuildSize = 2 + sizeof(DNS_RR_S) + usRDLen;
@@ -501,12 +501,12 @@ int DNS_GetRRDomainName(UCHAR *dns_pkt, int pkt_len, void *rr, OUT char domain_n
     }
 
     while (*pucData != 0) {
-        if (BIT_MATCH(*pucData, 0xC0)) { /* 处理压缩情况 */
+        if (BIT_MATCH(*pucData, 0xC0)) { 
             int offset = _dns_get_offset((char*)pucData, pucTail - pucData);
             if (offset < 0) {
                 RETURN(BS_ERR);
             }
-            if (offset >= (pucData - dns_pkt)) { /* 只能指向之前的位置 */
+            if (offset >= (pucData - dns_pkt)) { 
                 RETURN(BS_ERR);
             }
             pucData = dns_pkt + offset;
@@ -560,7 +560,7 @@ int DNS_GetQueryNameByPacket(UCHAR *pucDnsPkt, int pkt_len, OUT char szDomainNam
     return DNS_GetRRDomainName(pucDnsPkt, pkt_len, pucData, szDomainName);
 }
 
-/* 返回主机序DNS Server地址. 这个函数应该拿到HostIpInfo模块去 */
+
 UINT DNS_GetHostDnsServer()
 {
     UINT uiIp = 0;

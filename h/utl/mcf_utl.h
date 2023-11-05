@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE MCF_HANDLE;
 
@@ -22,20 +22,17 @@ typedef struct
     BOOL_T     bIsUtf8;
     CHAR       *pucFileName;
     CHAR       *pucFileContent;
-    UINT       uiMemSize;   /*申请的内存大小*/
+    UINT       uiMemSize;   
 }MCF_HEAD_S;
 
 
-/*
-找不到Prop,返回NULL; 找到Prop,但是无Value,返回""; 
 
-*/
 CHAR * MCF_GetProp(IN MCF_HANDLE hMcfHandle, IN CHAR *pcKey, IN CHAR *pcProp);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__MCF_UTL_H_*/
+#endif 
 
 

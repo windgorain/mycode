@@ -12,10 +12,7 @@
 #define RP_KEY_MAX_LEN 63
 
 
-/*
-   替换后的结果放到out_str中,并且最后补0
-   如果失败,返回值<0，成功则返回生成结果的字符串长度
- */
+
 int RP_Do(RP_TAG_S *tag, MIME_HANDLE kv, char *in_str, char *out_str, int out_str_size)
 {
     char *tag_start, *key_start;

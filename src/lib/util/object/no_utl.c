@@ -21,7 +21,7 @@ typedef struct
 
 typedef struct
 {
-    HANDLE hAggregate; /* 未命名对象集合 */
+    HANDLE hAggregate; 
     MAP_HANDLE name_map;
     void *memcap;
 }_NO_INSTANCE_S;
@@ -143,8 +143,8 @@ VOID * NO_NewObject(IN NO_HANDLE hAggregate, IN CHAR *pcName)
     return _no_Node2Object(pstNode);
 }
 
-/* 自动在name后面添加Index */
-VOID * NO_NewObjectForNameIndex(IN NO_HANDLE hAggregate, IN CHAR *pcNamePrefix /* 名称前缀 */)
+
+VOID * NO_NewObjectForNameIndex(IN NO_HANDLE hAggregate, IN CHAR *pcNamePrefix )
 {
     _NO_INSTANCE_S *pstInstance = hAggregate;
     _NO_NODE_S *pstNode;
@@ -444,8 +444,8 @@ UINT64 NO_GetNextID(IN NO_HANDLE hAggregate, IN UINT64 ulCurrentID)
     return OBJECT_GetNextID(pstInstance->hAggregate, ulCurrentID);
 }
 
-/* 根据名字字典序进行获取下一个 */
-CHAR * NO_GetNextName(IN NO_HANDLE hAggregate, IN CHAR *pcCurrentName/* NULL或""表示获取第一个 */)
+
+CHAR * NO_GetNextName(IN NO_HANDLE hAggregate, IN CHAR *pcCurrentName)
 {
     UINT64 ulID = 0;
     CHAR *pcName;

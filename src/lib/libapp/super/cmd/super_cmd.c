@@ -84,7 +84,7 @@ int Super_ExitApp(UINT argc, CHAR **argv, void *env)
     return 0;
 }
 
-/* shutdown socket %INT<1-65535> */
+
 int Super_ShutdownSocket(IN UINT ulArgc, IN CHAR **argv)
 {
     UINT uiSocketId;

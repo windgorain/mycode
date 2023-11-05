@@ -6,7 +6,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETC_TP_Init();
 
@@ -26,8 +26,8 @@ UINT VNETC_TP_GetC2STP();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_TP_H_*/
+#endif 
 
 

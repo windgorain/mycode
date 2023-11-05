@@ -41,7 +41,7 @@ int IRP_Compile(IRP_CTRL_S *ctrl)
     DLL_SCAN(&ctrl->rtn_list, rtn) {
         DLL_SCAN(&rtn->otn_list, otn) {
             if (otn->fast_opt) {
-                ACSMX_AddPattern(ctrl->ac, otn->fast_opt->content.pucData, otn->fast_opt->content.uiLen, otn);
+                ACSMX_AddPattern(ctrl->ac, otn->fast_opt->content.data, otn->fast_opt->content.len, otn);
             }
         }
     }

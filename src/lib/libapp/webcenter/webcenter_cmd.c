@@ -9,7 +9,7 @@
 
 #include "webcenter_inner.h"
 
-/* bind inner-ws-service %STRING */
+
 PLUG_API BS_STATUS WebCenter_Cmd_BindInnerWsService(IN UINT ulArgc, IN CHAR **argv)
 {
     CHAR *pcWsService = argv[2];
@@ -23,7 +23,7 @@ PLUG_API BS_STATUS WebCenter_Cmd_BindInnerWsService(IN UINT ulArgc, IN CHAR **ar
     return BS_OK;
 }
 
-/* bind ws-service %STRING */
+
 PLUG_API BS_STATUS WebCenter_Cmd_BindWsService(IN UINT ulArgc, IN CHAR **argv)
 {
     CHAR *pcWsService = argv[2];

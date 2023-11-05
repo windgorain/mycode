@@ -163,7 +163,7 @@ CHAR * StrList_FindByLstr(IN STRLIST_HANDLE hStrList, IN LSTR_S *pstLstr)
     return NULL;
 }
 
-STRLIST_NODE_S * StrList_GetNext(IN STRLIST_HANDLE hStrList, IN STRLIST_NODE_S *pstCurr/* NULL表示获取第一个 */)
+STRLIST_NODE_S * StrList_GetNext(IN STRLIST_HANDLE hStrList, IN STRLIST_NODE_S *pstCurr)
 {
     STRLIST_S *pstStrList = hStrList;
     

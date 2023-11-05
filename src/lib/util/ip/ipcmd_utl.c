@@ -50,7 +50,7 @@ static BS_STATUS _os_ipcmd_AddIP(char *adapter_guid, UINT ip, UINT mask, UINT pe
 
     PROCESS_CreateByFile(szCmd, NULL, PROCESS_FLAG_WAIT_FOR_OVER | PROCESS_FLAG_HIDE);
 
-    /* wait for effect */
+    
     while (count < 100) {
         My_IP_Helper_GetIPAddress(adapter_guid, &ip_setted, &mask_setted);
         if ((ip_setted == ip) && (mask_setted == mask)) {
@@ -223,8 +223,8 @@ static inline BS_STATUS _os_ipcmd_SetMtu(char *ifname, UINT mtu)
 
 #endif
 
-/* 在win中ifname为adapter guid*/
-BS_STATUS IPCMD_AddIP(char *ifname, UINT ip/*net order*/, UINT mask/*net order*/, UINT peer/*permit 0*/)
+
+BS_STATUS IPCMD_AddIP(char *ifname, UINT ip, UINT mask, UINT peer)
 {
     return _os_ipcmd_AddIP(ifname, ip, mask, peer);
 }

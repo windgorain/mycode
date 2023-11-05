@@ -22,11 +22,11 @@
 #include "../h/wan_udp_service.h"
 #include "../h/wan_ip_addr.h"
 
-/* Debug 选项 */
+
 #define _WAN_DHCP_DBG_PACKET 0x1
 #define _WAN_DHCP_DBG_ERROR 0x2
 
-#define _WAN_DHCP_FLAG_ENABLE 0x1   /* 使能dhcps服务 */
+#define _WAN_DHCP_FLAG_ENABLE 0x1   
 
 typedef struct
 {
@@ -39,7 +39,7 @@ typedef struct
 
 static UINT g_uiWanDhcpDebugFlag = 0;
 
-#if 0 /* 因为编译告警此函数没用到 */
+#if 0 
 static UINT wan_dhcp_GetHostIp(IN UINT uiVrfID)
 {
     return 0;
@@ -92,7 +92,7 @@ static VOID wan_dhcp_AddMacIpBinding(IN CHAR *pcMac, IN CHAR *pcIp, IN HANDLE hU
     DHCPS_SignIP(hDhcpHandle, &stMacAddr, htonl(uiIP));
 }
 
-/* 使能dhcps服务 */
+
 static BS_STATUS wan_dhcp_Enable(IN _WAN_DHCP_S *pstDhcp)
 {
     DHCP_IP_CONF_S stConf;
@@ -244,7 +244,7 @@ static BS_STATUS wan_dhcp_PktInput
 }
 
 
-/* 返回网络序IP */
+
 UINT WAN_DHCP_GetServerIP(IN UINT uiVrfID)
 {
     _WAN_DHCP_S *pstDhcp;
@@ -262,7 +262,7 @@ UINT WAN_DHCP_GetServerIP(IN UINT uiVrfID)
     return uiIP;
 }
 
-/* 返回网络序Mask */
+
 UINT WAN_DHCP_GetMask(IN UINT uiVrfID)
 {
     _WAN_DHCP_S *pstDhcp;
@@ -293,7 +293,7 @@ BS_STATUS WAN_DHCP_Init()
     return BS_OK;
 }
 
-/* debug dhcp packet */
+
 PLUG_API void WAN_DHCP_DebugPacket
 (
     IN UINT ulArgc,
@@ -303,7 +303,7 @@ PLUG_API void WAN_DHCP_DebugPacket
     BIT_SET(g_uiWanDhcpDebugFlag, _WAN_DHCP_DBG_PACKET);
 }
 
-/* no debug dhcp packet */
+
 PLUG_API void WAN_DHCP_NoDebugPacket
 (
     IN UINT ulArgc,
@@ -313,7 +313,7 @@ PLUG_API void WAN_DHCP_NoDebugPacket
     BIT_CLR(g_uiWanDhcpDebugFlag, _WAN_DHCP_DBG_PACKET);
 }
 
-/* debug dhcp error */
+
 PLUG_API void WAN_DHCP_DebugError
 (
     IN UINT ulArgc,
@@ -323,7 +323,7 @@ PLUG_API void WAN_DHCP_DebugError
     BIT_SET(g_uiWanDhcpDebugFlag, _WAN_DHCP_DBG_ERROR);
 }
 
-/* no debug dhcp error */
+
 PLUG_API void WAN_DHCP_NoDebugError
 (
     IN UINT ulArgc,

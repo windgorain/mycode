@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS SVPN_Context_AddContext(IN CHAR *pcContextName);
 BS_STATUS SVPN_Context_DelContext(IN CHAR *pcContextName);
@@ -19,8 +19,8 @@ BS_STATUS SVPN_Context_SetDescription(IN CHAR *pcContextName, IN CHAR *pcDesc);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_CONTEXT_INNER_H_*/
+#endif 
 
 

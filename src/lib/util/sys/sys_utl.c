@@ -20,7 +20,7 @@ BOOL_T SYS_IsInstanceExist(IN VOID *pszName)
     if(hMutex != NULL)
 	{
 		DWORD err=GetLastError();
-        if(err==ERROR_ALREADY_EXISTS) { //如果发现同一程序则返回1 
+        if(err==ERROR_ALREADY_EXISTS) { 
             CloseHandle(hMutex);
 			return TRUE;
 		}
@@ -170,7 +170,7 @@ SYS_OS_BIT_E SYS_GetOsBit(void)
 #endif
 
 #ifdef IN_WINDOWS
-/* 隐藏进程 */
+
 VOID SYS_HideProcess(void)
 {
     HINSTANCE hInst = LoadLibrary("KERNEL32.DLL"); 
@@ -188,7 +188,7 @@ VOID SYS_HideProcess(void)
 }
 #endif
 
-/* 设置自启动*/
+
 BS_STATUS SYS_SetSelfStart(IN CHAR *pcRegName, IN BOOL_T bSelfStart, IN char *arg)
 {
     BS_STATUS eRet = BS_OK;
@@ -244,13 +244,13 @@ BS_STATUS SYS_SetSelfStart(IN CHAR *pcRegName, IN BOOL_T bSelfStart, IN char *ar
     return eRet;
 }
 
-/* 带有文件名的路径 */
+
 CHAR * SYS_GetSelfFileName(void)
 {
     return _SYS_OS_GetSelfFileName();
 }
 
-/* 不带有文件名的路径 */
+
 CHAR * SYS_GetSelfFilePath(void)
 {
     return _SYS_OS_GetSelfFilePath();
@@ -260,36 +260,36 @@ CHAR * SYS_GetSelfFilePath(void)
 
 HWND GetConsoleHwnd(void)
 {
-#define MY_BUFSIZE 1024 // Buffer size for console window titles.
-    HWND hwndFound;         // This is what is returned to the caller.
-    char pszNewWindowTitle[MY_BUFSIZE]; // Contains fabricated
-    // WindowTitle.
-    char pszOldWindowTitle[MY_BUFSIZE]; // Contains original
-    // WindowTitle.
+#define MY_BUFSIZE 1024 
+    HWND hwndFound;         
+    char pszNewWindowTitle[MY_BUFSIZE]; 
+    
+    char pszOldWindowTitle[MY_BUFSIZE]; 
+    
  
-    // Fetch current window title.
+    
  
     GetConsoleTitle(pszOldWindowTitle, MY_BUFSIZE);
  
-    // Format a "unique" NewWindowTitle.
+    
  
     wsprintf(pszNewWindowTitle, "%d/%d",
         GetTickCount(),
         GetCurrentProcessId());
  
-    // Change current window title.
+    
  
     SetConsoleTitle(pszNewWindowTitle);
  
-    // Ensure window title has been updated.
+    
  
     Sleep(40);
  
-    // Look for NewWindowTitle.
+    
  
     hwndFound = FindWindow(NULL, pszNewWindowTitle);
  
-    // Restore original window title.
+    
  
     SetConsoleTitle(pszOldWindowTitle);
  

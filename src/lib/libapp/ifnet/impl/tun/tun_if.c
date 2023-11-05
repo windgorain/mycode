@@ -103,7 +103,7 @@ static BS_STATUS tun_LinkOutput
 (
     IN IF_INDEX ifIndex,
     IN MBUF_S *pstMbuf,
-    IN USHORT usProtoType/* 报文协议类型, 网络序 */
+    IN USHORT usProtoType
 )
 {
     HANDLE hId;

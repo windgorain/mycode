@@ -229,7 +229,7 @@ int DomainGroup_LoadCfgFromFile(IN LIST_RULE_LIST_S *pstList, IN CHAR *pcFileNam
         RETURN(BS_CAN_NOT_OPEN);
     }
 
-    // 读取每一行的ip地址信息,格式为domain xxxx这种形式
+    
     while (1) {
         int len = FILE_ReadLine(fp, line, sizeof(line), '\n');
         if (len <=0) {

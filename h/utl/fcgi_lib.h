@@ -10,26 +10,26 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE FCGI_HANDLE;
 
-/* flag */
+
 #define FCGI_NO_KEEP_CONN 0
 #define FCGI_KEEP_CONN 1
 
-#define FCGI_FLAG_NOBLOCK 0x1  /* 非阻塞模式 */
+#define FCGI_FLAG_NOBLOCK 0x1  
 
 
-/* FCGI通道状态 */
+
 typedef enum
 {
-    FCGI_STATUS_PARSE_PARAM,        /* 正在解析Param */
-    FCGI_STATUS_READ,               /* 正在读取数据 */
-    FCGI_STATUS_SET_PARAM,          /* 正在设置Param */
-    FCGI_STATUS_WRITE,              /* 正在发送数据 */
-    FCGI_STATUS_FLUSH,              /* 发送数据完成，正在Flush */
-    FCGI_STATUS_DONE                /* 完成 */
+    FCGI_STATUS_PARSE_PARAM,        
+    FCGI_STATUS_READ,               
+    FCGI_STATUS_SET_PARAM,          
+    FCGI_STATUS_WRITE,              
+    FCGI_STATUS_FLUSH,              
+    FCGI_STATUS_DONE                
 }FCGI_STATUS_E;
 
 typedef struct
@@ -62,8 +62,8 @@ BOOL_T FCGI_IsKeepAlive(IN FCGI_HANDLE hFcgiChannel);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__FCGI_LIB_H_*/
+#endif 
 
 

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE (*PF_DC_OPEN_INSTACE_FUNC)(IN VOID *pParam);
 
@@ -130,8 +130,8 @@ typedef struct
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__DC_PROTO_TBL_H_*/
+#endif 
 
 

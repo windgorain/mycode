@@ -20,7 +20,7 @@ typedef struct {
     IF_INDEX ifindex;
 }BR_MAC_UD_S;
 
-static BS_WALK_RET_E _br_if_fwd_each(IN MAP_ELE_S *pstEle, IN VOID *ud)
+static int _br_if_fwd_each(IN MAP_ELE_S *pstEle, IN VOID *ud)
 {
     USER_HANDLE_S *uh = ud;
     BR_CTRL_S *br = uh->ahUserHandle[0];
@@ -29,7 +29,7 @@ static BS_WALK_RET_E _br_if_fwd_each(IN MAP_ELE_S *pstEle, IN VOID *ud)
 
     br->output(HANDLE_ULONG(pstEle->pData), pkt, user_ud, BR_OUTPUT_FLAG_BROADCAST);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 BR_HANDLE BR_Create()

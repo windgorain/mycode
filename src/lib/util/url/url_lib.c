@@ -12,9 +12,9 @@
 
 typedef enum
 {
-    HTML_LIB_URL_WORD_TYPE_CURRENT = 0, /* ./ */
-    HTML_LIB_URL_WORD_TYPE_BACK,        /* ../ */
-    HTML_LIB_URL_WORD_TYPE_NORMAL       /* 正常目录名或者文件名 */
+    HTML_LIB_URL_WORD_TYPE_CURRENT = 0, 
+    HTML_LIB_URL_WORD_TYPE_BACK,        
+    HTML_LIB_URL_WORD_TYPE_NORMAL       
 }HTML_LIB_URL_WORD_TYPE_E;
 
 static inline HTML_LIB_URL_WORD_TYPE_E html_lib_GetUrlWordType(IN CHAR *pcUrl, IN UINT uiUrlLen)
@@ -71,7 +71,7 @@ URL_LIB_URL_TYPE_E URL_LIB_GetUrlType(IN CHAR *pcUrl, IN UINT uiUrlLen)
     return URL_TYPE_NOT_URL;
 }
 
-/* 将Simple绝对路径(比如"//www.baidu.com/abc/index.htm")解析出 host/port/path 来 */
+
 BS_STATUS ULR_LIB_ParseSimpleAbsUrl
 (
     IN CHAR *pcUrl,
@@ -94,7 +94,7 @@ BS_STATUS ULR_LIB_ParseSimpleAbsUrl
 
     BS_DBGASSERT(URL_LIB_GetUrlType(pcUrl, uiUrlLen) == URL_TYPE_ABSOLUTE_SIMPLE);
 
-    /* 偏移掉开始的两个斜杠 */
+    
     uiReservedLen -= 2;
     pcUrlTmp += 2;
 
@@ -137,7 +137,7 @@ BS_STATUS ULR_LIB_ParseSimpleAbsUrl
 }
 
 
-/* 将绝对路径解析出protocol/host/port/path来 */
+
 BS_STATUS ULR_LIB_ParseAbsUrl
 (
     IN CHAR *pcUrl,
@@ -171,14 +171,14 @@ BS_STATUS ULR_LIB_ParseAbsUrl
     pstProtocol->pcData = pcUrl;
     pstProtocol->uiLen = pcSplit - pcUrl;
 
-    uiReservedLen -= (pstProtocol->uiLen + 1/* :的长度 */);
+    uiReservedLen -= (pstProtocol->uiLen + 1);
     pcUrlTmp = pcSplit + 1;
 
     return ULR_LIB_ParseSimpleAbsUrl(pcUrlTmp, uiReservedLen, pstHost, pstPort, pstPath);
 }
 
 
-/* 获取URL一开始的回退符"../"的个数 */
+
 UINT URL_LIB_GetUrlBackNum(IN CHAR *pcUrl, IN UINT uiUrlLen)
 {
     UINT uiReservedLen = uiUrlLen;
@@ -214,7 +214,7 @@ UINT URL_LIB_GetUrlBackNum(IN CHAR *pcUrl, IN UINT uiUrlLen)
     return uiNum;
 }
 
-CHAR * URL_LIB_FullUrl2AbsPath(IN LSTR_S *pstFullUrl, OUT LSTR_S *pstAbsPath /* 可以为NULL */)
+CHAR * URL_LIB_FullUrl2AbsPath(IN LSTR_S *pstFullUrl, OUT LSTR_S *pstAbsPath )
 {
     URL_LIB_URL_TYPE_E eType;
     LSTR_S stProto;
@@ -262,7 +262,7 @@ CHAR * URL_LIB_FullUrl2AbsPath(IN LSTR_S *pstFullUrl, OUT LSTR_S *pstAbsPath /* 
     return stPath.pcData;
 }
 
-/* 构造URL */
+
 BS_STATUS URL_LIB_BuildUrl
 (
     IN LSTR_S *pstProto,
@@ -307,7 +307,7 @@ BS_STATUS URL_LIB_BuildUrl
     return BS_OK;
 }
 
-/* 解析出"http://xxx:port/path?query中的每个字段 */
+
 BS_STATUS URL_LIB_ParseUrl(IN CHAR *url, IN UINT url_len, OUT URL_FIELD_S *fields)
 {
     char *find;
@@ -316,7 +316,7 @@ BS_STATUS URL_LIB_ParseUrl(IN CHAR *url, IN UINT url_len, OUT URL_FIELD_S *field
 
     memset(fields, 0, sizeof(URL_FIELD_S));
 
-    /* 查找 protocol */
+    
     find = TXT_Strnstr(url, "://", url_len);
     if (NULL == find) {
         return BS_NOT_FOUND;
@@ -331,7 +331,7 @@ BS_STATUS URL_LIB_ParseUrl(IN CHAR *url, IN UINT url_len, OUT URL_FIELD_S *field
         return BS_OK;
     }
 
-    /* host */
+    
     fields->host.pcData = tmp;
     find = TXT_MStrnchr(tmp, left_len, ":/");
     if (NULL == find) {
@@ -342,7 +342,7 @@ BS_STATUS URL_LIB_ParseUrl(IN CHAR *url, IN UINT url_len, OUT URL_FIELD_S *field
     tmp = find;
     left_len -= fields->host.uiLen;
 
-    /* port */
+    
     if (*find == ':') {
         tmp = find + 1;
         left_len -= 1;
@@ -360,7 +360,7 @@ BS_STATUS URL_LIB_ParseUrl(IN CHAR *url, IN UINT url_len, OUT URL_FIELD_S *field
         left_len -= fields->port.uiLen;
     }
 
-    /* path */
+    
     fields->path.pcData = tmp;
     find = TXT_Strnchr(tmp, '?', left_len);
     if (find == NULL) {
@@ -375,7 +375,7 @@ BS_STATUS URL_LIB_ParseUrl(IN CHAR *url, IN UINT url_len, OUT URL_FIELD_S *field
         return BS_OK;
     }
 
-    /* query */
+    
     fields->query.pcData = tmp;
     fields->query.uiLen = left_len;
 

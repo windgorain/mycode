@@ -66,7 +66,7 @@ static BS_STATUS plkv_AddKeyValue(IN _PLKV_CTRL_S *pstCtrl, IN LSTR_S *pstKey, I
     return BS_OK;
 }
 
-PLKV_HANDLE PLKV_Create(IN UINT uiFlag /* KV_FLAG_XXX */)
+PLKV_HANDLE PLKV_Create(IN UINT uiFlag )
 {
     _PLKV_CTRL_S *pstCtrl;
 
@@ -96,7 +96,7 @@ VOID PLKV_Destroy(IN PLKV_HANDLE hKvHandle)
     }
 }
 
-/* 只解析一个key=value的情况 */
+
 BS_STATUS PLKV_ParseOne(IN PLKV_HANDLE hKvHandle, IN LSTR_S *pstLstr, IN CHAR cEquelChar)
 {
     LSTR_S stKey;
@@ -109,17 +109,17 @@ BS_STATUS PLKV_ParseOne(IN PLKV_HANDLE hKvHandle, IN LSTR_S *pstLstr, IN CHAR cE
 
     if (pstLstr->uiLen == 0)
     {
-        /* 空行返回 */
+        
         return BS_OK;
     }
 
     if (pstLstr->pcData[0] == cEquelChar)
     {
-        /* 第一个就是key和value之前的符号, 没有Key，返回 */
+        
         return BS_BAD_PARA;
     }
 
-    /* 分割字符串 */
+    
     LSTR_Split(pstLstr, cEquelChar, &stKey, &stValue);
 
     return plkv_AddKeyValue(pstCtrl, &stKey, &stValue);
@@ -132,7 +132,7 @@ BS_STATUS PLKV_Parse(IN PLKV_HANDLE hKvHandle, IN LSTR_S *pstLstr, IN CHAR cSepa
     
     if (pstLstr->uiLen == 0)
     {
-        /* 空行返回 */
+        
         return BS_OK;
     }
 

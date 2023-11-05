@@ -16,7 +16,7 @@
 #include "ssldecoder_service.h"
 
 typedef struct {
-    DLL_NODE_S linknode; /* must the first */
+    DLL_NODE_S linknode; 
 
     time_t create_time;
     VBUF_S vbuf;
@@ -59,7 +59,7 @@ static void _ssldecoder_service_free_node(SSLPARSER_SERVICE_NODE_S *node)
 }
 
 #ifdef IN_LINUX
-static BS_WALK_RET_E _ssldecoder_service_timeout(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int _ssldecoder_service_timeout(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     char buf[128];
     SSLPARSER_SERVICE_NODE_S *node, *nodetmp;
@@ -77,7 +77,7 @@ static BS_WALK_RET_E _ssldecoder_service_timeout(IN INT iSocketId, IN UINT uiEve
         }
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 #endif
 
@@ -149,27 +149,27 @@ static void _ssldecoder_service_process_request(SSLPARSER_SERVICE_NODE_S *node)
     return;
 }
 
-static BS_WALK_RET_E _ssldecoder_service_down_event(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int _ssldecoder_service_down_event(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     int len;
     SSLPARSER_SERVICE_NODE_S *node = pstUserHandle->ahUserHandle[0];
 
     if (uiEvent & MYPOLL_EVENT_ERR) {
         _ssldecoder_service_free_node(node);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     if (uiEvent & MYPOLL_EVENT_IN) {
         if (VBUF_GetTailFreeLength(&node->vbuf) <= 0) {
             _ssldecoder_service_free_node(node);
-            return BS_WALK_CONTINUE;
+            return 0;
         }
         len = Socket_Read(iSocketId, VBUF_GetTailFreeBuf(&node->vbuf), VBUF_GetTailFreeLength(&node->vbuf), 0);
         if (len <= 0) {
             if (len != SOCKET_E_AGAIN) {
                 _ssldecoder_service_free_node(node);
             }
-            return BS_WALK_CONTINUE;
+            return 0;
         }
 
         VBUF_AddDataLength(&node->vbuf, len);
@@ -177,10 +177,10 @@ static BS_WALK_RET_E _ssldecoder_service_down_event(IN INT iSocketId, IN UINT ui
         _ssldecoder_service_process_request(node);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-static BS_WALK_RET_E _ssldecoder_service_Accept(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int _ssldecoder_service_Accept(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     int socketid;
     SSLPARSER_SERVICE_NODE_S *node;
@@ -188,13 +188,13 @@ static BS_WALK_RET_E _ssldecoder_service_Accept(IN INT iSocketId, IN UINT uiEven
 
     socketid = Socket_Accept(iSocketId, NULL, NULL);
     if (socketid < 0) {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     node = _ssldecoder_service_alloc_node();
     if (node == NULL) {
         Socket_Close(socketid);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     node->downfd = socketid;
@@ -202,7 +202,7 @@ static BS_WALK_RET_E _ssldecoder_service_Accept(IN INT iSocketId, IN UINT uiEven
 
     MyPoll_SetEvent(g_ssldecoder_service_poller, socketid, MYPOLL_EVENT_IN, _ssldecoder_service_down_event, &user_handle);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 int ssldecoder_service_init()
@@ -241,7 +241,7 @@ int ssldecoder_service_open_tcp(unsigned short port)
     Socket_SetNoBlock(listenfd, 1);
 
     memset(&address, 0, sizeof(struct sockaddr));
-    /* Clear structure */
+    
     address.sin_family = AF_INET; 
     address.sin_addr.s_addr = INADDR_ANY; 
     address.sin_port = htons(port);

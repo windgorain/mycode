@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM VNET_RETCODE_FILE_NUM_CMACFW
 
 #include "bs.h"
@@ -25,7 +25,7 @@
 #include "../inc/vnetc_conf.h"
 #include "../inc/vnetc_node.h"
 
-/* VNET MAC FW的Debug 选项 */
+
 #define _VNETC_MAC_FW_DBG_PACKET 0x1
 
 typedef struct
@@ -84,7 +84,7 @@ static inline BS_STATUS vnetc_mac_fw_ForwardPacket (IN MBUF_S *pstMbuf)
             &pstEthHead->stDMac, &pstEthHead->stSMac,
             ntohs(pstEthHead->usProto)));
 
-        /* 在MAC地址表中没有找到, 进行广播 */
+        
         return VNETC_NODE_BroadCast(pstMbuf, VNET_NODE_PKT_PROTO_DATA);
     }
 
@@ -151,7 +151,7 @@ BS_STATUS VNETC_MAC_FW_Input(IN MBUF_S *pstMbuf)
         &pstEthHead->stDMac, &pstEthHead->stSMac,
         ntohs(pstEthHead->usProto), MBUF_TOTAL_DATA_LEN(pstMbuf)));
 
-    /* 学习源地址 */
+    
     vnetc_mac_fw_LearnSourceMAC(pstMbuf);
 
     return vnetc_mac_fw_ForwardPacket(pstMbuf);
@@ -162,13 +162,13 @@ VOID VNETC_MAC_FW_SetPermitBoradcast(IN BOOL_T bPermit)
     g_bVnetcMacPermitBroadcast = bPermit;
 }
 
-/* debug vnet mac-fw packet */
+
 PLUG_API VOID VNETC_MAC_FW_DebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetCMacFwDebugFlag |= _VNETC_MAC_FW_DBG_PACKET;
 }
 
-/* no debug vnet mac-fw packet */
+
 PLUG_API VOID VNETC_MAC_FW_NoDebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetCMacFwDebugFlag &= ~_VNETC_MAC_FW_DBG_PACKET;

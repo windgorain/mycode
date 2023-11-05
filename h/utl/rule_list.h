@@ -37,10 +37,10 @@ RULE_NODE_S * RuleList_FindRule(RULE_LIST_S *pstList, PF_RULE_CMP pfCmp, RULE_NO
 RULE_NODE_S * RuleList_GetRule(RULE_LIST_S *pstList, IN UINT uiRuleID);
 RULE_NODE_S * RuleList_GetLastRule(RULE_LIST_S *pstList);
 BS_STATUS RuleList_IncreaseID(RULE_LIST_S *pstList, IN UINT uiStart, IN UINT uiEnd, IN UINT uiStep);
-/* 移动rule */
+
 BS_STATUS RuleList_MoveRule(RULE_LIST_S *pstList, UINT uiOldRuleID, UINT uiNewRuleID);
-RULE_NODE_S * RuleList_GetNextByNode(RULE_LIST_S *pstList, RULE_NODE_S *pstCurr/* NULL表示从头开始 */);
-RULE_NODE_S * RuleList_GetNextByID(RULE_LIST_S *pstList, UINT uiCurrentRuleID/* INVALID 表示从头开始 */);
+RULE_NODE_S * RuleList_GetNextByNode(RULE_LIST_S *pstList, RULE_NODE_S *pstCurr);
+RULE_NODE_S * RuleList_GetNextByID(RULE_LIST_S *pstList, UINT uiCurrentRuleID);
 UINT RuleList_Count(RULE_LIST_S *pstList);
 UINT RuleList_ResetID(RULE_LIST_S* pstList, UINT uiStep);
 static inline UINT Rule_GetIDByNode(IN RULE_NODE_S *pstNode) {
@@ -51,4 +51,4 @@ static inline UINT Rule_GetIDByNode(IN RULE_NODE_S *pstNode) {
 #ifdef __cplusplus
 }
 #endif
-#endif //RULE_LIST_H_
+#endif 

@@ -15,4 +15,4 @@ int BPFFUNC_RuntimeInit(void);
 #ifdef __cplusplus
 }
 #endif
-#endif //BPFFUNC_FUNC_H_
+#endif 

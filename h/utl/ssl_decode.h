@@ -15,55 +15,49 @@ extern "C"
 #define TLS1_1_VERSION                  0x0302
 #define TLS1_2_VERSION                  0x0303
 
-#if 1 /* extension type */
-/* ExtensionType values from RFC3546 / RFC4366 / RFC6066 */
+#if 1 
+
 # define TLSEXT_TYPE_server_name                 0
 # define TLSEXT_TYPE_max_fragment_length         1
 # define TLSEXT_TYPE_client_certificate_url      2
 # define TLSEXT_TYPE_trusted_ca_keys             3
 # define TLSEXT_TYPE_truncated_hmac              4
 # define TLSEXT_TYPE_status_request              5
-/* ExtensionType values from RFC4681 */
+
 # define TLSEXT_TYPE_user_mapping                6
-/* ExtensionType values from RFC5878 */
+
 # define TLSEXT_TYPE_client_authz                7
 # define TLSEXT_TYPE_server_authz                8
-/* ExtensionType values from RFC6091 */
+
 # define TLSEXT_TYPE_cert_type           9
-/* ExtensionType values from RFC4492 */
+
 # define TLSEXT_TYPE_elliptic_curves             10
 # define TLSEXT_TYPE_ec_point_formats            11
-/* ExtensionType value from RFC5054 */
-# define TLSEXT_TYPE_srp                         12
-/* ExtensionType values from RFC5246 */
-# define TLSEXT_TYPE_signature_algorithms        13
-/* ExtensionType value from RFC5764 */
-# define TLSEXT_TYPE_use_srtp    14
-/* ExtensionType value from RFC5620 */
-# define TLSEXT_TYPE_heartbeat   15
-/* ExtensionType value from RFC7301 */
-# define TLSEXT_TYPE_application_layer_protocol_negotiation 16
-/*
- * Extension type for Certificate Transparency
- * https://tools.ietf.org/html/rfc6962#section-3.3.1
- */
-# define TLSEXT_TYPE_signed_certificate_timestamp    18
-/*
- * ExtensionType value for TLS padding extension.
- * http://tools.ietf.org/html/draft-agl-tls-padding
- */
-# define TLSEXT_TYPE_padding     21
-/* ExtensionType value from RFC7366 */
-# define TLSEXT_TYPE_encrypt_then_mac    22
-/* ExtensionType value from RFC7627 */
-# define TLSEXT_TYPE_extended_master_secret      23
-/* ExtensionType value from RFC4507 */
-# define TLSEXT_TYPE_session_ticket              35
-/* Temporary extension type */
-# define TLSEXT_TYPE_renegotiate                 0xff01
-# endif /* extension type */
 
-/* NameType value from RFC3546 */
+# define TLSEXT_TYPE_srp                         12
+
+# define TLSEXT_TYPE_signature_algorithms        13
+
+# define TLSEXT_TYPE_use_srtp    14
+
+# define TLSEXT_TYPE_heartbeat   15
+
+# define TLSEXT_TYPE_application_layer_protocol_negotiation 16
+
+# define TLSEXT_TYPE_signed_certificate_timestamp    18
+
+# define TLSEXT_TYPE_padding     21
+
+# define TLSEXT_TYPE_encrypt_then_mac    22
+
+# define TLSEXT_TYPE_extended_master_secret      23
+
+# define TLSEXT_TYPE_session_ticket              35
+
+# define TLSEXT_TYPE_renegotiate                 0xff01
+# endif 
+
+
 # define TLSEXT_NAMETYPE_host_name 0
 
 
@@ -104,4 +98,4 @@ USHORT SSLDecode_DegreaseTypeCode(USHORT type);
 #ifdef __cplusplus
 }
 #endif
-#endif //SSL_DECODE_H_
+#endif 

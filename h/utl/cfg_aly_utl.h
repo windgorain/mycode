@@ -10,12 +10,12 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* ---define--- */
+
 #define CFG_ALY_MAX_LINE_LEN 1000
 
-/* ---funcs--- */
+
 extern BS_STATUS CFG_ALY_Create(IN UCHAR ucSplitChar, OUT HANDLE *phHandle);
 extern BS_STATUS CFG_ALY_Delete(IN HANDLE hHandle);
 extern BS_STATUS CFG_ALY_FindKeyValueByStream
@@ -30,8 +30,8 @@ extern BS_STATUS CFG_ALY_FindKeyValueByStream
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__CFG_ALY_UTL_H_*/
+#endif 
 
 

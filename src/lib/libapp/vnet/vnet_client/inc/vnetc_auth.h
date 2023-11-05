@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETC_AUTH_Init();
 BS_STATUS VNETC_AUTH_StartAuth();
@@ -18,8 +18,8 @@ VOID VNETC_AUTH_Logout();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_AUTH_H_*/
+#endif 
 
 

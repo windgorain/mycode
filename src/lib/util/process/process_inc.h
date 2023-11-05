@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 LONG _OS_PROCESS_CreateByFile
 (
@@ -30,8 +30,8 @@ UINT64 _OS_PROCESS_GetTid();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__PROCESS_INC_H_*/
+#endif 
 
 

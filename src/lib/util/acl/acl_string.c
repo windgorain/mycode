@@ -7,7 +7,7 @@
 #include "utl/txt_utl.h"
 #include "utl/acl_string.h"
 
-/* 处理简单规则, 如permit *.baidu.com */
+
 int ACLSTR_Simple_Parse(char *aclstring, ACL_STR_S *node)
 {
     char *split;

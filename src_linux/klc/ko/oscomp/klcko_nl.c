@@ -5,23 +5,24 @@
 ================================================================*/
 #include "klcko_lib.h"
 #include "ko/ko_nl.h"
+#include "ko/ko_utl.h"
 
 typedef void (*PF_netlink_ack)(void *in_skb, void *nlh, int err, void *extack);
 
 static PF_KLCKO_NL_MSG g_klcko_nl_type[KLC_NL_TYPE_MAX] = {0};
-static DEFINE_SPINLOCK(g_klcko_nl_lock);
+static DEFINE_MUTEX(g_klcko_nl_lock);
 
 static inline void _klcko_nl_lock(void)
 {
-    spin_lock(&g_klcko_nl_lock);
+    mutex_lock(&g_klcko_nl_lock);
 }
 
 static inline void _klcko_nl_unlock(void)
 {
-    spin_unlock(&g_klcko_nl_lock);
+    mutex_unlock(&g_klcko_nl_lock);
 }
 
-static int _klcko_process_cmd(int cmd, void *msg)
+static int _klcko_process_cmd(int cmd, void *data, int data_len, void *reply)
 {
     int type = KLC_NL_TYPE(cmd);
     int subcmd = KLC_NL_CMD(cmd);
@@ -33,7 +34,7 @@ static int _klcko_process_cmd(int cmd, void *msg)
         return KO_ERR_NO_SUCH;
     }
 
-    return func(subcmd, msg);
+    return func(subcmd, data, data_len, reply);
 }
 
 static void _klcko_rcv_skb(struct sk_buff *skb)
@@ -42,6 +43,8 @@ static void _klcko_rcv_skb(struct sk_buff *skb)
     struct nlmsghdr *nlh;
     NETLINK_MSG_S *msg_st;
     void *data;
+    void *reply_ptr;
+    int data_len;
     PF_netlink_ack ack_func;
 
     skblen = skb->len;
@@ -63,10 +66,12 @@ static void _klcko_rcv_skb(struct sk_buff *skb)
     }
 
     msg_st = (NETLINK_MSG_S *)nlh;
-    data = msg_st->data;
     type = msg_st->msg_type;
+    data = msg_st->data;
+    data_len = nlmsglen - sizeof(NETLINK_MSG_S);
+    reply_ptr = msg_st->reply_ptr;
 
-    ret = _klcko_process_cmd(type, msg_st);
+    ret = _klcko_process_cmd(type, data, data_len, reply_ptr);
 
     ack_func = (void*)netlink_ack;
     ack_func(skb, nlh, ret, NULL);
@@ -89,6 +94,7 @@ static struct genl_ops g_klcko_nl_ops[] = {
         .flags = 0,
         .doit = netlink_gen_doit,
         .dumpit = NULL,
+        .maxattr = 0,
     },
 };
 
@@ -102,6 +108,9 @@ static struct genl_family g_klcko_nl_family = {
     .n_ops = ARRAY_SIZE(g_klcko_nl_ops),
 #ifdef GENL_ID_GENERATE
     .id = GENL_ID_GENERATE,
+#endif
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,0,0))
+	.resv_start_op = NETLINK_GEN_C_MAX,
 #endif
 }; 
 
@@ -126,9 +135,7 @@ int KlcKoNl_Reg(unsigned int type, PF_KLCKO_NL_MSG func)
         return KO_ERR_BAD_PARAM;
     }
 
-    _klcko_nl_lock();
     g_klcko_nl_type[type] = func;
-    _klcko_nl_unlock();
 
     return 0;
 }

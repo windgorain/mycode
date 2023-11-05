@@ -15,7 +15,7 @@
 #include "../h/log_agent_http.h"
 #include "../h/log_agent_conf.h"
 
-/* [no] http log enable */
+
 PLUG_API int LOGAGENT_HTTP_CmdHttpLogEnable(int argc, char **argv)
 {
     HTTP_LOG_S *log = LOGAGENT_HTTP_GetCtrl();
@@ -29,7 +29,7 @@ PLUG_API int LOGAGENT_HTTP_CmdHttpLogEnable(int argc, char **argv)
     return 0;
 }
 
-/* [no] http log cookie */
+
 PLUG_API int LOGAGENT_HTTP_CmdHttpLogCookie(int argc, char **argv)
 {
     HTTP_LOG_S *log = LOGAGENT_HTTP_GetCtrl();
@@ -43,7 +43,7 @@ PLUG_API int LOGAGENT_HTTP_CmdHttpLogCookie(int argc, char **argv)
     return 0;
 }
 
-/* [no] http log set-cookie */
+
 PLUG_API int LOGAGENT_HTTP_CmdHttpLogSetCookie(int argc, char **argv)
 {
     HTTP_LOG_S *log = LOGAGENT_HTTP_GetCtrl();
@@ -57,7 +57,7 @@ PLUG_API int LOGAGENT_HTTP_CmdHttpLogSetCookie(int argc, char **argv)
     return 0;
 }
 
-/* http log request-body %INT */
+
 PLUG_API int LOGAGENT_HTTP_CmdHttpLogRequestBody(int argc, char **argv)
 {
     HTTP_LOG_S *log = LOGAGENT_HTTP_GetCtrl();
@@ -68,7 +68,7 @@ PLUG_API int LOGAGENT_HTTP_CmdHttpLogRequestBody(int argc, char **argv)
     return 0;
 }
 
-/* http log response-body %INT */
+
 PLUG_API int LOGAGENT_HTTP_CmdHttpLogResponseBody(int argc, char **argv)
 {
     HTTP_LOG_S *log = LOGAGENT_HTTP_GetCtrl();
@@ -79,7 +79,7 @@ PLUG_API int LOGAGENT_HTTP_CmdHttpLogResponseBody(int argc, char **argv)
     return 0;
 }
 
-/* http match %INT {sip|dip} %IP mask %INT */
+
 PLUG_API int LOGAGENT_HTTP_CmdMatchIP(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_HTTP_GetMatch();
@@ -107,7 +107,7 @@ PLUG_API int LOGAGENT_HTTP_CmdMatchIP(int argc, char **argv)
     return 0;
 }
 
-/* http match %INT {sport|dport} %INT */
+
 PLUG_API int LOGAGENT_HTTP_CmdMatchPort(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_HTTP_GetMatch();
@@ -129,7 +129,7 @@ PLUG_API int LOGAGENT_HTTP_CmdMatchPort(int argc, char **argv)
     return 0;
 }
 
-/* http match %INT enable */
+
 PLUG_API int LOGAGENT_HTTP_CmdMatchEnable(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_HTTP_GetMatch();
@@ -144,7 +144,7 @@ PLUG_API int LOGAGENT_HTTP_CmdMatchEnable(int argc, char **argv)
     return 0;
 }
 
-/* no http match %INT enable */
+
 PLUG_API int LOGAGENT_HTTP_CmdMatchDisable(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_HTTP_GetMatch();
@@ -182,7 +182,7 @@ static void logagent_http_ShowMatchedCountOne(MATCH_HANDLE hMatch, int index)
             index, saddr, daddr, pattern->protocol, enable, count);
 }
 
-/* show http match count [%INT] */
+
 PLUG_API int LOGAGENT_HTTP_CmdShowMatchCount(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_HTTP_GetMatch();
@@ -205,7 +205,7 @@ PLUG_API int LOGAGENT_HTTP_CmdShowMatchCount(int argc, char **argv)
     return 0;
 }
 
-/* reset http match count [%INT] */
+
 PLUG_API int LOGAGENT_HTTP_CmdResetMatchCount(int argc, char **argv)
 {
     MATCH_HANDLE hMatch = LOGAGENT_HTTP_GetMatch();

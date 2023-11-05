@@ -13,16 +13,16 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define _TP_PROTO_MAX  0xffff  /* 协议号范围是1 - _TP_PROTO_MAX */
-#define _TP_ID_MAX     0xffff  /* TP_ID范围是从1 - _TP_ID_MAX. */
+#define _TP_PROTO_MAX  0xffff  
+#define _TP_ID_MAX     0xffff  
 
 #define _TP_HASH_BUCKET 1024
 
-#define _TP_PROTOCOL_MAX_ACCEPT_NUM 32    /* 最大的未被Accept的已建立连接 */
+#define _TP_PROTOCOL_MAX_ACCEPT_NUM 32    
 
-/* 状态 */
+
 typedef enum
 {
     _TP_STATUS_INIT = 0,
@@ -40,55 +40,55 @@ typedef enum
     _TP_STATUS_MAX
 }_TP_STATUS_E;
 
-/* Flag */
+
 #define _TP_SOCKET_FLAG_NBIO      0x1
 #define _TP_SOCKET_FLAG_ACCEPTING 0x2
 
 typedef struct
 {
-    USHORT usIdle;           /* 触发开始KeepAlive的空闲时间. 0表示不触发. */
-    USHORT usIntval;         /* KeepAlive的间隔时间 */
-    USHORT usProbeMaxCount;  /* 最大的重试次数 */
-    USHORT usProbeCount;     /* 重试了多少次了 */
+    USHORT usIdle;           
+    USHORT usIntval;         
+    USHORT usProbeMaxCount;  
+    USHORT usProbeCount;     
     VCLOCK_HANDLE hKeepAliveTimer;
 }_TP_KEEP_ALIVE_S;
 
 typedef struct
 {
-    USHORT usResendCount;   /* 重发了多少次了 */
+    USHORT usResendCount;   
     VCLOCK_HANDLE hResendTImer;
 }_TP_RESEND_S;
 
 typedef struct
 {
     TP_TYPE_E eType;
-    UINT uiFlag;         /* _TP_SOCKET_FLAG_XXX */
-    UINT uiProtocolId;   /* 主机序 */
-    TP_ID uiListenTpId;  /* 它的正在Listen的父接口. */
-    TP_ID uiLocalTpId;   /* 本地TP_ID, 主机序 */
-    TP_ID uiPeerTpId;    /* 对方的TP_ID,主机序 */
-    UINT uiStatus;       /* 状态 */
-    INT iSn;             /* 主机序, Next Pkt Sn */
-    INT iAckSn;          /* 主机序, Next Need Pkt Sn */
-    TP_CHANNEL_S stChannel;     /* 底层通道描述符 */
-    MBUF_QUE_S stSendMbufQue;   /* 发送缓冲区 */
-    MBUF_QUE_S stRecvMbufQue;   /* 接收缓冲区 */
+    UINT uiFlag;         
+    UINT uiProtocolId;   
+    TP_ID uiListenTpId;  
+    TP_ID uiLocalTpId;   
+    TP_ID uiPeerTpId;    
+    UINT uiStatus;       
+    INT iSn;             
+    INT iAckSn;          
+    TP_CHANNEL_S stChannel;     
+    MBUF_QUE_S stSendMbufQue;   
+    MBUF_QUE_S stRecvMbufQue;   
     EVENT_HANDLE hEvent;
-    KA_S stKeepAlive;   /* Keep Alive相关参数 */
+    KA_S stKeepAlive;   
     _TP_RESEND_S stResend;
-    HANDLE *phPropertys;    /* 指向Property数组 */
+    HANDLE *phPropertys;    
 }_TP_SOCKET_S;
 
 
-#define _TP_PROTOCOL_FLAG_LISTEN 0x1 /* 正在监听 */
+#define _TP_PROTOCOL_FLAG_LISTEN 0x1 
 
 typedef struct
 {
     TP_ID uiLocalTpId;
-    UINT uiProtocolId;  /* 主机序 */
+    UINT uiProtocolId;  
     UINT uiFlag;
     UINT uiAccepttingNum;
-    _TP_SOCKET_S * astAcceptting[_TP_PROTOCOL_MAX_ACCEPT_NUM]; /* 正在握手的连接 */
+    _TP_SOCKET_S * astAcceptting[_TP_PROTOCOL_MAX_ACCEPT_NUM]; 
 }_TP_PROTOCOL_S;
 
 typedef struct
@@ -102,9 +102,9 @@ typedef struct
     UINT uiMaxPropertys;
     UINT uiDbgFlag;
 
-    USHORT usDftIdle;   /* 空闲Tick数目 */
-    USHORT usDftIntval; /* 探测间隔Tick */
-    USHORT usDftMaxProbeCount; /* 最大探测次数 */
+    USHORT usDftIdle;   
+    USHORT usDftIntval; 
+    USHORT usDftMaxProbeCount; 
     
     DLL_HEAD_S stCloseNotifyList;
 }_TP_CTRL_S;
@@ -199,8 +199,8 @@ BS_STATUS _TP_Socket_Walk
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__TP_INNER_H_*/
+#endif 
 
 

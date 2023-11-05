@@ -171,7 +171,7 @@ static VOID _svpn_iptunnel_ConnOutput(IN SVPN_IPTUN_NODE_S *pstNode)
     return;
 }
 
-static BS_WALK_RET_E _svpn_iptunnel_ConnEvent(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int _svpn_iptunnel_ConnEvent(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     SVPN_IPTUN_NODE_S *pstNode = pstUserHandle->ahUserHandle[0];
 
@@ -179,7 +179,7 @@ static BS_WALK_RET_E _svpn_iptunnel_ConnEvent(IN INT iSocketId, IN UINT uiEvent,
     {
         SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_EVENT, "Recv connection error event.\r\n");
         _svpn_iptunnel_ConnErr(pstNode);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     if (uiEvent & MYPOLL_EVENT_IN)
@@ -187,7 +187,7 @@ static BS_WALK_RET_E _svpn_iptunnel_ConnEvent(IN INT iSocketId, IN UINT uiEvent,
         SVPN_DBG_OUTPUT(SVPN_DBG_ID_IP_TUN, SVPN_DBG_FLAG_IPTUN_EVENT, "Recv connection in event.\r\n");
         if (BS_OK != _svpn_iptunnel_ConnInput(pstNode))
         {
-            return BS_WALK_CONTINUE;
+            return 0;
         }
     }
 
@@ -197,7 +197,7 @@ static BS_WALK_RET_E _svpn_iptunnel_ConnEvent(IN INT iSocketId, IN UINT uiEvent,
         _svpn_iptunnel_ConnOutput(pstNode);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static BS_STATUS _svpn_iptunnel_Handshake(IN SVPN_IPTUN_NODE_S *pstNode)
@@ -349,7 +349,7 @@ static BS_STATUS _svpn_iptunnel_LinkOutput
 (
     IN IF_INDEX ifIndex,
     IN MBUF_S *pstMbuf,
-    IN USHORT usProtoType/* 报文协议类型, 网络序 */
+    IN USHORT usProtoType
 )
 {
     IP_HEAD_S *pstIpHeader;

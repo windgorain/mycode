@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define BS_BIG_ENDIAN 0
@@ -20,7 +20,7 @@
 #error "Error"
 #endif
 
-/* 3字节数据转网络序 */
+
 #if BS_BIG_ENDIAN
 #define ntoh3B(x) (x)
 #define hton3B(x) (x)
@@ -180,8 +180,8 @@ static inline UINT64 Big2Host64(UINT64 data)
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__ENDIAN_UTL_H_*/
+#endif 
 
 

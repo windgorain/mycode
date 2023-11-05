@@ -18,12 +18,12 @@
 static int pwatcher_zone_event_in(UINT point, PWATCHER_PKT_DESC_S *pkt, void *data);
 
 static IDKEY_S *g_pwatcher_zone_idkey;
-static MAP_HANDLE g_pwatcher_zone_map; /* rule->zone的映射关系 */
+static MAP_HANDLE g_pwatcher_zone_map; 
 
 typedef struct {
     PWATCHER_ZONE_S global_zone;
     IDKEY_S *idkey;
-    MAP_HANDLE zone_map;  /* rule->zone的映射关系 */
+    MAP_HANDLE zone_map;  
 }PWATCHER_ZONE_MUC_S;
 
 static inline void pwatcher_zone_delete(PWATCHER_ZONE_S *zone);
@@ -260,7 +260,7 @@ int PWatcherZone_GetTypeByStr(char *type_str)
     return -1;
 }
 
-/* 添加一个Zone, 并自动分配ZoneID */
+
 int PWatcherZone_Add(PWATCHER_ZONE_S *zone)
 {
     int name_size = strlen(zone->name) + 1;
@@ -273,7 +273,7 @@ int PWatcherZone_Add(PWATCHER_ZONE_S *zone)
     IDKEY_S *ctrl = zone_muc->idkey;
 
     if (IDKEY_GetIDByKey(ctrl, zone->name, name_size) >= 0) {
-        /* 已经存在对应的KEY */
+        
         RETURN(BS_ALREADY_EXIST);
     }
 
@@ -402,7 +402,7 @@ void PWatcherZone_WalkType(int muc_id, UINT type, PF_IDKEY_WALK_FUNC walk_func, 
     PWatcherZone_Walk(muc_id, pwatcher_zone_walk_type, &uh);
 }
 
-/* 按照Type顺序遍历 */
+
 void PWatcherZone_WalkByTypeOrder(int muc_id, PF_IDKEY_WALK_FUNC walk_func, void *ud)
 {
     UINT i;
@@ -461,7 +461,7 @@ void * PWatcherZone_GetZoneByRule(void *rule, int rule_len)
     return MAP_Get(g_pwatcher_zone_map, rule, rule_len);
 }
 
-/* 如果存在father zone, 则必须同时匹配father */
+
 BOOL_T PWatcherZone_CheckPktFatherZone(void *pkt_desc, PWATCHER_ZONE_S *zone)
 {
     PWATCHER_PKT_DESC_S *pkt = pkt_desc;

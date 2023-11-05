@@ -5,7 +5,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 HANDLE DC_XML_OpenInstance(IN VOID *pParam);
 VOID DC_XML_CloseInstance(IN HANDLE hHandle);
@@ -98,7 +98,7 @@ HSTRING DC_XML_ToString(IN HANDLE hHandle);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__DC_XML_H_*/
+#endif 
 

@@ -14,7 +14,7 @@ int X509Cert_SetIssuer(X509 *cert, X509_NAME *issuer)
     return 0;
 }
 
-/* 更改证书的public key */
+
 int X509Cert_SetPublicKey(X509 *cert, void *pkey)
 {
     if (1 != X509_set_pubkey(cert, pkey)) {
@@ -42,7 +42,7 @@ char * X509Cert_GetSubjectName(X509 *pstCert, char *info, int info_size)
     char *pszOriginalSubj;
     int nSize=0;
 
-    // 获取真实证书的持有者信息
+    
     pszOriginalSubj = X509_NAME_oneline(X509_get_subject_name(pstCert),0,0);
     if (pszOriginalSubj==NULL)  {
         return NULL;
@@ -135,7 +135,7 @@ void X509Cert_AltNameForEach(X509 *cert, pf_X509Cert_AltNameForEachCB func, void
 
             cstr = gen->d.dNSName;
 
-            if (BS_WALK_CONTINUE != func(cstr, user_data)) {
+            if (func(cstr, user_data) < 0) {
                 break;
             }
         }

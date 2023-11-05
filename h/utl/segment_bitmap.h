@@ -13,7 +13,7 @@ extern "C"
 typedef struct SBITMAP_ST{
     struct SBITMAP_ST *next;
     UINT offset;
-    UINT bitsize; /* 32的倍数 */
+    UINT bitsize; 
     UINT *data;
 }SBITMAP_NODE_S;
 
@@ -36,4 +36,4 @@ int SBITMAP_IsSet(SBITMAP_S *ctrl, UINT index);
 #ifdef __cplusplus
 }
 #endif
-#endif //SEGMENT_BITMAP_H_
+#endif 

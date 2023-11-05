@@ -24,7 +24,7 @@ typedef struct {
 typedef struct {
     UINT uiPriority;
     UINT uiStackSize;
-    UINT uiNearTId;     /* 设置亲和线程的ID */
+    UINT uiNearTId;     
 }THREAD_CREATE_PARAM_S;
 
 typedef struct {
@@ -54,4 +54,4 @@ BS_STATUS ThreadNamed_GetByID(THREAD_ID thread_id, THREAD_NAMED_INFO_S *info);
 #ifdef __cplusplus
 }
 #endif
-#endif //THREAD_NAMED_H_
+#endif 

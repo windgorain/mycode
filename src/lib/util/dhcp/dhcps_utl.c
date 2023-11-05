@@ -17,16 +17,16 @@
 #define _DHCPS_MBUF_HEAD_SPACE_LEN 200
 #define _DHCPS_OPTIONS_BUFFER_SIZE 256
 
-#define _DHCPS_DECLINE_MAX_TICK 3600  /* 3600 tick后删除decline表 */
-#define _DHCPS_MAC_OLD_TIME     3600  /* 3600 老化MAC表项 */
+#define _DHCPS_DECLINE_MAX_TICK 3600  
+#define _DHCPS_MAC_OLD_TIME     3600  
 
 typedef struct
 {
     IPPOOL_HANDLE hIpPool;
-    UINT uiMask;        /* 主机序 */
-    UINT uiGateWayIP;   /* 主机序 */
-    MACTBL_HANDLE hMacTbl;         /* 上线的MAC表 */
-    MACTBL_HANDLE hSignedMacTbl;   /* 预订了Ip的MAC表 */
+    UINT uiMask;        
+    UINT uiGateWayIP;   
+    MACTBL_HANDLE hMacTbl;         
+    MACTBL_HANDLE hSignedMacTbl;   
     PF_DHCPS_SEND_FUNC pfSendFunc;
     USER_HANDLE_S stUserHandle;
     UINT uiDeclineTick;
@@ -34,15 +34,15 @@ typedef struct
 
 typedef struct
 {
-    UINT uiIP; /* 网络序 */
+    UINT uiIP; 
 }_DHCPS_DATA_S;
 
-/* 返回分配的网络序的IP */
+
 static UINT dhcps_GetIp
 (
     IN _DHCPS_INSTANCE_S *pstInstance,
     IN DHCP_HEAD_S *pstDhcpRequest,
-    IN UINT uiRequestIp/* 网络序 */
+    IN UINT uiRequestIp
 )
 {
     MAC_NODE_S stMacTbl;
@@ -52,14 +52,14 @@ static UINT dhcps_GetIp
 
     MAC_ADDR_COPY(stMacTbl.stMac.aucMac, pstDhcpRequest->aucClientHaddr);
 
-    /* 查找是否已经分配,如果已经分配,直接返回分配的地址 */
+    
     if ((BS_OK == MACTBL_Find(pstInstance->hMacTbl, &stMacTbl, &stData))
         && (stData.uiIP != 0))
     {
         return stData.uiIP;
     }
 
-    /* 如果已经预订,则返回预订的地址,否则申请一个地址 */
+    
     if (BS_OK == MACTBL_Find(pstInstance->hSignedMacTbl, &stMacTbl, &stData))
     {
         uiIP = stData.uiIP;
@@ -90,13 +90,13 @@ static UINT dhcps_GetIp
     return uiIP;
 }
 
-/* 返回网络序的掩码 */
+
 static UINT dhcps_GetMask(IN _DHCPS_INSTANCE_S *pstInstance)
 {
     return htonl(pstInstance->uiMask);
 }
 
-/* 返回网络序的Server IP */
+
 static UINT dhcps_GetServerIP(IN _DHCPS_INSTANCE_S *pstInstance)
 {
     return htonl(pstInstance->uiGateWayIP);
@@ -107,7 +107,7 @@ static VOID dhcps_BuildDHCPPre
     IN _DHCPS_INSTANCE_S *pstInstance,
     IN DHCP_HEAD_S *pstDhcpRequest,
     OUT DHCP_HEAD_S *pstDhcpResponse,
-    IN UINT ulYourIp,  /* 分配的IP, 网络序 */
+    IN UINT ulYourIp,  
     IN int optlen
 )
 {
@@ -136,7 +136,7 @@ static BS_STATUS dhcps_SendDhcpMsg
     IN _DHCPS_INSTANCE_S *pstInstance,
     IN DHCP_HEAD_S *pstDhcpHead,
     IN UINT ulMsgType,
-    IN UINT ulYourlIp, /* 分配的地址,网络序 */
+    IN UINT ulYourlIp, 
     IN VOID *pPktContext
 )
 {
@@ -163,22 +163,22 @@ static BS_STATUS dhcps_SendDhcpMsg
     ulOptMaxLen = _DHCPS_OPTIONS_BUFFER_SIZE;
     ulOptLenCopyed = 0;
 
-    /* Message Type */
+    
     ulOptLenCopyed += DHCP_SetOpt8 (pucOpt + ulOptLenCopyed, DHCP_MSG_TYPE,
                               (UCHAR)ulMsgType, ulOptMaxLen - ulOptLenCopyed);
 
-    /* Server ID */
+    
     ulServerVnetIp = dhcps_GetServerIP(pstInstance);
     ulOptLenCopyed += DHCP_SetOpt32 (pucOpt + ulOptLenCopyed,
                         DHCP_SERVER_ID, ulServerVnetIp, ulOptMaxLen - ulOptLenCopyed);
 
     if ((ulMsgType == DHCP_ACK) || (ulMsgType == DHCP_OFFER))
     {
-        // Lease Time
+        
         ulOptLenCopyed += DHCP_SetOpt32 (pucOpt + ulOptLenCopyed,
                         DHCP_LEASE_TIME, htonl(3600 * 24 * 365), ulOptMaxLen - ulOptLenCopyed);
 
-        // Netmask
+        
         uiMask = dhcps_GetMask (pstInstance);
         ulOptLenCopyed += DHCP_SetOpt32 (pucOpt + ulOptLenCopyed,
                         DHCP_NETMASK, uiMask, ulOptMaxLen - ulOptLenCopyed);
@@ -186,16 +186,16 @@ static BS_STATUS dhcps_SendDhcpMsg
 
     if (ulMsgType == DHCP_ACK)
     {
-        // Gateway
+        
         ulOptLenCopyed += DHCP_SetOpt32 (pucOpt + ulOptLenCopyed, DHCP_GATEWAY,
                             ulServerVnetIp, ulOptMaxLen - ulOptLenCopyed);
 
-        /* Domain Name Server */
+        
         ulOptLenCopyed += DHCP_SetOpt32 (pucOpt + ulOptLenCopyed, DHCP_DOMAIN_NAME_SERVER,
                             ulServerVnetIp, ulOptMaxLen - ulOptLenCopyed);
     }
 
-    // End
+    
     ulOptLenCopyed += DHCP_SetOpt0 (pucOpt + ulOptLenCopyed, DHCP_END, ulOptMaxLen - ulOptLenCopyed);
 
     pstReplayMbuf = MBUF_CreateByCluster(pstCluster, _DHCPS_MBUF_HEAD_SPACE_LEN, 
@@ -219,7 +219,7 @@ static BS_STATUS dhcps_SendDhcpOffer
 (
     IN _DHCPS_INSTANCE_S *pstInstance,
     IN DHCP_HEAD_S *pstDhcpHead,
-    IN UINT ulRequestIp, /* 网络序 */
+    IN UINT ulRequestIp, 
     IN VOID *pPktContext
 )
 {
@@ -244,7 +244,7 @@ static BS_STATUS dhcps_SendDhcpAck
 (
     IN _DHCPS_INSTANCE_S *pstInstance,
     IN DHCP_HEAD_S *pstDhcpHead,
-    IN UINT ulRequestIp, /* 网络序 */
+    IN UINT ulRequestIp, 
     IN VOID *pPktContext
 )
 {
@@ -268,7 +268,7 @@ static BS_STATUS dhcps_DealDecline
 (
     IN _DHCPS_INSTANCE_S *pstInstance,
     IN DHCP_HEAD_S *pstDhcpHead,
-    IN UINT uiDeclineIp, /* 网络序 */
+    IN UINT uiDeclineIp, 
     IN VOID *pPktContext
 )
 {
@@ -400,12 +400,12 @@ VOID DHCPS_DestoryInstance(IN DHCPS_HANDLE hDhcpInstance)
     MEM_Free(pstInstance);
 }
 
-/* 预订IP */
+
 BS_STATUS DHCPS_SignIP
 (
     IN DHCPS_HANDLE hDhcpInstance,
     IN MAC_ADDR_S *pstMacAddr,
-    IN UINT uiIp    /* 网络序 */
+    IN UINT uiIp    
 )
 {
     _DHCPS_INSTANCE_S *pstInstance = hDhcpInstance;
@@ -439,7 +439,7 @@ BS_STATUS DHCPS_SignIP
     return BS_OK;
 }
 
-/* 取消预订 */
+
 BS_STATUS DHCPS_UnSignIP
 (
     IN DHCPS_HANDLE hDhcpInstance,
@@ -469,7 +469,7 @@ BS_STATUS DHCPS_UnSignIP
 BS_STATUS DHCPS_PktInput
 (
     IN DHCPS_HANDLE hDhcpInstance,
-    IN MBUF_S *pstMbuf,  /* dhcp数据报文 */
+    IN MBUF_S *pstMbuf,  
     IN VOID *pPktContext
 )
 {
@@ -477,7 +477,7 @@ BS_STATUS DHCPS_PktInput
     DHCP_HEAD_S *pstDhcpHead;
     UINT ulOptLen;
     INT iDhcpMsgType;
-    UINT ulRequestIp;  /* 网络序 */
+    UINT ulRequestIp;  
     _DHCPS_INSTANCE_S *pstInstance = hDhcpInstance;
 
     if (MBUF_TOTAL_DATA_LEN(pstMbuf) < sizeof(DHCP_HEAD_S))
@@ -503,7 +503,7 @@ BS_STATUS DHCPS_PktInput
         return(BS_ERR);
     }
 
-    /* 如果不是DHCP请求, 则丢弃报文 */
+    
     if (pstDhcpHead->ucOp != DHCP_OP_REQUEST)
     {
         MBUF_Free (pstMbuf);
@@ -543,7 +543,7 @@ BS_STATUS DHCPS_DelClient(IN DHCPS_HANDLE hDhcpInstance, IN MAC_ADDR_S *pstClien
     return BS_OK;
 }
 
-/* 返回网络序IP */
+
 UINT DHCPS_GetServerIP(IN DHCPS_HANDLE hDhcpInstance)
 {
     _DHCPS_INSTANCE_S *pstInstance = hDhcpInstance;
@@ -551,7 +551,7 @@ UINT DHCPS_GetServerIP(IN DHCPS_HANDLE hDhcpInstance)
     return dhcps_GetServerIP(pstInstance);
 }
 
-/* 返回网络序Mask */
+
 UINT DHCPS_GetMask(IN DHCPS_HANDLE hDhcpInstance)
 {
     _DHCPS_INSTANCE_S *pstInstance = hDhcpInstance;

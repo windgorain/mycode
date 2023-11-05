@@ -62,4 +62,4 @@ static long (*bpf_strtol)(const char *buf, int buf_len, unsigned long long flags
 #ifdef __cplusplus
 }
 #endif
-#endif //ULC_USER_H_
+#endif 

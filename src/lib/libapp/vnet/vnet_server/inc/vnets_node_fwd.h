@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef BS_STATUS (*PF_VNETS_NODE_PROTO_FUNC)(IN MBUF_S *pstMbuf);
 
@@ -22,8 +22,8 @@ BS_STATUS VNETS_NodeFwd_OutputBySes(IN UINT uiSesID, IN MBUF_S *pstMBuf, IN USHO
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_NODE_FWD_H_*/
+#endif 
 
 

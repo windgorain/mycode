@@ -111,4 +111,4 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-#endif //WASM_THUNK_H_
+#endif 

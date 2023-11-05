@@ -16,7 +16,7 @@
 
 static CHAR g_szVnetsBindWsService[WSAPP_SERVICE_NAME_LEN + 1];
 
-/* bind ws-service %STRING */
+
 PLUG_API BS_STATUS VNETS_CmdWeb_BindWsService(int argc, char **argv)
 {
     CHAR *pcWsService = argv[2];

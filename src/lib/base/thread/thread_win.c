@@ -59,7 +59,7 @@ UINT _OSTHREAD_GetRunTime (IN ULONG ulOsTID)
     
     CloseHandle (hHandle);
 
-    return (stKernelTime.dwLowDateTime + stUserTime.dwLowDateTime) / 10000;  /* ms */
+    return (stKernelTime.dwLowDateTime + stUserTime.dwLowDateTime) / 10000;  
 }
 
 #endif

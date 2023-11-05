@@ -13,7 +13,7 @@ extern "C"
 typedef int (*PF_DICTORDER_CMP)(void *node1, void *node2, void *ud);
 typedef int (*PF_DICTORDER_WALK_FUNC)(void *node, void *ud);
 
-/* 按照字典序获取第一个 */
+
 static inline void * DictOrder_ArrayGetFirst(void *data, int node_count,
         int node_size, PF_DICTORDER_CMP cmp_func, void *ud)
 {
@@ -37,7 +37,7 @@ static inline void * DictOrder_ArrayGetFirst(void *data, int node_count,
     return min;
 }
 
-/* 按照字典序获取下一个. 如果curr是NULL, 则获取第一个 */
+
 static inline void * DictOrder_ArrayGetNext(void *data, int node_count,
         int node_size, void *curr, PF_DICTORDER_CMP cmp_func, void *ud)
 {
@@ -53,7 +53,7 @@ static inline void * DictOrder_ArrayGetNext(void *data, int node_count,
     for (i=0; i<node_count; i++) {
         ret = cmp_func(tmp, curr, ud);
         if ((ret == 0) && (tmp > (UCHAR*)curr)) {
-            /* 大小相同的两项,按照顺序get */
+            
             return tmp;
         }
         if (ret > 0) {
@@ -80,4 +80,4 @@ static inline void DictOrder_ArrayScan(void *data, int node_count, int node_size
 #ifdef __cplusplus
 }
 #endif
-#endif //DICTORDER_UTL_H_
+#endif 

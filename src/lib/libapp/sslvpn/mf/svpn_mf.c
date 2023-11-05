@@ -165,13 +165,13 @@ static VOID svpn_mf_map_AdminUserChangePwd(IN MIME_HANDLE hMime, IN SVPN_DWEB_S 
 
 static SVPN_MF_MAP_S g_astSvpnMfMap[] =
 {
-    {SVPN_USER_TYPE_ALL,   "CheckOnline",          svpn_mf_map_CheckOnline}, /* 检查是否在线 */
-    {SVPN_USER_TYPE_ALL,   "Context.Name",         svpn_mf_map_ContextName},  /* 获取Context名字 */
+    {SVPN_USER_TYPE_ALL,   "CheckOnline",          svpn_mf_map_CheckOnline}, 
+    {SVPN_USER_TYPE_ALL,   "Context.Name",         svpn_mf_map_ContextName},  
 
-    {SVPN_USER_TYPE_ALL,   "Admin.Login",          svpn_mf_map_AdminLogin},  /* 管理员登陆 */
-    {SVPN_USER_TYPE_ADMIN, "Admin.Password.Change",svpn_mf_map_AdminUserChangePwd}, /* 更改管理员密码 */
+    {SVPN_USER_TYPE_ALL,   "Admin.Login",          svpn_mf_map_AdminLogin},  
+    {SVPN_USER_TYPE_ADMIN, "Admin.Password.Change",svpn_mf_map_AdminUserChangePwd}, 
 
-    {SVPN_USER_TYPE_ALL,   "User.Login",           svpn_mf_map_UserLogin},  /* 用户登录 */
+    {SVPN_USER_TYPE_ALL,   "User.Login",           svpn_mf_map_UserLogin},  
 };
 
 static BS_STATUS svpn_mf_CallBack(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, IN HANDLE hRunHandle)

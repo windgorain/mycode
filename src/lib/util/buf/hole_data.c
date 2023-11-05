@@ -16,7 +16,7 @@ typedef struct {
     void *bitmap_data;
 }HOLE_DATA_INSTANCE_S;
 
-/* 初始化方法一 */
+
 int HoleData_Init(HOLE_DATA_S *hole_data, void *data, int max_size, void *bits)
 {
     hole_data->data = data;
@@ -43,8 +43,8 @@ void HoleData_Reset(HOLE_DATA_S *hole_data)
     }
 }
 
-/* 初始化方法二 */
-HOLE_DATA_S * HoleData_Create(int max_size, MEM_CAP_S *mem_cap/* 允许NULL */)
+
+HOLE_DATA_S * HoleData_Create(int max_size, MEM_CAP_S *mem_cap)
 {
     HOLE_DATA_INSTANCE_S *ins;
 
@@ -89,7 +89,7 @@ void HoleData_Destroy(HOLE_DATA_S *hole_data)
     MemCap_Free(ins->mem_cap, ins);
 }
 
-/* 反回处理了多长的数据 */
+
 int HoleData_Input(HOLE_DATA_S *hole_data, void *data, int offset, int len)
 {
     int copy_len = len;
@@ -120,7 +120,7 @@ int HoleData_GetFilledSize(HOLE_DATA_S *hole_data)
     return hole_data->filled_size;
 }
 
-/* 获取从起始位置连续的内存长度 */
+
 int HoleData_GetContineLen(HOLE_DATA_S *hole_data)
 {
     int index;

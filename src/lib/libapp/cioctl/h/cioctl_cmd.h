@@ -16,4 +16,4 @@ int CIOCTL_CMD_Init();
 #ifdef __cplusplus
 }
 #endif
-#endif //CIOCTL_CMD_H_
+#endif 

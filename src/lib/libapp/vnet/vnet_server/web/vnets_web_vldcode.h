@@ -12,15 +12,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 VLDBMP_S * VNETS_WebVldCode_GenImg(OUT UINT *puiClientID);
 VLDCODE_RET_E VNETS_WebVldCode_Check(IN UINT uiClientId, IN CHAR *pcCode);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_WEB_VLDCODE_H_*/
+#endif 
 
 

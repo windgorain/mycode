@@ -15,16 +15,16 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define WS_TRANS_MAX_HEAD_LEN 2048  /* 最大请求头长度 */
-#define WS_TRANS_MAX_BODY_BUF_LEN  2048  /* 接收缓冲区大小 */
+#define WS_TRANS_MAX_HEAD_LEN 2048  
+#define WS_TRANS_MAX_BODY_BUF_LEN  2048  
 
-#define WS_TRANS_FLAG_DROP_REQ_BODY    0x1  /* 丢弃请求体 */
-#define WS_TRANS_FLAG_REPLY_AFTER_BODY 0x2  /* 接受完体后立即应答 */
-#define WS_TRANS_FLAG_PAUSE            0x4  /* 处于暂停状态 */
-#define WS_TRANS_FLAG_WILL_CONTINUE    0x8  /* 期望继续  */
-#define WS_TRANS_FLAG_ADD_REPLY_BODY_FINISHED  0x10  /* 插件发送体数据完成. 注意的是, WS还不一定发送完成 */
+#define WS_TRANS_FLAG_DROP_REQ_BODY    0x1  
+#define WS_TRANS_FLAG_REPLY_AFTER_BODY 0x2  
+#define WS_TRANS_FLAG_PAUSE            0x4  
+#define WS_TRANS_FLAG_WILL_CONTINUE    0x8  
+#define WS_TRANS_FLAG_ADD_REPLY_BODY_FINISHED  0x10  
 
 typedef enum
 {
@@ -57,15 +57,15 @@ typedef struct
     MBUF_S *pstRecvMbuf;
     MBUF_S *pstSendMbuf;
     WS_TRANS_BUF_S stReplyHead;
-    UINT uiContentLen;          /* Content Len */
-    UINT uiRemainContentLen;    /* 还剩余多少Content待读取 */
+    UINT uiContentLen;          
+    UINT uiRemainContentLen;    
     HTTP_HEAD_PARSER hHttpHeadRequest;
     HTTP_HEAD_PARSER hHttpHeadReply;
     MIME_HANDLE hQuery;
     MIME_HANDLE hCookie;
     MIME_HANDLE hBodyMime;
     FSM_S stFsm;
-    UINT uiFlag;  /* WS_TRANS_FLAG_XXX */
+    UINT uiFlag;  
     WS_VHOST_HANDLE hVHost;
     WS_CONTEXT_HANDLE hContext;
     CHAR *pcRequestFile;
@@ -85,8 +85,8 @@ MBUF_S * WS_Trans_GetBodyData(IN WS_TRANS_HANDLE hTrans);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WS_TRANS_H_*/
+#endif 
 
 

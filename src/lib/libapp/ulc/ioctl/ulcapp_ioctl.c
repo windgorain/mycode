@@ -120,7 +120,7 @@ static int _ulcapp_ioctl_getnext_key(MYBPF_RUNTIME_S *runtime, void *data, int d
     ULC_CIOCTL_S *d = data;
     UMAP_HEADER_S *hdr;
     void *next_key;
-    void *key;
+    int ret;
 
     if (data_len <= sizeof(ULC_CIOCTL_S)) {
         RETURN(BS_BAD_REQUEST);
@@ -138,12 +138,12 @@ static int _ulcapp_ioctl_getnext_key(MYBPF_RUNTIME_S *runtime, void *data, int d
         RETURN(BS_BAD_PARA);
     }
 
-    key = UMAP_GetNextKey(hdr, d->data, &next_key);
-    if (! key) {
+    ret = UMAP_GetNextKey(hdr, d->data, &next_key);
+    if (ret < 0) {
         return BS_NO_SUCH;
     }
 
-    return VBUF_CatFromBuf(reply, key, hdr->size_key);
+    return VBUF_CatFromBuf(reply, &next_key, hdr->size_key);
 }
 
 static int _ulcapp_ioctl_process_request_locked(MYBPF_RUNTIME_S *runtime, CIOCTL_REQUEST_S *request, VBUF_S *reply)

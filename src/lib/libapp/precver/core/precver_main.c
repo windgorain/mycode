@@ -59,7 +59,7 @@ int PRecver_Run(int index)
         return ret;
     }
 
-    /* 循环调用runner, 至少每隔一秒调用一次timer_step, 所以在ruuner收不到报文情况下,需要1秒或1秒内返回 */
+    
     while (1) {
         if (0 != pfrun(runner)) {
             IC_WrnInfo("recver run err.\r\n");
@@ -75,7 +75,7 @@ int PRecver_Run(int index)
     return 0;
 }
 
-char * PRecver_GetNext(char *curr/* NULL表示获取第一个 */)
+char * PRecver_GetNext(char *curr)
 {
     return PRecverPlug_CfgGetNext(curr);
 }

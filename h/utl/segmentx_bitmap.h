@@ -12,7 +12,7 @@ extern "C"
 
 typedef struct {
     SBITMAP_S sbitmap;
-    UINT bitsize; /* 支持的bit个数, 为32的整数倍 */ 
+    UINT bitsize;  
 }SXBITMAP_S;
 
 

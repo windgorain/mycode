@@ -19,17 +19,29 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-D IN_DEBUG)
 endif()
 
-option (USE_REDIS "Use redis" OFF)
-
-if (USE_REDIS)
-    add_definitions(-D USE_REDIS)
+option (IN_LINUX "build in linux" OFF)
+if (IN_LINUX)
+    add_definitions(-D IN_LINUX)
 endif()
 
+option (IN_UNIXLIKE "build in unixlike" OFF)
+if (IN_UNIXLIKE)
+    add_definitions(-D IN_UNIXLIKE)
+endif()
 
-option (USE_BACKTRACE "Use backtrace" OFF)
+option (IN_MAC "build in macos" OFF)
+if (IN_MAC)
+    add_definitions(-D IN_MAC)
+endif()
 
-if (USE_BACKTRACE)
-    add_definitions(-D USE_BACKTRACE)
+option (IN_WINDOWS "build in windows" OFF)
+if (IN_WINDOWS)
+    add_definitions(-D IN_WINDOWS)
+endif()
+
+option (USE_REDIS "Use redis" OFF)
+if (USE_REDIS)
+    add_definitions(-D USE_REDIS)
 endif()
 
 option (USE_ULC "Use ulc" OFF)
@@ -62,6 +74,14 @@ ENDIF()
 
 if (USE_XDP)
     add_definitions(-D USE_XDP)
+endif()
+
+if (USE_MYSQL)
+    add_definitions(-D USE_MYSQL)
+endif()
+
+if (USE_BACKTRACE)
+    add_definitions(-D USE_BACKTRACE)
 endif()
 
 IF (USE_DPDK)

@@ -16,12 +16,12 @@ typedef enum {
 }OVERLAY_TYPE_E;
 
 
-/* 解析报文真正用到的是内层报文，所以把外层头放在overlay head中，pkt中的指针指向内层信息 */
+
 typedef struct {
-    int type;   /*overlay 类型*/
-    IP_HEAD_S  *outer_ip_header;    /* 外层ip头 */
-    UDP_HEAD_S *outer_udp_header;   /* 外层udp头 */
-    void *header;   /*overlay header, 与type对应*/
+    int type;   
+    IP_HEAD_S  *outer_ip_header;    
+    UDP_HEAD_S *outer_udp_header;   
+    void *header;   
 }OVERLAY_HEAD_S;
 
 static inline void * OVERLAY_HDR_GET_SIP(OVERLAY_HEAD_S *hdr) {
@@ -55,4 +55,4 @@ static inline USHORT OVERLAY_HDR_GET_DPORT(OVERLAY_HEAD_S *hdr) {
 #ifdef __cplusplus
 }
 #endif
-#endif //OVERLAY_H_
+#endif 

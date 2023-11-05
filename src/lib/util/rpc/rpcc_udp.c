@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_RPCC_UDP
 
 #include "bs.h"
@@ -80,7 +80,7 @@ static inline RPC_MSG_S * _RPCC_UDP_RecvMsg(IN UINT ulFileId)
     return RPC_CreateMsgByData(aucData);
 }
 
-HANDLE RPCC_UDP_Create(IN UINT ulIp/* 主机序 */, IN USHORT usPort/* 主机序*/)
+HANDLE RPCC_UDP_Create(IN UINT ulIp, IN USHORT usPort)
 {
     RPCC_HANDLE_S *pstHandle;
     UINT ulFileId;

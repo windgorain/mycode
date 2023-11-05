@@ -16,8 +16,8 @@ CHAR * VNETC_User_GetReasonString();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_USER_STATUS_H_*/
+#endif 
 
 

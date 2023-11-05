@@ -25,7 +25,7 @@ static PWATCHER_EV_POINT_S g_pwatcher_ob_points[] = {
 
 static int pwatcher_ob_example_input(UINT point, PWATCHER_PKT_DESC_S *pkt, void *data)
 {
-    /* Process Pkt */
+    
 
     return 0;
 }

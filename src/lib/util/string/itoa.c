@@ -8,7 +8,7 @@
   Except the routine:
   char * uint_to_ascii_nlz( char *sptr, unsigned int x )
   ... which comes from the AMD web site:
-http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/25112.PDF
+http:
 ... and whose status is not clear.
 
 This program is distributed in the hope that it will be useful,
@@ -17,7 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <http:
 
 itoa() is extremely useful for me. It is not in the C++ standard.
 There are several problems:
@@ -39,23 +39,16 @@ All this library assumes:
 #include <math.h>
 #include "utl/itoa.h"
 
-/* Size of the table of precomputed values. */
+
 #define ATOI_TAB_SZ 10000UL
 
-/* Number of digits of precomputed values. */
+
 #define ATOI_TAB_SZ_LOG 4UL
 
-/*
-   This coding is endian-neutral. This table is used for converting from
-   a short int, an int or a long long.
-   Preprocessor generation thanks to:
-http://stackoverflow.com/questions/319328/writing-a-while-loop-in-the-c-preprocessor
-The result looks like:
-char cstItoa[40001] = "0000" "0001" "0002" ... "9999"
- */
+
 static const char cstItoa[ATOI_TAB_SZ * ATOI_TAB_SZ_LOG + 1] =
 
-#define n0(p,x)         //x(p##0)
+#define n0(p,x)         
 #define n1(p,x) n0(p,x) x(p##1)
 #define n2(p,x) n1(p,x) x(p##2)
 #define n3(p,x) n2(p,x) x(p##3)
@@ -110,9 +103,7 @@ static const char cstItoa[ATOI_TAB_SZ * ATOI_TAB_SZ_LOG + 1] =
 
 ;
 
-/* Number of digits of an unsigned int (Except 0).
-   Inspired from https://graphics.stanford.edu/~seander/bithacks.html
- */
+
 unsigned int ilog_10(unsigned int i)
 {
     return
@@ -141,12 +132,10 @@ unsigned int ilog_10(unsigned int i)
 
 #define LONG_DIGITS 10
 
-/* Number of digits of an unsigned long long (Except 0).
-   Inspired from https://graphics.stanford.edu/~seander/bithacks.html
- */
+
 unsigned int lllog_10(unsigned long long i)
 {
-    // Better balance. Small values come first.
+    
     if (i < 10000000)     goto lab07;
     if (i < 100000000000) goto lab11;
 
@@ -178,10 +167,7 @@ lab07:
 
 #define LLONG_DIGITS 20
 
-/* Transforms an unsigned short into a string.
- * Returns a pointer just after the last digit.
- * It would be faster with a specific table of 65536.
- * */
+
 char * ustoa( char *aBuf, unsigned short aShort)
 {
     char *pBuf = aBuf;
@@ -203,7 +189,7 @@ char * ustoa( char *aBuf, unsigned short aShort)
     return pBuf ;
 }
 
-/* Returns a pointer just after the last digit. */
+
 char * stoa( char *aBuf, short aShort )
 {
     if (aShort < 0) {
@@ -213,7 +199,7 @@ char * stoa( char *aBuf, short aShort )
     return ustoa( aBuf, aShort );
 }
 
-/* Used by 'unsigned int' and 'unsigned long long'. */
+
 static void uitoa_core(char * targetPtr, unsigned int anInt)
 {
     while( anInt >= ATOI_TAB_SZ )
@@ -233,12 +219,12 @@ static void uitoa_core(char * targetPtr, unsigned int anInt)
     if (anInt >= 10)
         *(--targetPtr) = *myTabPtr--;
     *(--targetPtr) = *myTabPtr--;
-} /* uitoa_core */
+} 
 
-/* The numbers are processed by groups of four digits. */
+
 static char * uitoa_general( char *aBuf, unsigned int anInt )
 {
-    /* Points after the last digit of the number. */
+    
     char *pBuf = aBuf;
     aBuf += ilog_10( anInt ) ;
 
@@ -246,7 +232,7 @@ static char * uitoa_general( char *aBuf, unsigned int anInt )
 
     *aBuf = '\0' ;
     return pBuf ;
-} /* uitoa_general */
+} 
 
 char * uitoa( char *aBuf, unsigned int anInt )
 {
@@ -275,18 +261,18 @@ char * good_old_itoa(char *aBuf, int anInt)
 };
 
 
-/* The numbers are processed by groups of four digits. */
+
 static char * ulltoa_general( char *aBuf, unsigned long long aLL )
 {
-    /* Points after the last digit of the number. */
+    
     char *pBuf = aBuf;
     aBuf += lllog_10( aLL ) ;
     char * myPtr = aBuf ;
 
-    /* First div64 bits, then later 32 bits only. */
+    
     while( aLL >= ULONG_MAX )
     {
-        /* See div64_32 in Linux internals, for fast division. */
+        
         unsigned long long myDiv10000 = aLL / ATOI_TAB_SZ;
         myPtr -= 4 ;
         unsigned int myModu10000 = aLL - myDiv10000 * ATOI_TAB_SZ;
@@ -294,12 +280,12 @@ static char * ulltoa_general( char *aBuf, unsigned long long aLL )
         aLL = myDiv10000 ;
     };
 
-    /* 32 bits only. */
+    
     uitoa_core( myPtr, (unsigned int)aLL );
 
     *aBuf = '\0' ;
     return pBuf ;
-} /* ulltoa_general */
+} 
 
 char * ulltoa( char *aBuf, unsigned long long aLL )
 {
@@ -317,9 +303,7 @@ char * ulltoa( char *aBuf, unsigned long long aLL )
     return ulltoa_general( aBuf, aLL );
 }
 
-/* A usual for this family of functions, there is no buffer overrun control.
- * Any problem can be easily avoiedd because the buffer size does not be bigger
- * than about twenty-one chars, plus neg sign. */
+
 char * lltoa( char *aBuf, long long aLL )
 {
     if (aLL < 0) {

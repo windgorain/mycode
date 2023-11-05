@@ -4,7 +4,7 @@
 * Description: 我们将Host看作为A, Remote看作为B
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_SOCKFWD
 
 #include "bs.h"
@@ -34,7 +34,7 @@ typedef struct tagSOCK_FWD_TRANS_EVENT_CALL_BACK_S
     UINT ulUserHandle;
 }_SOCK_FWD_TRANS_EVENT_S;
 
-/* var */
+
 static UINT  g_ulSockFwdListenSslTcpId = 0;
 static USHORT g_usSockFwdListenPort = 0;
 static HANDLE  g_hSockFwdSesId = 0;
@@ -43,7 +43,7 @@ static USHORT g_usSockFwdRemotePort = 0;
 static DLL_HEAD_S g_stSockFwdAcceptEventList = DLL_HEAD_INIT_VALUE(&g_stSockFwdAcceptEventList);
 static DLL_HEAD_S g_stSockFwdTransEventList = DLL_HEAD_INIT_VALUE(&g_stSockFwdTransEventList);
 
-/* func */
+
 
 static BS_STATUS _SockFwd_Read(IN SOCK_SES_SIDE_S *pstSesSide)
 {
@@ -68,7 +68,7 @@ static BS_STATUS _SockFwd_Read(IN SOCK_SES_SIDE_S *pstSesSide)
     
         RBUF_MoveWriteIndex(pstSesSide->hRbufId, (INT)ulReadLen);
     
-        if (ulDataLen > ulReadLen) /* 没有数据可读了 */
+        if (ulDataLen > ulReadLen) 
         {
             BIT_CLR(pstSesSide->ulStatus, SOCK_SES_READABLE);
             break;
@@ -118,7 +118,7 @@ static BS_STATUS _SockFwd_Write(IN SOCK_SES_SIDE_S *pstSesSideFrom, IN SOCK_SES_
 
 static VOID _SockFwd_CloseIfNeed(IN SOCK_SES_SIDE_S *pstCloseIfNeed, IN SOCK_SES_SIDE_S *pstPeerSide)
 {
-    /* 如果Peer 已经关闭连接,并且没有缓存的数据需要写,  则关闭连接 */
+    
     
     if (BIT_ISSET(pstPeerSide->ulStatus, SOCK_SES_CLOSED)
         && (RBUF_IsEmpty(pstPeerSide->hRbufId))
@@ -131,13 +131,13 @@ static VOID _SockFwd_CloseIfNeed(IN SOCK_SES_SIDE_S *pstCloseIfNeed, IN SOCK_SES
     }
 }
 
-/* 根据连接状态关闭连接,释放转发表 */
+
 static BS_STATUS _SockFwd_DealConnectionStaus(IN SOCK_SES_S *pstSesNode)
 {
     _SockFwd_CloseIfNeed(&pstSesNode->stSideA, &pstSesNode->stSideB);
     _SockFwd_CloseIfNeed(&pstSesNode->stSideB, &pstSesNode->stSideA);
 
-    /* 如果两边都关闭了连接,则释放Fib表项 */
+    
     if (BIT_ISSET(pstSesNode->stSideA.ulStatus, SOCK_SES_CLOSED) && BIT_ISSET(pstSesNode->stSideB.ulStatus, SOCK_SES_CLOSED))
     {
         SockSes_DelNode(g_hSockFwdSesId, pstSesNode);
@@ -297,7 +297,7 @@ static BS_STATUS _SockFwd_Accept(IN UINT hListenSslTcpId)
         RETURN(BS_ERR);
     }
 
-    /* 连接远程 */
+    
     if (0 == (ulRemoteSslTcpId = SSLTCP_Create("tcp", AF_INET, NULL)))
     {
         SSLTCP_Close(hAcceptSslTcpId);
@@ -356,7 +356,7 @@ static BS_STATUS _SockFwd_Initlisten()
     BS_STATUS eRet;
 	USER_HANDLE_S stUserHandle;
 
-    /* 创建监听端口,用来让被重定向的TCP应用连接 */
+    
     g_ulSockFwdListenSslTcpId = SSLTCP_Create("tcp", AF_INET, NULL);
     if (0 == g_ulSockFwdListenSslTcpId)
     {
@@ -444,7 +444,7 @@ BS_STATUS SockFwd_RegTransEvent(IN UINT ulEvent, IN PF_SOCK_FWD_TRANS_EVENT pfFu
     return BS_OK;
 }
 
-/* IP和Port都是主机序 */
+
 BS_STATUS SockFwd_Init(IN UINT ulServerIp, IN USHORT usServerPort)
 {
     BS_STATUS eRet;

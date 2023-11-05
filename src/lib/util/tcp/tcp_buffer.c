@@ -10,10 +10,10 @@
 
 
 typedef struct {
-    unsigned int payload_begin_sn; /* tcp数据的起始sn(不包含syn), 主机序 */
-    unsigned int buffer_begin_sn; /* 本次缓冲的起始sn, 主机序 */
+    unsigned int payload_begin_sn; 
+    unsigned int buffer_begin_sn; 
     HOLE_DATA_S holedata;
-    UINT failed:1;  /* 重组失败 */
+    UINT failed:1;  
     UCHAR data[0];
 }TCPB_NODE_S;
 
@@ -135,7 +135,7 @@ static int tcpb_Save(TCPB_S *tcpb, TCPB_NODE_S *node, UINT sn,
     int buff_offset;
 
     if (HoleData_GetFilledSize(&node->holedata) == 0) {
-        /* 空的缓冲区,直接从开始位置开始填 */
+        
         buff_offset = 0;
         node->buffer_begin_sn = sn;
     } else {
@@ -172,7 +172,7 @@ static int tcpb_SaveAndSend(TCPB_S *tcpb, TCPB_NODE_S *node, UINT sn,
         if (buf.need_save == 0) {
             HoleData_Reset(&node->holedata);
         } else if (saved_len < payload_len) {
-            /* 缓冲区已经放不下现在的报文了, 清除缓冲区 */
+            
             HoleData_Reset(&node->holedata);
             return BS_FULL;
         }
@@ -251,7 +251,7 @@ static void tcpb_FailedSend(TCPB_S *tcpb, TCPB_NODE_S *node, PF_TCPB_OUTPUT outp
     }
 }
 
-/* sn为主机序 */
+
 int TCPB_Input(TCPB_S *tcpb, void *tcpb_node, UINT sn,
         void *payload, int payload_len, PF_TCPB_OUTPUT output, void *ud)
 {
@@ -266,7 +266,7 @@ int TCPB_Input(TCPB_S *tcpb, void *tcpb_node, UINT sn,
     int ret = tcpb_Input(tcpb, node, sn, payload, payload_len, output, ud);
     if (ret < 0) {
         node->failed = 1;
-        /* 最后一次通知,只能缓存这么多了,后面再也不会通知了 */
+        
         tcpb_FailedSend(tcpb, tcpb_node, output, ud);
     }
 

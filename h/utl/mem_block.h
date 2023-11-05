@@ -13,14 +13,14 @@ extern "C"
 
 typedef struct {
     void *block;
-    UINT free_count; /* free entry 个数 */
+    UINT free_count; 
     FREE_LIST_S free_list;
 }MEM_BLOCK_S;
 
 typedef struct {
-    UINT entry_size; /* 表项的大小 */
-    UINT entry_count_per_block; /* 每个block中有多少个entry */
-    UINT max_block; /* 最多有多少个block */
+    UINT entry_size; 
+    UINT entry_count_per_block; 
+    UINT max_block; 
     MEM_BLOCK_S blks[0];
 }MEM_BLOCK_CTX_S;
 
@@ -34,4 +34,4 @@ void MemBlock_Free(MEM_BLOCK_CTX_S *ctx, void *mem);
 #ifdef __cplusplus
 }
 #endif
-#endif //MEM_BLOCK_H_
+#endif 

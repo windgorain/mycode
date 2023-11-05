@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define VF_MAX_NAME_LEN 127
 
@@ -43,15 +43,15 @@ typedef struct {
 typedef BS_STATUS (*PF_VF_EVENT_FUNC)(IN UINT uiEvent, IN VF_P_S *param, IN USER_HANDLE_S *pstUserHandle);
 
 VF_HANDLE VF_Create(VF_PARAM_S *p);
-/* 返回Index, VF_INVALID_INDEX表示失败 */
+
 UINT VF_RegEventListener
 (
     IN VF_HANDLE hVf,
-    IN UINT uiPriority/* 值越小优先级越高 */,
+    IN UINT uiPriority,
     IN PF_VF_EVENT_FUNC pfEventFunc,
     IN USER_HANDLE_S *pstUserHandle
 );
-/* 返回VF ID, VF_INVALID_VF表示失败 */
+
 UINT VF_CreateVF(IN VF_HANDLE hVf, IN CHAR *pcVfName);
 VOID VF_DestoryVF(IN VF_HANDLE hVf, IN UINT uiVFID);
 VOID VF_SetData(IN VF_HANDLE hVf, IN UINT uiVFID, IN UINT uiUserDataIndex, IN VOID *pData);
@@ -60,13 +60,13 @@ UINT VF_GetIDByName(IN VF_HANDLE hVf, IN CHAR *pcName);
 CHAR * VF_GetNameByID(IN VF_HANDLE hVf, IN UINT uiID);
 VOID VF_TimerStep(IN VF_HANDLE hVf);
 CHAR * VF_GetEventName(IN UINT uiEvent);
-UINT VF_GetNext(IN VF_HANDLE hVf, IN UINT uiCurrent/* 0表示从开始获取 */);
+UINT VF_GetNext(IN VF_HANDLE hVf, IN UINT uiCurrent);
 
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VF_UTL_H_*/
+#endif 
 
 

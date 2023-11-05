@@ -21,4 +21,4 @@ char * CmdBuf_Buf(CMD_BUF_HDL hdl);
 #ifdef __cplusplus
 }
 #endif
-#endif //CMD_BUF_H_
+#endif 

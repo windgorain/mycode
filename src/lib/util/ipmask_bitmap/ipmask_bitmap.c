@@ -53,7 +53,7 @@ static int ipmaskbitmap_Set(IPMASK_BITMAP_S *ctrl, UINT ip, UINT mask, int on)
     return 0;
 }
 
-int IPMASK_BITMAP_Add(IPMASK_BITMAP_S *ctrl, UINT ip/*host order*/, UINT mask)
+int IPMASK_BITMAP_Add(IPMASK_BITMAP_S *ctrl, UINT ip, UINT mask)
 {
     return ipmaskbitmap_Set(ctrl, ip, mask, 1);
 }
@@ -63,7 +63,7 @@ int IPMASK_BITMAP_Del(IPMASK_BITMAP_S *ctrl, UINT ip, UINT mask)
     return ipmaskbitmap_Set(ctrl, ip, mask, 0);
 }
 
-int IPMASK_BITMAP_IsSet(IPMASK_BITMAP_S *ctrl, UINT ip/*host order*/)
+int IPMASK_BITMAP_IsSet(IPMASK_BITMAP_S *ctrl, UINT ip)
 {
     uint32_t index;
 

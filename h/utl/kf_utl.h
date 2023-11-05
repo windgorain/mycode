@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 typedef VOID* KF_HANDLE;
@@ -27,8 +27,8 @@ BS_STATUS KF_RunString(IN KF_HANDLE hKf, IN CHAR cSeparator, IN CHAR *pcString, 
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__KF_UTL_H_*/
+#endif 
 
 

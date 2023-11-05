@@ -14,10 +14,10 @@
 #include "cff_inner.h"
 
 
-#define MYCONF_CHAR_REMARK '#'  /* 注释符号 */
-#define MYCONF_CHAR_KEY_PRO_SPLIT ':'  /* 分割Key和属性 */
-#define MYCONF_CHAR_PRO_SPLIT ';'  /* 分割属性 */
-#define MYCONF_CHAR_PRO_VALUE_SPLIT '='  /* 分割属性和Value */
+#define MYCONF_CHAR_REMARK '#'  
+#define MYCONF_CHAR_KEY_PRO_SPLIT ':'  
+#define MYCONF_CHAR_PRO_SPLIT ';'  
+#define MYCONF_CHAR_PRO_VALUE_SPLIT '='  
 
 
 static VOID cff_mcf_ProcLine(IN _CFF_S *pstCff, IN CHAR *pcLine)
@@ -164,7 +164,7 @@ CFF_HANDLE CFF_MCF_OpenBuf(IN CHAR *buf, IN UINT uiFlag)
     return pstCff;
 }
 
-/* 将cff设置为MCF格式 */
+
 VOID CFF_BRACE_SetAs(IN CFF_HANDLE hCff)
 {
     _CFF_S *pstCff = hCff;

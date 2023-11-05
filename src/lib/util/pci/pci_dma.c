@@ -39,7 +39,7 @@ int PCI_DMA_ProcessMwr(void *msg, int len, PF_PCI_DMA_WRITE dma_write_func, void
     addr = PCIE_GetMemTlpAddr(msg);
     last_dw_addr = PCIE_GetLastDwAddr(addr, length);
 
-    /* 中断处理 */
+    
     if ((addr & 0xfff00000) == 0xfee00000) {
         return dma_write_func(addr, data, length, user_data);
     }
@@ -67,7 +67,7 @@ int PCI_DMA_ProcessMwr(void *msg, int len, PF_PCI_DMA_WRITE dma_write_func, void
     return 0;
 }
 
-/* 处理dma读消息, 并进行应答 */
+
 int PCI_DMA_ProcessMrd(PCIE_TLP_MEM_S *tlp, int len,
         PF_PCI_DMA_READ dma_read_func,
         PF_PCI_SEND_DATA send_func,
@@ -96,9 +96,9 @@ int PCI_DMA_ProcessMrd(PCIE_TLP_MEM_S *tlp, int len,
     low_addr = PCIE_FirstBe2LowAddr(addr, first_be);
     tag = tlp->tag;
 
-    /* 根据last_be计算最后需要少拷贝几个字节 */
+    
     if (last_be) {
-        last_drop = 3 - BIT_GetFirstIndex(last_be, 3);
+        last_drop = 3 - BIT_GetHighIndexFrom(last_be, 3);
     }
 
     byte_count = length;

@@ -25,7 +25,7 @@
 
 static CMD_EXP_HDL g_cmd_exp = NULL;
 
-/* 初始化命令行注册模块 */
+
 int CMD_EXP_Init()
 {
     g_cmd_exp = CmdExp_Create();
@@ -108,7 +108,7 @@ int CMD_EXP_UnregCmdSimple(char *view, char *cmd)
     return CMD_EXP_UnregCmd(&stCmdParam);
 }
 
-/* 创建一个用于运行命令的实例 */
+
 HANDLE CMD_EXP_CreateRunner(UINT type)
 {
     return CmdExp_CreateRunner(g_cmd_exp, type);

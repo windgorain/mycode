@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 VOID VNDIS_Instance_Init();
@@ -22,8 +22,8 @@ VNDIS_ADAPTER_S * VNDIS_Instance_SearchByAdapter(IN VNDIS_ADAPTER_S *pstAdapterT
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNDIS_INSTACE_H_*/
+#endif 
 
 

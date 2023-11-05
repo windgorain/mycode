@@ -45,20 +45,20 @@ static int acsmx_AddPatternStates(ACSMX_S * acsm, ACSMX_PATTERN_S * p)
     n = p->n;
     pattern = p->patrn;
 
-    /*  Match up pattern with existing states */
+    
     for (; n > 0; pattern++, n--) {
         next = acsm->acsmStateTable[state].NextState[*pattern];
-        //printf("next=%d,state=%d\r\n", next, state);
+        
         if (next == ACSM_FAIL_STATE)
             break;
         state = next;
     }
 
-    /* Add new states for the rest of the pattern bytes, 1 state per byte */
+    
     for (; n > 0; pattern++, n--) {
         acsm->acsmNumStates++;
         acsm->acsmStateTable[state].NextState[*pattern] = acsm->acsmNumStates;
-        //printf("state=%d, pattern=%c, numStates=%d\r\n",state, *pattern, acsm->acsmNumStates );
+        
         state = acsm->acsmNumStates;
     }
 
@@ -90,45 +90,40 @@ static void acsmx_BuildNfa(ACSMX_S * acsm)
     ACSMX_PATTERN_S * mlist=0;
     ACSMX_PATTERN_S * px=0;
 
-    /* Init a Queue */
+    
     SQUE_Init (queue);
 
-    /* Add the state 0 transitions 1st */
+    
     for (i = 0; i < ALPHABET_SIZE; i++) {
         s = acsm->acsmStateTable[0].NextState[i];
         if (s) {
             SQUE_Push (queue, UINT_HANDLE(s));
             acsm->acsmStateTable[s].FailState = 0;
-            //printf("table[%d].failstate=0\r\n", s);
+            
         }
     }
 
-    /* Build the fail state transitions for each valid state */
+    
     while (SQUE_Count (queue) > 0) {
         r = HANDLE_UINT(SQUE_Pop(queue));
 
-        /* Find Final States for any Failure */
+        
         for (i = 0; i < ALPHABET_SIZE; i++) {
             int fs, next;
             if ((s = acsm->acsmStateTable[r].NextState[i]) != ACSM_FAIL_STATE) {
                 SQUE_Push(queue, UINT_HANDLE(s));
                 fs = acsm->acsmStateTable[r].FailState;
 
-                /*  Locate the next valid state for 'i' starting at s */
+                
                 while ((next=acsm->acsmStateTable[fs].NextState[i]) ==
                         ACSM_FAIL_STATE) {
                     fs = acsm->acsmStateTable[fs].FailState;
                 }
 
-                 /* Update 's' state failure state
-                    to point to the next valid state */
+                 
                 acsm->acsmStateTable[s].FailState = next;
-                //printf("table[%d].failstate = %d\r\n", s, next);
-                /*
-                 *  Copy 'next'states MatchList to 's' states MatchList,
-                 *  we copy them so each list can be MEM_Free'd later,
-                 *  else we could just manipulate pointers to fake the copy.
-                 */
+                
+                
                 for (mlist  = acsm->acsmStateTable[next].MatchList;
                         mlist != NULL ;
                         mlist  = mlist->next) {
@@ -138,7 +133,7 @@ static void acsmx_BuildNfa(ACSMX_S * acsm)
                         ErrCode_FatalError("*** Out of memory Initializing Aho Corasick in acsmx.c ****");
                     }
 
-                    /* Insert at front of MatchList */
+                    
                     px->next = acsm->acsmStateTable[s].MatchList;
                     acsm->acsmStateTable[s].MatchList = px;
                 }
@@ -146,14 +141,12 @@ static void acsmx_BuildNfa(ACSMX_S * acsm)
         }
     }
 
-    /* Clean up the queue */
+    
     SQUE_Final (queue);
 }
 
 
-/*
-*   Build Deterministic Finite Automata from NFA
-*/
+
 static void
 acsmx_ConvertNfa2Dfa (ACSMX_S * acsm)
 {
@@ -161,10 +154,10 @@ acsmx_ConvertNfa2Dfa (ACSMX_S * acsm)
     int i;
     SQUE_S q, *queue = &q;
 
-    /* Init a Queue */
+    
     SQUE_Init(queue);
 
-    /* Add the state 0 transitions 1st */
+    
     for (i = 0; i < ALPHABET_SIZE; i++)
     {
         s = acsm->acsmStateTable[0].NextState[i];
@@ -174,12 +167,12 @@ acsmx_ConvertNfa2Dfa (ACSMX_S * acsm)
         }
     }
 
-    /* Start building the next layer of transitions */
+    
     while (SQUE_Count(queue) > 0)
     {
         r = HANDLE_UINT(SQUE_Pop(queue));
 
-        /* State is a branch state */
+        
         for (i = 0; i < ALPHABET_SIZE; i++)
         {
             if ((s = acsm->acsmStateTable[r].NextState[i]) != ACSM_FAIL_STATE)
@@ -195,7 +188,7 @@ acsmx_ConvertNfa2Dfa (ACSMX_S * acsm)
         }
     }
 
-    /* Clean up the queue */
+    
     SQUE_Final (queue);
 }
 
@@ -263,7 +256,7 @@ int ACSMX_Compile(ACSMX_S * acsm)
     int i, k;
     ACSMX_PATTERN_S * plist;
 
-    /* 计算最大可能的状态个数 */
+    
     acsm->acsmMaxStates = 1;
     for (plist = acsm->acsmPatterns; plist != NULL; plist = plist->next) {
         acsm->acsmMaxStates += plist->n;
@@ -276,14 +269,14 @@ int ACSMX_Compile(ACSMX_S * acsm)
     }
 
     acsm->acsmNumStates = 0;
-    /* Initialize all States NextStates to FAILED */
+    
     for (k = 0; k < acsm->acsmMaxStates; k++) {
         for (i = 0; i < ALPHABET_SIZE; i++) {
             acsm->acsmStateTable[k].NextState[i] = ACSM_FAIL_STATE;
         }
     }
 
-    /* Add each Pattern to the State Table */
+    
     for (plist = acsm->acsmPatterns; plist != NULL; plist = plist->next) {
         int ret = acsmx_AddPatternStates(acsm, plist);
         if (ret != 0) {
@@ -291,7 +284,7 @@ int ACSMX_Compile(ACSMX_S * acsm)
         }
     }
 
-    /* Set all failed state transitions to return to the 0'th state */
+    
     for (i = 0; i < ALPHABET_SIZE; i++) {
         if (acsm->acsmStateTable[0].NextState[i] == ACSM_FAIL_STATE) {
             acsm->acsmStateTable[0].NextState[i] = 0;
@@ -301,13 +294,13 @@ int ACSMX_Compile(ACSMX_S * acsm)
     acsmx_BuildNfa(acsm);
     acsmx_ConvertNfa2Dfa(acsm);
 
-    //acsmx_PrintDFA(acsm);
+    
 
     return 0;
 }
 
 int ACSMX_Search(ACSMX_S * acsm, unsigned char *Tx, int n,
-            PF_AC_Match match_func,     /*匹配上单个pattern的处理函数 */
+            PF_AC_Match match_func,     
             void *user_data, INOUT int * current_state )
 {
     int state = 0;

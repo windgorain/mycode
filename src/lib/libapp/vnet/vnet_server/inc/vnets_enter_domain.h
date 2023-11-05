@@ -4,15 +4,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETS_EnterDomain_KickAll(IN UINT uiDomainID);
 BS_STATUS VNETS_EnterDomain_RebootDomain(IN UINT uiDomainID);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_ENTER_DOMAIN_H_*/
+#endif 
 
 

@@ -172,13 +172,9 @@ static int kern_accept(IN int s, OUT SOCKADDR_S **ppstName, INOUT socklen_t *nam
 
     so = TAILQ_FIRST(&head->so_comp);
 
-    /*
-     * Before changing the flags on the socket, we have to bump the
-     * reference count.  Otherwise, if the protocol calls sofree(),
-     * the socket will be released due to a zero refcount.
-     */
-    SOCK_LOCK(so);            /* soref() and so_state update */
-    soref(so);            /* file descriptor reference */
+    
+    SOCK_LOCK(so);            
+    soref(so);            
 
     TAILQ_REMOVE(&head->so_comp, so, so_list);
     head->so_qlen--;
@@ -194,10 +190,7 @@ static int kern_accept(IN int s, OUT SOCKADDR_S **ppstName, INOUT socklen_t *nam
     error = soaccept(so, &sa);
     if (error != 0)
     {
-        /*
-             * return a namelen of zero for older code which might
-             * ignore the return value from accept.
-             */
+        
         if (ppstName != NULL)
         {
             *namelen = 0;
@@ -217,7 +210,7 @@ static int kern_accept(IN int s, OUT SOCKADDR_S **ppstName, INOUT socklen_t *nam
 
     if (ppstName != NULL)
     {
-        /* check sa_len before it is destroyed */
+        
         if (*namelen > sa->sa_len)
         {
             *namelen = sa->sa_len;
@@ -232,20 +225,14 @@ noconnection:
         MEM_Free(sa);
     }
 
-    /*
-     * close the new descriptor, assuming someone hasn't ripped it
-     * out from under us.
-     */
+    
     if (error != 0)
     {
         UIPC_FD_FClose(pstFq);
         pstFq = NULL;
     }
 
-    /*
-     * Release explicitly held references before returning.  We return
-     * a reference on nfp to the caller on success if they request it.
-     */
+    
 done:
     if (fp != NULL)
     {
@@ -820,7 +807,7 @@ static int kern_getsockopt
     sopt.sopt_level = level;
     sopt.sopt_name = name;
     sopt.sopt_val = val;
-    sopt.sopt_valsize = (size_t)*valsize; /* checked non-negative above */
+    sopt.sopt_valsize = (size_t)*valsize; 
 
     pstFp = UIPC_FD_GetFp(s);
     if (pstFp == NULL)

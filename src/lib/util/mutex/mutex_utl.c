@@ -23,13 +23,13 @@ static inline void _mutex_init(MUTEX_S *pstMutex, void *attr)
     pstMutex->inited = 1;
 }
 
-/* 嵌套锁初始化 */
+
 VOID MUTEX_InitRecursive(IN MUTEX_S *pstMutex)
 {
 #ifdef IN_UNIXLIKE
     pthread_mutexattr_t mat;
     pthread_mutexattr_init(&mat);
-    //设置锁的类型为递归锁
+    
     pthread_mutexattr_settype(&mat, PTHREAD_MUTEX_RECURSIVE);
     _mutex_init(pstMutex, &mat);
 #endif
@@ -39,7 +39,7 @@ VOID MUTEX_InitRecursive(IN MUTEX_S *pstMutex)
 #endif
 }
 
-/* 普通锁 */
+
 void MUTEX_InitNormal(MUTEX_S *pstMutex)
 {
     _mutex_init(pstMutex, 0);

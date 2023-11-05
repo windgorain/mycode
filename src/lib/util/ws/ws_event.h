@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef WS_EV_RET_E (*PF_WS_EventProcess)(IN WS_TRANS_S *pstTrans, IN UINT uiEvent);
 
@@ -18,8 +18,8 @@ BS_STATUS WS_Event_IssuEvent(IN WS_TRANS_S *pstTrans, IN UINT uiEvent);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WS_EVENT_H_*/
+#endif 
 
 

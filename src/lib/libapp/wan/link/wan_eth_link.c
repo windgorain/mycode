@@ -18,7 +18,7 @@
 #include "../h/wan_ipfwd.h"
 #include "../h/wan_arp.h"
 
-/* Debug 选项 */
+
 #define _WAN_ETH_LINK_DBG_PACKET 0x1
 
 static UINT g_uiWanEthLinkDebugFlag = 0;
@@ -61,20 +61,20 @@ BS_STATUS WAN_ETH_LinkInput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf)
     usProto = pstEthHeader->usProto;
 
 
-    /* 判断是2层口还是三层口, 分别进行不同的处理 */
+    
     IFNET_Ioctl(ulIfIndex, IFNET_CMD_IS_L3, &is_l3);
 
     if (is_l3) {
         MBUF_CutHead (pstMbuf, sizeof(ETH_HEADER_S));
         return IFNET_ProtoInput(ulIfIndex, pstMbuf, usProto);
-    } else { /* l2 */
-        /* TODO: 进入以太网交换机处理流程 */
+    } else { 
+        
     }
 
     return 0;
 }
 
-BS_STATUS WAN_ETH_LinkOutput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType/* 网络序 */)
+BS_STATUS WAN_ETH_LinkOutput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType)
 {
     ETH_HEADER_S * pstEthHeader;
     MAC_ADDR_S stDMacAddr;
@@ -112,7 +112,7 @@ BS_STATUS WAN_ETH_LinkOutput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT u
     {
         pucDstMac = MBUF_GET_DESTMAC(pstMbuf);
     }
-    else /* 从ARP中获取目的MAC */
+    else 
     {
         eRet = wan_eth_GetDstMac(ulIfIndex, pstMbuf, &stDMacAddr);
         if (BS_PROCESSED == eRet)
@@ -152,7 +152,7 @@ BS_STATUS WAN_ETH_LinkOutput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT u
     return IFNET_PhyOutput (ulIfIndex, pstMbuf);
 }
 
-/* debug eth packet */
+
 PLUG_API VOID WAN_EthLink_DebugPacket
 (
     IN UINT ulArgc,
@@ -162,7 +162,7 @@ PLUG_API VOID WAN_EthLink_DebugPacket
     BIT_SET(g_uiWanEthLinkDebugFlag, _WAN_ETH_LINK_DBG_PACKET);
 }
 
-/* no debug eth packet */
+
 PLUG_API VOID WAN_EthLink_NoDebugPacket
 (
     IN UINT ulArgc,

@@ -18,4 +18,4 @@ BOOL_T DHCP_IsDhcpRequestEthPacketByMbuf(IN MBUF_S *pstMbuf, IN NET_PKT_TYPE_E e
 #ifdef __cplusplus
 }
 #endif
-#endif //DHCP_MBUF_H_
+#endif 

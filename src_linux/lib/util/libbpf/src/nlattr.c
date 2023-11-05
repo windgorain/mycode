@@ -32,7 +32,7 @@ static struct nlattr *nla_next(const struct nlattr *nla, int *remaining)
 
 static int nla_ok(const struct nlattr *nla, int remaining)
 {
-	return remaining >= sizeof(*nla) &&
+	return remaining >= (int)sizeof(*nla) &&
 	       nla->nla_len >= sizeof(*nla) &&
 	       nla->nla_len <= remaining;
 }
@@ -83,24 +83,7 @@ static inline int nlmsg_len(const struct nlmsghdr *nlh)
 	return nlh->nlmsg_len - NLMSG_HDRLEN;
 }
 
-/**
- * Create attribute index based on a stream of attributes.
- * @arg tb		Index array to be filled (maxtype+1 elements).
- * @arg maxtype		Maximum attribute type expected and accepted.
- * @arg head		Head of attribute stream.
- * @arg len		Length of attribute stream.
- * @arg policy		Attribute validation policy.
- *
- * Iterates over the stream of attributes and stores a pointer to each
- * attribute in the index array using the attribute type as index to
- * the array. Attribute with a type greater than the maximum type
- * specified will be silently ignored in order to maintain backwards
- * compatibility. If \a policy is not NULL, the attribute will be
- * validated using the specified policy.
- *
- * @see nla_validate
- * @return 0 on success or a negative error code.
- */
+
 int libbpf_nla_parse(struct nlattr *tb[], int maxtype, struct nlattr *head,
 		     int len, struct libbpf_nla_policy *policy)
 {
@@ -133,19 +116,7 @@ errout:
 	return err;
 }
 
-/**
- * Create attribute index based on nested attribute
- * @arg tb              Index array to be filled (maxtype+1 elements).
- * @arg maxtype         Maximum attribute type expected and accepted.
- * @arg nla             Nested Attribute.
- * @arg policy          Attribute validation policy.
- *
- * Feeds the stream of attributes nested into the specified attribute
- * to libbpf_nla_parse().
- *
- * @see libbpf_nla_parse
- * @return 0 on success or a negative error code.
- */
+
 int libbpf_nla_parse_nested(struct nlattr *tb[], int maxtype,
 			    struct nlattr *nla,
 			    struct libbpf_nla_policy *policy)
@@ -154,7 +125,7 @@ int libbpf_nla_parse_nested(struct nlattr *tb[], int maxtype,
 				libbpf_nla_len(nla), policy);
 }
 
-/* dump netlink extended ack error message */
+
 int libbpf_nla_dump_errormsg(struct nlmsghdr *nlh)
 {
 	struct libbpf_nla_policy extack_policy[NLMSGERR_ATTR_MAX + 1] = {
@@ -166,19 +137,19 @@ int libbpf_nla_dump_errormsg(struct nlmsghdr *nlh)
 	char *errmsg = NULL;
 	int hlen, alen;
 
-	/* no TLVs, nothing to do here */
+	
 	if (!(nlh->nlmsg_flags & NLM_F_ACK_TLVS))
 		return 0;
 
 	err = (struct nlmsgerr *)NLMSG_DATA(nlh);
 	hlen = sizeof(*err);
 
-	/* if NLM_F_CAPPED is set then the inner err msg was capped */
+	
 	if (!(nlh->nlmsg_flags & NLM_F_CAPPED))
 		hlen += nlmsg_len(&err->msg);
 
 	attr = (struct nlattr *) ((void *) err + hlen);
-	alen = nlh->nlmsg_len - hlen;
+	alen = (void *)nlh + nlh->nlmsg_len - (void *)attr;
 
 	if (libbpf_nla_parse(tb, NLMSGERR_ATTR_MAX, attr, alen,
 			     extack_policy) != 0) {

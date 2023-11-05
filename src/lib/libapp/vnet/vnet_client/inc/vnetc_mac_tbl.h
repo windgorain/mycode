@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct
 {
@@ -41,8 +41,8 @@ VOID VNETC_MACTBL_Walk(IN PF_VNETC_MACTBL_WALK_FUNC pfFunc, IN VOID *pUserHandle
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_MAC_TBL_H_*/
+#endif 
 
 

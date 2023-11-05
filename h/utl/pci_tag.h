@@ -16,9 +16,9 @@ extern "C"
 #define PCIE_TAG_MAX 256
 
 typedef struct {
-    int used:1;
-    int reserved1: 7;
-    int tag:8;
+    unsigned int used:1;
+    unsigned int reserved1: 7;
+    unsigned int tag:8;
     SEM_HANDLE sem;
     PCIE_TLP_S tlp;
 }PCIE_TAG_NODE_S;
@@ -26,7 +26,7 @@ typedef struct {
 typedef struct {
     PCIE_TAG_NODE_S node[PCIE_TAG_MAX];
     MUTEX_S lock;
-    UCHAR tag_begin; /* 用于循环分配tag的起始位置 */
+    UCHAR tag_begin; 
 }PCIE_TAG_S;
 
 void PCIE_TAG_Init(OUT PCIE_TAG_S *tags);
@@ -38,4 +38,4 @@ PCIE_TLP_S * PCIE_TAG_WaitTlp(PCIE_TAG_S *tags, int tag, UINT timeout_ms);
 #ifdef __cplusplus
 }
 #endif
-#endif //PCI_TAG_H_
+#endif 

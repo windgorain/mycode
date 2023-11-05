@@ -7,13 +7,13 @@
 
 BS_STATUS VNETS_UDP_PHY_Init
 (
-    IN UINT ulServerIp/* 主机序 */,
-    IN USHORT usServerPort/* 主机序 */
+    IN UINT ulServerIp,
+    IN USHORT usServerPort
 );
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_UDP_PHY_H_*/
+#endif 
 

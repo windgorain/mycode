@@ -48,13 +48,13 @@ static WSAPP_GW_S * wsapp_gw_Find(IN CHAR *pcGwName)
     return NO_GetObjectByName(g_hWsAppGwNo, pcGwName);
 }
 
-static BS_WALK_RET_E wsapp_gw_WsEventNotify(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int wsapp_gw_WsEventNotify(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     WS_CONN_HANDLE hWsConn = pstUserHandle->ahUserHandle[0];
 
     WS_Conn_EventHandler(hWsConn, uiEvent);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static BS_STATUS wsapp_gw_WsSetEvent(IN WS_CONN_HANDLE hWsConn, IN UINT uiEvent)
@@ -568,7 +568,7 @@ BOOL_T WSAPP_GW_IsExist(IN CHAR *pcGwName)
     return FALSE;
 }
 
-/* 设置webcenter的操作属性: Hide:对webcenter隐藏; readonly:对webcenter只读 */
+
 BS_STATUS WSAPP_GW_SetWebCenterOpt(IN CHAR *pcGwName, IN CHAR *pcOpt)
 {
     WSAPP_GW_S *pstGW;
@@ -897,7 +897,7 @@ VOID * WSAPP_GW_GetSslCtx(IN UINT uiGwID, IN UINT uiWorkerID)
     return pstGW->apSslCtx[uiWorkerID];
 }
 
-static BS_WALK_RET_E wsapp_gw_SslEventNotify(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int wsapp_gw_SslEventNotify(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     INT iRet;
     WSAPP_GW_S *pstGW;
@@ -911,7 +911,7 @@ static BS_WALK_RET_E wsapp_gw_SslEventNotify(IN INT iSocketId, IN UINT uiEvent, 
     if (NULL == pstGW)
     {
         CONN_Free(hConn);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     iRet = SSL_UTL_Accept(pstSsl);
@@ -920,17 +920,17 @@ static BS_WALK_RET_E wsapp_gw_SslEventNotify(IN INT iSocketId, IN UINT uiEvent, 
         if (iRet == SSL_UTL_E_WANT_READ)
         {
             CONN_ModifyEvent(hConn, MYPOLL_EVENT_IN);
-            return BS_WALK_CONTINUE;
+            return 0;
         }
 
         if (iRet == SSL_UTL_E_WANT_WRITE)
         {
             CONN_ModifyEvent(hConn, MYPOLL_EVENT_OUT);
-            return BS_WALK_CONTINUE;
+            return 0;
         }
 
         CONN_Free(hConn);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     CONN_ClearEvent(hConn);
@@ -938,10 +938,10 @@ static BS_WALK_RET_E wsapp_gw_SslEventNotify(IN INT iSocketId, IN UINT uiEvent, 
     if (BS_OK != WS_Conn_Add(pstGW->hWsHandle, hConn, NULL))
     {
         CONN_Free(hConn);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static BS_STATUS wsapp_gw_ProcessSslNew(IN WSAPP_GW_S *pstGW, IN CONN_HANDLE hConn)
@@ -1017,8 +1017,8 @@ UINT WSAPP_GW_GetID(IN WSAPP_GW_S *pstGW)
 static WS_CONTEXT_HANDLE wsapp_gw_AddService
 (
     IN CHAR *pcGwName,
-    IN CHAR *pcVHost,   /* 可以为NULL, 表示使用缺省 */
-    IN CHAR *pcDomain   /* 可以为NULL, 表示独占 */
+    IN CHAR *pcVHost,   
+    IN CHAR *pcDomain   
 )
 {
     WSAPP_GW_S *pstGW;
@@ -1066,8 +1066,8 @@ static WS_CONTEXT_HANDLE wsapp_gw_AddService
 WS_CONTEXT_HANDLE WSAPP_GW_AddService
 (
     IN CHAR *pcGwName,
-    IN CHAR *pcVHost,   /* 可以为NULL, 表示使用缺省 */
-    IN CHAR *pcDomain   /* 可以为NULL, 表示独占 */
+    IN CHAR *pcVHost,   
+    IN CHAR *pcDomain   
 )
 {
     return wsapp_gw_AddService(pcGwName, pcVHost, pcDomain);

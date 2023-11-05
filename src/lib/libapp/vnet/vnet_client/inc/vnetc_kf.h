@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 BS_STATUS VNETC_KF_Init();
@@ -18,8 +18,8 @@ BS_STATUS VNETC_KF_Init();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_KF_H_*/
+#endif 
 
 

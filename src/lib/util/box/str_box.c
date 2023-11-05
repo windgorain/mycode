@@ -19,7 +19,7 @@ static int strbox_StringCmp(void *hash, void *data1, void *data2)
     return strcmp(data1, data2);
 }
 
-int StrBox_Init(BOX_S *box, CUCKOO_HASH_NODE_S *table, /* NULL表示动态申请 */
+int StrBox_Init(BOX_S *box, CUCKOO_HASH_NODE_S *table, 
         UINT bucket_num, UINT bucket_depth)
 {
     int ret;

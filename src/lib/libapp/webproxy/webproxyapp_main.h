@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 WS_DELIVER_RET_E WebProxyApp_Main_ReferIn(IN WS_TRANS_HANDLE hTrans, IN UINT uiEvent);
 WS_DELIVER_RET_E WebProxyApp_Main_AuthIn(IN WS_TRANS_HANDLE hTrans, IN UINT uiEvent);
@@ -18,8 +18,8 @@ WS_DELIVER_RET_E WebProxyApp_Main_RequestIn(IN WS_TRANS_HANDLE hTrans, IN UINT u
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WEBPROXYAPP_MAIN_H_*/
+#endif 
 
 

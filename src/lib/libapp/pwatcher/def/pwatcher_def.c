@@ -22,7 +22,7 @@ typedef struct {
     UINT dip;
 }PWATCHER_PKT_HASH1_S;
 
-/* 五元组的hash */
+
 UINT PWatcher_GetPktHash1(PWATCHER_PKT_DESC_S *pkt)
 {
     PWATCHER_PKT_HASH1_S key;
@@ -60,7 +60,7 @@ typedef struct {
     UINT ip;
 }PWATCHER_PKT_HASH2_S;
 
-/* 五元组的正反一致的hash */
+
 UINT PWatcher_GetPktHash2(PWATCHER_PKT_DESC_S *pkt)
 {
     PWATCHER_PKT_HASH2_S key;

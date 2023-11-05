@@ -12,11 +12,11 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WSAPP_Service_Init();
 CHAR * WSAPP_Service_GetName(IN HANDLE hService);
-/* 创建一个自动命名的Service, 并返回其名字 */
+
 CHAR * WSAPP_Service_AddAutoNameService(IN UINT uiFlag);
 WSAPP_SERVICE_S * WSAPP_Service_Add(IN CHAR *pcServiceName);
 BS_STATUS WSAPP_Service_Del(IN CHAR *pcServiceName);
@@ -52,8 +52,8 @@ BS_STATUS WSAPP_Service_SetDeliverTbl(IN CHAR *pcService, IN WS_DELIVER_TBL_HAND
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WSAPP_SERVICE_H_*/
+#endif 
 
 

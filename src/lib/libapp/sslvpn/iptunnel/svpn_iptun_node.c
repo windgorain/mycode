@@ -77,7 +77,7 @@ SVPN_IPTUN_NODE_S * SVPN_IpTunNode_New
 (
     IN SVPN_CONTEXT_HANDLE hSvpnContext,
     IN CONN_HANDLE hDownConn,
-    IN UINT uiVirtualIP /* net order */
+    IN UINT uiVirtualIP 
 )
 {
     SVPN_IPTUN_NODE_S *pstNode;
@@ -135,7 +135,7 @@ static INT _svpn_iptunnode_Cmp(IN VOID * pstHashNode, IN VOID * pstNodeToFind)
     return pstNode1->uiVirtualIP - pstNode2->uiVirtualIP;
 }
 
-SVPN_IPTUN_NODE_S * SVPN_IpTunNode_Find(IN UINT uiVirtualIP/* net order */)
+SVPN_IPTUN_NODE_S * SVPN_IpTunNode_Find(IN UINT uiVirtualIP)
 {
     SVPN_IPTUN_NODE_S stNodeToFind;
     SVPN_IPTUN_NODE_S *pstNodeFound;

@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID* CONN_HANDLE;
 
@@ -50,16 +50,13 @@ BS_STATUS CONN_ClearEvent(IN CONN_HANDLE hConn);
 
 BS_STATUS CONN_ModifyEvent(IN CONN_HANDLE hConn, IN UINT uiEvent);
 
-/* 
- > 0: 读取的字节数
- <= 0: SOCKET_EXXX
-*/
+
 INT CONN_Read(IN CONN_HANDLE hConn, OUT UCHAR *pucBuf, IN UINT uiBufLen);
 
-/* 返回值: >=0: 发送的字节数. <0 : 错误 */
+
 INT CONN_Write(IN CONN_HANDLE hConn, IN VOID *pBuf, IN UINT uiLen);
 
-/* 循环写,直到发送完毕或出错 */
+
 INT CONN_WriteAll(IN CONN_HANDLE hConn, IN UCHAR *pucBuf, IN UINT uiLen);
 
 INT CONN_WriteString(IN CONN_HANDLE hConn, IN CHAR *pcString);
@@ -68,8 +65,8 @@ INT CONN_SslPending(IN CONN_HANDLE hConn);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__CONN_UTL_H_*/
+#endif 
 
 

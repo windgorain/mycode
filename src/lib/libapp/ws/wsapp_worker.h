@@ -13,7 +13,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct
 {
@@ -30,8 +30,8 @@ BS_STATUS WSAPP_Worker_ConnDispatch(IN UINT uiGwID, IN INT iSocketID);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WSAPP_WORKER_H_*/
+#endif 
 
 

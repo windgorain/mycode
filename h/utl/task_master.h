@@ -12,18 +12,18 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE TASK_MASTER_HANDLE;
 
 typedef VOID (*PF_TASK_MASTER_FUNC)(void *ud);
 
-TASK_MASTER_HANDLE TASK_Master_Create(IN UINT uiTime/* ms. 如果为0表示不创建定时器 */);
+TASK_MASTER_HANDLE TASK_Master_Create(IN UINT uiTime);
 
 BS_STATUS TASK_Master_SetEvent
 (
     IN TASK_MASTER_HANDLE hTaskMaster,
-    IN UINT uiEventOffset, /* 0-15 */
+    IN UINT uiEventOffset, 
     IN PF_TASK_MASTER_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle
 );
@@ -31,7 +31,7 @@ BS_STATUS TASK_Master_SetEvent
 BS_STATUS TASK_Master_EventInput
 (
     IN TASK_MASTER_HANDLE hTaskMaster,
-    IN UINT uiEventOffset /* 0-15 */
+    IN UINT uiEventOffset 
 );
 
 BS_STATUS TASK_Master_MsgInput
@@ -44,7 +44,7 @@ BS_STATUS TASK_Master_MsgInput
 VCLOCK_HANDLE TASK_Master_AddTimer
 (
     IN TASK_MASTER_HANDLE hTaskMaster,
-    IN UINT uiTime,    /* 多少个ms之后触发. */
+    IN UINT uiTime,    
     IN UINT flag,
     IN PF_TIME_OUT_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle
@@ -56,8 +56,8 @@ VOID TASK_Master_RefreshTimer(IN TASK_MASTER_HANDLE hTaskMaster, IN VCLOCK_HANDL
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__TASK_MASTER_H_*/
+#endif 
 
 

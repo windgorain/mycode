@@ -24,7 +24,7 @@
 #include "../h/svpn_ulm.h"
 #include "../h/svpn_acl.h"
 
-#define SVPN_SSL_CTX_WORKER_NUM 4  /* 必须是2的指数方次, 下面的mask才有意义 */
+#define SVPN_SSL_CTX_WORKER_NUM 4  
 #define SVPN_SSL_CTX_WORKER_MASK (SVPN_SSL_CTX_WORKER_NUM - 1)
 
 static WEB_PROXY_HANDLE g_hSvpnWebProxy = NULL;
@@ -111,7 +111,7 @@ static BOOL_T svpn_webproxy_CheckRolePermit
     return bPermit;
 }
 
-/* 根据URL构造MatchInfo */
+
 static BS_STATUS svpn_webproxy_BuildMatchInfo(IN CHAR *pcUrl, OUT URI_ACL_MATCH_INFO_S *pstMatchInfo)
 {
     LSTR_S stProtocol;
@@ -267,7 +267,7 @@ WS_DELIVER_RET_E SVPN_WebProxy_RequestIn(IN WS_TRANS_HANDLE hWsTrans, IN UINT ui
         hHeadParser = WS_Trans_GetHttpRequestParser(hWsTrans);
         pcUrl = HTTP_GetUriAbsPath(hHeadParser);
 
-        /* 权限检查 */
+        
         if (TRUE != svpn_webproxy_CheckPermit(pstSvpnTrans->hSvpnContext, pstSvpnTrans->uiOnlineUserID, pcUrl))
         {
             WS_Trans_AddReplyBodyByString(hWsTrans,
@@ -314,28 +314,28 @@ WS_DELIVER_RET_E SVPN_WebProxy_AuthIn(IN WS_TRANS_HANDLE hTrans, IN UINT uiEvent
     return WS_DELIVER_RET_OK;
 }
 
-/* debug web-proxy packet */
+
 PLUG_API BS_STATUS SVPN_WebProxy_DebugPacket(IN UINT ulArgc, IN UCHAR **argv, IN VOID *pEnv)
 {
     WEB_Proxy_SetDgbFlag(g_hSvpnWebProxy, WEB_PROXY_DBG_FLAG_PACKET);
     return BS_OK;
 }
 
-/* no debug web-proxy packet */
+
 PLUG_API BS_STATUS SVPN_WebProxy_NoDebugPacket(IN UINT ulArgc, IN UCHAR **argv, IN VOID *pEnv)
 {
     WEB_Proxy_ClrDgbFlag(g_hSvpnWebProxy, WEB_PROXY_DBG_FLAG_PACKET);
     return BS_OK;
 }
 
-/* debug web-proxy fsm */
+
 PLUG_API BS_STATUS SVPN_WebProxy_DebugFsm(IN UINT ulArgc, IN UCHAR **argv, IN VOID *pEnv)
 {
     WEB_Proxy_SetDgbFlag(g_hSvpnWebProxy, WEB_PROXY_DBG_FLAG_FSM);
     return BS_OK;
 }
 
-/* no debug web-proxy fsm */
+
 PLUG_API BS_STATUS SVPN_WebProxy_NoDebugFsm(IN UINT ulArgc, IN UCHAR **argv, IN VOID *pEnv)
 {
     WEB_Proxy_ClrDgbFlag(g_hSvpnWebProxy, WEB_PROXY_DBG_FLAG_FSM);

@@ -14,15 +14,15 @@
 
 #define EXEC_UD_MAX 4
 
-/* structs */
+
 typedef struct
 {
-    /* 终端方提供的接口 */
-    PF_EXEC_OUT_STRING_FUNC pfOutFunc;  /* 输出字符串接口 */
+    
+    PF_EXEC_OUT_STRING_FUNC pfOutFunc;  
     PF_EXEC_GET_CHAR_FUNC pfGetCharFunc;
     HANDLE uds[EXEC_UD_MAX];
 
-    /* 内部数据 */
+    
     IC_HANDLE     hIcHandle;
     BUFFER_S buffer;
 }EXEC_S;
@@ -148,7 +148,7 @@ BS_STATUS EXEC_OutString(IN CHAR *pszInfo)
     EXEC_S *exec = EXEC_GetExec();
     
     if (! exec) {
-        /* 没有EXEC,  则直接输出 */
+        
         exec_sendData(NULL, pszInfo);
         return BS_OK;
     }
@@ -184,7 +184,7 @@ UCHAR EXEC_GetChar()
     return 0;
 }
 
-/* terminal monitor */
+
 BS_STATUS EXEC_TM(IN UINT uiArgc, IN CHAR **pcArgv)
 {
     EXEC_S *exec;
@@ -204,7 +204,7 @@ BS_STATUS EXEC_TM(IN UINT uiArgc, IN CHAR **pcArgv)
     return BS_OK;
 }
 
-/* no terminal monitor */
+
 BS_STATUS EXEC_NoTM(IN UINT uiArgc, IN CHAR **pcArgv)
 {
     EXEC_S *exec;
@@ -232,7 +232,7 @@ void EXEC_OutDataHex(UCHAR *pucMem, int len)
     MEM_Print(pucMem, len, exec_print_data);
 }
 
-/* 输出error code info */
+
 void EXEC_OutErrCodeInfo()
 {
     char info[1024];

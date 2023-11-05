@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct
 {
@@ -52,8 +52,8 @@ extern VOID HOOKAPI_ReplaceIATByTable(IN HOOKAPI_ENTRY_TBL_S *pstTbl, IN UINT ul
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__HOOKAPI_H_*/
+#endif 
 
 

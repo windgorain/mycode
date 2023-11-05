@@ -19,12 +19,12 @@ int BPFFUNC_RuntimeInit(void)
 {
     int ret;
 
-    ret = MYBPF_RuntimeInit(&g_bpffunc_runtime, BPFFUNC_MAX);
+    ret = MYBPF_RuntimeInit(&g_bpffunc_runtime);
     if (ret < 0) {
         return ret;
     }
 
-    g_bpffunc_ctx = BFUNC_Create(&g_bpffunc_runtime, 1024);
+    g_bpffunc_ctx = BFUNC_Create(&g_bpffunc_runtime, BPFFUNC_MAX);
     if (! g_bpffunc_ctx) {
         RETURN(BS_NO_MEMORY);
     }
@@ -45,13 +45,13 @@ PLUG_API int BPFFUNC_ShowProg(void)
             continue;
         }
 
-        prog = UFD_GetFileData(g_bpffunc_runtime.ufd_ctx, node->fd);
+        prog = node->prog;
         if (! prog) {
             continue;
         }
         loader = prog->loader_node;
-        EXEC_OutInfo("id:%d, fd:%d, xlated:%u, sec:%s, name:%s, instance:%s, file:%s \r\n",
-                i, node->fd, prog->insn_len, prog->sec_name, prog->prog_name,
+        EXEC_OutInfo("id:%d, xlated:%u, sec:%s, name:%s, instance:%s, file:%s \r\n",
+                i, prog->insn_len, prog->sec_name, prog->prog_name,
                 loader->param.instance, loader->param.filename);
     }
 

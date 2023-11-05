@@ -10,9 +10,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* ---structs--- */
+
 #ifdef IN_UNIXLIKE
 typedef struct
 {
@@ -33,8 +33,8 @@ BS_STATUS _OSSEM_V(OS_SEM *pOsSem);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__OS_SEM_H_*/
+#endif 
 
 

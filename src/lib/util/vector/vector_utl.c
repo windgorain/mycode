@@ -52,14 +52,14 @@ static inline int _vector_ptr_2_index(VECTOR_S *vec, char *ptr)
     return (ptr - vec->array) / vec->ele_size;
 }
 
-static int _vector_find_slow(VECTOR_S *vec, void *value, PF_CMP_FUNC cmp_func, void *ud)
+static int _vector_find_slow(VECTOR_S *vec, void *value, PF_CMP_FUNC cmp_func)
 {
 	char *p;
 	int pos;
 
 	for (pos = 0; pos < vec->count; pos++) {
 		p = _vector_index_2_ptr(vec, pos);
-        if (cmp_func(p, value, ud) == 0) {
+        if (cmp_func(p, value) == 0) {
 			return pos;
 		}
 	}
@@ -67,20 +67,14 @@ static int _vector_find_slow(VECTOR_S *vec, void *value, PF_CMP_FUNC cmp_func, v
 	return -1;
 }
 
-static int _vector_find_fast(VECTOR_S *vec, void *value, PF_CMP_FUNC cmp_func, void *ud)
+static int _vector_find_fast(VECTOR_S *vec, void *value, PF_CMP_FUNC cmp_func)
 {
-    char *node = BSEARCH_Do(vec->array, vec->count, vec->ele_size, value, cmp_func, ud);
+    char *node = BSEARCH_Do(vec->array, vec->count, vec->ele_size, value, cmp_func);
     if (! node) {
         return -1;
     }
 
     return _vector_ptr_2_index(vec, node);
-}
-
-static int _vector_cmp(void *n1, void *n2, void *ud)
-{
-    VECTOR_S *vec = ud;
-    return memcmp(n1, n2, vec->ele_size);
 }
 
 int VECTOR_Init(VECTOR_S *vec, VECTOR_PARAM_S *p)
@@ -136,7 +130,7 @@ void VECTOR_Destroy(VECTOR_S *vec)
     MemCap_Free(vec->memcap, vec);
 }
 
-/* 可以用于填充比预定义的size小的vale */
+
 int VECTOR_AddBySize(VECTOR_S *vec, void *val, int val_size)
 {
     if (vec->ele_size < val_size) {
@@ -153,7 +147,7 @@ int VECTOR_AddBySize(VECTOR_S *vec, void *val, int val_size)
 
 	MEM_Copy(node, val, val_size);
 
-    /* 剩余空间填充0 */
+    
     if (vec->ele_size > val_size) {
         memset(node + val_size, 0, vec->ele_size - val_size);
     }
@@ -192,9 +186,9 @@ int VECTOR_Append(VECTOR_S *vec_dst, VECTOR_S *vec_src)
     return VECTOR_AddN(vec_dst, vec_src->array, vec_src->count);
 }
 
-void VECTOR_Sort(VECTOR_S *vec, PF_CMP_FUNC cmp_func, void *ud)
+void VECTOR_Sort(VECTOR_S *vec, PF_CMP_FUNC cmp_func)
 {
-    QSORT_Do(vec->array, vec->count, vec->ele_size, cmp_func, ud);
+    QSORT_Do(vec->array, vec->count, vec->ele_size, cmp_func);
 	vec->sorted = 1;
 	return;
 }
@@ -221,11 +215,11 @@ void VECTOR_Remove(VECTOR_S *vec, UINT pos)
 	return;
 }
 
-void VECTOR_Delete(VECTOR_S *vec, void *value, PF_CMP_FUNC cmp_func, void *ud)
+void VECTOR_Delete(VECTOR_S *vec, void *value, PF_CMP_FUNC cmp_func)
 {
     int pos;
 
-    pos = VECTOR_Find(vec, value, cmp_func, ud);
+    pos = VECTOR_Find(vec, value, cmp_func);
     if (pos < 0) {
         return;
     }
@@ -233,18 +227,13 @@ void VECTOR_Delete(VECTOR_S *vec, void *value, PF_CMP_FUNC cmp_func, void *ud)
     VECTOR_Remove(vec, pos);
 }
 
-int VECTOR_Find(VECTOR_S *vec, void *value, PF_CMP_FUNC cmp_func/* 可以为NULL */, void *ud)
+int VECTOR_Find(VECTOR_S *vec, void *value, PF_CMP_FUNC cmp_func)
 {
-    if (! cmp_func) {
-        cmp_func = _vector_cmp;
-        ud = vec;
-    }
-
     if (vec->sorted) {
-        return _vector_find_fast(vec, value, cmp_func, ud);
+        return _vector_find_fast(vec, value, cmp_func);
     }
 
-    return _vector_find_slow(vec, value, cmp_func, ud);
+    return _vector_find_slow(vec, value, cmp_func);
 }
 
 void * VECTOR_Get(VECTOR_S *vec, int idx)

@@ -4,6 +4,7 @@
 *
 ================================================================*/
 #include "bs.h"
+#include "linux/kernel.h"
 #include "utl/ebpf_utl.h"
 #include "utl/cff_utl.h"
 #include "utl/file_utl.h"
@@ -15,6 +16,62 @@
 #include "bpf/libbpf.h"
 #include "bpf/bpf.h"
 #include "bpf/bpf_load.h"
+
+static int _ebpf_auto_set_prog_type(void *prog)
+{
+    const char *event = bpf_program__section_name(prog);
+	enum bpf_prog_type prog_type = 0;
+
+    if (! event) {
+		printf("Has no sec name\n");
+        return -1;
+    }
+
+	bool is_socket = strncmp(event, "socket", 6) == 0;
+	bool is_kprobe = strncmp(event, "kprobe/", 7) == 0;
+	bool is_kretprobe = strncmp(event, "kretprobe/", 10) == 0;
+	bool is_tracepoint = strncmp(event, "tracepoint/", 11) == 0;
+	bool is_raw_tracepoint = strncmp(event, "raw_tracepoint/", 15) == 0;
+	bool is_xdp = strncmp(event, "xdp", 3) == 0;
+	bool is_perf_event = strncmp(event, "perf_event", 10) == 0;
+	bool is_cgroup_skb = strncmp(event, "cgroup/skb", 10) == 0;
+	bool is_cgroup_sk = strncmp(event, "cgroup/sock", 11) == 0;
+	bool is_sockops = strncmp(event, "sockops", 7) == 0;
+	bool is_sk_skb = strncmp(event, "sk_skb", 6) == 0;
+	bool is_sk_msg = strncmp(event, "sk_msg", 6) == 0;
+
+	if (is_socket) {
+		prog_type = BPF_PROG_TYPE_SOCKET_FILTER;
+	} else if (is_kprobe || is_kretprobe) {
+		prog_type = BPF_PROG_TYPE_KPROBE;
+	} else if (is_tracepoint) {
+		prog_type = BPF_PROG_TYPE_TRACEPOINT;
+	} else if (is_raw_tracepoint) {
+		prog_type = BPF_PROG_TYPE_RAW_TRACEPOINT;
+	} else if (is_xdp) {
+		prog_type = BPF_PROG_TYPE_XDP;
+	} else if (is_perf_event) {
+		prog_type = BPF_PROG_TYPE_PERF_EVENT;
+	} else if (is_cgroup_skb) {
+		prog_type = BPF_PROG_TYPE_CGROUP_SKB;
+	} else if (is_cgroup_sk) {
+		prog_type = BPF_PROG_TYPE_CGROUP_SOCK;
+	} else if (is_sockops) {
+		prog_type = BPF_PROG_TYPE_SOCK_OPS;
+	} else if (is_sk_skb) {
+		prog_type = BPF_PROG_TYPE_SK_SKB;
+	} else if (is_sk_msg) {
+		prog_type = BPF_PROG_TYPE_SK_MSG;
+	} else {
+		printf("Unknown event '%s'\n", event);
+		return -1;
+	}
+
+	bpf_program__set_type(prog, prog_type);
+
+    return 0;
+}
+
 
 void * EBPF_Open(char *filename)
 {
@@ -38,7 +95,7 @@ int EBPF_GetFd(char *pin_filename)
 
 void EBPF_CloseFd(int fd)
 {
-    /* 关闭通过EBPF_GetFd()获取到的fd */
+    
     close(fd);
 }
 
@@ -48,6 +105,87 @@ int EBPF_Load(void *obj)
         return ERR_Set(BS_CAN_NOT_OPEN, "Load object failed");
     }
     return 0;
+}
+
+void EBPF_AutoSetType(void *obj)
+{
+    void *prog = NULL;
+
+	while ((prog = bpf_object__next_program(obj, prog))) {
+        _ebpf_auto_set_prog_type(prog);
+    }
+}
+
+int EBPF_AttachAuto(void *obj, OUT void **links, int links_max)
+{
+	struct bpf_program *prog;
+    void *tmp[256];
+    int cnt = 0;
+    int err;
+    const char *sec_name;
+
+    if (! links) {
+        links = tmp;
+        links_max = ARRAY_SIZE(tmp);
+    }
+
+	bpf_object__for_each_program(prog, obj) {
+        sec_name = bpf_program__section_name(prog);
+
+        if (strncmp(sec_name, "klc/", sizeof("klc/")-1) == 0) {
+            continue;
+        }
+
+		links[cnt] = bpf_program__attach(prog);
+		err = libbpf_get_error(links[cnt]);
+		if (err < 0) {
+			fprintf(stderr, "ERROR: sec_name %s attach failed\n", sec_name);
+			links[cnt] = NULL;
+            EBPF_DetachLinks(links, cnt);
+			return err;
+		}
+		cnt++;
+        if (cnt >= links_max) {
+            break;
+        }
+	}
+
+    return cnt;
+}
+
+void * EBPF_LoadFile(char *path)
+{
+    void *obj;
+
+    obj = EBPF_Open(path);
+    if (! obj) {
+        return NULL;
+    }
+
+    EBPF_AutoSetType(obj);
+
+    if (EBPF_Load(obj) < 0) {
+        EBPF_Close(obj);
+        return NULL;
+    }
+
+    if (EBPF_AttachAuto(obj, NULL, 0) < 0) {
+        EBPF_Close(obj);
+        return NULL;
+    }
+
+    return obj;
+}
+
+void EBPF_DetachLinks(void **links, int links_cnt)
+{
+    int cnt = links_cnt;
+
+	while (cnt) {
+		bpf_link__destroy(links[cnt]);
+        links[cnt] = NULL;
+        cnt --;
+    }
 }
 
 int EBPF_GetProgFdByName(void *obj, char *name)
@@ -123,7 +261,12 @@ int EBPF_GetMapFdById(unsigned int bpf_id)
     return bpf_map_get_fd_by_id(bpf_id);
 }
 
-/* 获取attach到ifname上的xdp fd  */
+int EBPF_GetMapFdByName(void *obj, const char *name)
+{
+    return bpf_object__find_map_fd_by_name(obj, name);
+}
+
+
 int EBPF_GetXdpAttachedFd(char *ifname)
 {
     unsigned int fd;
@@ -135,7 +278,7 @@ int EBPF_GetXdpAttachedFd(char *ifname)
         return ERR_VSet(BS_NO_SUCH, "Can't get %s index", ifname);
     }
 
-    ret = bpf_get_link_xdp_id(ifindex, &fd, XDP_FLAGS_SKB_MODE);
+    ret = bpf_xdp_query_id(ifindex, XDP_FLAGS_SKB_MODE, &fd);
     if (ret < 0) {
         return -1;
     }
@@ -143,7 +286,7 @@ int EBPF_GetXdpAttachedFd(char *ifname)
     return fd;
 }
 
-int EBPF_AttachXdp(char *ifname, int fd, UINT flags)
+int EBPF_AttachXdp(char *ifname, int fd, unsigned int flags)
 {
     unsigned int ifindex;
     int ret;
@@ -153,7 +296,7 @@ int EBPF_AttachXdp(char *ifname, int fd, UINT flags)
         return ERR_VSet(BS_NO_SUCH, "Can't get %s index", ifname);
     }
 
-    ret = bpf_set_link_xdp_fd(ifindex, fd, flags);
+    ret = bpf_xdp_attach(ifindex, fd, flags, NULL);
     if (ret < 0) {
         return ERR_Set(ret, "attach failed");
     }
@@ -161,7 +304,7 @@ int EBPF_AttachXdp(char *ifname, int fd, UINT flags)
     return 0;
 }
 
-int EBPF_DetachXdp(char *ifname)
+int EBPF_DetachXdp(char *ifname, unsigned int flags)
 {
     unsigned int ifindex;
 
@@ -170,11 +313,12 @@ int EBPF_DetachXdp(char *ifname)
         return ERR_VSet(BS_NO_SUCH, "Can't get %s index", ifname);
     }
 
-    bpf_set_link_xdp_fd(ifindex, -1, XDP_FLAGS_SKB_MODE);
+    bpf_xdp_detach(ifindex, XDP_FLAGS_SKB_MODE, NULL);
 
     return 0;
 }
 
+#if 0
 int EBPF_GetMapAttr(int fd, OUT EBPF_MAP_ATTR_S *attr)
 {
     union bpf_attr bpfattr;
@@ -196,4 +340,4 @@ int EBPF_GetMapAttr(int fd, OUT EBPF_MAP_ATTR_S *attr)
 
     return 0;
 }
-
+#endif

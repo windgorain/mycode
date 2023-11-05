@@ -13,7 +13,7 @@
 #include "utl/dnsname_trie.h"
 #include "utl/pkt_policy.h"
 
-/* 一个维度命中的rule */
+
 typedef struct {
     STQ_NODE_S stLinkNode;
     UINT rule_id;
@@ -134,7 +134,7 @@ static int pktpolicy_engine_AddPortDimNode(PKT_POLICY_PORT_DIM_S *port_dim, UINT
     return 0;
 }
 
-/* 将端口维度添加到端口表 */
+
 static int pktpolicy_engine_AddPortList(PKT_POLICY_PORT_DIM_S *port_dim, char *port, UINT rule_id)
 {
     NUM_LIST_S num_list;
@@ -199,7 +199,7 @@ static int pktpolicy_engine_AddIPDimNode(PKT_POLICY_IP_DIM_S *ip_dim, UINT rule_
     return 0;
 }
 
-/* 将地址维度添加到地址表 */
+
 static int pktpolicy_engine_AddIPList(PKT_POLICY_IP_DIM_S *ip_dim, char *ip, UINT rule_id)
 {
     IPLIST_S ip_list;
@@ -294,13 +294,13 @@ static STQ_HEAD_S* pktpolicy_engine_MatchProtocol(PKT_POLICY_PROTOCOL_DIM_S *pro
     return &protocol_dim->protocol_dim[protocol];
 }
 
-static STQ_HEAD_S* pktpolicy_engine_MatchPort(PKT_POLICY_PORT_DIM_S *port_dim, USHORT port/*netorder*/)
+static STQ_HEAD_S* pktpolicy_engine_MatchPort(PKT_POLICY_PORT_DIM_S *port_dim, USHORT port)
 {
     port = ntohs(port);
     return &port_dim->port_dim[port];
 }
 
-static STQ_HEAD_S* pktpolicy_engine_MatchIP(PKT_POLICY_IP_DIM_S *ip_dim, UINT ip/*netorder*/)
+static STQ_HEAD_S* pktpolicy_engine_MatchIP(PKT_POLICY_IP_DIM_S *ip_dim, UINT ip)
 {
     PKT_POLICY_IP_DIM_NODE_S *pstNode;
 
@@ -327,7 +327,7 @@ typedef struct {
     PKT_POLICY_MATCHED_NODE_S nodes[PKT_POLICY_RULE_MAX];
     int count;
     UINT masked;
-    UINT min_rule_id_matched; /* 已经被完全匹配的最小rule id */
+    UINT min_rule_id_matched; 
 }PKT_POLICY_MATCHED_S;
 
 static void pktpolicy_engine_MergeMatched(PKT_POLICY_ENGINE_S *engine, STQ_HEAD_S *list, UINT mask, OUT PKT_POLICY_MATCHED_S *matched)
@@ -344,7 +344,7 @@ static void pktpolicy_engine_MergeMatched(PKT_POLICY_ENGINE_S *engine, STQ_HEAD_
         }
 
         for (i=0; i<matched->count; i++) {
-            /* 如果找到了,则增加对应的mask位 */
+            
             if (pstNode->rule_id == matched->nodes[i].rule_id) {
                 matched->nodes[i].mask |= mask;
                 if (engine->rule_desc[pstNode->rule_id].rule_dim_mask == matched->nodes[i].mask) {
@@ -353,7 +353,7 @@ static void pktpolicy_engine_MergeMatched(PKT_POLICY_ENGINE_S *engine, STQ_HEAD_
                 continue;
             }
         }
-        /* 如果没有找到,则如果rule有masked的维度,则对应的这些维度是没有匹配的,不需要加入matched */
+        
         if (engine->rule_desc[pstNode->rule_id].rule_dim_mask & matched->masked) {
             continue;
         }
@@ -422,9 +422,7 @@ int PKTPolicy_EngineCompile(PKT_POLICY_ENGINE_S *engine, PKT_POLICY_S *pkt_polic
     return 0;
 }
 
-/* return <0: 没找到
-   >=0: PKT_POLICY_ACTION_E
- */
+
 int PKTPolicy_EngineMatch(PKT_POLICY_ENGINE_S *engine, PKT_POLICY_PKTINFO_S *pktinfo)
 {
     STQ_HEAD_S *protocol_match_list;

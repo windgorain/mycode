@@ -7,10 +7,10 @@
 
 #include "utl/ssl_decode.h"
 
-/* Record content type */
+
 #define SSL_RECORD_CONTENT_TYPE_HSK 22
 
-/* Record handshake type */
+
 #define SSL_HANDSHAKE_TYPE_CLIENT_HELLO 1
 
 #pragma pack(1)
@@ -176,7 +176,7 @@ int SSLDecode_ParseClientHello(UCHAR *buf, int buf_len, SSL_CLIENT_HELLO_INFO_S 
         return -1;
     }
 
-    /* parse client hello header */
+    
     client_hello = (void*)tmp_buf;
     if (client_hello->handshake_type != SSL_HANDSHAKE_TYPE_CLIENT_HELLO) {
         return -1;
@@ -206,7 +206,7 @@ int SSLDecode_ParseClientHello(UCHAR *buf, int buf_len, SSL_CLIENT_HELLO_INFO_S 
     client_hello_info->time = ntohl(client_hello->time);
     client_hello_info->session_id_len = client_hello->session_id_len;
 
-    /* cipher suites */
+    
     if (tmp_len < 2) {
         return -1;
     }
@@ -221,7 +221,7 @@ int SSLDecode_ParseClientHello(UCHAR *buf, int buf_len, SSL_CLIENT_HELLO_INFO_S 
     tmp_len -= client_hello_info->cipher_suites_len;
     tmp_buf += client_hello_info->cipher_suites_len;
 
-    /* compression methods */
+    
     client_hello_info->compression_methods_len = *tmp_buf;
     tmp_len -= 1;
     tmp_buf += 1;
@@ -231,7 +231,7 @@ int SSLDecode_ParseClientHello(UCHAR *buf, int buf_len, SSL_CLIENT_HELLO_INFO_S 
     tmp_len -= client_hello_info->compression_methods_len;
     tmp_buf += client_hello_info->compression_methods_len;
 
-    /* extensions */
+    
     if (tmp_len < 2) {
         return -1;
     }

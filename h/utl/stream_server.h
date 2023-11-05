@@ -25,20 +25,20 @@ enum {
 typedef struct {
     int fd;
     UINT send_finish: 1;
-    void *cfg; /*STREAM_SERVER_S*/
+    void *cfg; 
     void *ud[4];
     VBUF_S recv_vbuf;
     VBUF_S send_vbuf;
 }STREAM_CONN_S;
 
-/* cfg: STREAM_SERVER_S */
+
 typedef int (*PF_STREAM_SERVER_EVENT)(void *cfg, STREAM_CONN_S *conn, UINT event);
 
 typedef struct {
     UINT enable: 1;
     UINT type: 2;
     int listen_fd;
-    char *pipe_name; /* type类型为PIPE时用 */
+    char *pipe_name; 
     MYPOLL_HANDLE mypoll;
     PF_STREAM_SERVER_EVENT event_func;
 }STREAM_SERVER_S;
@@ -51,4 +51,4 @@ void StreamServer_SendFinish(STREAM_CONN_S *conn);
 #ifdef __cplusplus
 }
 #endif
-#endif //STREAM_SERVER_H_
+#endif 

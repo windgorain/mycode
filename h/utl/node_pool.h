@@ -25,4 +25,4 @@ void NodePool_Free(NODE_POOL_S *node_pool, void *node);
 #ifdef __cplusplus
 }
 #endif
-#endif //NODE_POOL_H_
+#endif 

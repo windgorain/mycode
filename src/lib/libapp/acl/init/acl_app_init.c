@@ -33,7 +33,7 @@ BS_STATUS AclApp_Init()
 
 PLUG_API BS_STATUS AclApp_Save(IN HANDLE hFile)
 {
-    // ACL地址池的配置必须在最初进行配置置保存，因为下面有配配置依赖关系 ip-acl 会引用地址池，所以恢复的时候也需要先灰复地址池
+    
     AclIPGroup_Save(hFile);
     AclPortGroup_Save(hFile);
     AclAppIP_Save(hFile);

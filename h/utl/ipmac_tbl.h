@@ -13,7 +13,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE IPMAC_HANDLE;
 
@@ -36,8 +36,8 @@ VOID IPMAC_TBL_Walk(IN IPMAC_HANDLE hInstance, IN PF_IPMAC_TBL_WALK_FUNC pfFunc,
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__IPMAC_TBL_H_*/
+#endif 
 
 

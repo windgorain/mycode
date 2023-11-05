@@ -10,13 +10,13 @@ extern "C"
 {
 #endif
 
-#define NUM_ACL_UNDEF  0  /* not defined */
+#define NUM_ACL_UNDEF  0  
 #define NUM_ACL_PERMIT 1
 #define NUM_ACL_DENY   2
 #define NUM_ACL_BYPASS 3
 
 typedef struct {
-    UINT size; /* data数组的个数 */
+    UINT size; 
     UCHAR *data;
 }NUM_ACL_S;
 
@@ -27,4 +27,4 @@ int NumAcl_Match(NUM_ACL_S *num_acl, UINT num);
 #ifdef __cplusplus
 }
 #endif
-#endif //NUM_ACL_H_
+#endif 

@@ -60,7 +60,7 @@ int VXLAN_GetInnerPktType(IN VXLAN_HEAD_S *vxlan_header, int is_ip_vxlan)
     return VXLAN_NEXT_PROTOCOL_ETH;
 }
 
-/* 根据vxlan herader直接获取内部ip报文地址 */
+
 void * VXLAN_GetInnerIPPkt(VXLAN_HEAD_S *vxlan_header,
         int buf_len, int is_ip_vxlan)
 {

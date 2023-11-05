@@ -7,14 +7,14 @@ extern "C"
 #endif
 
 #define ACL_INVALID_ID    0 /* 无效ID */
-#define ACL_NAME_MAX_LEN  63 /* ACL名称长度1-63 */
+#define ACL_NAME_MAX_LEN  63 
 
 #define ACL_TYPE_DEF \
-    _(ACL_TYPE_IP, "ip") /* ip-acl */ \
-    _(ACL_TYPE_DOMAIN, "domain") /*domain-acl*/\
-    _(ACL_TYPE_URL,  "url") /* uri-acl */ \
+    _(ACL_TYPE_IP, "ip")  \
+    _(ACL_TYPE_DOMAIN, "domain") \
+    _(ACL_TYPE_URL,  "url")  \
 
-/* ACL类型枚举 */
+
 typedef enum {
 #define _(a, b) a,
     ACL_TYPE_DEF
@@ -30,4 +30,4 @@ int ACL_GetTypeByStr(char *type_str);
 #ifdef __cplusplus
 }
 #endif
-#endif //ACL_H_
+#endif 

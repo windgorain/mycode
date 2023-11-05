@@ -68,7 +68,7 @@ static void save_chain(void *ssl)
     }
 }
 
-int get_cert_chain(unsigned int ip/*netorder*/, unsigned short port, char *host_name)
+int get_cert_chain(unsigned int ip, unsigned short port, char *host_name)
 {
     void *ssl;
     void *cert;

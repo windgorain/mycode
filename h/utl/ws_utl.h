@@ -15,9 +15,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* Debug flag */
+
 #define WS_DBG_PACKET  0x1
 #define WS_DBG_EVENT   0x2
 #define WS_DBG_PROCESS 0x4
@@ -68,12 +68,12 @@ USER_HANDLE_S * WS_Conn_GetPrivateData(IN WS_CONN_HANDLE hWsConn);
 
 #if 1
 typedef VOID* WS_VHOST_HANDLE;
-WS_VHOST_HANDLE WS_VHost_Add(IN WS_HANDLE hWs, IN CHAR *pcVHost/*  NULL/""表示缺省Host */);
+WS_VHOST_HANDLE WS_VHost_Add(IN WS_HANDLE hWs, IN CHAR *pcVHost);
 VOID WS_VHost_Del(IN WS_VHOST_HANDLE hVHost);
 UINT WS_VHost_GetContextCount(IN WS_VHOST_HANDLE hVHost);
-/* 精确查找 */
+
 WS_VHOST_HANDLE WS_VHost_Find(IN WS_HANDLE hWs, IN CHAR *pcVHost);
-/* 模糊匹配 */
+
 WS_VHOST_HANDLE WS_VHost_Match(IN WS_HANDLE hWs, IN CHAR *pcVHost, IN UINT uiVHostLen);
 #endif
 
@@ -89,19 +89,19 @@ typedef enum
     WS_DELIVER_TYPE_EXT_NAME,
     WS_DELIVER_TYPE_REFER_PATH,
     WS_DELIVER_TYPE_QUERY,
-    WS_DELIVER_TYPE_CALL_BACK,  /* 注册为回调函数,由用户自行判断 */
+    WS_DELIVER_TYPE_CALL_BACK,  
 }WS_DELIVER_TYPE_E;
 
-#define WS_DELIVER_FLAG_DROP_BODY           0x1   /* 丢弃请求体 */
-#define WS_DELIVER_FLAG_DELIVER_BODY        0x2   /* 将体交给处理函数 */
-#define WS_DELIVER_FLAG_PARSE_BODY_AS_MIME  0x4   /* 接收体并按照MIME解析好 */
+#define WS_DELIVER_FLAG_DROP_BODY           0x1   
+#define WS_DELIVER_FLAG_DELIVER_BODY        0x2   
+#define WS_DELIVER_FLAG_PARSE_BODY_AS_MIME  0x4   
 
 typedef enum
 {
-    WS_EV_RET_CONTINUE = 0, /* 继续向同类插件发布事件 */
-    WS_EV_RET_BREAK,        /* 停止向同类插件发布事件 */
-    WS_EV_RET_STOP,         /* 停止向所有插件发布事件 */
-    WS_EV_RET_INHERIT,      /* 插件已经接管此连接 */
+    WS_EV_RET_CONTINUE = 0, 
+    WS_EV_RET_BREAK,        
+    WS_EV_RET_STOP,         
+    WS_EV_RET_INHERIT,      
     WS_EV_RET_ERR
 }WS_EV_RET_E;
 
@@ -122,7 +122,7 @@ BS_STATUS WS_Deliver_Reg
     IN WS_DELIVER_TBL_HANDLE hDeliverTbl,
     IN UINT uiPriority,
     IN WS_DELIVER_TYPE_E enType,
-    IN VOID *pKey,  /* 注册的Key或者PF_WS_Deliver_MatchCB */
+    IN VOID *pKey,  
     IN PF_WS_Deliver_Func pfFunc,
     IN UINT uiFlag
 );
@@ -181,8 +181,8 @@ VOID WS_TransMemPool_Free(IN WS_TRANS_HANDLE hTrans, IN VOID *pMem);
 #define WS_TRANS_EVENT_RECV_BODY_OK        0x8
 #define WS_TRANS_EVENT_PRE_BUILD_HEAD      0x10
 #define WS_TRANS_EVENT_SEND_HEAD_OK        0x20
-#define WS_TRANS_EVENT_BUILD_BODY          0x40  /* 准备要发送的数据 */
-#define WS_TRANS_EVENT_FORMAT_BODY         0x80  /* 加工要发送的数据 */
+#define WS_TRANS_EVENT_BUILD_BODY          0x40  
+#define WS_TRANS_EVENT_FORMAT_BODY         0x80  
 #define WS_TRANS_EVENT_SEND_BODY_OK        0x100
 #define WS_TRANS_EVENT_DESTORY             0x200
 
@@ -192,8 +192,8 @@ BS_STATUS WS_Trans_SetUserHandle(IN WS_TRANS_HANDLE hTrans, IN CHAR *pcKey, IN H
 HANDLE WS_Trans_GetUserHandle(IN WS_TRANS_HANDLE hTrans, IN CHAR *pcKey);
 MBUF_S * WS_Trans_GetBodyData(IN WS_TRANS_HANDLE hTrans);
 
-#define WS_TRANS_REPLY_FLAG_WITHOUT_BODY 0x1  /* 没有应答体 */
-#define WS_TRANS_REPLY_FLAG_IMMEDIATELY  0x2  /* 立即回应, 不等待请求体接收完成 */
+#define WS_TRANS_REPLY_FLAG_WITHOUT_BODY 0x1  
+#define WS_TRANS_REPLY_FLAG_IMMEDIATELY  0x2  
 
 BS_STATUS WS_Trans_Reply(IN WS_TRANS_HANDLE hTrans, IN UINT uiStatusCode, IN UINT uiFlag);
 BS_STATUS WS_Trans_Redirect(IN WS_TRANS_HANDLE hTrans, IN CHAR *pcRedirectTo);
@@ -226,8 +226,8 @@ VOID WS_ClrDbgFlagByName(IN WS_HANDLE hWs, IN CHAR *pcFlagName);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WS_UTL_H_*/
+#endif 
 
 

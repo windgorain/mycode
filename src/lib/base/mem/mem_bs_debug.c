@@ -101,12 +101,12 @@ static int _mem_line_cmp(DLL_NODE_S *pstNode1, DLL_NODE_S *pstNode2, HANDLE hUse
     return (int)(node1->mem_info.usLine - node2->mem_info.usLine);
 }
 
-/* 按文件+行号+size统计内存的个数 */
+
 static void _mem_count_by_file(IN DLL_HEAD_S *pstDllHead, IN _MEM_HEAD_S *pstMemHead)
 {
     _MEM_FILE_COUNT_S *pstNode;
 
-    /* 查找是否已经存在,如果存在,则count加一即可 */
+    
     DLL_SCAN(pstDllHead, pstNode) {
         if ((pstNode->mem_info.usLine == pstMemHead->usLine)
                 && (pstNode->mem_info.size == pstMemHead->size)
@@ -116,8 +116,8 @@ static void _mem_count_by_file(IN DLL_HEAD_S *pstDllHead, IN _MEM_HEAD_S *pstMem
         }
     }
 
-    /* 没有找到,则新建一条表项 */
-    pstNode = malloc(sizeof(_MEM_FILE_COUNT_S));    /* 不使用MEM_Malloc 是为了避免死锁 */
+    
+    pstNode = malloc(sizeof(_MEM_FILE_COUNT_S));    
     if (NULL == pstNode) {
         return;
     }
@@ -129,13 +129,13 @@ static void _mem_count_by_file(IN DLL_HEAD_S *pstDllHead, IN _MEM_HEAD_S *pstMem
     DLL_SortAdd(pstDllHead, &pstNode->stLinkNode, _mem_file_line_cmp, NULL);
 }
 
-/* 统计level+line冲突项目 */
+
 static void _mem_count_line_conflict(IN DLL_HEAD_S *pstDllHead, IN _MEM_HEAD_S *pstMemHead)
 {
     _MEM_FILE_COUNT_S *pstNode;
     int conflict = 0;
 
-    /* 查找是否已经存在,如果存在,则count加一即可 */
+    
     DLL_SCAN(pstDllHead, pstNode) {
         if (pstNode->mem_info.usLine == pstMemHead->usLine) {
             if (0 == strcmp(pstNode->mem_info.pszFileName, pstMemHead->pszFileName)) {
@@ -147,8 +147,8 @@ static void _mem_count_line_conflict(IN DLL_HEAD_S *pstDllHead, IN _MEM_HEAD_S *
         }
     }
 
-    /* 没有找到,则新建一条表项 */
-    pstNode = malloc(sizeof(_MEM_FILE_COUNT_S));    /* 不使用MEM_Malloc 是为了避免死锁 */
+    
+    pstNode = malloc(sizeof(_MEM_FILE_COUNT_S));    
     if (NULL == pstNode) {
         return;
     }
@@ -196,7 +196,7 @@ static void _mem_debug_show_level_mem(int level, char *file)
     EXEC_OutString(" Count   Size      Filename(line)\r\n"
         "--------------------------------------------------------------------------\r\n");
 
-    /* 输出统计结果 */
+    
     DLL_SCAN(&stDllHead, pstNode) {
         EXEC_OutInfo(" %-7d %-9d %s(%d)\r\n",
                 pstNode->ulCount, pstNode->mem_info.size, pstNode->mem_info.pszFileName, pstNode->mem_info.usLine);
@@ -227,7 +227,7 @@ static void _mem_debug_show_line_conflict(int level)
     }
     _MEM_UnLock();
 
-    /* 输出统计结果 */
+    
     DLL_SCAN(&stDllHead, pstNode) {
         if (pstNode->ulCount > 0) {
             EXEC_OutInfo(" %s(%d)\r\n", pstNode->mem_info.pszFileName, pstNode->mem_info.usLine);
@@ -244,12 +244,12 @@ static void _mem_debug_show_mem_all(char *file)
     int i;
 
     for (i=0; i<_MEM_MAX_LEVEL - 1; i++) {
-        EXEC_OutInfo(" Size: %u \r\n", _MEM_GET_SPLIT_MEM_USRSIZE(i));
+        EXEC_OutInfo(" Size: %u \r\n", _mem_get_size_by_level(i));
         _mem_debug_show_level_mem(i, file);
         EXEC_OutString("\r\n");
     }
 
-    EXEC_OutInfo(" Size: >%u \r\n", _MEM_GET_SPLIT_MEM_USRSIZE(i-1));
+    EXEC_OutInfo(" Size: >%u \r\n", _mem_get_size_by_level(i-1));
     _mem_debug_show_level_mem(i, file);
 }
 
@@ -269,7 +269,7 @@ void _MEM_RmFromList(_MEM_HEAD_S *head)
     _MEM_UnLock();
 }
 
-/* show memory-debug size {32|64...4096|large|all} [file %STRING]*/
+
 BS_STATUS MemDebug_ShowSizeOfMem(int argc, char **argv)
 {
     int level;
@@ -287,30 +287,30 @@ BS_STATUS MemDebug_ShowSizeOfMem(int argc, char **argv)
     return 0;
 }
 
-/* show memory-debug line conflict */
+
 BS_STATUS MemDebug_ShowLineConflict(int argc, char **argv)
 {
     int i;
 
     for (i=0; i<_MEM_MAX_LEVEL - 1; i++) {
-        EXEC_OutInfo(" Size: %u \r\n", _MEM_GET_SPLIT_MEM_USRSIZE(i));
+        EXEC_OutInfo(" Size: %u \r\n", _mem_get_size_by_level(i));
         _mem_debug_show_line_conflict(i);
         EXEC_OutString("\r\n");
     }
 
-    EXEC_OutInfo(" Size: >%u \r\n", _MEM_GET_SPLIT_MEM_USRSIZE(i-1));
+    EXEC_OutInfo(" Size: >%u \r\n", _mem_get_size_by_level(i-1));
     _mem_debug_show_line_conflict(i);
 
     return 0;
 }
 
-/* memory check */
+
 int MemDebug_Check(int argc, char **argv)
 {
     int ret;
     static MTIMER_S g_stMemMTimer;
 
-    /* 启动检查内存错误的定时器 */
+    
     ret = MTimer_Add(&g_stMemMTimer, 1000, TIMER_FLAG_CYCLE, _mem_check_mem, NULL);
     if (ret < 0) {
         BS_DBGASSERT(0);

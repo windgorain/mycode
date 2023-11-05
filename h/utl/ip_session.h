@@ -32,9 +32,9 @@ extern "C"
 #define IP_SESSION_S_POS(_ip_sess) (((_ip_sess)->client_index + 1) & 1)
 
 typedef struct {
-    IP_TUP_KEY_S key; /* 必须为第一个成员 */
+    IP_TUP_KEY_S key; 
     UINT key_hash;
-    UINT client_index:1; /* 指明key中的第0个还是第1个IP */
+    UINT client_index:1; 
     UINT state:4;
     VCLOCK_NODE_S vclock_timer;
 }IP_SESSION_S;
@@ -110,7 +110,7 @@ void IPSession_Destroy(IP_SESSION_CTRL_S *ctrl);
 int IPSession_CacheEnable(IP_SESSION_CTRL_S *ctrl);
 void IPSession_RegOb(IP_SESSION_CTRL_S *ctrl, OB_S *ob);
 void IPSession_UnregOb(IP_SESSION_CTRL_S *ctrl, OB_S *ob);
-/* 返回Client ip所占的index */
+
 int IPSession_KeyInit(IP_TUP_KEY_S *key, UCHAR family, UCHAR protocol,
         UINT *client_ip, UINT *server_ip, USHORT client_port, USHORT server_port, UINT vnet_id);
 void IPSession_SessInit(IP_SESSION_S *session, UCHAR family, UCHAR protocol,
@@ -130,4 +130,4 @@ void IPSession_SetState(IP_SESSION_CTRL_S *ctrl, IP_SESSION_S *session, int stat
 #ifdef __cplusplus
 }
 #endif
-#endif //IP_SESSION_H_
+#endif 

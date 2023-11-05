@@ -12,7 +12,7 @@
 
 typedef struct
 {
-    DLL_HEAD_S stKeyDataList;  /* _KD_NODE_S */
+    DLL_HEAD_S stKeyDataList;  
 }_KD_CTRL_S;
 
 typedef struct
@@ -215,7 +215,7 @@ BS_STATUS KD_SetKeyData(IN KD_HANDLE hKDHandle, IN CHAR *pcKey, IN LSTR_S *pstDa
     return eRet;
 }
 
-/* 相比KD_SetKeyData, 它不会为Data申请内存，而是直接将hHandle指针挂在LSTR里面,此时LSTR的uiLen字段为0 */
+
 BS_STATUS KD_SetKeyHandle(IN KD_HANDLE hKDHandle, IN CHAR *pcKey, IN HANDLE hHandle)
 {
     _KD_CTRL_S *pstCtrl;

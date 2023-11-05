@@ -14,7 +14,7 @@
 #include "utl/passwd_utl.h"
 #include <stdbool.h>
 
-/* funcs */
+
 #ifdef IN_WINDOWS
 static BOOL_T _OS_FILE_IsAbsolutePath(IN CHAR *pszPath)
 {
@@ -89,7 +89,7 @@ char * FILE_Dup2AbsPath(IN char *base_dir, IN char *path)
     return strdup(new_filename);
 }
 
-/* 从路径中获取文件名 */
+
 CHAR * FILE_GetFileNameFromPath(IN CHAR *pszPath)
 {
     UINT ulLen;
@@ -139,7 +139,7 @@ BS_STATUS FILE_GetFileNameWithOutExtFromPath(IN CHAR *pszPath, OUT LSTR_S *pstFi
     return BS_OK;
 }
 
-/* 从携带文件名的路径中,把路径取出来,路径以"/"结束 */
+
 VOID FILE_GetPathFromFilePath(IN CHAR *pszFilePath, OUT CHAR *szPath)
 {
     CHAR *pszFileName;
@@ -167,7 +167,7 @@ VOID FILE_GetPathFromFilePath(IN CHAR *pszFilePath, OUT CHAR *szPath)
     return;
 }
 
-/* 不包含. */
+
 CHAR * FILE_GetExternNameFromPath(IN CHAR *pszPath, IN UINT uiPathLen)
 {
     UINT ulLen = uiPathLen;
@@ -187,7 +187,7 @@ CHAR * FILE_GetExternNameFromPath(IN CHAR *pszPath, IN UINT uiPathLen)
     return NULL;
 }
 
-/* 抹去扩展名 */
+
 CHAR * FILE_EarseExternName(IN CHAR *pcFilePath)
 {
     CHAR *pcExtName;
@@ -199,7 +199,7 @@ CHAR * FILE_EarseExternName(IN CHAR *pcFilePath)
         return pcFilePath;
     }
 
-    pcExtName --; /* 移动到'.'的位置 */
+    pcExtName --; 
     *pcExtName = '\0';
 
     return pcFilePath;
@@ -223,14 +223,14 @@ CHAR * FILE_ChangeExternName(CHAR *file_name, CHAR *ext_name)
     return file_name;
 }
 
-/* 根据文件路径获取深度, 要求Unix体系的路径格式 */
+
 UINT FILE_GetPathDeep(IN CHAR *pcFilePath, IN UINT uiPathLen)
 {
     UINT uiDeep = 0;
     CHAR *pcEnd = pcFilePath + uiPathLen;
     CHAR *pcPtr = pcFilePath;
 
-    if (*pcPtr == '/') /* 根不做计数 */
+    if (*pcPtr == '/') 
     {
         pcPtr ++;
     }
@@ -248,24 +248,11 @@ UINT FILE_GetPathDeep(IN CHAR *pcFilePath, IN UINT uiPathLen)
     return uiDeep;
 }
 
-/***************************************************
- Description  : 判断文件是否存在
- Return       : 存在: TRUE
-                不存在: FALSE
-****************************************************/
+
 BOOL_T FILE_IsFileExist(IN CHAR *pcFilePath)
 {
 
-    /*
-        access函数的Mode参数:
-        06     检查读写权限
-        04     检查读权限
-        02     检查写权限
-        01     检查执行权限
-        00     检查文件的存在性
-
-        amode参数为0时表示检查文件的存在性，如果文件存在，返回0，不存在，返回-1
-    */
+    
     if (0 == access(pcFilePath, 0))
     {
         return TRUE;
@@ -274,25 +261,23 @@ BOOL_T FILE_IsFileExist(IN CHAR *pcFilePath)
     return FALSE;
 }
 
-/*****************************************************************************
-  判断一个指定路径的目录是否存在
-*****************************************************************************/
+
 BOOL_T FILE_IsDirExist(IN CHAR *pcDirName)
 {
-    /* 局部变量定义 */
+    
     struct stat stBuf;
     BOOL_T bRet;
     INT iRet;
 
     BS_DBGASSERT(NULL != pcDirName);
 
-    /* 以只读方式打开pcDirName指向的目录 */
+    
     iRet = stat(pcDirName, &stBuf);
     if (0 == iRet)
     {
         bRet = S_ISDIR(stBuf.st_mode);
     }
-    else /* 打开文件失败 */
+    else 
     {
         bRet = FALSE;
     }
@@ -301,13 +286,7 @@ BOOL_T FILE_IsDirExist(IN CHAR *pcDirName)
 }
 
 
-/***************************************************
- Description  : 判断给定路径是否目录
- Input        : pcPath: 路径
- Output       : None
- Return       : _HTTPD_PLUG_RET_E
- Caution      : None
-****************************************************/
+
 BOOL_T FILE_IsDir(IN CHAR *pcPath)
 {
     struct stat f_stat;
@@ -358,9 +337,9 @@ BS_STATUS FILE_GetSize(IN CHAR *pszFileName, OUT UINT64 *puiFileSize)
 BS_STATUS FILE_GetUtcTime
 (
     IN CHAR *pszFileName,
-    OUT time_t *pulCreateTime,   /* NULL表示不关心 */
-    OUT time_t *pulModifyTime,   /* NULL表示不关心 */
-    OUT time_t *pulAccessTime    /* NULL表示不关心 */
+    OUT time_t *pulCreateTime,   
+    OUT time_t *pulModifyTime,   
+    OUT time_t *pulAccessTime    
 )
 {
     struct stat f_stat; 
@@ -414,7 +393,7 @@ BS_STATUS FILE_SetUtcTime
     time_t ulNewAccessTime;
     time_t ulNewModifyTime;
 
-    /* 如果有不需要更改的,则现得到原来的信息,用于一会儿再设置回去. */
+    
     if ((eAccessTimeMode == FILE_TIME_MODE_NOTMODIFY) || (eModifyTimeMode == FILE_TIME_MODE_NOTMODIFY))
     {
         if ((eAccessTimeMode == FILE_TIME_MODE_NOTMODIFY) && (eModifyTimeMode == FILE_TIME_MODE_NOTMODIFY))
@@ -490,7 +469,7 @@ BS_STATUS FILE_SetUtcTime
     return BS_OK;
 }
 
-/* 创建目录, 如果已经存在, BS_ALREADY_EXIST*/
+
 BS_STATUS FILE_MakeDir(char *path)
 {
     int ret = mkdir(path, 0777);
@@ -503,7 +482,7 @@ BS_STATUS FILE_MakeDir(char *path)
     return ret;
 }
 
-/* 创建目录, 如果已经存在, 返回OK */
+
 BS_STATUS FILE_MakeDir2(char *path)
 {
     int ret = mkdir(path, 0777);
@@ -516,8 +495,8 @@ BS_STATUS FILE_MakeDir2(char *path)
     return ret;
 }
 
-/* 创建路径上的所有目录, 如果已经存在，则返回BS_ALREADY_EXIST */
-/* pszPath:  以'/'或'\\'结尾的一个路径, 如果不是,则自动忽略最后一个'/'或'\\'之后的字符 */
+
+
 BS_STATUS FILE_MakeDirs(IN CHAR *pszPath)
 {
     CHAR *pcSplit, *pszDir;
@@ -552,7 +531,7 @@ BS_STATUS FILE_MakeDirs(IN CHAR *pszPath)
     return BS_OK;
 }
 
-/* 创建路径上的所有目录, 如果已经存在，也返回OK */
+
 BS_STATUS FILE_MakePath(IN CHAR *pszPath)
 {
     CHAR *pcSplit, *pszDir;
@@ -667,7 +646,7 @@ BS_STATUS FILE_DelDir(IN CHAR *pszPath)
     return BS_OK;
 }
 
-/* 先创建文件所在目录路径，再打开文件 */
+
 FILE * FILE_Open(IN CHAR *pszFilePath, IN BOOL_T bIsCreateDirIfNotExist, IN CHAR *pszOpenMode)
 {
     CHAR szPath[FILE_MAX_PATH_LEN + 1];
@@ -769,19 +748,19 @@ BS_STATUS FILE_MoveTo(IN CHAR *pszSrcFileName, IN CHAR *pszDstFileName, IN BOOL_
 
     if (bOverWrite == TRUE)
     {
-        /* 保存备份 */
+        
         TXT_Strlcpy(szBakFileName, pszDstFileName, sizeof(szBakFileName));
         TXT_Strlcat(szBakFileName, ".cnjia1", sizeof(szBakFileName));
         FILE_DelFile(szBakFileName);
         rename(pszDstFileName, szBakFileName);
     }
 
-    /* 移动文件 */
+    
     if (0 != rename(pszSrcFileName, pszDstFileName))
     {
         if (bOverWrite == TRUE)
         {
-            /* 失败,恢复原来的文件 */
+            
             rename(szBakFileName, pszDstFileName);
         }
 
@@ -801,7 +780,7 @@ VOID FILE_WriteStr(IN FILE *fp, IN CHAR *pszString)
     fwrite(pszString, 1, strlen(pszString), fp);
 }
 
-/* 读取文件内容放到内存中. 调用者需要释放内存 */
+
 FILE_MEM_S * FILE_Mem(IN CHAR *pszFilePath)
 {
     UCHAR *pucFileContext;
@@ -868,7 +847,7 @@ VOID FILE_MemFree(IN FILE_MEM_S *pstMemMap)
     }
 }
 
-/* 将文件内容拷贝到指定缓冲区. 返回实际copy长度,出错返回 <0 */
+
 int FILE_MemTo(IN CHAR *pszFilePath, OUT void *buf, int buf_size)
 {
     FILE *fp;
@@ -898,12 +877,12 @@ int FILE_MemTo(IN CHAR *pszFilePath, OUT void *buf, int buf_size)
 
 typedef struct
 {
-    CHAR szUserScanDir[FILE_MAX_PATH_LEN + 1];    /* 用户要扫描的目录 */
-    CHAR *pcPattern; /* NULL表示所有文件类型 */
+    CHAR szUserScanDir[FILE_MAX_PATH_LEN + 1];    
+    CHAR *pcPattern; 
     PF_ScanFile_Output pfOutput;
     VOID *pUserData;
-    CHAR szCurrentScanDir[FILE_MAX_PATH_LEN + 1]; /* 当前正在扫描的目录, 相对于UserScanDir的相对路径 */
-    CHAR szScanPattern[FILE_MAX_PATH_LEN + 1]; /* 当前正在扫描的目录, 包含UserScanDir, 包含模式 */
+    CHAR szCurrentScanDir[FILE_MAX_PATH_LEN + 1]; 
+    CHAR szScanPattern[FILE_MAX_PATH_LEN + 1]; 
 }FILE_SCANFILE_S;
 
 static VOID file_ScanFile(IN FILE_SCANFILE_S *pstScanFile)
@@ -961,7 +940,7 @@ static VOID file_ScanFile(IN FILE_SCANFILE_S *pstScanFile)
 VOID FILE_ScanFile
 (
     IN CHAR *pcScanDir,
-    IN CHAR *pcPattern, /* NULL表示所有文件类型 */
+    IN CHAR *pcPattern, 
     IN PF_ScanFile_Output pfOutput,
     IN VOID *pUserData
 )
@@ -998,9 +977,7 @@ VOID FILE_ScanFile
     return;
 }
 
-/* 返回line以\0结尾
-   返回应该读取多长,当ret >= size时表示了截断,且下次读取下一行,这和fgets是有区别的
-   返回<=0则表示结束 */
+
 int FILE_ReadLine(FILE *fp, char *line, int size, char end_char)
 {
     char *tmp = line;

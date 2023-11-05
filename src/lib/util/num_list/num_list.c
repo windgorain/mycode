@@ -28,7 +28,7 @@ VOID NumList_Finit(IN NUM_LIST_S *pstList)
     }
 }
 
-/* 解析: min-max格式 */
+
 int NumList_ParseElement(LSTR_S *lstr, OUT UINT *min, OUT UINT *max)
 {
     LSTR_S stBegin;
@@ -92,7 +92,7 @@ BS_STATUS NumList_AddRange(IN NUM_LIST_S *pstList, INT64 iBegin, INT64 iEnd)
     return BS_OK;
 }
 
-/* 删除一个Range, 只查找完全匹配的第一个节点删除 */
+
 BS_STATUS NumList_DelRange(IN NUM_LIST_S *pstList, INT64 iBegin, INT64 iEnd)
 {
     NUM_LIST_NODE_S *pstNode = NumList_FindRange(pstList, iBegin, iEnd);
@@ -110,7 +110,7 @@ void NumList_DelNode(IN NUM_LIST_S *pstList, IN NUM_LIST_NODE_S *node)
     MEM_Free(node);
 }
 
-/* 查找一个Range, 只查找完全匹配的第一个节点 */
+
 NUM_LIST_NODE_S * NumList_FindRange(IN NUM_LIST_S *pstList, INT64 begin, INT64 end)
 {
     NUM_LIST_NODE_S *pstNode;
@@ -146,7 +146,7 @@ BS_STATUS NumList_ParseStr(IN NUM_LIST_S *pstList, IN char *str)
     return NumList_ParseLstr(pstList, &lstr);
 }
 
-/* 将两个List串成一个 */
+
 VOID NumList_Cat(INOUT NUM_LIST_S *pstListDst, INOUT NUM_LIST_S *pstListSrc)
 {
     DLL_Cat(&pstListDst->stList, &pstListSrc->stList);
@@ -180,21 +180,21 @@ static INT _numlist_Cmp(IN DLL_NODE_S *pstDllNode1, IN DLL_NODE_S *pstDllNode2, 
     return 0;
 }
 
-/* 对数字进行排序 */
+
 VOID NumList_Sort(IN NUM_LIST_S *pstList)
 {
     DLL_Sort(&pstList->stList, _numlist_Cmp, 0);
 }
 
-/* 将有重叠部分消除 */
+
 VOID NumList_Compress(IN NUM_LIST_S *pstList)
 {
     NUM_LIST_NODE_S *pstNode, *pstNodeNext;
     
-    /* 1. 进行排序 */
+    
     NumList_Sort(pstList);
 
-    /* 2. 进行消重 */
+    
     pstNode = DLL_FIRST(&pstList->stList);
 
     if (NULL == pstNode)
@@ -212,7 +212,7 @@ VOID NumList_Compress(IN NUM_LIST_S *pstList)
 
         if (pstNodeNext->iNumEnd <= pstNode->iNumEnd)
         {
-            /* 前一个节点完全包含后面一个节点, 删除此节点 */
+            
             DLL_DEL(&pstList->stList, pstNodeNext);
             MEM_Free(pstNodeNext);
             continue;
@@ -229,15 +229,15 @@ VOID NumList_Compress(IN NUM_LIST_S *pstList)
     return;
 }
 
-/* 将可以连续的部分进行连续化 */
+
 VOID NumList_Continue(IN NUM_LIST_S *pstList)
 {
     NUM_LIST_NODE_S *pstNode, *pstNodeNext;
 
-    /* 先进性排序和消重 */
+    
     NumList_Compress(pstList);
 
-    /* 2. 进行连续化 */
+    
     pstNode = DLL_FIRST(&pstList->stList);
 
     if (NULL == pstNode)
@@ -267,7 +267,7 @@ VOID NumList_Continue(IN NUM_LIST_S *pstList)
     return;
 }
 
-/* 判断一个数字是否在List 内 */
+
 BOOL_T NumList_IsNumInTheList(IN NUM_LIST_S *pstList, IN INT iNum)
 {
     INT64 iStart, iEnd;

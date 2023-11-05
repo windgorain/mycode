@@ -38,33 +38,27 @@ static MYBPF_HOOKPOINT_NODE_S * _mybpf_hookpoint_detach(DLL_HEAD_S *list, void *
     return NULL;
 }
 
-int MYBPF_HookPointAttach(MYBPF_RUNTIME_S *runtime, DLL_HEAD_S *list, int fd)
+int MYBPF_HookPointAttach(MYBPF_RUNTIME_S *runtime, DLL_HEAD_S *list, MYBPF_PROG_NODE_S *prog)
 {
     MYBPF_HOOKPOINT_NODE_S *node;
 
-    UFD_IncRef(runtime->ufd_ctx, fd);
-
     node = MEM_RcuZMalloc(sizeof(MYBPF_HOOKPOINT_NODE_S));
     if (! node) {
-        UFD_DecRef(runtime->ufd_ctx, fd);
         RETURN(BS_NO_MEMORY);
     }
 
-    node->prog = MYBPF_PROG_GetByFD(runtime, fd);
+    node->prog = prog;
 
     DLL_ADD_RCU(list, &node->link_node);
 
     return 0;
 }
 
-void MYBPF_HookPointDetach(MYBPF_RUNTIME_S *runtime, DLL_HEAD_S *list, int fd)
+void MYBPF_HookPointDetach(MYBPF_RUNTIME_S *runtime, DLL_HEAD_S *list, MYBPF_PROG_NODE_S *prog)
 {
-    void *prog = MYBPF_PROG_GetByFD(runtime, fd);
     MYBPF_HOOKPOINT_NODE_S * node = _mybpf_hookpoint_detach(list, prog);
-
     if (node) {
         MEM_RcuFree(node);
-        UFD_DecRef(runtime->ufd_ctx, fd);
     }
 }
 

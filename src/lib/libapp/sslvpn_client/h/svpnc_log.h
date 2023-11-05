@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS SVPNC_Log_Init();
 VOID SVPNC_Log(IN CHAR *pszLogFmt, ...);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPNC_LOG_H_*/
+#endif 
 
 

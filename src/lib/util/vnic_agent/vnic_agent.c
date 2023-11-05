@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_VNICAGENT
 
 
@@ -15,9 +15,9 @@
 #include "utl/msgque_utl.h"
 
 #define _VNIC_AGENT_QUIT_EVENT          0x1
-#define _VNIC_AGENT_SEND_DATA_EVENT     0x2  /* 发送数据 */
+#define _VNIC_AGENT_SEND_DATA_EVENT     0x2  
 
-/* 消息类型 */
+
 #define _VNIC_AGENT_WRITE_MSG   1
 
 #define _VNIC_AGENT_RESERVED_MBUF_HEAD_SPACE 300
@@ -352,7 +352,7 @@ VOID VNIC_Agent_Stop(IN VNIC_AGENT_HANDLE hVnicAgent)
         }
     }
 
-    /* 等待目标线程退出 */
+    
     while ((pstVnicAgentCtrl->ulVnicAgentReaderTID != 0)
         || (pstVnicAgentCtrl->ulVnicAgentWriterTID != 0))
     {

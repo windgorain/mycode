@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-    /* retcode所需要的宏 */
+    
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_TB
 
 
@@ -37,7 +37,7 @@ typedef struct
 typedef struct
 {
     CHAR szTbName[TB_MAX_NAME_LEN+1];
-    DLL_HEAD_S stRowListHead;   /* _TB_NODE_S */
+    DLL_HEAD_S stRowListHead;   
     
     UINT ulKeyNum;
     UINT ulColNum;
@@ -197,7 +197,7 @@ static BS_STATUS _TB_AddRowWithOutCheck(IN _TB_HEAD_S *pstTbHead, IN _TB_KEY_S *
     {
         switch (pstTbHead->aeType[i])
         {
-        case TB_TYPE_UNKNOWN:   /* 当作UINT32 */
+        case TB_TYPE_UNKNOWN:   
 		case TB_TYPE_MEM:
         case TB_TYPE_UINT32:
             pstNode->stContent[j].pContent = (VOID*)pstKey->ahKey[i];

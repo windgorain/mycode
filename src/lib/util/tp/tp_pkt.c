@@ -13,16 +13,16 @@
 
 #define _TP_PKT_RESERVED_MBUF_LEN 200
 
-#define _TP_PKT_RESEND_INTVAL 5    /* 报文重发间隔 */
-#define _TP_PKT_MAX_RESEND_COUNT 5 /* 报文重试次数 */
+#define _TP_PKT_RESEND_INTVAL 5    
+#define _TP_PKT_MAX_RESEND_COUNT 5 
 
-/* pkt flag */
-#define _TP_PKT_FLAG_DATA 0x1   /* 是否数据报文. 占用SN */
-#define _TP_PKT_FLAG_SYN 0x2    /* 占用SN */
-#define _TP_PKT_FLAG_ACK 0x4    /* 不占SN */
-#define _TP_PKT_FLAG_KEEP_ALIVE 0x8 /* 不占SN */
-#define _TP_PKT_FLAG_FIN 0x10   /* 占用SN */
-#define _TP_PKT_FLAG_RST 0x20   /* 不占SN */
+
+#define _TP_PKT_FLAG_DATA 0x1   
+#define _TP_PKT_FLAG_SYN 0x2    
+#define _TP_PKT_FLAG_ACK 0x4    
+#define _TP_PKT_FLAG_KEEP_ALIVE 0x8 
+#define _TP_PKT_FLAG_FIN 0x10   
+#define _TP_PKT_FLAG_RST 0x20   
 
 #define _TP_PKT_FLAG_STRING_LEN 32
 
@@ -202,7 +202,7 @@ static VOID tp_pkt_FillPktHeader
 
 static inline MBUF_S * tp_pkt_BuildPkt
 (
-    IN _TP_PKT_HEAD_S *pstPktHead   /* 里面各个字段都是网络序 */
+    IN _TP_PKT_HEAD_S *pstPktHead   
 )
 {
     return MBUF_CreateByCopyBuf(_TP_PKT_RESERVED_MBUF_LEN, (UCHAR*)pstPktHead, sizeof(_TP_PKT_HEAD_S), 0);
@@ -221,11 +221,7 @@ static MBUF_S * tp_pkt_BuildProtocolPkt
     return tp_pkt_BuildPkt(&stPkt);
 }
 
-/*
-  判断报文是否占用了一个SN
-  占用SN的报文:
-    数据报文/SYN/FIN
-*/
+
 static inline BOOL_T tp_pkt_IsPktTakeSn(IN UINT uiPktFlag)
 {
     if (uiPktFlag & (_TP_PKT_FLAG_DATA | _TP_PKT_FLAG_SYN | _TP_PKT_FLAG_FIN))
@@ -534,7 +530,7 @@ static BS_STATUS tp_pkt_RstInput
     return BS_OK;
 }
 
-/* 握手过程中的第一个ack */
+
 static BS_STATUS tp_pkt_Ack1Input
 (
     IN _TP_CTRL_S *pstCtrl,
@@ -560,7 +556,7 @@ static BS_STATUS tp_pkt_Ack1Input
     return BS_OK;
 }
 
-/* 握手过程中的第2个ack */
+
 static BS_STATUS tp_pkt_Ack2Input
 (
     IN _TP_CTRL_S *pstCtrl,

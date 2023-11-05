@@ -32,7 +32,7 @@
 #include "fakecert_acl.h"
 #include "fakecert_log.h"
 
-#define _FAKECERT_SERVICE_NODE_TIMEOUT_TIME 5 /*5s*/
+#define _FAKECERT_SERVICE_NODE_TIMEOUT_TIME 5 
 #define CA_FILE "./ca/all.pem"
 
 #define VERIFY_CERT_FLAG            0x0001
@@ -45,15 +45,15 @@
 #define IS_UNTRUSTED_CERT(flag)     (flag & CERT_TYPE_UNTRUSTED)
 
 typedef struct {
-    DLL_NODE_S linknode; /* must the first */
+    DLL_NODE_S linknode; 
 
     time_t create_time;
     char buf[256];
     void *ssl;
     cJSON *json;
     char *hostname;
-    unsigned short port; /* 主机序 */
-    unsigned short flag; /*flag used to */
+    unsigned short port; 
+    unsigned short flag; 
     int upfd;
     int downfd;
     UINT ip;
@@ -81,7 +81,7 @@ int fakecert_service_conf_init(IN CFF_HANDLE hCff)
 }
 
 #ifdef IN_LINUX
-static BS_WALK_RET_E _fakecert_service_timeout(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int _fakecert_service_timeout(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     char buf[128];
     FAKECERT_SERVICE_NODE_S *node, *nodetmp;
@@ -102,7 +102,7 @@ static BS_WALK_RET_E _fakecert_service_timeout(IN INT iSocketId, IN UINT uiEvent
         }
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 #endif
 
@@ -341,7 +341,7 @@ static void _fakecert_service_up_done(FAKECERT_SERVICE_NODE_S *node)
     Socket_Write(node->downfd, data, strlen(data), 0);
 }
 
-static BS_WALK_RET_E _fakecert_service_up_event(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int _fakecert_service_up_event(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     FAKECERT_SERVICE_NODE_S *node = pstUserHandle->ahUserHandle[0];
     int iRet;
@@ -349,7 +349,7 @@ static BS_WALK_RET_E _fakecert_service_up_event(IN INT iSocketId, IN UINT uiEven
     if(uiEvent & MYPOLL_EVENT_ERR) {
         FAKECERT_LOG_EVENT(("Connection %s tcp error\r\n", node->hostname));
         _fakecert_service_free_node(node);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     iRet = SSL_UTL_Connect(node->ssl);
@@ -374,7 +374,7 @@ static BS_WALK_RET_E _fakecert_service_up_event(IN INT iSocketId, IN UINT uiEven
             break;
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 int verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
@@ -516,7 +516,7 @@ static void _fakecert_service_process_request(FAKECERT_SERVICE_NODE_S *node, cha
     return;
 }
 
-static BS_WALK_RET_E _fakecert_service_down_event(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int _fakecert_service_down_event(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     int len;
     int have_len;
@@ -524,7 +524,7 @@ static BS_WALK_RET_E _fakecert_service_down_event(IN INT iSocketId, IN UINT uiEv
 
     if (uiEvent & MYPOLL_EVENT_ERR) {
         _fakecert_service_free_node(node);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     if (uiEvent & MYPOLL_EVENT_IN) {
@@ -534,7 +534,7 @@ static BS_WALK_RET_E _fakecert_service_down_event(IN INT iSocketId, IN UINT uiEv
             if (len != SOCKET_E_AGAIN) {
                 _fakecert_service_free_node(node);
             }
-            return BS_WALK_CONTINUE;
+            return 0;
         }
 
         node->buf[have_len + len] = 0;
@@ -545,10 +545,10 @@ static BS_WALK_RET_E _fakecert_service_down_event(IN INT iSocketId, IN UINT uiEv
         }
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-static BS_WALK_RET_E _fakecert_service_Accept(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int _fakecert_service_Accept(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     int socketid;
     FAKECERT_SERVICE_NODE_S *node;
@@ -556,13 +556,13 @@ static BS_WALK_RET_E _fakecert_service_Accept(IN INT iSocketId, IN UINT uiEvent,
 
     socketid = Socket_Accept(iSocketId, NULL, NULL);
     if (socketid < 0) {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     node = _fakecert_service_alloc_node();
     if (node == NULL) {
         Socket_Close(socketid);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     node->downfd = socketid;
@@ -570,7 +570,7 @@ static BS_WALK_RET_E _fakecert_service_Accept(IN INT iSocketId, IN UINT uiEvent,
 
     MyPoll_SetEvent(g_fakecert_service_poller, socketid, MYPOLL_EVENT_IN, _fakecert_service_down_event, &user_handle);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 #ifdef IN_UNIXLIKE
@@ -644,7 +644,7 @@ int fakecert_service_open_tcp(unsigned short port)
     Socket_SetNoBlock(listenfd, 1);
 
     memset(&address, 0, sizeof(struct sockaddr));
-    /* Clear structure */
+    
     address.sin_family = AF_INET; 
     address.sin_addr.s_addr = INADDR_ANY; 
     address.sin_port = htons(port);

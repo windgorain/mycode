@@ -35,8 +35,8 @@ VOID VNETS_Protocol_NoDebugAll();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_PROTOCOL_H_*/
+#endif 
 
 

@@ -16,11 +16,11 @@
 
 #define _SES_PKT_RESERVED_MBUF_LEN 200
 
-#define _SES_DFT_PKT_RESEND_TICK 5  /* 多少个Tick之后重发报文 */
-#define _SES_DFT_PKT_RESEND_COUNT_MAX 3 /* 重发多少次之后,认为失败了 */
-#define _SES_DFT_KEEPALIVE_IDLE   300 /* 5 min */
-#define _SES_DFT_KEEPALIVE_INTVAL 3   /* 5 s */
-#define _SES_DFT_KEEPALIVE_MAX_TRYS 3 /* 多少个KeepAlive探测失败后老化 */
+#define _SES_DFT_PKT_RESEND_TICK 5  
+#define _SES_DFT_PKT_RESEND_COUNT_MAX 3 
+#define _SES_DFT_KEEPALIVE_IDLE   300 
+#define _SES_DFT_KEEPALIVE_INTVAL 3   
+#define _SES_DFT_KEEPALIVE_MAX_TRYS 3 
 
 typedef struct
 {
@@ -33,12 +33,12 @@ typedef struct
     VCLOCK_INSTANCE_HANDLE hVClockInstance;
     PF_SES_RECV_PKT pfRecvPktFunc;
     PF_SES_SEND_PKT pfSendPktFunc;
-    PF_SES_DFT_EVENT_NOTIFY pfEventNotify;  /* 缺省事件通知函数 */
+    PF_SES_DFT_EVENT_NOTIFY pfEventNotify;  
     DLL_HEAD_S stCloseNotifyList;
     SES_OPT_KEEP_ALIVE_TIME_S stDftKeepAlive;
 }_SES_CTRL_S;
 
-#define _SES_NODE_FLAG_IS_CONNECTER 0x1 /* 是否主动发起者 */
+#define _SES_NODE_FLAG_IS_CONNECTER 0x1 
 
 typedef struct
 {
@@ -46,14 +46,14 @@ typedef struct
     UINT uiFlag;
     UINT uiLocalSesID;
     UINT uiPeerSesID;
-    UINT uiCookie;        /* 用于避免误认SES而弄得一个标记 */
-    MBUF_S *pstSendMbuf;  /* 发送缓冲区 */
-    USHORT usResendCount;   /* 重发了多少次了 */
-    USHORT usKeepAliveTrysCount; /* 已经连续多少次进行KeepAlive探测了 */
-    VCLOCK_HANDLE hResendTimer;    /* 报文重发定时器 */
-    HANDLE *phPropertys; /* 指向Propertys */
-    VOID *pUserContext; /* 指向UserContext */
-    PF_SES_EVENT_NOTIFY pfEventNotify; /* SES连接的事件通知函数，优先级高于缺省的事件通知函数 */
+    UINT uiCookie;        
+    MBUF_S *pstSendMbuf;  
+    USHORT usResendCount;   
+    USHORT usKeepAliveTrysCount; 
+    VCLOCK_HANDLE hResendTimer;    
+    HANDLE *phPropertys; 
+    VOID *pUserContext; 
+    PF_SES_EVENT_NOTIFY pfEventNotify; 
     USER_HANDLE_S stEventNotifyUserHandle;
     KA_S stKeepAliveOpt;
 }_SES_NODE_S;
@@ -65,7 +65,7 @@ typedef struct
     USER_HANDLE_S stUserHandle;
 }_SES_CLOSE_NOTIFY_S;
 
-#define _SES_PKT_FLAG_DATA      0x1  /* 数据报文,非协议报文 */
+#define _SES_PKT_FLAG_DATA      0x1  
 #define _SES_PKT_FLAG_SYN       0x2
 #define _SES_PKT_FLAG_ACK       0x4
 #define _SES_PKT_FLAG_RST       0x8
@@ -146,7 +146,7 @@ static VOID ses_FillPktHeader
 
 static inline MBUF_S * ses_BuildPkt
 (
-    IN _SES_PKT_HEAD_S *pstPktHead   /* 里面各个字段都是网络序 */
+    IN _SES_PKT_HEAD_S *pstPktHead   
 )
 {
     return MBUF_CreateByCopyBuf(_SES_PKT_RESERVED_MBUF_LEN, (UCHAR*)pstPktHead, sizeof(_SES_PKT_HEAD_S), 0);
@@ -232,7 +232,7 @@ static inline VOID ses_StopResenderTimer
 
 static inline VOID ses_StopTimer(IN _SES_CTRL_S *pstCtrl, IN _SES_NODE_S *pstSesNode)
 {
-    /* 停止重发/老化/keepalive定时器 */
+    
     if (pstSesNode->hResendTimer != NULL)
     {
         VCLOCK_DestroyTimer(pstCtrl->hVClockInstance, pstSesNode->hResendTimer);
@@ -633,7 +633,7 @@ static BS_STATUS ses_Ack1Input
     return BS_OK;
 }
 
-/* 握手过程中的第2个ack */
+
 static BS_STATUS ses_Ack2Input
 (
     IN _SES_CTRL_S *pstCtrl,
@@ -651,7 +651,7 @@ static BS_STATUS ses_Ack2Input
     return BS_OK;
 }
 
-/* 其他ACK */
+
 static BS_STATUS sesAckInput
 (
     IN _SES_CTRL_S *pstCtrl,
@@ -904,7 +904,7 @@ BS_STATUS SES_RegCloseNotifyEvent
     return BS_OK;
 }
 
-/* 创建Client Session, 返回SesID */
+
 UINT SES_CreateClient(IN SES_HANDLE hSesHandle, IN VOID *pContext)
 {
     _SES_CTRL_S *pstCtrl = hSesHandle;
@@ -941,7 +941,7 @@ SES_TYPE_E SES_GetType(IN SES_HANDLE hSesHandle, IN UINT uiSesID)
     return SES_TYPE_APPECTER;
 }
 
-/* 设置这个SESID的Event事件通知函数. */
+
 BS_STATUS SES_SetEventNotify
 (
     IN SES_HANDLE hSesHandle,
@@ -1261,10 +1261,8 @@ VOID SES_Walk(IN SES_HANDLE hSesHandle, IN PF_SES_WALK_FUNC pfFunc, IN HANDLE hU
     _SES_CTRL_S *pstCtrl = hSesHandle;
     UINT uiIndex = 0;
 
-    while ((uiIndex = NAP_GetNextIndex(pstCtrl->hNap, uiIndex)) != 0)
-    {
-        if (BS_WALK_STOP == pfFunc((UINT)NAP_GetIDByNode(pstCtrl->hNap, NAP_GetNodeByIndex(pstCtrl->hNap, uiIndex)), hUserHandle))
-        {
+    while ((uiIndex = NAP_GetNextIndex(pstCtrl->hNap, uiIndex)) != 0) {
+        if (pfFunc((UINT)NAP_GetIDByNode(pstCtrl->hNap, NAP_GetNodeByIndex(pstCtrl->hNap, uiIndex)), hUserHandle) < 0) {
             break;
         }
     }

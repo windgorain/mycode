@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WAN_BlackHole_Init();
 UINT WAN_BlackHole_GetIfIndex();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_BLACKHOLE_H_*/
+#endif 
 
 

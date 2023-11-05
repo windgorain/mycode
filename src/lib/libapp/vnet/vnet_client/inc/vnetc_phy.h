@@ -16,8 +16,8 @@ typedef enum
 
 typedef struct
 {
-    UINT uiPeerIp;     /* 利大會 */
-    USHORT usPeerPort; /* 利大會 */
+    UINT uiPeerIp;     
+    USHORT usPeerPort; 
 }VNETC_UDP_PHY_CONTEXT_S;
 
 typedef union
@@ -34,7 +34,7 @@ typedef struct
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_PHY_H_*/
+#endif 
 

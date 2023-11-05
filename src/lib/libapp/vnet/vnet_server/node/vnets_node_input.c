@@ -45,7 +45,7 @@ static BS_STATUS vnets_nodeinput_ReplyOffline(IN MBUF_S *pstMbuf)
 {
     BS_STATUS eRet;
 
-    /* 回应重新认证应答 */
+    
     eRet = VNETS_NodeCtrl_ReplyOffline(VNETS_Context_GetRecvSesID(pstMbuf));
     MBUF_Free(pstMbuf);
 
@@ -62,7 +62,7 @@ static BS_STATUS vnets_node_DeliverUp(IN UINT uiSrcNodeID, IN MBUF_S *pstMbuf)
 
     if (g_apfVnetsNodeProtoTbl[usProto].uiFlag & _VNETS_NODE_INPUT_FLAG_ONLINE)
     {
-        /* 检查是否在线 */
+        
         if (FALSE == VNETS_Context_CheckFlag(pstMbuf, VNETS_CONTEXT_FLAG_ONLINE))
         {
             return vnets_nodeinput_ReplyOffline(pstMbuf);
@@ -118,7 +118,7 @@ BS_STATUS VNETS_NodeInput(IN MBUF_S *pstMbuf)
     VNETS_Context_SetSrcNodeID(pstMbuf, uiSrcNodeID);
     VNETS_Context_SetDstNodeID(pstMbuf, uiDstNodeID);
 
-    /* 检查是否在线 */
+    
     if (vnets_node_CheckOnline(uiSrcNodeID, uiCookie) == TRUE)
     {
         VNETS_Context_SetFlagBit(pstMbuf, VNETS_CONTEXT_FLAG_ONLINE);
@@ -140,7 +140,7 @@ BS_STATUS VNETS_NodeInput(IN MBUF_S *pstMbuf)
     }
     else
     {
-        /* 没有指定目的地址, 则会进行广播,也要上送一份 */
+        
         if (uiDstNodeID == 0)
         {
             pstMbufNew = MBUF_RawCopy(pstMbuf, 0, MBUF_TOTAL_DATA_LEN(pstMbuf), MBUF_DFT_RESERVED_HEAD_SPACE);
@@ -150,7 +150,7 @@ BS_STATUS VNETS_NodeInput(IN MBUF_S *pstMbuf)
             }
         }
 
-        /* 检查是否在线 */
+        
         if (FALSE == VNETS_Context_CheckFlag(pstMbuf, VNETS_CONTEXT_FLAG_ONLINE))
         {
             return vnets_nodeinput_ReplyOffline(pstMbuf);
@@ -163,13 +163,13 @@ BS_STATUS VNETS_NodeInput(IN MBUF_S *pstMbuf)
 }
 
 
-/* debug node packet input */
+
 PLUG_API VOID VNETS_NodeInput_DebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetSNodeInputDebugFlag |= _VNETS_NODE_INPUT_DBG_PACKET;
 }
 
-/* no debug node packet input */
+
 PLUG_API VOID VNETS_NodeInput_NoDebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetSNodeInputDebugFlag &= ~_VNETS_NODE_INPUT_DBG_PACKET;

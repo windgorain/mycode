@@ -12,23 +12,23 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WAN_IpFwd_Input (IN MBUF_S *pstMbuf);
 BS_STATUS WAN_IpFwd_Output
 (
     IN MBUF_S *pstMbuf,
-    IN UINT uiDstIp,    /* 网络序 */
-    IN UINT uiSrcIp,    /* 网络序 */
+    IN UINT uiDstIp,    
+    IN UINT uiSrcIp,    
     IN UCHAR ucProto
 );
-/* 相比于OutPut, 不再填写IP头的东西,认为上面已经填写好了 */
+
 BS_STATUS WAN_IpFwd_Send(IN MBUF_S *pstMbuf);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_IPFWD_H_*/
+#endif 
 
 

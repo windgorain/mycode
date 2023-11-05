@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_SUNDAY
 
 #include "bs.h"
@@ -25,7 +25,7 @@ VOID Sunday_ComplexPatt(IN UCHAR *pucPatt, IN UINT ulPattLen, OUT SUNDAY_SKIP_TA
 
     for (i=0; i<ulPattLen; i++)
     {
-        pstSkipTb->aulSundaySkipTable[pucPatt[i]] = ulPattLen - i;     /* 表示需要向后移动的字节数 */
+        pstSkipTb->aulSundaySkipTable[pucPatt[i]] = ulPattLen - i;     
     }
 }
 
@@ -65,7 +65,7 @@ UCHAR * Sunday_SearchFast
             }
         }
         
-        if (p == pucPattEnd)   /* 找到了 */
+        if (p == pucPattEnd)   
         {
             return (UCHAR*)tx;
         }

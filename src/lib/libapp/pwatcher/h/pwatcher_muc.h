@@ -21,4 +21,4 @@ PWATCHER_MUC_S * PWatcherMuc_Get(int muc_id);
 #ifdef __cplusplus
 }
 #endif
-#endif //PWATCHER_MUC_H_
+#endif 

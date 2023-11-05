@@ -5,7 +5,7 @@
 * History:     
 ******************************************************************************/
 
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_PROCESS
 
 #include "bs.h"

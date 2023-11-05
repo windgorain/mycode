@@ -57,15 +57,15 @@ typedef struct _IP_ADAPTER_ADDRESSES
 
 typedef struct _MIB_IPFORWARDROW
 {
-    DWORD dwForwardDest;        /* IP address of the destination host */
-    DWORD dwForwardMask;        /* Subnet mask of the destination host */
-    DWORD dwForwardPolicy;      /* The set of conditions that would cause the selection of a multi-path route. This member is typically in IP TOS format. For more information, see RFC 1354 */
-    DWORD dwForwardNextHop;     /* The IP address of the next hop in the route.*/
-    DWORD dwForwardIfIndex;     /* The index of the interface for this route. */
-    DWORD dwForwardType;        /* The route type as defined in RFC 1354.  */
-    DWORD dwForwardProto;       /* The protocol that generated the route.  */
-    DWORD dwForwardAge;         /* The age of the route in seconds.  */
-    DWORD dwForwardNextHopAS;   /* The autonomous system number of the next hop.  */
+    DWORD dwForwardDest;        
+    DWORD dwForwardMask;        
+    DWORD dwForwardPolicy;      
+    DWORD dwForwardNextHop;     
+    DWORD dwForwardIfIndex;     
+    DWORD dwForwardType;        
+    DWORD dwForwardProto;       
+    DWORD dwForwardAge;         
+    DWORD dwForwardNextHopAS;   
     DWORD dwForwardMetric1;
     DWORD dwForwardMetric2; 
     DWORD dwForwardMetric3;
@@ -115,11 +115,7 @@ BOOL
     DWORD_PTR dwContext
     );
 
-/*
- * Pointer to a user APC function. This is used as a parameter to the
- * WPUQueueUserApc() upcall. Note that this function's signature is not
- * identical to an application's completion routine.
- */
+
 
 typedef
 VOID
@@ -127,9 +123,7 @@ VOID
     DWORD_PTR dwContext
     );
 
-/*
- * Pointers to the individual entries in a service provider's proc table.
- */
+
 
 typedef
 __checkReturn
@@ -449,10 +443,7 @@ INT
     __out LPINT lpErrno
     );
 
-/*
- * A service provider proc table. This structure is returned by value
- * from the service provider's WSPStartup() entrypoint.
- */
+
 
 typedef struct _WSPPROC_TABLE {
 
@@ -489,9 +480,7 @@ typedef struct _WSPPROC_TABLE {
 
 } WSPPROC_TABLE, FAR * LPWSPPROC_TABLE;
 
-/*
- * Pointers to the individual entries in the upcall table.
- */
+
 
 typedef
 BOOL
@@ -610,7 +599,7 @@ int
     );
 
 
-// Available only directly from ws2_32.dll
+
 typedef
 int
 (WSPAPI * LPWPUCOMPLETEOVERLAPPEDREQUEST) (

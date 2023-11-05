@@ -12,10 +12,10 @@
 
 static TRIE_HANDLE g_fakecert_dnsnames_trie;
 
-static BS_WALK_RET_E _fakecert_dnsnames_foreach_cb(ASN1_STRING *alt_name, void *user_data)
+static int _fakecert_dnsnames_foreach_cb(ASN1_STRING *alt_name, void *user_data)
 {
     DnsNameTrie_Insert(g_fakecert_dnsnames_trie, (void*)alt_name->data, strlen((void*)alt_name->data), user_data);
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static void _fakecert_dnsname_process_file(IN char *filename)
@@ -37,7 +37,7 @@ static void _fakecert_dnsname_process_file(IN char *filename)
     return;
 }
 
-/* 遍历可信证书库加载所有证书的dnsname */
+
 static void _fakecert_dnsname_cert_dir_init()
 {
     char *filename;
@@ -53,7 +53,7 @@ void fakecert_dnsnames_init()
     _fakecert_dnsname_cert_dir_init();
 }
 
-/* 返回存储证书名指针 */
+
 char * fakecert_dnsnames_add(X509 *cert, char *certname)
 {
     char *certname_new = strdup(certname);

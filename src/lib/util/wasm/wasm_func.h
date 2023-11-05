@@ -21,4 +21,4 @@ VOID_FUNC setup_thunk_in(uint32_t fidx);
 #ifdef __cplusplus
 }
 #endif
-#endif //WASM_FUNC_H_
+#endif 

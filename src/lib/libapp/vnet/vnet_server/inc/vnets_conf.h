@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 VOID VNETS_SetHostMac(IN MAC_ADDR_S *pstMac);
@@ -19,8 +19,8 @@ BOOL_T VNETS_IsHostMac(IN MAC_ADDR_S *pstMac);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_CONF_H_*/
+#endif 
 
 

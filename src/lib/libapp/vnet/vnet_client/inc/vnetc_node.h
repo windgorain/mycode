@@ -14,30 +14,30 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define VNETC_NODE_FLAG_STATIC 0x1  /* 静态位 */
-#define VNETC_NODE_FLAG_INNER  0x2  /* 内部NODE. VNIC和PCAP类型的Node是内部Node */
+#define VNETC_NODE_FLAG_STATIC 0x1  
+#define VNETC_NODE_FLAG_INNER  0x2  
 
 
 enum
 {
-    VNETC_NODE_DIRECT_INIT = 0,   /* 未开始直连检测 */
-    VNETC_NODE_DIRECT_DETECTING,  /* 直连检测中 */
-    VNETC_NODE_DIRECT_OK,         /* 直连检测成功 */
-    VNETC_NODE_DIRECT_FAILED      /* 直连检测失败 */
+    VNETC_NODE_DIRECT_INIT = 0,   
+    VNETC_NODE_DIRECT_DETECTING,  
+    VNETC_NODE_DIRECT_OK,         
+    VNETC_NODE_DIRECT_FAILED      
 };
 
 typedef struct
 {
     HASH_NODE_S stNode;
-    UINT uiNID;  /* 主机序 */
+    UINT uiNID;  
     UINT uiIfIndex;
     UINT uiFlag;
     UCHAR ucReserved;
-    UCHAR ucDirectStatus;   /* 直连状态 */
+    UCHAR ucDirectStatus;   
     UINT uiSesID;
-    UINT uiPRI; /* 数值越小,优先级越高 */
+    UINT uiPRI; 
     UINT uiAge;
     VCLOCK_HANDLE hOldTimer;
 }VNETC_NID_S;
@@ -73,8 +73,8 @@ BS_STATUS VNETC_NODE_PktInput(IN MBUF_S *pstMbuf);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_NODE_H_*/
+#endif 
 
 

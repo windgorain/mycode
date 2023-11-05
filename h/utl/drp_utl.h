@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID* DRP_HANDLE;
 typedef VOID* DRP_FILE;
@@ -32,7 +32,7 @@ typedef struct
 
 
 #if 1
-DRP_HANDLE DRP_Create(IN CHAR *pcStartTag/* 标签开始标记 */, IN CHAR *pcEndTag/* 标签结束标记 */);
+DRP_HANDLE DRP_Create(IN CHAR *pcStartTag, IN CHAR *pcEndTag);
 VOID DRP_Destory(IN DRP_HANDLE hDrp);
 BS_STATUS DRP_Set(IN DRP_HANDLE hDrp, IN CHAR *pcKey, IN PF_DRP_SOURCE_FUNC pfFunc, IN HANDLE hUserHandle2);
 DRP_NODE_S * DRP_Find(IN DRP_HANDLE hDrp, IN CHAR *pcKey, IN UINT uiKeyLen);
@@ -47,7 +47,7 @@ static inline BS_STATUS DRP_CtxOutputString(IN VOID *pDrpCtx, IN CHAR *pcString)
 CHAR * DRP_FileGetETag(IN DRP_HANDLE hDrp, IN CHAR *pcFile);
 DRP_FILE DRP_FileOpen(IN DRP_HANDLE hDrp, IN CHAR *pcFile, IN HANDLE hUserHandle);
 VOID DRP_FileClose(IN DRP_FILE hFile);
-/*  返回值< 0表示出错 .  返回值小于uiDataLen,则表示读完. */
+
 INT DRP_FileRead(IN DRP_FILE hFile, OUT UCHAR *pucData, IN UINT uiDataLen);
 BOOL_T DRP_FileEOF(IN DRP_FILE hFile);
 UINT64 DRP_FileLength(IN DRP_FILE hFile);
@@ -55,8 +55,8 @@ UINT64 DRP_FileLength(IN DRP_FILE hFile);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__DRP_UTL_H_*/
+#endif 
 
 

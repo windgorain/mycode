@@ -15,4 +15,4 @@ int Bridge_Init();
 #ifdef __cplusplus
 }
 #endif
-#endif //BRIDGE_INIT_H_
+#endif 

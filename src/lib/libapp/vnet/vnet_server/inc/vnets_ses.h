@@ -13,7 +13,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETS_SES_Init();
 BS_STATUS VNETS_SES_RegCloseNotifyEvent(IN PF_SES_CLOSE_NOTIFY_FUNC pfFunc, IN USER_HANDLE_S *pstUserHandle);
@@ -28,8 +28,8 @@ BS_STATUS VNETS_SES_NoDebugAll();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_SES_H_*/
+#endif 
 
 

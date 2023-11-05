@@ -15,4 +15,4 @@ extern int license_verify();
 #ifdef __cplusplus
 }
 #endif
-#endif //LICENSE_VERIFY_H_
+#endif 

@@ -53,7 +53,7 @@ static int tcpreassemmble_InsertPkt(TCP_REASSEMBLE_S *ctrl, TCP_REASSEMBLE_FLOW_
 
     pktnode = MEM_ZMalloc(sizeof(TCP_REASSEMBLE_PKT_S));
     if (! pktnode) {
-        /* 内存申请失败,重组失败 */
+        
         RETURN(BS_NO_MEMORY);
     }
 
@@ -61,7 +61,7 @@ static int tcpreassemmble_InsertPkt(TCP_REASSEMBLE_S *ctrl, TCP_REASSEMBLE_FLOW_
         pkt = ctrl->dup_pkt(pkt);
         if (pkt == NULL) {
             MEM_Free(pktnode);
-            /* 内存申请失败,重组失败 */
+            
             RETURN(BS_NO_MEMORY);
         }
     }
@@ -116,7 +116,7 @@ void TcpR_Final(TCP_REASSEMBLE_S *ctrl)
     memset(ctrl, 0, sizeof(TCP_REASSEMBLE_S));
 }
 
-/* 在缓存报文的时候可以选择复制报文 */
+
 void TcpR_SetDupPkt(TCP_REASSEMBLE_S *ctrl,
         PF_TCP_REASSEMBLE_DUP_PKT dup_pkt,
         PF_TCP_REASSEMBLE_FREE_DUPPED_PKT free_dup_pkt)
@@ -153,7 +153,7 @@ int TcpR_Input(TCP_REASSEMBLE_S *ctrl, TCP_REASSEMBLE_FLOW_S *flow,
 
     offset = pktinfo->sn - flow->sn;
 
-    if (offset < 0) { /* 重复报文 */
+    if (offset < 0) { 
         return 0;
     }
 
@@ -161,11 +161,11 @@ int TcpR_Input(TCP_REASSEMBLE_S *ctrl, TCP_REASSEMBLE_FLOW_S *flow,
         return 0;
     }
 
-    if (offset > 0) { /* 乱序报文 */
+    if (offset > 0) { 
         return tcpreassemmble_InsertPkt(ctrl, flow, pktinfo);
     }
 
-    if (offset == 0) { /* 命中需要的序号 */
+    if (offset == 0) { 
         pkt_out(pktinfo->pkt);
         flow->sn += pktinfo->tcp_payload_len;
         if (pktinfo->flag & (TCP_FLAG_SYN | TCP_FLAG_FIN)) {
@@ -178,9 +178,9 @@ int TcpR_Input(TCP_REASSEMBLE_S *ctrl, TCP_REASSEMBLE_FLOW_S *flow,
     return 0;
 }
 
-/* 即使没有重组成功，也将缓冲的报文都发出 */
+
 void TcpR_Flush(TCP_REASSEMBLE_S *ctrl,
-        TCP_REASSEMBLE_FLOW_S *flow, PF_TCP_REASSEMBLE_OUT pkt_out/* 可以为NULL */)
+        TCP_REASSEMBLE_FLOW_S *flow, PF_TCP_REASSEMBLE_OUT pkt_out)
 {
     TCP_REASSEMBLE_PKT_S *pktnode;
 

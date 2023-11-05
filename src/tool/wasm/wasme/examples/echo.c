@@ -9,8 +9,8 @@ int main()
     for(;;) {
         char *line;
         line = readline("echo> ");
-        if (!line) return 0; // EOF
-        add_history(line); // Add input to history.
+        if (!line) return 0; 
+        add_history(line); 
 
         printf("%s\n", line);
     }

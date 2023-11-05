@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WAN_IF_Init();
 
@@ -18,8 +18,8 @@ IF_INDEX WAN_IF_GetIfIndexByEnv(IN VOID *pEnv);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_IFNET_H_*/
+#endif 
 
 

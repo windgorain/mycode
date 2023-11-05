@@ -111,7 +111,7 @@ static inline int cuckoohash_FindWithKeyFactor(CUCKOO_HASH_S *hash,
     return find_index;
 }
 
-/* 尝试添加到bucket */
+
 static int cuckoohash_Add2Bkt(CUCKOO_HASH_S *hash, int bkt_index,
         UINT key_factor, void *data)
 {
@@ -133,7 +133,7 @@ static int cuckoohash_Add2Bkt(CUCKOO_HASH_S *hash, int bkt_index,
     return added_index;
 }
 
-/* 尝试强占到bucket */
+
 static int cuckoohash_ForceAdd2Bkt(CUCKOO_HASH_S *hash, int bkt_index,
         UINT key_factor, void *data, int max_try)
 {
@@ -153,7 +153,7 @@ static int cuckoohash_ForceAdd2Bkt(CUCKOO_HASH_S *hash, int bkt_index,
         return -1;
     }
 
-    /* 强行占用 */
+    
     force_index = (bkt_index * hash->bucket_depth)
         + (RAND_Get() & hash->bucket_depth_mask);
 
@@ -162,12 +162,12 @@ static int cuckoohash_ForceAdd2Bkt(CUCKOO_HASH_S *hash, int bkt_index,
     entry[force_index].key_factor = key_factor;
     entry[force_index].data = data;
 
-    /* 被踢走的节点去抢占别的位置 */
+    
     peer_bkt_index = cuckoohash_PeerBktIndex(hash, old_key_factor, bkt_index);
     added_index = cuckoohash_ForceAdd2Bkt(hash, peer_bkt_index, old_key_factor,
             old_data, max_try + 1);
 
-    /* 强占失败 */
+    
     if (added_index < 0) {
         entry[force_index].data = old_data;
         entry[force_index].key_factor = old_key_factor;
@@ -211,7 +211,7 @@ static void cuckoohash_Init(CUCKOO_HASH_S *cuckoo_hash, UINT bucket_num,
     cuckoo_hash->table_alloced = table_alloced;
 }
 
-/* table==NULL表示自动分配 */
+
 int CuckooHash_Init(CUCKOO_HASH_S *cuckoo_hash, CUCKOO_HASH_NODE_S *table,
         UINT bucket_num, UINT bucket_depth)
 {
@@ -268,7 +268,7 @@ void CuckooHash_SetCmpFunc(CUCKOO_HASH_S *hash, PF_CUCKOO_CMP cmp_func)
     hash->cmp_func = cmp_func;
 }
 
-/* 查找data,返回索引; 出错返回<0的值 */
+
 int CuckooHash_Find(CUCKOO_HASH_S *hash, void *data)
 {
     UINT key_factor = hash->index_func(hash, data);
@@ -286,7 +286,7 @@ void * CuckooHash_FindData(CUCKOO_HASH_S *hash, void *data)
     return hash->table[index].data;
 }
 
-/* 返回所添加到的index位置,从0开始. 失败返回<0 */
+
 int CuckooHash_Add(CUCKOO_HASH_S *hash, void *data)
 {
     UINT key_factor = hash->index_func(hash, data);
@@ -350,7 +350,7 @@ void * CuckooHash_GetData(CUCKOO_HASH_S *hash, int index)
     return entry[index].data;
 }
 
-/* 获取下一个, curr=-1表示从头开始, 返回-1表示结束 */
+
 int CuckooHash_GetNext(CUCKOO_HASH_S *hash, int curr)
 {
     int index = curr + 1;

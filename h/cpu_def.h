@@ -1,7 +1,7 @@
 /*================================================================
 *   Created by LiXingang
 *   Description: 一些cpu的宏定义可以查看
-*        https://sourceforge.net/p/predef/wiki/Architectures/
+*        https:
 *
 ================================================================*/
 #ifndef _CPU_DEF_H
@@ -27,4 +27,4 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-#endif //CPU_DEF_H_
+#endif 

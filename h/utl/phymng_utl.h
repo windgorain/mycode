@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 typedef struct
@@ -29,8 +29,8 @@ VOID PHYMNG_Walk(IN HANDLE hPhyMngId, IN PF_PHYMNG_WALK_FUNC pfWalkFunc, IN HAND
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__PHYMNG_UTL_H_*/
+#endif 
 
 

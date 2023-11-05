@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_HASHUTL
 
 #include "bs.h"
@@ -18,12 +18,12 @@ typedef struct
 {
     UINT uiInitHashBucketNum;
     UINT uiCurrHashBucketNum;
-    USHORT high_watter_percent; /* 高水位百分比,>=需要扩充bucket, 0表示未设置不起作用 */
-    USHORT low_watter_percent;/* 低水位百分比,<需要缩小bucket, 0表示未设置不起作用 */
-    UINT high_watter_count; /* 高水位,>=需要扩充bucket, 0表示未设置不起作用 */
-    UINT low_watter_count;/* 低水位,<需要缩小bucket, 0表示未设置不起作用 */
+    USHORT high_watter_percent; 
+    USHORT low_watter_percent;
+    UINT high_watter_count; 
+    UINT low_watter_count;
     UINT uiMask;
-    UINT uiNodeCount;   /* Hash表中有多少个节点 */
+    UINT uiNodeCount;   
     PF_HASH_INDEX_FUNC pfHashIndexFunc;
     void *memcap;
     DLL_HEAD_S *pstBuckets;
@@ -60,7 +60,7 @@ static inline void hash_resize_buckets(_HASH_CTRL_S *ctrl, UINT bucket_num)
     ctrl->uiMask = mask;
 }
 
-/* 扩容 */
+
 static inline void hash_resize_up(_HASH_CTRL_S *ctrl)
 {
     if (ctrl->uiNodeCount < ctrl->high_watter_count) {
@@ -154,7 +154,7 @@ void HASH_SetResizeWatter(HASH_HANDLE hHashId, UINT high_watter_percent, UINT lo
     pstHashCtrl->low_watter_count = (low_watter_percent * pstHashCtrl->uiCurrHashBucketNum) / 100;
 }
 
-void HASH_AddWithFactor(IN HASH_HANDLE hHashId, IN VOID *pstNode /* HASH_NODE_S */, UINT hash_factor)
+void HASH_AddWithFactor(IN HASH_HANDLE hHashId, IN VOID *pstNode , UINT hash_factor)
 {
     _HASH_CTRL_S *pstHashCtrl = (_HASH_CTRL_S*)hHashId;
     HASH_NODE_S *node = pstNode;
@@ -171,7 +171,7 @@ void HASH_AddWithFactor(IN HASH_HANDLE hHashId, IN VOID *pstNode /* HASH_NODE_S 
     }
 }
 
-VOID HASH_Add(IN HASH_HANDLE hHashId, IN VOID *pstNode /* HASH_NODE_S */)
+VOID HASH_Add(IN HASH_HANDLE hHashId, IN VOID *pstNode )
 {
     _HASH_CTRL_S *pstHashCtrl = (_HASH_CTRL_S*)hHashId;
 
@@ -286,12 +286,9 @@ VOID HASH_Walk(IN HASH_HANDLE hHashId, IN PF_HASH_WALK_FUNC pfWalkFunc, IN VOID 
 
     pstHashCtrl = (_HASH_CTRL_S*)hHashId;
 
-    for (i=0; i<pstHashCtrl->uiCurrHashBucketNum; i++)
-    {
-        DLL_SAFE_SCAN(&pstHashCtrl->pstBuckets[i], pstNodeFind, pstNodeTmp)
-        {
-            if (pfWalkFunc(hHashId, pstNodeFind, pUserHandle) != BS_WALK_CONTINUE)
-            {
+    for (i=0; i<pstHashCtrl->uiCurrHashBucketNum; i++) {
+        DLL_SAFE_SCAN(&pstHashCtrl->pstBuckets[i], pstNodeFind, pstNodeTmp) {
+            if (pfWalkFunc(hHashId, pstNodeFind, pUserHandle) < 0) {
                 return;
             }
         }
@@ -300,8 +297,8 @@ VOID HASH_Walk(IN HASH_HANDLE hHashId, IN PF_HASH_WALK_FUNC pfWalkFunc, IN VOID 
     return;
 }
 
-/* 最快速度的getnext, 需要两次get期间不能删除curr_node */
-HASH_NODE_S * HASH_GetNext(HASH_HANDLE hHash, HASH_NODE_S *curr_node /* NULL表示获取第一个 */)
+
+HASH_NODE_S * HASH_GetNext(HASH_HANDLE hHash, HASH_NODE_S *curr_node )
 {
     _HASH_CTRL_S *pstHashCtrl;
     UINT i;
@@ -313,7 +310,7 @@ HASH_NODE_S * HASH_GetNext(HASH_HANDLE hHash, HASH_NODE_S *curr_node /* NULL表�
 
     pstHashCtrl = (_HASH_CTRL_S*)hHash;
 
-    /* 有上一次GetNext的信息,根据信息继续往下查找 */
+    
     if (curr_node) {
         hash_factor = pstHashCtrl->pfHashIndexFunc(curr_node);
         index = hash_factor & pstHashCtrl->uiMask;
@@ -334,8 +331,8 @@ HASH_NODE_S * HASH_GetNext(HASH_HANDLE hHash, HASH_NODE_S *curr_node /* NULL表�
     return node;
 }
 
-/* 慢速的getnext, 全局字典序getnext, 所以每次getnext都会遍历所有表项 */
-HASH_NODE_S * HASH_GetNextDict(HASH_HANDLE hHash, PF_HASH_CMP_FUNC pfCmpFunc, HASH_NODE_S *curr_node /* NULL表示获取第一个 */)
+
+HASH_NODE_S * HASH_GetNextDict(HASH_HANDLE hHash, PF_HASH_CMP_FUNC pfCmpFunc, HASH_NODE_S *curr_node )
 {
     _HASH_CTRL_S *pstHashCtrl;
     HASH_NODE_S *pstNodeFind;

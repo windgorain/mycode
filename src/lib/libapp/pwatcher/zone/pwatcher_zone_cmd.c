@@ -21,7 +21,7 @@ static void pwatcher_zone_notify_save_ev(HANDLE hFile, PWATCHER_ZONE_S *zone)
         return;
     }
 
-    /* 通知其他模块进行zone下命令的save */
+    
     PWATCHER_ZONE_EV_S ev;
     ev.ev_type = PWATCHER_ZONE_EV_SAVE;
     ev.zone = (void*)zone;
@@ -142,7 +142,7 @@ static void pwatcher_zone_del_sub(IDKEY_KL_S *kl, INT64 id, void *data, void *ud
     RcuEngine_Call(&zone->rcu_node, pwatcher_zone_free_rcu);
 }
 
-/* 删除所有子zone */
+
 static void pwatcher_zone_del_all_sub_zone(PWATCHER_ZONE_S *zone)
 {
     PWatcherZone_Walk(zone->muc_id, pwatcher_zone_del_sub, zone);
@@ -158,13 +158,13 @@ static void pwatcher_zone_detach_sub(IDKEY_KL_S *kl, INT64 id, void *data, void 
     zone->father_zone = NULL;
 }
 
-/* 和所有子zone解除关联 */
+
 static void pwatcher_zone_detach_all_sub_zone(PWATCHER_ZONE_S *zone)
 {
     PWatcherZone_Walk(zone->muc_id, pwatcher_zone_detach_sub, zone);
 }
 
-/* zone %STRING [type {vlan|vip|uis|xxx}] */
+
 PLUG_API int PWatcherZone_CmdEnterZone(int argc, char **argv, void *env)
 {
     int ret;
@@ -186,7 +186,7 @@ PLUG_API int PWatcherZone_CmdEnterZone(int argc, char **argv, void *env)
     return 0;
 }
 
-/* no zone %STRING [and-sub] */
+
 PLUG_API int PWatcherZone_CmdNoZone(int argc, char **argv, void *env)
 {
     char *name = argv[2];
@@ -208,7 +208,7 @@ PLUG_API int PWatcherZone_CmdNoZone(int argc, char **argv, void *env)
     return 0;
 }
 
-/* description %STRING */
+
 PLUG_API int PWatcherZone_CmdDescription(int argc, char **argv, void *env)
 {
     PWATCHER_ZONE_S *zone = PWatcherZone_GetZoneByEnv(env);
@@ -222,7 +222,7 @@ PLUG_API int PWatcherZone_CmdDescription(int argc, char **argv, void *env)
     return 0;
 }
 
-/* [no] father-zone %STRING */
+
 PLUG_API int PWatcherZone_CmdFatherZone(int argc, char **argv, void *env)
 {
     PWATCHER_ZONE_S *zone = PWatcherZone_GetZoneByEnv(env);
@@ -254,7 +254,7 @@ PLUG_API int PWatcherZone_CmdFatherZone(int argc, char **argv, void *env)
     return 0;
 }
 
-/* [no] enable */
+
 PLUG_API int PWatcherZone_CmdEnable(int argc, char **argv, void *env)
 {
     PWATCHER_ZONE_S *zone = PWatcherZone_GetZoneByEnv(env);
@@ -279,7 +279,7 @@ static void pwatcher_zone_show_each(IDKEY_KL_S *kl, INT64 id, void *data, void *
             PWatcherZone_GetStrByType(zone->zone_type), zone->name, zone->enable);
 }
 
-/* show zone */
+
 PLUG_API int PWatcherZone_Show(int argc, char **argv, void *env)
 {
     int muc_id = CmdExp_GetEnvMucID(env);

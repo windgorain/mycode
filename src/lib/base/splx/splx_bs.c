@@ -17,12 +17,12 @@ typedef struct
     CRITICAL_SECTION stSplx;
 #endif
 
-    THREAD_ID iSplxOwnerTID;     /* 拥有SPLX的线程 */
-    CHAR *pcSplxOwnerFile; /* 拥有SPLX的文件名 */
-    UINT uiSplxOwnerLine;  /* 拥有SPLX的行号 */
+    THREAD_ID iSplxOwnerTID;     
+    CHAR *pcSplxOwnerFile; 
+    UINT uiSplxOwnerLine;  
 }_SPLX_CTRL_S;
 
-/*vars*/
+
 static _SPLX_CTRL_S g_stSplx;
 
 static void splx_init()

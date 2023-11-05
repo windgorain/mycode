@@ -10,14 +10,14 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 EVP_PKEY * PKEY_GenerateECKey(IN INT iNid);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__PKEY_LOCAL_H_*/
+#endif 
 
 

@@ -9,7 +9,7 @@ extern "C"
 {
 #endif
 
-/* 在win中ifname为adapter guid*/
+
 BS_STATUS NETCMD_getIfMac(char *pifName, unsigned char macAddr[MAC_ADDR_LEN]);
 BS_STATUS NETCMD_setIfMac(char *pifName, unsigned char macAddr[MAC_ADDR_LEN]);
 BS_STATUS NETCMD_setIfUp(char *pifName);
@@ -25,4 +25,4 @@ BS_STATUS NETCMD_delRoute(char *dstAddr, char *netmask, char *ifName);
 #ifdef __cplusplus
 }
 #endif
-#endif //NETCMD_UTL_H_
+#endif 

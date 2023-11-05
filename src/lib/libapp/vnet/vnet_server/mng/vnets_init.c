@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM VNET_RETCODE_FILE_NUM_SERVERINIT
 
 #include "bs.h"
@@ -47,7 +47,7 @@
 
 typedef BS_STATUS (*PF_VNETS_INIT_FUNC)();
 
-/* 第一阶段初始化, 放置不需要依赖于任何其他模块初始化的函数 */
+
 static PF_VNETS_INIT_FUNC g_apfVnetsInit1[] =
 {
     VNETS_NODE_Init,
@@ -67,7 +67,7 @@ static PF_VNETS_INIT_FUNC g_apfVnetsInit1[] =
     VNETS_KF_Init,
 };
 
-/* 第二阶段初始化, 放置需要依赖第一阶段已经完成的初始化函数 */
+
 static PF_VNETS_INIT_FUNC g_apfVnetsInit2[] =
 {
     VNETS_SES_Init,

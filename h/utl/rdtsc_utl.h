@@ -10,12 +10,7 @@ extern "C"
 {
 #endif
 
-/* 如果是windows,有现成的接口如下:
-static inline UINT64 RDTSC_Get()
-{
-    return __rdtsc();
-}
-*/
+
 
 #ifdef __X86__
 static inline UINT64 RDTSC_Get()
@@ -43,9 +38,9 @@ static inline UINT64 RDTSC_Get()
 	unsigned tsc;
 	UINT64 final_tsc;
 
-	/* Read PMCCNTR */
+	
 	asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(tsc));
-	/* 1 tick = 64 clocks */
+	
 	final_tsc = ((UINT64)tsc) << 6;
 
 	return final_tsc;
@@ -75,4 +70,4 @@ UINT64 RDTSC_GetHz();
 #ifdef __cplusplus
 }
 #endif
-#endif //RDTSC_UTL_H_
+#endif 

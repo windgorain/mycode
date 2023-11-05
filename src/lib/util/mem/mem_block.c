@@ -6,7 +6,7 @@
 #include "bs.h"
 #include "utl/mem_block.h"
 
-/* 为blk申请内存 */
+
 static int _mem_block_init_block(MEM_BLOCK_CTX_S *ctx, int blk)
 {
     void * mem = MEM_Malloc(ctx->entry_size * ctx->entry_count_per_block);
@@ -21,7 +21,7 @@ static int _mem_block_init_block(MEM_BLOCK_CTX_S *ctx, int blk)
     return 0;
 }
 
-/* 获取可用的block */
+
 static int _mem_block_find_valid_block(MEM_BLOCK_CTX_S *ctx)
 {
     int i;
@@ -42,7 +42,7 @@ static int _mem_block_find_valid_block(MEM_BLOCK_CTX_S *ctx)
     return -1;
 }
 
-/* 查找最后一个已经申请内存的block */
+
 static int _mem_block_find_last_mem_block(MEM_BLOCK_CTX_S *ctx)
 {
     int i;
@@ -103,11 +103,11 @@ static void _mem_block_free_entry(MEM_BLOCK_CTX_S *ctx, char *entry)
         return;
     }
 
-    /* 当前block的所有entry都释放了,释放整个block */
+    
     MEM_Free(ctx->blks[blk].block);
     ctx->blks[blk].block = NULL;
 
-    /* 将之后的最后一个mem block拿上来填充空位 */
+    
     int last_blk = _mem_block_find_last_mem_block(ctx);
     if (blk < last_blk) {
         ctx->blks[blk] = ctx->blks[last_blk];

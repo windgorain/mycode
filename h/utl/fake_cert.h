@@ -19,9 +19,9 @@ typedef struct {
 int FakeCert_init(FAKECERT_CTRL_S *ctrl, char *ca_certfile, char *ca_keyfile, char *self_keyfile, pem_password_cb *cb, void *u);
 void FakeCdrt_Finit(FAKECERT_CTRL_S *ctrl);
 int FakeCert_BuildByCert(FAKECERT_CTRL_S *ctrl, X509 *real_cert);
-/* 构造一个证书 */
+
 X509 * FakeCert_Build(FAKECERT_CTRL_S *ctrl);
 #ifdef __cplusplus
 }
 #endif
-#endif //FAKE_CERT_H_
+#endif 

@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WAN_InLoop_Init();
 UINT WAN_InLoop_GetIfIndex();
@@ -20,8 +20,8 @@ BS_STATUS WAN_InLoop_LinkOutput (IN UINT uiIfIndex, IN MBUF_S *pstMbuf, IN USHOR
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_INLOOP_H_*/
+#endif 
 
 

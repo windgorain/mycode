@@ -38,7 +38,7 @@ static int _address_pool_add_ip_string(IN LIST_RULE_LIST_S *pstList, char *ip_pr
     return AddressPool_AddIp(pstList, ip_prefix.uiIP, ip_prefix.ucPrefix);
 }
 
-/* 找到当前节点的上一级节点的preifx */
+
 static UCHAR _address_pool_get_up_prefix(IN LIST_RULE_LIST_S *pstList, IN ADDRESS_POOL_NODE_S *pstNode)
 {
     ADDRESS_POOL_NODE_S *pstNodeTmp = NULL;
@@ -55,8 +55,7 @@ static UCHAR _address_pool_get_up_prefix(IN LIST_RULE_LIST_S *pstList, IN ADDRES
 
         UINT mask = PREFIX_2_MASK(pstNodeTmp->prefix);
 
-        /* 计算逻辑,用待查的node里的ip 与遍历的node的mask进行与操作，
-           如果与出来的结果与待查的ip与mask进行与操作的结果一致，并且哪一个节点更加接近，则代表为其上一级 */
+        
         if ((pstNode->ip & mask) == (pstNodeTmp->ip & mask)){
             if (prefix < pstNodeTmp->prefix){
                 prefix = pstNodeTmp->prefix;
@@ -166,7 +165,7 @@ ADDRESS_POOL_NODE_S * AddressPool_FindIpNode(IN LIST_RULE_LIST_S *pstList, UINT 
     return NULL;
 }
 
-int AddressPool_AddIp(IN LIST_RULE_LIST_S *pstList, UINT ip/* 主机序 */, UCHAR prefix)
+int AddressPool_AddIp(IN LIST_RULE_LIST_S *pstList, UINT ip, UCHAR prefix)
 {
     ADDRESS_POOL_NODE_S *pstNode = NULL;
     ADDRESS_POOL_LIST_S *node;
@@ -174,7 +173,7 @@ int AddressPool_AddIp(IN LIST_RULE_LIST_S *pstList, UINT ip/* 主机序 */, UCHA
     DBGASSERT(NULL != pstList);
 
     if (AddressPool_FindIpNode(pstList, ip, prefix)) {
-        /* 已经存在 */
+        
         return BS_OK;
     }
 
@@ -237,16 +236,16 @@ int AddressPool_LoadCfgFromFile(IN LIST_RULE_LIST_S *pstList, IN CHAR *pcFileNam
         RETURN(BS_CAN_NOT_OPEN);
     }
 
-    // 读取每一行, 格式为1.1.1.0/24这种形式
+    
     while (1) {
         int len = FILE_ReadLine(fp, line, sizeof(line), '\n');
         if (len <= 0) {
-            /* 结束 */
+            
             break;
         }
 
         if (len >= sizeof(line)) {
-            // 超长行, 格式错误, 忽略这行
+            
             continue;
         }
 

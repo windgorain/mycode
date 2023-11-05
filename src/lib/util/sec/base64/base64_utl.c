@@ -62,7 +62,7 @@ int BASE64_Encode(IN UCHAR *pucData, IN UINT uiDataLen, OUT CHAR *pcOut)
 	return ulOutLen;    
 }
 
-/* 返回解释之后的长度, 出错返回<0 */
+
 int BASE64_Decode(IN CHAR *pcInput, IN UINT uiDataLen, OUT UCHAR *pucOutput)
 {
     int vals[4];
@@ -103,7 +103,7 @@ int BASE64_Decode(IN CHAR *pcInput, IN UINT uiDataLen, OUT UCHAR *pucOutput)
             {
                 v = -1;
             }
-            else /* invalid input */
+            else 
             {
                 return -1;
             }

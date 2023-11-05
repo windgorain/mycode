@@ -85,7 +85,7 @@ static inline void vaguetopn_ResultDestroy(VAGUE_TOPN_RESULT_S *result)
 }
 
 static inline int vaguetopn_Init(INOUT VAGUE_TOPN_S *topn,
-        int hash_size/*每级别hash表size*/, void *mem)
+        int hash_size, void *mem)
 {
     int i;
     unsigned int *hash = mem;
@@ -176,7 +176,7 @@ static VAGUE_TOPN_NODE_S * vaguetopn_GetMin(VAGUE_TOPN_S *topn)
     VAGUE_TOPN_NODE_S *min_node = vague_topn_get_node(result, 0);
     int i;
 
-    /* 查找上一个朝代的最小节点 */
+    
     for (i=1; i<result->current_num; i++) {
         VAGUE_TOPN_NODE_S *node = vague_topn_get_node(result, i);
         if ((node->epoch != topn->epoch) && (node->freq <= min_node->freq)) {
@@ -194,7 +194,7 @@ void VagueTopn_Score(VAGUE_TOPN_S *topn, void *key, int score, UINT hash_factor)
     VAGUE_TOPN_NODE_S *found_node = NULL;
     unsigned int index;
 
-    /* 1. 筛选 */
+    
     for (i=0; i<VAGUE_TOPN_LEVEL_NUM; i++) {
         index = hash_factor >> (i*4);
         index &= topn->mask;
@@ -206,7 +206,7 @@ void VagueTopn_Score(VAGUE_TOPN_S *topn, void *key, int score, UINT hash_factor)
         }
     }
 
-    /* 2. 筛选通过,查找是否存在 */
+    
     VAGUE_TOPN_NODE_S to_find;
     to_find.hash_factor = hash_factor;
     found_node = Box_FindData(&topn->result.box, &to_find);
@@ -217,10 +217,10 @@ void VagueTopn_Score(VAGUE_TOPN_S *topn, void *key, int score, UINT hash_factor)
         return;
     } 
 
-    /* 3. 如果未找到,则添加新的节点 */
+    
     found_node = vague_topn_request_node(result);
     if (found_node == NULL) {
-        /* 4. 如果没有空闲节点, 则查上一个朝代的最小节点 */
+        
         found_node = vaguetopn_GetMin(topn);
         if (found_node) {
             Box_Del(&result->box, found_node);
@@ -237,7 +237,7 @@ void VagueTopn_Score(VAGUE_TOPN_S *topn, void *key, int score, UINT hash_factor)
         return;
     }
 
-    /* 5. 调整水平线并更新朝代 */
+    
     vague_topn_adjust_pass_line(topn);
 
     return;

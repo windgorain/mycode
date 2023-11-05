@@ -135,14 +135,14 @@ void * UFD_GetFileData(UFD_S *ctx, int fd)
     return ctx->fds[fd].data;
 }
 
-/* 获取file并增加引用计数 */
+
 UFD_FILE_S * UFD_RefFile(UFD_S *ctx, int fd)
 {
     UFD_IncRef(ctx, fd);
     return UFD_GetFile(ctx, fd);
 }
 
-/* 获取filedata并增加引用计数 */
+
 void * UFD_RefFileData(UFD_S *ctx, int fd)
 {
     UFD_IncRef(ctx, fd);
@@ -158,8 +158,8 @@ int UFD_GetFileType(UFD_S *ctx, int fd)
     return ctx->fds[fd].type;
 }
 
-/* 返回-1表示结束 */
-int UFD_GetNext(UFD_S *ctx, int curr /* -1表示获取第一个 */)
+
+int UFD_GetNext(UFD_S *ctx, int curr )
 {
     int i;
     int start = curr + 1;
@@ -177,8 +177,8 @@ int UFD_GetNext(UFD_S *ctx, int curr /* -1表示获取第一个 */)
     return -1;
 }
 
-/* 返回-1表示结束 */
-int UFD_GetNextOfType(UFD_S *ctx, int type, int curr /* -1表示获取第一个 */)
+
+int UFD_GetNextOfType(UFD_S *ctx, int type, int curr )
 {
     while ((curr = UFD_GetNext(ctx, curr)) >= 0) {
         if (UFD_GetFileType(ctx, curr) == type) {

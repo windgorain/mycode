@@ -10,10 +10,10 @@ extern "C"
 {
 #endif
 
-/* 无符号数 */
+
 UINT64 LEB_Read(UCHAR *bytes, UINT *pos);
 
-/* 有符号数 */
+
 UINT64 LEB_ReadSigned(UCHAR *bytes, UINT *pos);
 
 
@@ -21,4 +21,4 @@ UINT64 LEB_ReadSigned(UCHAR *bytes, UINT *pos);
 #ifdef __cplusplus
 }
 #endif
-#endif //LEB_UTL_H_
+#endif 

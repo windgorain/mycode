@@ -21,10 +21,10 @@ typedef struct {
     UINT svr_id: 8;
     UINT used: 1;
     UINT enable: 1;
-    UINT print_enable: 1;      /*print enable */
-    UINT syslog_enable: 1;     /* syslog enable */
-    UINT file_enable: 1;       /* file enable */
-    UINT uds_enable: 1;        /* unix socket enable */
+    UINT print_enable: 1;      
+    UINT syslog_enable: 1;     
+    UINT file_enable: 1;       
+    UINT uds_enable: 1;        
     UINT reserved: 2;
     char filename[128];
     char unixpath[128];
@@ -49,4 +49,4 @@ void LogCenter_SetUdsEnable(LOG_CENTER_NODE_S *node, BOOL_T enable);
 #ifdef __cplusplus
 }
 #endif
-#endif //LOGCENTER_DEF_H_
+#endif 

@@ -5,7 +5,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define DHCP_OP_REQUEST    1
 #define DHCP_OP_REPLY      2
@@ -32,9 +32,9 @@
 #endif
 
 #if 1
-//====================
-// DHCP Messages types
-//====================
+
+
+
 #define DHCP_DISCOVER 1
 #define DHCP_OFFER    2
 #define DHCP_REQUEST  3
@@ -46,18 +46,18 @@
 #endif
 
 #if 1
-//==================
-// DHCP Option types
-//==================
-#define DHCP_MSG_TYPE               53  /* message type (u8) */
-#define DHCP_PARM_REQ               55  /* parameter request list: c1 (u8), ... */
-#define DHCP_CLIENT_ID              61  /* client ID: type (u8), i1 (u8), ... */
-#define DHCP_REQUEST_IP             50  /* requested IP addr (u32) */
-#define DHCP_NETMASK                1  /* subnet mask (u32) */
-#define DHCP_LEASE_TIME             51  /* lease time sec (u32) */
-#define DHCP_RENEW_TIME             58  /* renewal time sec (u32) */
-#define DHCP_REBIND_TIME            59  /* rebind time sec (u32) */
-#define DHCP_SERVER_ID              54  /* server ID: IP addr (u32) */
+
+
+
+#define DHCP_MSG_TYPE               53  
+#define DHCP_PARM_REQ               55  
+#define DHCP_CLIENT_ID              61  
+#define DHCP_REQUEST_IP             50  
+#define DHCP_NETMASK                1  
+#define DHCP_LEASE_TIME             51  
+#define DHCP_RENEW_TIME             58  
+#define DHCP_REBIND_TIME            59  
+#define DHCP_SERVER_ID              54  
 #define DHCP_GATEWAY                3
 #define DHCP_DOMAIN_NAME_SERVER     6
 #define DHCP_PAD                    0
@@ -72,22 +72,22 @@
 #pragma pack(1)
 
 typedef struct{
-    UCHAR ucOp;          /* message op */
+    UCHAR ucOp;          
 
-    UCHAR  ucHType;      /* hardware address type (e.g. '1' = 10Mb Ethernet) */
-    UCHAR  ucHLen;       /* hardware address length (e.g. '6' for 10Mb Ethernet) */
-    UCHAR  ucHops;       /* client sets to 0, may be used by relay agents */
-    UINT  ulXid;        /* transaction ID, chosen by client */
-    USHORT usSecs;       /* seconds since request process began, set by client */
+    UCHAR  ucHType;      
+    UCHAR  ucHLen;       
+    UCHAR  ucHops;       
+    UINT  ulXid;        
+    USHORT usSecs;       
     USHORT usFlags;
-    UINT  ulClientIp;     /* client IP address, client sets if known */
-    UINT  ulYourIp;     /* 'your' IP address -- server's response to client */
-    UINT  ulServerIp;     /* server IP address */
-    UINT  ulRelayIp;     /* relay agent IP address */
-    UCHAR  aucClientHaddr[16]; /* client hardware address */
-    UCHAR  aucServerName[64];  /* optional server host name */
-    UCHAR  aucBootFile[128];  /* boot file name */
-    UINT  ulMagic;      /* must be 0x63825363 (network order) */
+    UINT  ulClientIp;     
+    UINT  ulYourIp;     
+    UINT  ulServerIp;     
+    UINT  ulRelayIp;     
+    UCHAR  aucClientHaddr[16]; 
+    UCHAR  aucServerName[64];  
+    UCHAR  aucBootFile[128];  
+    UINT  ulMagic;      
 }DHCP_HEAD_S;
 
 typedef struct {
@@ -132,7 +132,7 @@ typedef struct dhcp_request {
 #endif
 
 INT DHCP_GetDHCPMsgType (IN DHCP_HEAD_S *pstDhcpHead, IN UINT ulOptLen);
-/* 得到要申请的IP地址, 网络序 */
+
 UINT DHCP_GetRequestIpByDhcpRequest (IN DHCP_HEAD_S *pstDhcpHead, IN UINT ulOptLen);
 UINT DHCP_SetOpt0 (UCHAR *pucOpt, int type, IN UINT ulLen);
 UINT DHCP_SetOpt8 (UCHAR *pucOpt, int type, UCHAR data, IN UINT ulLen);
@@ -141,7 +141,7 @@ BS_STATUS DHCP_GetDhcpRequest(IN UDP_HEAD_S *udp_hdr, IN UINT pktlen, OUT DHCP_R
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
 #define MAX_LOOP_TIMES     32
 
@@ -181,4 +181,4 @@ struct dhcp_opt {
     uint8_t len;
 } __attribute__((__packed__));
 
-#endif //DHCP_H_
+#endif 

@@ -96,4 +96,4 @@ sys_perf_event_open(struct perf_event_attr *attr,
 	return fd;
 }
 
-#endif /* _PERF_SYS_H */
+#endif 

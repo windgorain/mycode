@@ -21,25 +21,25 @@ static inline USHORT QEMU_GetBdf(PCIDevice *pci_dev)
     return bdf;
 }
 
-/* 判断bar是否64位 */
+
 static inline int QEMU_Is64BitBar(PCIDevice *pci_dev, int bar)
 {
     unsigned int addr = bar * 4 + 0x10;
     unsigned int bar_val;
 
-    /* 获取bar寄存器内容 */
+    
     bar_val = pci_default_read_config(pci_dev, addr, 4);
 
-    /* 判断是否64位 */
+    
     if ((bar_val & 0x6) == 0) {
-        /* 32位 */
+        
         return 0;
     }
 
     return 1;
 }
 
-/* 获取指定bar中的地址 */
+
 static inline UINT64 QEMU_GetBarAddr(PCIDevice *pci_dev, int bar)
 {
     unsigned int addr = bar * 4 + 0x10;
@@ -47,16 +47,16 @@ static inline UINT64 QEMU_GetBarAddr(PCIDevice *pci_dev, int bar)
     unsigned int bar_val2;
     unsigned long long addr64;
 
-    /* 获取bar寄存器内容 */
+    
     bar_val = pci_default_read_config(pci_dev, addr, 4);
 
-    /* 判断是否64位 */
+    
     if ((bar_val & 0x6) == 0) {
-        /* 32位 */
+        
         return bar_val & 0xfffff000;
     }
 
-    /* 64位, 读取下一个bar */
+    
     addr += 4;
     bar_val2 = pci_default_read_config(pci_dev, addr, 4);
 
@@ -67,7 +67,7 @@ static inline UINT64 QEMU_GetBarAddr(PCIDevice *pci_dev, int bar)
     return addr64;
 }
 
-/* 定义bar的读写函数 */
+
 #define QEMU_BAR_FUNC_DEF(id, read_func, write_func, ud) \
 static uint64_t _qemu_bar##id##_read(void *opaque, hwaddr addr, unsigned int len) { \
     return read_func(opaque, id, addr, len, ud); \
@@ -85,7 +85,7 @@ static void _qemu_bar##id##_write(void *opaque, hwaddr addr, uint64_t val, unsig
     QEMU_BAR_FUNC_DEF(5, read_func, write_func, ud)
 
 
-/* 定义bar opt结构 */
+
 #define QEMU_BAR_OPT_DEF(id, _min_size, _max_size)  { \
     .read = _qemu_bar##id##_read, \
     .write = _qemu_bar##id##_write, \
@@ -125,4 +125,4 @@ static inline void QEMU_InitBars(void *pci_dev, MemoryRegion *bars, const Memory
 #ifdef __cplusplus
 }
 #endif
-#endif //QEMU_UTL_H_
+#endif 

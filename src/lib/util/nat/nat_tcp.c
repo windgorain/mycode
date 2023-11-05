@@ -19,8 +19,8 @@
 
 #define _NAT_TCP_HASH_BUCKET_NUM 1024
 
-#define _NAT_TCP_TIME_OUT_TIME_SYN 10000       /* 处于SYN状态的最大时间 10s. 防攻击用 */
-#define _NAT_TCP_TIME_OUT_TIME_DFT 300000      /* 处于SYN状态的最大时间 300s */
+#define _NAT_TCP_TIME_OUT_TIME_SYN 10000       
+#define _NAT_TCP_TIME_OUT_TIME_DFT 300000      
 
 
 typedef struct
@@ -138,8 +138,8 @@ static INT nat_tcp_CmpForPrivate(IN VOID * pstHashNode1, IN VOID * pstNodeToFind
 static _NAT_TCP_MAP_NODE_S *nat_tcp_PrivateGetMapNode
 (
     IN _NAT_TCP_CTRL_S *pstCtrl,
-    IN UINT uiIp/* 网络序 */,
-    IN USHORT usPort/* 网络序 */,
+    IN UINT uiIp,
+    IN USHORT usPort,
     IN UINT uiDomainId
 )
 {
@@ -173,7 +173,7 @@ static inline BOOL_T nat_tcp_IsPermitAddTcpMap
     return FALSE;
 }
 
-/* 返回网络序Port */
+
 static USHORT nat_tcp_GetPort(IN _NAT_TCP_CTRL_S *pstCtrl)
 {
     UINT uiIndexFrom1;
@@ -192,7 +192,7 @@ static USHORT nat_tcp_GetPort(IN _NAT_TCP_CTRL_S *pstCtrl)
     return htons(usPort);
 }
 
-static VOID nat_tcp_FreePort(IN _NAT_TCP_CTRL_S *pstCtrl, IN USHORT usPort/* 网络序 */)
+static VOID nat_tcp_FreePort(IN _NAT_TCP_CTRL_S *pstCtrl, IN USHORT usPort)
 {
     UINT uiIndexFrom1;
 
@@ -227,8 +227,8 @@ static VOID nat_tcp_TimeOut(IN HANDLE hTimer, IN USER_HANDLE_S *pstUserHandle)
 static _NAT_TCP_MAP_NODE_S * nat_tcp_AddMapNode
 (
     IN _NAT_TCP_CTRL_S *pstCtrl,
-    IN UINT uiPrivateIp/* 网络序 */,
-    IN USHORT usPrivatePort/* 网络序 */,
+    IN UINT uiPrivateIp,
+    IN USHORT usPrivatePort,
     IN UINT uiDomainId
 )
 {
@@ -420,8 +420,8 @@ static INT  nat_tcp_CmpForPub(IN VOID * pstHashNode1, IN VOID * pstNodeToFind)
 static _NAT_TCP_MAP_NODE_S *nat_tcp_PubGetMapNode
 (
     IN _NAT_TCP_CTRL_S *pstCtrl,
-    IN UINT uiIp/* 网络序 */,
-    IN USHORT usPort/* 网络序 */
+    IN UINT uiIp,
+    IN USHORT usPort
 )
 {
     _NAT_TCP_MAP_NODE_S *pstNode;
@@ -487,7 +487,7 @@ static VOID nat_tcp_StepPubStatus
 }
 
 
-/* 如果映射表被释放了,则返回NULL */
+
 static inline _NAT_TCP_MAP_NODE_S * nat_tcp_ProcessPubPkt
 (
     IN _NAT_TCP_CTRL_S *pstCtrl,
@@ -562,7 +562,7 @@ static BS_STATUS nat_tcp_PubPktIn
     return eRet;
 }
 
-static BS_WALK_RET_E nat_tcp_WalkEach(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
+static int nat_tcp_WalkEach(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
 {
     _NAT_TCP_MAP_NODE_S *pstNatNode = (_NAT_TCP_MAP_NODE_S*)pstNode;
     USER_HANDLE_S *pstUserHandle = pUserHandle;
@@ -591,9 +591,9 @@ static VOID nat_tcp_Walk
 BS_STATUS _NAT_TCP_Init
 (
     IN _NAT_TCP_CTRL_S *pstTcpCtrl,
-    IN USHORT usMinPort,   /* 主机序 ,对外可转换的端口号最小值 */
-    IN USHORT usMaxPort,   /* 主机序 ,对外可转换的端口号最大值 */
-    IN UINT   uiMsInTick,  /* 多少ms为一个Tick */
+    IN USHORT usMinPort,   
+    IN USHORT usMaxPort,   
+    IN UINT   uiMsInTick,  
     IN BOOL_T bCreateMutex
 )
 {
@@ -713,7 +713,7 @@ BS_STATUS _NAT_TCP_PktIn
 BS_STATUS _NAT_TCP_SetPubIp
 (
     IN _NAT_TCP_CTRL_S *pstCtrl,
-    IN UINT auiPubIp[NAT_MAX_PUB_IP_NUM] /* 网络序，提供的对外公网IP */
+    IN UINT auiPubIp[NAT_MAX_PUB_IP_NUM] 
 )
 {
     UINT i;

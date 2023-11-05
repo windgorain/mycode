@@ -14,7 +14,7 @@ void TokenBucket_Init(INOUT TOKEN_BUCKET_S *bucket, uint64_t burst_limit, uint64
     bucket->speed = speed;
 }
 
-/* 返回获得多少tocken */
+
 uint64_t TokenBucket_Acquire(TOKEN_BUCKET_S *bucket, uint64_t n)
 {
     uint64_t now = RDTSC_Get();

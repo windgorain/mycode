@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WAN_NAT_Init();
 BS_STATUS WAN_NAT_SetOutBound(IN UINT uiIfIndex);
@@ -19,8 +19,8 @@ BS_STATUS WAN_NAT_KfInit();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_NAT_H_*/
+#endif 
 
 

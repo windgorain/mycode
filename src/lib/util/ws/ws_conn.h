@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef BS_STATUS (*PF_WS_CONN_EVENT_FUNC)(IN WS_CONN_HANDLE hWsConn, IN UINT uiEvent);
 
@@ -41,8 +41,8 @@ VOID * WS_Conn_GetUserData(IN WS_CONN_HANDLE hWsConn);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WS_CONN_H_*/
+#endif 
 
 

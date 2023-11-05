@@ -12,7 +12,7 @@
 #include "../h/svpn_dweb.h"
 #include "../h/svpn_mf.h"
 
-/********MF接口*********/
+
 static CHAR *g_apcSvpnTcpResProperty[] = {"Description", "ServerAddress"};
 static UINT g_uiSvpnTcpResPropertyCount = sizeof(g_apcSvpnTcpResProperty)/sizeof(CHAR*);
 
@@ -66,22 +66,22 @@ BS_STATUS SVPN_TcpRes_Init()
     return SVPN_MF_Reg(g_astSvpnTcpRelayBkmMfMap, sizeof(g_astSvpnTcpRelayBkmMfMap)/sizeof(SVPN_MF_MAP_S));
 }
 
-/* 命令行 */
 
-/* tcp-resource xxx */
+
+
 PLUG_API BS_STATUS SVPN_TcpResCmd_EnterView(int argc, char **argv, char *pEnv)
 {
     return SVPN_CD_EnterView(pEnv, SVPN_CTXDATA_TCP_RES, argv[1]);
 }
 
-/* description xxx */
+
 PLUG_API BS_STATUS SVPN_TcpResCmd_SetDescription(int argc, char **argv,
         void *pEnv)
 {
     return SVPN_CD_SetProp(pEnv, SVPN_CTXDATA_TCP_RES, "Description", argv[1]);
 }
 
-/* address xxx */
+
 PLUG_API BS_STATUS SVPN_TcpResCmd_SetServerAddress(int argc, char **argv,
         void *pEnv)
 {

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define VNET_DC_MAX_EMAIL_LEN 255
 
@@ -48,8 +48,8 @@ BS_STATUS VNETS_DC_GetDhcpConfig
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_DC_H_*/
+#endif 
 
 

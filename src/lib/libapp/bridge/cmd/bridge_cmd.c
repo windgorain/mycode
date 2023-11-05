@@ -78,7 +78,7 @@ static void * _bridge_get_instance_by_env(void *env)
     return _bridge_get_instance(muc_id);
 }
 
-/* bridge %STRING  */
+
 PLUG_API int BridgeCmd_EnterBr(int argc, char **argv, void *env)
 {
     int ret;
@@ -102,7 +102,7 @@ PLUG_API int BridgeCmd_EnterBr(int argc, char **argv, void *env)
     return BS_OK;
 }
 
-/* no bridge %STRING  */
+
 PLUG_API int BridgeCmd_NoBr(int argc, char **argv, void *env)
 {
     int ret;

@@ -203,7 +203,7 @@ static BS_STATUS ws_trans_RecvHeadData(IN WS_TRANS_S *pstTrans)
 {
     UINT uiReadLen;
 
-    return ws_trans_Recv(pstTrans, 1024*16 /*SSL记录块大小*/, &uiReadLen);
+    return ws_trans_Recv(pstTrans, 1024*16 , &uiReadLen);
 }
 
 static BS_STATUS ws_trans_Err(IN FSM_S *pstFsm, IN UINT uiEvent)
@@ -906,7 +906,7 @@ VOID _WS_Trans_SetFlag(IN WS_TRANS_S *pstTrans, IN UINT uiFlag)
     pstTrans->uiFlag |= uiFlag;
 }
 
-BS_STATUS WS_Trans_Reply(IN WS_TRANS_HANDLE hTrans, IN UINT uiStatusCode, IN UINT uiFlag /* WS_TRANS_REPLY_FLAG_XXX */)
+BS_STATUS WS_Trans_Reply(IN WS_TRANS_HANDLE hTrans, IN UINT uiStatusCode, IN UINT uiFlag )
 {
     BS_STATUS eRet;
     WS_TRANS_S *pstTrans = hTrans;

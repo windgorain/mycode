@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 struct printf_spec {
-	UCHAR	type;		/* format_type enum */
-	UCHAR	flags;		/* flags to number() */
-	UCHAR	base;		/* number base, 8, 10 or 16 only */
+	UCHAR	type;		
+	UCHAR	flags;		
+	UCHAR	base;		
 	UCHAR	qualifier;
     SHORT	field_width;
-	SHORT	precision;	/* # of digits/chars */
+	SHORT	precision;	
 };
 
 typedef struct {
@@ -48,11 +48,9 @@ static inline int BS_Scnprintf(char *buf, int size, const char *fmt, ...)
 	va_list args;
 	int ret_len;
 
-    if (! buf) {
-        return -1;
+    if ((! buf) || (size <= 1)){
+        return 0;
     }
-
-    assert(size > 1);
 
 	va_start(args, fmt);
 	ret_len = vsnprintf(buf, size, fmt, args);
@@ -65,12 +63,19 @@ static inline int BS_Scnprintf(char *buf, int size, const char *fmt, ...)
     return ret_len;
 }
 
+
 #define scnprintf BS_Scnprintf
+
+
+#define SNPRINTF(buf,size, ...) ({ \
+        int _nlen = snprintf((buf), (size), ##__VA_ARGS__); \
+        if (_nlen >= (size)) _nlen = -1; \
+        _nlen; })
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SPRINTF_UTL_H_*/
+#endif 
 
 

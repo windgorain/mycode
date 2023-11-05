@@ -27,18 +27,18 @@ typedef struct {
 
 typedef struct {
     int key_size;
-    int n; /* 最大结果数目 */
-    int current_num; /* 当前数目 */
+    int n; 
+    int current_num; 
     VAGUE_TOPN_NODE_S *nodes;
     BOX_S box;
 }VAGUE_TOPN_RESULT_S;
 
 typedef struct {
-    unsigned int hash_size; /* 为2^n */
-    unsigned int mask; /* mask 为2^n - 1 */
-    unsigned int pass_line; /* 及格线 */
+    unsigned int hash_size; 
+    unsigned int mask; 
+    unsigned int pass_line; 
     unsigned int epoch:8;
-    unsigned int *hash[VAGUE_TOPN_LEVEL_NUM]; /* hash数组 */
+    unsigned int *hash[VAGUE_TOPN_LEVEL_NUM]; 
     VAGUE_TOPN_RESULT_S result;
 }VAGUE_TOPN_S;
 
@@ -58,4 +58,4 @@ VAGUE_TOPN_NODE_S * VagueTopn_GetByIndex(VAGUE_TOPN_S *topn, int index);
 #ifdef __cplusplus
 }
 #endif
-#endif //VAGUE_TOPN_H_
+#endif 

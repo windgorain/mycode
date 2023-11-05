@@ -13,9 +13,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define WAN_IP_ADDR_MAX_IF_IP_NUM 32   /* 支持的最多SubIP个数 */
+#define WAN_IP_ADDR_MAX_IF_IP_NUM 32   
 
 typedef struct
 {
@@ -40,9 +40,9 @@ BS_STATUS WAN_IPAddr_Init();
 BS_STATUS WAN_IPAddr_KfInit();
 BS_STATUS WAN_IPAddr_DelInterfaceAllIp(IN IF_INDEX ifIndex);
 BS_STATUS WAN_IPAddr_GetFirstIp(IN UINT uiIfIndex, OUT WAN_IP_ADDR_INFO_S *pstAddr);
-/* 在接口上最长匹配地址节点 */
+
 BS_STATUS WAN_IPAddr_MatchBestNet(IN UINT uiIfIndex, IN UINT uiIpAddr, OUT WAN_IP_ADDR_INFO_S *pstAddr);
-BOOL_T WAN_IPAddr_IsInterfaceIp(IN UINT uiIfIndex, IN UINT uiIP/* 网络序 */);
+BOOL_T WAN_IPAddr_IsInterfaceIp(IN UINT uiIfIndex, IN UINT uiIP);
 WAN_IP_ADDR_MODE_E WAN_IPAddr_GetMode(IN IF_INDEX ifIndex);
 BS_STATUS WAN_IPAddr_DelIp(IN IF_INDEX ifIndex, IN UINT uiIP);
 BS_STATUS WAN_IPAddr_GetInterfaceAllIp(IN IF_INDEX ifIndex, OUT WAN_IP_ADDR_S *pstIpAddrs);
@@ -52,8 +52,8 @@ BS_STATUS WAN_IpAddrCmd_Init();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_IP_ADDR_H_*/
+#endif 
 
 

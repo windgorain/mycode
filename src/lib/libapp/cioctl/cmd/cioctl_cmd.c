@@ -14,7 +14,7 @@ int CIOCTL_CMD_Init()
     return 0;
 }
 
-/* name process-key */
+
 PLUG_API BS_STATUS CIOCTL_CMD_NamePKey(IN UINT ulArgc, IN CHAR ** argv)
 {
     char *name = ProcessKey_GetKey();
@@ -32,7 +32,7 @@ PLUG_API BS_STATUS CIOCTL_CMD_NamePKey(IN UINT ulArgc, IN CHAR ** argv)
     return 0;
 }
 
-/* name string %STRING<1-127> */
+
 PLUG_API BS_STATUS CIOCTL_CMD_NameString(IN UINT ulArgc, IN CHAR ** argv)
 {
     if (CIOCTL_SERVER_SetNameString(argv[2]) < 0) {
@@ -43,7 +43,7 @@ PLUG_API BS_STATUS CIOCTL_CMD_NameString(IN UINT ulArgc, IN CHAR ** argv)
     return 0;
 }
 
-/* no name */
+
 PLUG_API BS_STATUS CIOCTL_CMD_CmdNoName(IN UINT ulArgc, IN CHAR ** argv)
 {
     if (CIOCTL_SERVER_SetNameDefault() < 0) {
@@ -54,7 +54,7 @@ PLUG_API BS_STATUS CIOCTL_CMD_CmdNoName(IN UINT ulArgc, IN CHAR ** argv)
     return 0;
 }
 
-/* pipe-server enable */
+
 PLUG_API int CIOCTL_CMD_PipeServerEnable(IN UINT ulArgc, IN CHAR ** argv)
 {
     if (CIOCTL_SERVER_Enable() < 0) {

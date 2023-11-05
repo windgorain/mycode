@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_FUNCTBL
 
 #include "bs.h"
@@ -14,21 +14,21 @@
     
 
 
-/* define */
-#define _FUNCTBL_HASH_SIZE 256
-#define _FUNCTBL_MAX_ARGS_NUM 10   /* 函数最多的参数个数 */
 
-/* struct */
+#define _FUNCTBL_HASH_SIZE 256
+#define _FUNCTBL_MAX_ARGS_NUM 10   
+
+
 typedef struct
 {
-    DLL_NODE_S stLinkNode;  /* 必须是第一个成员 */
+    DLL_NODE_S stLinkNode;  
     CHAR *pszFuncName;
     CHAR *pszFmt;
-    UINT ulRetType;   /*0 - VOID, 1 - string, 2 - UINT, 3 - BOOL*/
+    UINT ulRetType;   
     void *pfFunc;
 }_FUNCTBL_NODE_S;
 
-/* vars */
+
 static DLL_HEAD_S g_astFuncHashTbl[_FUNCTBL_HASH_SIZE];
 static MUTEX_S g_functbl_lock;
 

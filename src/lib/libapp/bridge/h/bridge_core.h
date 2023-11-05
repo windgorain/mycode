@@ -18,4 +18,4 @@ BOOL_T BridgeCore_IsExist(MAP_HANDLE map, char *name);
 #ifdef __cplusplus
 }
 #endif
-#endif //BRIDGE_CORE_H_
+#endif 

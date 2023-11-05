@@ -10,20 +10,20 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 struct ip6_hdr {
     union {
         struct ip6_hdrctl {
-            UINT ip6_un1_flow;    /* 20 bits of flow-ID */
-            USHORT ip6_un1_plen;    /* payload length */
-            UCHAR ip6_un1_nxt;    /* next header */
-            UCHAR ip6_un1_hlim;    /* hop limit */
+            UINT ip6_un1_flow;    
+            USHORT ip6_un1_plen;    
+            UCHAR ip6_un1_nxt;    
+            UCHAR ip6_un1_hlim;    
         } ip6_un1;
-        UCHAR ip6_un2_vfc;    /* 4 bits version, top 4 bits class */
+        UCHAR ip6_un2_vfc;    
     } ip6_ctlun;
-    struct in6_addr ip6_src;    /* source address */
-    struct in6_addr ip6_dst;    /* destination address */
+    struct in6_addr ip6_src;    
+    struct in6_addr ip6_dst;    
 } ;
 
 void ip6_savecontrol(IN INPCB_S *in6p, IN MBUF_S *m, OUT MBUF_S **mp);
@@ -32,8 +32,8 @@ void in6_sin_2_v4mapsin6(IN SOCKADDR_IN_S *sin, OUT SOCKADDR_IN6_S *sin6);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__INET6_IP_H_*/
+#endif 
 
 

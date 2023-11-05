@@ -50,7 +50,7 @@ static BOOL_T dfa_IsMatchExt(IN UINT uiInputCode, IN UINT uiParttenCode)
             break;
         }
 
-        case DFA_CODE_HEX:   /* 0 ~ 9、a ~ f、A ~ F */
+        case DFA_CODE_HEX:   
         {
             if (isxdigit(ucInputCode))
             {

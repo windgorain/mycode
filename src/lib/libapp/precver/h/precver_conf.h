@@ -17,4 +17,4 @@ void * PRecver_Conf_Open(char *ini_path);
 #ifdef __cplusplus
 }
 #endif
-#endif //PRECVER_CONF_H_
+#endif 

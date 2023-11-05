@@ -10,7 +10,7 @@ extern "C"
 {
 #endif
 
-/* 运行 prev jit prog时需要的ctx */
+
 typedef struct {
     void *agent_func;
     const void **base_helpers;
@@ -24,4 +24,4 @@ typedef struct {
 #ifdef __cplusplus
 }
 #endif
-#endif //MYBPF_PROG_INNER_H_
+#endif 

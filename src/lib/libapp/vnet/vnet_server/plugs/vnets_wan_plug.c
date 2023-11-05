@@ -125,8 +125,8 @@ BS_STATUS VNETS_WAN_PLUG_PktInput(IN MBUF_S *pstMbuf)
 
 VOID VNETS_WAN_PLUG_RegUdpService
 (
-    IN USHORT usPort/* ÍøÂçÐò */,
-    IN UINT uiFlag, /* WAN_UDP_SERVICE_FLAG_XXX */
+    IN USHORT usPort,
+    IN UINT uiFlag, 
     IN PF_VNETS_WAN_PLUG_UDP_SERVICE_FUNC pfServiceFunc
 )
 {

@@ -13,7 +13,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID (*PF_CFF_SAVE_CB)(IN CHAR *buf, IN VOID *user_data);
 typedef BS_STATUS (*PF_CFF_Save)(IN CFF_HANDLE hCff, IN PF_CFF_SAVE_CB pfFunc, IN VOID *user_data);
@@ -26,7 +26,7 @@ typedef struct
 typedef struct
 {
     _CFF_FUNC_TBL_S *pstFuncTbl;
-    MKV_MARK_S stCfgRoot;  /* 配置树的根节点 */
+    MKV_MARK_S stCfgRoot;  
     UINT uiFlag;
     CHAR *pcFileName;
     FILE_MEM_S *pstFileMemMap;
@@ -39,8 +39,8 @@ BOOL_T _ccf_IsSort(IN _CFF_S *pstCff);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__CFF_INNER_H_*/
+#endif 
 
 

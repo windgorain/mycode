@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BOOLEAN VNDIS_MAC_ParseMAC (OUT MACADDR dest, IN char *src);
 VOID VNDIS_MAC_GenerateRandomMac (OUT MACADDR mac, IN UCHAR *adapter_name);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNDIS_MAC_H_*/
+#endif 
 
 

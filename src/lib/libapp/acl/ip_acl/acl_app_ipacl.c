@@ -115,7 +115,7 @@ static BS_STATUS _aclappip_GetListIDByName(IPACL_HANDLE ipacl, IN ACL_NAME_ID_S 
     return BS_OK;
 }
 
-/* 增加List引用计数 */
+
 static BS_STATUS _aclappip_AddListRef(IPACL_HANDLE ipacl, IN CHAR *pcListName)
 {
     return IPACL_AddListRef(ipacl, IPACL_GetListByName(ipacl, pcListName));
@@ -234,7 +234,7 @@ static BOOL_T _aclappip_ClearStats(IN UINT uiRuleID, IN IPACL_RULE_S *pstRule, I
 static INT _aclappip_IpKey2Str(IN IPACL_IPKEY_S *pstIpKey, IN CHAR *pCmd, IN INT iStrLen, CHAR *pStr)
 {
     INT len;
-    IP_MAKS_S stIpMask;
+    IP_MASK_S stIpMask;
 
     stIpMask.uiIP = pstIpKey->uiIP;
     stIpMask.uiMask = pstIpKey->uiWildcard;
@@ -365,7 +365,7 @@ static BS_STATUS _aclappip_ParsePort(IN CHAR *pcPortStr, OUT IPACL_PORTKEY_S *ps
 static BS_STATUS _aclappip_ParseIp(IN CHAR *pcIpStr, OUT IPACL_IPKEY_S *pstIpKey)
 {
     BS_STATUS enRet;
-    IP_MAKS_S stMask;
+    IP_MASK_S stMask;
 
     enRet = IPString_IpPrefixString2IpMask(pcIpStr, &stMask);
     if (BS_OK == enRet)
@@ -396,15 +396,15 @@ static BS_STATUS _aclappip_ParseRule(IN INT muc_id, IN UINT uiArgc, IN CHAR **pp
     UINT uiProto = 0;
     CHAR acHelp[1024];
     GETOPT2_NODE_S opts[] = {
-        {'o', 's', "src_ip", 's', &pcSip, "source ip/prefix, eg 10.10.10.10 or 10.0.0.0/8", 0},
-        {'o', 'd', "dst_ip", 's', &pcDip, "destination ip/prefix, eg 10.10.10.10 or 10.0.0.0/8", 0},
-        {'o', 'p', "src_port", 's', &pcSport, "source port range, eg 80 or 100/200", 0},
-        {'o', 'o', "dst_port", 's', &pcDport, "destination port range,  eg 80 or 100/200", 0},
-        {'o', 'S', "src_ip_group", 's', &pcSipPool, "source ip addresses group name, eg sip-pool", 0},
-        {'o', 'D', "dst_ip_group", 's', &pcDipPool, "destination ip addresses group name, eg dip-pool", 0},
-        {'o', 'P', "src_port_group", 's', &pcSportPool, "source port group name, eg sport-pool", 0},
-        {'o', 'O', "dst_port_group", 's', &pcDportPool, "destination port group name, eg dport-pool", 0},
-        {'o', 't', "protocol", 'u', &uiProto, "protocal num, eg 17", 0},
+        {'o', 's', "src_ip", GETOPT2_V_STRING, &pcSip, "source ip/prefix, eg 10.10.10.10 or 10.0.0.0/8", 0},
+        {'o', 'd', "dst_ip", GETOPT2_V_STRING, &pcDip, "destination ip/prefix, eg 10.10.10.10 or 10.0.0.0/8", 0},
+        {'o', 'p', "src_port", GETOPT2_V_STRING, &pcSport, "source port range, eg 80 or 100/200", 0},
+        {'o', 'o', "dst_port", GETOPT2_V_STRING, &pcDport, "destination port range,  eg 80 or 100/200", 0},
+        {'o', 'S', "src_ip_group", GETOPT2_V_STRING, &pcSipPool, "source ip addresses group name, eg sip-pool", 0},
+        {'o', 'D', "dst_ip_group", GETOPT2_V_STRING, &pcDipPool, "destination ip addresses group name, eg dip-pool", 0},
+        {'o', 'P', "src_port_group", GETOPT2_V_STRING, &pcSportPool, "source port group name, eg sport-pool", 0},
+        {'o', 'O', "dst_port_group", GETOPT2_V_STRING, &pcDportPool, "destination port group name, eg dport-pool", 0},
+        {'o', 't', "protocol", GETOPT2_V_U32, &uiProto, "protocal num, eg 17", 0},
         {0}};
 
 
@@ -603,7 +603,7 @@ static BS_STATUS _aclappip_LoadRule(int muc_id, IPACL_HANDLE ipacl, IN UINT uiLi
         uiArgc = ARGS_Split(acLine, ppcArgv, IPACL_CMD_RULE_ELEMENT_MAX);
         if (uiArgc == 0)
         {
-            // 将空行去掉
+            
             continue;
         } 
         
@@ -654,9 +654,9 @@ void AclAppIP_DestroyMuc(ACL_MUC_S *acl_muc)
     }
 }
 
-/* CMD */
 
-/* ip-acl %STRING */
+
+
 PLUG_API BS_STATUS AclAppIP_EnterListView(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS eRet;
@@ -677,7 +677,7 @@ PLUG_API BS_STATUS AclAppIP_EnterListView(IN UINT uiArgc, IN CHAR **ppcArgv, IN 
     return BS_OK;
 }
 
-/* no ip-acl %STRING */
+
 PLUG_API BS_STATUS AclAppIP_CmdNoList(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS eRet;
@@ -710,7 +710,7 @@ PLUG_API BS_STATUS AclAppIP_Clear(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pE
     return 0;
 }
 
-/* move rule %INT to %INT */
+
 PLUG_API BS_STATUS AclAppIP_CmdMoveRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName;
@@ -745,7 +745,7 @@ PLUG_API BS_STATUS AclAppIP_CmdMoveRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VO
     return eRet;
 }
 
-/* no rule %INT */
+
 PLUG_API BS_STATUS AclAppIP_CmdNoRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName;
@@ -885,7 +885,7 @@ PLUG_API BS_STATUS AclAppIP_Cmd_IncreaseID(IN UINT uiArgc, IN CHAR **ppcArgv, IN
     return BS_OK;
 }
 
-/* default action permit|deny */
+
 PLUG_API BS_STATUS AclAppIP_CmdSet_DefaultAction(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName = CMD_EXP_GetCurrentModeValue(pEnv);
@@ -920,7 +920,7 @@ PLUG_API BS_STATUS AclAppIP_CmdSet_DefaultAction(IN UINT uiArgc, IN CHAR **ppcAr
     return IPACL_SetDefaultActionByID(ipacl, uiListID, enAction);
 }
 
-/* rule %INT<1-10000> action {permit|deny} --sip 10.0.0.0/8 --dip 10.0.0.0/8 --sport 100000-60000 --dport 443,80 --proto 17  */
+
 PLUG_API BS_STATUS AclAppIP_CmdRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS enRet = BS_OK;

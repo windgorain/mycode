@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS NAT_Phy_Init();
 BS_STATUS NAT_Phy_PrivatePcap(IN CHAR *pcPcap);
@@ -23,7 +23,7 @@ UINT NAT_PHY_GetPubPcapGateWayIP();
 UINT NAT_PHY_GetPcapIndexByIfIndex(IN UINT uiIfIndex);
 UINT NAT_PHY_GetIP(IN UINT uiIfIndex);
 UINT NAT_PHY_GetMask(IN UINT uiIfIndex);
-/* 判断pub pcap是否同时是private pcap */
+
 BOOL_T NAT_PHY_PubPcapIsPrivate();
 BOOL_T NAT_PHY_IsPrivateIfIndex(IN UINT uiIfIndex);
 BS_STATUS NAT_Phy_Start();
@@ -31,8 +31,8 @@ VOID NAT_Phy_Save(IN HANDLE hFile);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__NAT_PHY_H_*/
+#endif 
 
 

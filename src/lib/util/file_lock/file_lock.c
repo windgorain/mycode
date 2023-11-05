@@ -111,8 +111,7 @@ static _FM_FILE_PATH_NODE_S * _FM_AddNode(IN CHAR *pszFilePath)
 }
 
 
-/* 锁定某个路径/文件 
-*/
+
 BS_STATUS FM_LockPath(IN CHAR *pszFilePath, IN BOOL_T bIsDir, OUT HANDLE *phFmLockId)
 {
     CHAR szFilePath[FILE_MAX_PATH_LEN + 2];
@@ -129,7 +128,7 @@ BS_STATUS FM_LockPath(IN CHAR *pszFilePath, IN BOOL_T bIsDir, OUT HANDLE *phFmLo
 
     ulFilePathLen = strlen(szFilePath);
 
-    /* 如果是目录，但是不以'/'结束,则加上'/' */
+    
     if ((bIsDir == TRUE) && (szFilePath[ulFilePathLen - 1] != '/'))
     {
         szFilePath[ulFilePathLen] = '/';
@@ -158,8 +157,7 @@ BS_STATUS FM_LockPath(IN CHAR *pszFilePath, IN BOOL_T bIsDir, OUT HANDLE *phFmLo
     return BS_OK;
 }
 
-/* 解锁定某个路径/文件 
-*/
+
 BS_STATUS FM_UnLockPath(IN HANDLE hFmLockId)
 {
     _FM_FILE_PATH_NODE_S *pstNode;

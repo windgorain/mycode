@@ -16,7 +16,7 @@
 #include "../h/wan_ifnet.h"
 #include "../h/wan_ip_addr.h"
 
-/* ip address x.x.x.x mask */
+
 PLUG_API BS_STATUS WAN_IPAddrCmd_IpAddress
 (
     IN UINT ulArgc,
@@ -75,7 +75,7 @@ PLUG_API BS_STATUS WAN_IPAddrCmd_IpAddress
     return BS_OK;
 }
 
-/* no ip address x.x.x.x */
+
 PLUG_API BS_STATUS WAN_IPAddrCmd_NoIpAddress
 (
     IN UINT ulArgc,

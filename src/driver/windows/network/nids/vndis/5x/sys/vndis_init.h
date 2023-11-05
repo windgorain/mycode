@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 NDIS_STATUS DriverEntry(PVOID pDriverObject, PVOID pRegistryPath);
 DRIVER_UNLOAD VNDIS_Init_UnLoad;
@@ -19,9 +19,9 @@ NDIS_HANDLE VNDIS_Init_GetWrapperHandle();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNDIS_INIT_H_*/
+#endif 
 
 
 

@@ -28,7 +28,7 @@
 #include "../h/wan_vrf_cmd.h"
 #include "../h/wan_arp_agent.h"
 
-#define _WAN_ARP_TIME_OUT_TICK WAN_VRF_TIME_TO_TICK(10 * 60 * 1000)  /* 10分钟 */
+#define _WAN_ARP_TIME_OUT_TICK WAN_VRF_TIME_TO_TICK(10 * 60 * 1000)  
 
 #define _WAN_ARP_DBG_FLAG_PACKET 0x1
 #define _WAN_ARP_DBG_FLAG_EVENT  0x2
@@ -61,7 +61,7 @@ static BS_STATUS wan_arp_SendPacket(IN MBUF_S *pstMbuf, IN USER_HANDLE_S *pstUse
 
 static BOOL_T wan_arp_IsHostIP(IN UINT uiIfIndex, ARP_HEADER_S *pstArpHeader, IN USER_HANDLE_S *pstUserHandle)
 {
-    if (pstArpHeader->ulDstIp != pstArpHeader->ulSenderIp)  /* 冲突检查arp不进行代理 */
+    if (pstArpHeader->ulDstIp != pstArpHeader->ulSenderIp)  
     {
         if (WAN_ArpAgent_IsAgentOn(uiIfIndex, ntohl(pstArpHeader->ulDstIp)))
         {
@@ -72,11 +72,11 @@ static BOOL_T wan_arp_IsHostIP(IN UINT uiIfIndex, ARP_HEADER_S *pstArpHeader, IN
     return WAN_IPAddr_IsInterfaceIp(uiIfIndex, pstArpHeader->ulDstIp);
 }
 
-/* 返回网络序IP */
+
 static UINT wan_arp_GetHostIp
 (
     IN IF_INDEX ifIndex,
-    IN UINT uiDstIP, /* 网络序 */
+    IN UINT uiDstIP, 
     IN USER_HANDLE_S *pstUserHandle
 )
 {
@@ -187,10 +187,10 @@ static BS_STATUS wan_arp_VFEvent(IN UINT uiEvent, IN UINT uiVrfID, IN USER_HANDL
     return BS_OK;
 }
 
-static BS_WALK_RET_E wan_arp_ShowEach(IN ARP_NODE_S *pstArpNode, IN HANDLE hUserHandle)
+static int wan_arp_ShowEach(IN ARP_NODE_S *pstArpNode, IN HANDLE hUserHandle)
 {
     EXEC_OutInfo(" %-15pI4 %pM\r\n", &pstArpNode->uiIp, &pstArpNode->stMac);
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 BS_STATUS WAN_ARP_Init()
@@ -234,11 +234,11 @@ BS_STATUS WAN_ARP_PacketInput(IN MBUF_S *pstArpPacket)
     return eRet;
 }
 
-/* 根据IP得到MAC，如果得不到,则发送ARP请求，并返回BS_PROCESSED. */
+
 BS_STATUS WAN_ARP_GetMacByIp
 (
     IN UINT uiIfIndex,
-    IN UINT ulIpToResolve /* 网络序 */,
+    IN UINT ulIpToResolve ,
     IN MBUF_S *pstMbuf,
     OUT MAC_ADDR_S *pstMacAddr
 )
@@ -265,7 +265,7 @@ BS_STATUS WAN_ARP_GetMacByIp
     return eRet;
 }
 
-/* debug arp packet */
+
 PLUG_API void WAN_ARP_DebugPacket
 (
     IN UINT ulArgc,
@@ -275,7 +275,7 @@ PLUG_API void WAN_ARP_DebugPacket
     BIT_SET(g_uiWanArpDebugFlag, _WAN_ARP_DBG_FLAG_PACKET);
 }
 
-/* no debug arp packet */
+
 PLUG_API void WAN_ARP_NoDebugPacket
 (
     IN UINT ulArgc,
@@ -285,7 +285,7 @@ PLUG_API void WAN_ARP_NoDebugPacket
     BIT_CLR(g_uiWanArpDebugFlag, _WAN_ARP_DBG_FLAG_PACKET);
 }
 
-/* debug arp event */
+
 PLUG_API void WAN_ARP_DebugEvent
 (
     IN UINT ulArgc,
@@ -295,7 +295,7 @@ PLUG_API void WAN_ARP_DebugEvent
     BIT_SET(g_uiWanArpDebugFlag, _WAN_ARP_DBG_FLAG_EVENT);
 }
 
-/* no debug arp event */
+
 PLUG_API void WAN_ARP_NoDebugEvent
 (
     IN UINT ulArgc,
@@ -305,10 +305,7 @@ PLUG_API void WAN_ARP_NoDebugEvent
     BIT_CLR(g_uiWanArpDebugFlag, _WAN_ARP_DBG_FLAG_EVENT);
 }
 
-/*
-    VF视图下:
-    show arp
-*/
+
 PLUG_API BS_STATUS WAN_ARP_ShowArp
 (
     IN UINT ulArgc,

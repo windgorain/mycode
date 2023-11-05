@@ -27,7 +27,7 @@ int CPU_HighestFunction()
     return a;
 }
 
-/* 奔腾3之后的cpu不再支持 */
+
 int CPU_GetID(char *id, int size)
 {
     unsigned int a,b,c,d;
@@ -89,10 +89,7 @@ int CPU_GetBrand(char *cBrand, int size)
 
     memset((void*)cpu_brand_buf,0,sizeof(cpu_brand_buf));
 
-    /**
-    * eax == 0x800000000
-    * 如果CPU支持Brand String，则在EAX中返 >= 0x80000004的值。
-    */
+    
     cpuid(0x80000000,a,b,c,d);
     if(a < 0x80000004)
     {

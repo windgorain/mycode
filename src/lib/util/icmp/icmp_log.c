@@ -157,7 +157,7 @@ void ICMPLOG_Input(ICMP_LOG_S *config, VOID *ippkt, UINT pktlen, NET_PKT_TYPE_E 
         return;
     }
 
-    /*if this an icmp traffic and ip offset is large than 0*/
+    
     if (ipheader.family == ETH_P_IP) {
         IP_HEAD_S *ip4 = ipheader.iph.ip4;
         if (IP_HEAD_FRAG_OFFSET(ip4) == 0) {

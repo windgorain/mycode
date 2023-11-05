@@ -14,7 +14,7 @@ extern "C"
 #define TRIE2B_NUM 4
 
 typedef struct trie2b_node {
-    TRIE_COMMON_S common; /* 必须为第一个成员 */
+    TRIE_COMMON_S common; 
     struct trie2b_node *nexts[TRIE2B_NUM];
 }TRIE_2BITS_NODE_S;
 
@@ -28,4 +28,4 @@ TRIE_COMMON_S * Trie2b_PrefixMatch(void *root, UCHAR *data, int data_len, PF_TRI
 #ifdef __cplusplus
 }
 #endif
-#endif //TRIE_2BITS_H_
+#endif 

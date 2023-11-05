@@ -14,7 +14,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID (*PF_VNETC_LIB_DESC_NOTIFY)(IN USER_HANDLE_S *pstUserHandle);
 
@@ -51,8 +51,8 @@ UINT VNETC_LIB_GetAddrMonitorMask();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_LIB_H_*/
+#endif 
 
 

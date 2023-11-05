@@ -10,13 +10,13 @@
 #include "utl/umap_utl.h"
 
 typedef struct {
-    UMAP_HEADER_S hdr; /* 必须为第一个成员 */
+    UMAP_HEADER_S hdr; 
     U32 buckets_num;
     HASH_HANDLE hash_tbl;
 }UMAP_HASH_S;
 
 typedef struct {
-    HASH_NODE_S hash_node; /* 必须为第一个成员 */
+    HASH_NODE_S hash_node; 
     UMAP_HASH_S *ctrl;
     void *key;
     void *value;
@@ -54,26 +54,26 @@ static void _umap_hash_hash_free_node(HASH_HANDLE hash_tbl, void *node, void *ud
     _umap_hash_free_node(node);
 }
 
-static void _umap_hash_destroy_map(void *ufd_ctx, void *f)
+static void _umap_hash_destroy_map(void *map)
 {
-    UMAP_HASH_S *ctrl = f;
+    UMAP_HASH_S *ctrl = map;
 
     HASH_DelAll(ctrl->hash_tbl, _umap_hash_hash_free_node, NULL);
     HASH_DestoryInstance(ctrl->hash_tbl);
     MEM_RcuFree(ctrl);
 }
 
-static int _umap_hash_open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap)
+static void * _umap_hash_open(void *map_def)
 {
-    int fd;
+    UMAP_ELF_MAP_S *elfmap = map_def;
 
     if ((! elfmap) || (elfmap->max_elem == 0) || (elfmap->size_key == 0)) {
-		return -EINVAL;
+		return NULL;
     }
 
     UMAP_HASH_S *ctrl = MEM_RcuZMalloc(sizeof(UMAP_HASH_S));
     if (! ctrl) {
-        return -ENOMEM;
+        return NULL;
     }
 
     ctrl->buckets_num = NUM_To2N(elfmap->max_elem);
@@ -81,16 +81,10 @@ static int _umap_hash_open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap)
     ctrl->hash_tbl = HASH_CreateInstance(RcuEngine_GetMemcap(), ctrl->buckets_num, _umap_hash_hash_index);
     if (! ctrl->hash_tbl) {
         MEM_RcuFree(ctrl);
-        return -ENOMEM;
+        return NULL;
     }
 
-    fd = UFD_Open(ctx, UFD_FD_TYPE_MAP, ctrl, _umap_hash_destroy_map);
-    if (fd < 0) {
-        MEM_RcuFree(ctrl);
-        return fd;
-    }
-
-    return fd;
+    return ctrl;
 }
 
 static void * _umap_hash_lookup_elem(void *map, const void *key)
@@ -175,8 +169,8 @@ static long _umap_hash_update_elem(void *map, const void *key, const void *value
     return 0;
 }
 
-/* key: NULL表示Get第一个 */
-static void * _umap_hash_getnext_key(void *map, void *key, OUT void **next_key)
+
+static int _umap_hash_getnext_key(void *map, void *key, OUT void **next_key)
 {
     UMAP_HASH_S *ctrl = map;
     UMAP_HASH_NODE_S *found;
@@ -184,7 +178,7 @@ static void * _umap_hash_getnext_key(void *map, void *key, OUT void **next_key)
     UMAP_HASH_NODE_S node;
 
     if (! map) {
-        return NULL;
+        return -1;
     }
 
     if (key) {
@@ -195,20 +189,21 @@ static void * _umap_hash_getnext_key(void *map, void *key, OUT void **next_key)
 
     found = (void*)HASH_GetNextDict(ctrl->hash_tbl, _umap_hash_cmp, (void*)tmp);
     if (! found) {
-        return NULL;
+        return -1;
     }
 
     *next_key = found->key;
 
-    return found->key;
+    return 0;
 }
 
 UMAP_FUNC_TBL_S g_umap_hash_ops = {
     .open_func = _umap_hash_open,
+    .destroy_func = _umap_hash_destroy_map,
     .lookup_elem_func = _umap_hash_lookup_elem,
     .delete_elem_func = _umap_hash_delete_elem,
     .update_elem_func = _umap_hash_update_elem,
-    .get_next_key = _umap_hash_getnext_key,
+    .get_next_key_func = _umap_hash_getnext_key,
     .direct_value_func = NULL,
 };
 

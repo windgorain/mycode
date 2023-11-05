@@ -15,4 +15,4 @@ int TAP_PhyInput(int id, MBUF_S *mbuf);
 #ifdef __cplusplus
 }
 #endif
-#endif //TUN_IF_H_
+#endif 

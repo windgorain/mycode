@@ -8,10 +8,10 @@
 
 #include "utl/cff_utl.h"
 
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_SYSCFG
 
-/* ---var--- */
+
 static CFF_HANDLE g_hSysCfgCff = 0;
 static CHAR * g_pcSysconfigFileName = "config.ini";
 

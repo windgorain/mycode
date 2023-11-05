@@ -15,7 +15,7 @@
 #include "utl/mypoll_utl.h"
 
 
-/* --defines-- */
+
 #define _TELSVR_DEL_CMD(pszData,ulLen)  \
     do{ \
         INT _i;    \
@@ -38,8 +38,8 @@ typedef enum
     _TELS_STATE_DATA = 0,
     _TELS_STATE_IAC,
     _TELS_STATE_WILL_WONT_DO_DONT,
-    _TELS_STATE_SB,      /* 子选项协商 */
-    _TELS_STATE_WAIT_SE, /* 等待SE */
+    _TELS_STATE_SB,      
+    _TELS_STATE_WAIT_SE, 
 
     _TELS_STATE_MAX
 }_TELS_STATE_E;

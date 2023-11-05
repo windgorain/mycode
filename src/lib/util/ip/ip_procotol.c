@@ -5,6 +5,7 @@
 ================================================================*/
 #include "bs.h"
 #include "utl/txt_utl.h"
+#include "utl/ctype_utl.h"
 #include "utl/ip_protocol.h"
 
 typedef struct {
@@ -20,6 +21,7 @@ static IP_PROTOCOL_MAP_S g_ip_protocol_map[] = {
     {.protocol=IPPROTO_IGMP, .str="IGMP"},
 };
 
+
 CHAR * IPProtocol_GetName(IN UCHAR ucProtocol)
 {
     int i;
@@ -30,12 +32,26 @@ CHAR * IPProtocol_GetName(IN UCHAR ucProtocol)
         }
     }
 
-    return "";
+    return NULL;
+}
+
+
+CHAR * IPProtocol_GetNameExt(IN UCHAR ucProtocol)
+{
+    char *p = IPProtocol_GetName(ucProtocol);
+    if (! p) {
+        p = "";
+    }
+    return p;
 }
 
 int IPProtocol_GetByName(char *protocol_name)
 {
     int i;
+
+    if (CTYPE_IsNumString(protocol_name)) {
+        return TXT_Str2Ui(protocol_name);
+    }
 
     for (i=0; i<sizeof(g_ip_protocol_map)/sizeof(IP_PROTOCOL_MAP_S); i++) {
         if (stricmp(g_ip_protocol_map[i].str, protocol_name) == 0) {
@@ -46,7 +62,7 @@ int IPProtocol_GetByName(char *protocol_name)
     RETURN(BS_NOT_FOUND);
 }
 
-/* 将UDP,ICMP-TCP转换为 17,1-6 */
+
 int IPProtocol_NameList2Protocols(INOUT char *protocol_name_list)
 {
     int size = strlen(protocol_name_list) + 1;

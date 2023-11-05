@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_LOGUTL
 
 #include "bs.h"
@@ -19,8 +19,8 @@ typedef struct
 {
     CHAR *pszLogFileName;
     FILE *fp;
-    UINT64 capacity; /* 容量 */
-    UINT64 len; /* 当前大小 */
+    UINT64 capacity; 
+    UINT64 len; 
 }_LogFile_CTRL_S;
 
 HANDLE LogFile_Open(IN CHAR *pszFileName)
@@ -78,7 +78,7 @@ void LogFile_Close(IN HANDLE hLogHandle)
     }
 }
 
-/* 设置日志文件最大容量 */
+
 void LogFile_SetCapacity(HANDLE hLogHandle, UINT64 capacity)
 {
     _LogFile_CTRL_S *pstLogCtrl = (_LogFile_CTRL_S *)hLogHandle;
@@ -117,7 +117,7 @@ void LogFile_OutStringByValist(IN HANDLE hLogHandle, IN CHAR *pszLogFmt, IN va_l
 
     if ((pstLogCtrl->capacity != 0) && (pstLogCtrl->len >= pstLogCtrl->capacity)) {
         if (ftruncate(fileno(pstLogCtrl->fp), 0) < 0) {
-            /* do nothing */
+            
         }
         rewind(pstLogCtrl->fp);
         pstLogCtrl->len = 0;

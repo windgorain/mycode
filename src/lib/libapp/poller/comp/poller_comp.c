@@ -35,7 +35,7 @@ PLUG_API MYPOLL_HANDLE PollerComp_GetMyPoll(void *ins)
     return the_ins->mypoller;
 }
 
-/* 注册一个ob响应trigger事件 */
+
 PLUG_API void PollerComp_RegOb(void *ins, OB_S *ob)
 {
     POLLER_INS_S *the_ins = ins;

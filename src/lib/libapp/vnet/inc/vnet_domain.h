@@ -11,8 +11,8 @@
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNET_DOMAIN_H_*/
+#endif 
 
 

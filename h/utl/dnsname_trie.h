@@ -19,4 +19,4 @@ void * DnsNameTrie_Match(TRIE_HANDLE trie, char *hostname, UINT len, int match_t
 #ifdef __cplusplus
 }
 #endif
-#endif //DNSNAME_TRIE_H_
+#endif 

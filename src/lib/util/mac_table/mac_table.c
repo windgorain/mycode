@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_MACTBL
 
 #include "bs.h"
@@ -26,7 +26,7 @@ typedef struct MAC_TBL_STRUCT
 {
     HANDLE hHashId;
     UINT uiOldTick;
-    UINT uiUserDataSize; /* 用户数据大小 */
+    UINT uiUserDataSize; 
     VCLOCK_INSTANCE_HANDLE hVclockInstance;
     _MAC_TBL_NOTIFY_S stNotify;
 }_MAC_TBL_S;
@@ -90,7 +90,7 @@ static INT mactbl_CmpNode(IN _MAC_TBL_NODE_S *pstNode1, IN _MAC_TBL_NODE_S *pstN
     return 0;
 }
 
-static BS_WALK_RET_E mactbl_WalkEach(IN HANDLE hHashId, IN _MAC_TBL_NODE_S *pstNode, IN _MAC_TBL_WALK_USER_HANDLE_S *pstUserHanlde)
+static int mactbl_WalkEach(IN HANDLE hHashId, IN _MAC_TBL_NODE_S *pstNode, IN _MAC_TBL_WALK_USER_HANDLE_S *pstUserHanlde)
 {
     pstUserHanlde->pfFunc
         (pstUserHanlde->hMacTblId,
@@ -98,7 +98,7 @@ static BS_WALK_RET_E mactbl_WalkEach(IN HANDLE hHashId, IN _MAC_TBL_NODE_S *pstN
         pstNode->pUserData,
         pstUserHanlde->pUserHandle);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static inline VOID mactbl_Free(IN _MAC_TBL_S *pstMacTbl, IN _MAC_TBL_NODE_S *pstMacNode)
@@ -148,11 +148,10 @@ static inline _MAC_TBL_NODE_S * mactbl_Find(IN HANDLE hMacTblId, IN MAC_NODE_S *
     return (_MAC_TBL_NODE_S *)HASH_Find(pstMacTbl->hHashId, (PF_HASH_CMP_FUNC)mactbl_CmpNode, (HASH_NODE_S*)&stTblNode);
 }
 
-static BS_WALK_RET_E mactbl_DestoryAll (HANDLE hHashId,
-        IN _MAC_TBL_NODE_S *pstNode, IN _MAC_TBL_S *pstMacTbl)
+static int mactbl_DestoryAll (HANDLE hHashId, _MAC_TBL_NODE_S *pstNode, _MAC_TBL_S *pstMacTbl)
 {
     mactbl_Del(pstMacTbl, pstNode);
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static VOID mactbl_CopyMacNode
@@ -172,7 +171,7 @@ static VOID mactbl_CopyMacNode
     }
 }
 
-MACTBL_HANDLE MACTBL_CreateInstance(UINT uiUserDataSize/* 用户数据大小 */)
+MACTBL_HANDLE MACTBL_CreateInstance(UINT uiUserDataSize)
 {
     _MAC_TBL_S *pstMacTbl;
     VCLOCK_INSTANCE_HANDLE hVclockInstance;
@@ -286,7 +285,7 @@ BS_STATUS MACTBL_Add(MACTBL_HANDLE mactbl, IN MAC_NODE_S *pstMacNode,
         }
         else
         {
-            /* MAC学习, 需要检查优先级 */
+            
             if (pstMacNode->uiPRI >= pstMacTblNode->stMacNode.uiPRI)
             {
                 bLearn = TRUE;
@@ -390,7 +389,7 @@ VOID MACTBL_Walk(MACTBL_HANDLE mactbl, IN PF_MACTBL_WALK_FUNC pfFunc, IN VOID *p
     HASH_Walk(mactbl->hHashId, (PF_HASH_WALK_FUNC)mactbl_WalkEach, &stUserHandle);
 }
 
-/* 触发一次时钟 */
+
 VOID MACTBL_TickStep(MACTBL_HANDLE mactbl)
 {
     VCLOCK_Step(mactbl->hVclockInstance);

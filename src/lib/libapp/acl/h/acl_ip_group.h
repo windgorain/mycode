@@ -20,4 +20,4 @@ void * AclIPGroup_FindByName(int muc_id, char *list_name);
 #ifdef __cplusplus
 }
 #endif
-#endif //ACL_IP_GROUP_H_
+#endif 

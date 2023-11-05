@@ -61,8 +61,8 @@ typedef struct {
     struct in6_addr ip6_dst;
     USHORT sport;
     USHORT dport;
-    USHORT is_request:1; /* request or response */
-    USHORT match_white_list:1; /* OUT */
+    USHORT is_request:1; 
+    USHORT match_white_list:1; 
     USHORT reuse_parsed_value :1;
     USHORT is_chunked: 1;
     USHORT with_body: 1;
@@ -93,4 +93,4 @@ int HTTPLOG_BodyInput(HTTP_LOG_S *config, HTTP_LOG_HEAD_INFO_S *body_info);
 #ifdef __cplusplus
 }
 #endif
-#endif //HTTP_LOG_H_
+#endif 

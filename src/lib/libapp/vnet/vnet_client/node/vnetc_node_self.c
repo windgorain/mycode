@@ -16,7 +16,7 @@
 #include "../inc/vnetc_ses.h"
 
 
-static UINT g_uiVnetcSelfNid; /* 自己的NID , 主机序 */
+static UINT g_uiVnetcSelfNid; 
 static UINT g_uiVnetcSelfCookie;
 static CHAR g_szVnetcSelfCookieString[512] = "";
 
@@ -51,7 +51,7 @@ UINT VNETC_NODE_Self()
     return g_uiVnetcSelfNid;
 }
 
-/* show node self */
+
 PLUG_API BS_STATUS VNETC_NODE_ShowSelf(IN UINT uiArgc, IN CHAR **argv)
 {
     EXEC_OutInfo(" Self node ID is %s%d.\r\n",

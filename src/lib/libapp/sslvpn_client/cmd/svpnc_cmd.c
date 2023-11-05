@@ -9,7 +9,7 @@
 #include "../h/svpnc_conf.h"
 #include "../h/svpnc_func.h"
 
-/* server  xxx */
+
 PLUG_API BS_STATUS SVPNC_CMD_SetServer(IN UINT ulArgc, IN CHAR **argv)
 {
     if (ulArgc < 2)
@@ -20,7 +20,7 @@ PLUG_API BS_STATUS SVPNC_CMD_SetServer(IN UINT ulArgc, IN CHAR **argv)
     return SVPNC_SetServer(argv[1]);
 }
 
-/* port  xxx */
+
 PLUG_API BS_STATUS SVPNC_CMD_SetPort(IN UINT ulArgc, IN CHAR **argv)
 {
     if (ulArgc < 2)
@@ -31,7 +31,7 @@ PLUG_API BS_STATUS SVPNC_CMD_SetPort(IN UINT ulArgc, IN CHAR **argv)
     return SVPNC_SetPort(argv[1]);
 }
 
-/* type  {tcp | ssl} */
+
 PLUG_API BS_STATUS SVPNC_CMD_SetType(IN UINT ulArgc, IN CHAR **argv)
 {
     if (ulArgc < 2)
@@ -42,7 +42,7 @@ PLUG_API BS_STATUS SVPNC_CMD_SetType(IN UINT ulArgc, IN CHAR **argv)
     return SVPNC_SetConnType(argv[1]);
 }
 
-/* username _STRING_<1-128> */
+
 PLUG_API BS_STATUS SVPNC_CMD_SetUser(IN UINT ulArgc, IN CHAR **argv)
 {
     if (ulArgc < 2)
@@ -55,7 +55,7 @@ PLUG_API BS_STATUS SVPNC_CMD_SetUser(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* password { simple _STRING_<1-128> | cipher _STRING_<1-171> }  */
+
 PLUG_API BS_STATUS SVPC_CMD_SetPassword(IN UINT ulArgc, IN CHAR **argv)
 {
     if (ulArgc < 3)
@@ -75,7 +75,7 @@ PLUG_API BS_STATUS SVPC_CMD_SetPassword(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* start */
+
 PLUG_API BS_STATUS SVPNC_CMD_Start(IN UINT ulArgc, IN CHAR **argv)
 {
     return SVPNC_Login();

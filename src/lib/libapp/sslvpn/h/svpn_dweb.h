@@ -13,7 +13,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct
 {
@@ -28,8 +28,8 @@ WS_DELIVER_RET_E SVPN_DWeb_RequestIn(IN WS_TRANS_HANDLE hTrans, IN UINT uiEvent)
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_DWEB_H_*/
+#endif 
 
 

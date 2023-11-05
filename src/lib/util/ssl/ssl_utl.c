@@ -37,7 +37,7 @@ VOID SSL_UTL_Init()
     SSLeay_add_ssl_algorithms();
     OpenSSL_add_all_algorithms();
     SSL_load_error_strings();
-//    ERR_load_BIO_strings();
+
 }
 
 VOID * SSL_UTL_Ctx_Create(int min_version, int max_version)
@@ -117,7 +117,7 @@ BS_STATUS SSL_UTL_Ctx_LoadCert(IN VOID *pstSslCtx, IN CHAR *pcCACert, IN CHAR *p
         return BS_ERR;
     }
 
-    // 判定私钥是否正确
+    
     if (!SSL_CTX_check_private_key(pstCtx))
     {
         return BS_ERR;
@@ -126,7 +126,7 @@ BS_STATUS SSL_UTL_Ctx_LoadCert(IN VOID *pstSslCtx, IN CHAR *pcCACert, IN CHAR *p
     return BS_OK;
 }
 
-BS_STATUS SSL_UTL_Ctx_LoadSelfSignCert(IN VOID *pstSslCtx, IN PKI_DOMAIN_CONFIGURE_S *pstConf/* 可以为NULL */)
+BS_STATUS SSL_UTL_Ctx_LoadSelfSignCert(IN VOID *pstSslCtx, IN PKI_DOMAIN_CONFIGURE_S *pstConf)
 {
     SSL_CTX *pstCtx = pstSslCtx;
     X509 *pstX509Cert;
@@ -150,7 +150,7 @@ VOID SSL_UTL_Ctx_SetVerifyPeer(IN VOID *pstSslCtx, IN BOOL_T bVerifyPeer)
 {
     SSL_CTX *pstCtx = pstSslCtx;
 
-    // 要求校验对方证书  
+    
     if (bVerifyPeer == TRUE)
     {
         SSL_CTX_set_verify(pstCtx, SSL_VERIFY_PEER, NULL);
@@ -170,7 +170,7 @@ int SSL_UTL_Ctx_LoadVerifyLocations(IN VOID *pstSslCtx, IN CHAR *caFile, IN CHAR
     return 0;
 }
 
-void * SSL_UTL_BlockConnect(unsigned int ip/*netorder*/, unsigned short port/*netorder*/, char * host_name, int timeout/*us, 0:not set*/)
+void * SSL_UTL_BlockConnect(unsigned int ip, unsigned short port, char * host_name, int timeout)
 {  
     int server_fd;
     SSL_CTX *ssl_ctx;
@@ -321,12 +321,12 @@ INT SSL_UTL_Accept(IN VOID *pstSsl)
             iRet = 1;
             break;
         }
-        case SSL_ERROR_WANT_READ:   /* fall down */
+        case SSL_ERROR_WANT_READ:   
         {
             iRet = SSL_UTL_E_WANT_READ;
             break;
         }
-        case SSL_ERROR_WANT_WRITE:  /* fall down */
+        case SSL_ERROR_WANT_WRITE:  
         case SSL_ERROR_WANT_X509_LOOKUP:
         {
             iRet = SSL_UTL_E_WANT_WRITE;
@@ -365,8 +365,8 @@ INT SSL_UTL_Read(IN VOID *pstSsl, IN VOID *pBuf, IN INT iNum)
             iRet = SOCKET_E_AGAIN;
             break;
         }
-        case SSL_ERROR_WANT_READ:   /* fall down */
-        case SSL_ERROR_WANT_WRITE:  /* fall down */
+        case SSL_ERROR_WANT_READ:   
+        case SSL_ERROR_WANT_WRITE:  
         case SSL_ERROR_WANT_X509_LOOKUP:
         {
             iRet = SOCKET_E_AGAIN;
@@ -410,8 +410,8 @@ INT SSL_UTL_Write(IN VOID *pstSsl, IN VOID *pBuf, IN INT iNum)
             iRet = SOCKET_E_AGAIN;
             break;
         }
-        case SSL_ERROR_WANT_READ:   /* fall down */
-        case SSL_ERROR_WANT_WRITE:  /* fall down */
+        case SSL_ERROR_WANT_READ:   
+        case SSL_ERROR_WANT_WRITE:  
         case SSL_ERROR_WANT_X509_LOOKUP:
         {
             iRet = SOCKET_E_AGAIN;

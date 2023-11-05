@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS HTML_ESC_Decode
 (
@@ -19,26 +19,26 @@ BS_STATUS HTML_ESC_Decode
     IN UINT uiOutBufSize,
     OUT CHAR *pcOutput
 );
-/* 计算编码后需要多长. */
+
 UINT HTML_ESC_EncodeLen
 (
     IN CHAR *pcInput,
     IN UINT uiInputLen,
-    IN CHAR *pcTranslateCharset    /* 需要进行转换的字符集 */
+    IN CHAR *pcTranslateCharset    
 );
 BS_STATUS HTML_ESC_Encode
 (
     IN CHAR *pcInput,
     IN UINT uiInputLen,
-    IN CHAR *pcTranslateCharset,    /* 需要进行转换的字符集 */
+    IN CHAR *pcTranslateCharset,    
     IN UINT uiOutBufSize,
     OUT CHAR *pcOutput
 );
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__HTML_ESC_H_*/
+#endif 
 
 

@@ -71,7 +71,7 @@ static BS_STATUS nat_link_GetDstMac(IN UINT uiIfIndex, IN MBUF_S *pstMbuf, OUT M
     return NAT_ARP_GetMacByIp(uiIfIndex, uiNextHop, pstMbuf, pstMac);
 }
 
-BS_STATUS NAT_Link_OutPut(IN UINT uiIfIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType/* net order */)
+BS_STATUS NAT_Link_OutPut(IN UINT uiIfIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType)
 {
     ETH_HEADER_S * pstEthHeader;
     USHORT usEthFlag;

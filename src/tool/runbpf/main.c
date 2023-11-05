@@ -18,6 +18,7 @@
 #include "utl/mybpf_simple.h"
 #include "utl/mybpf_dbg.h"
 #include "utl/mybpf_asm.h"
+#include "utl/mybpf_asmexp.h"
 #include "utl/ubpf_utl.h"
 #include "utl/file_utl.h"
 
@@ -28,21 +29,10 @@ static int _runbpf_file(int argc, char **argv);
 static int _dump_prog(int argc, char **argv);
 static int _export_prog(int argc, char **argv);
 static int _show_file(int argc, char **argv);
+static int _convert_bpfexp(int argc, char **argv);
 #endif
 
 static int _convert_simple(int argc, char **argv);
-
-static SUB_CMD_NODE_S g_subcmds[] = 
-{
-#if (RUNBPF_ALL_CAPABILITY)
-    {"run", _runbpf_file, "run file"},
-    {"show", _show_file, "show file info"},
-    {"dump prog", _dump_prog, "dump prog"},
-    {"export prog", _export_prog, "export prog"},
-#endif
-    {"convert simple", _convert_simple, "convert to simple bpf file"},
-    {NULL, NULL}
-};
 
 static BOOL_T _is_spf_file(char *filename)
 {
@@ -51,7 +41,7 @@ static BOOL_T _is_spf_file(char *filename)
 
 static void _runbpf_opt_help(GETOPT2_NODE_S *opt)
 {
-    char buf[512];
+    char buf[4096];
     printf("%s", GETOPT2_BuildHelpinfo(opt, buf, sizeof(buf)));
     return;
 }
@@ -91,11 +81,11 @@ static int _runbpf_file(int argc, char **argv)
     static char *params = NULL;
     static char *sec_name= NULL;
     static GETOPT2_NODE_S opt[] = {
-        {'P', 0, "filename", 's', &filename, "bpf file name", 0},
-        {'o', 's', "section", 's', &sec_name, "section prefix", 0},
-        {'o', 'j', "jit", 0, NULL, "jit", 0},
-        {'o', 'p', "params", 's', &params, "params", 0},
-        {'o', 'd', "debug", 0, NULL, "print debug info", 0},
+        {'P', 0, "filename", GETOPT2_V_STRING, &filename, "bpf file name", 0},
+        {'o', 's', "section", GETOPT2_V_STRING, &sec_name, "section prefix", 0},
+        {'o', 'j', "jit", GETOPT2_V_NONE, NULL, "jit", 0},
+        {'o', 'p', "params", GETOPT2_V_STRING, &params, "params", 0},
+        {'o', 'd', "debug", GETOPT2_V_NONE, NULL, "print debug info", 0},
         {0} };
 
     int jit = 0;
@@ -142,7 +132,7 @@ static int _walk_prog_dump(void *data, int offset, int len, char *sec_name, char
     UINT flag = HANDLE_UINT(uh->ahUserHandle[1]);
 
     if ((func) && (strcmp(func, func_name) != 0)) {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     printf("sec:%s, name:%s, offset:%d \n", sec_name, func_name, offset);
@@ -155,7 +145,7 @@ static int _walk_prog_dump(void *data, int offset, int len, char *sec_name, char
 
     printf("\n");
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static int _dump_elf_prog(char *filename, void *ud)
@@ -188,12 +178,12 @@ static int _dump_prog(int argc, char **argv)
     static char *filename=NULL;
     static char *function = NULL;
     static GETOPT2_NODE_S opt[] = {
-        {'o', 'f', "function", 's', &function, "function name", 0},
-        {'o', 'd', "disassemble", 0, NULL, "show disassemble", 0},
-        {'o', 'e', "expression", 0, NULL, "show expression", 0},
-        {'o', 'r', "raw", 0, NULL, "show raw data", 0},
-        {'o', 'l', "line", 0, NULL, "show line number", 0},
-        {'P', 0, "filename", 's', &filename, "bpf file name", 0},
+        {'o', 'f', "function", GETOPT2_V_STRING, &function, "function name", 0},
+        {'o', 'd', "disassemble", GETOPT2_V_NONE, NULL, "show disassemble", 0},
+        {'o', 'e', "expression", GETOPT2_V_NONE, NULL, "show expression", 0},
+        {'o', 'r', "raw", GETOPT2_V_NONE, NULL, "show raw data", 0},
+        {'o', 'l', "line", GETOPT2_V_NONE, NULL, "show line number", 0},
+        {'P', 0, "filename", GETOPT2_V_STRING, &filename, "bpf file name", 0},
         {0} };
     USER_HANDLE_S uh;
     UINT flag = 0;
@@ -233,13 +223,13 @@ static int _walk_map_show(int id, UMAP_ELF_MAP_S *map, int len, char *map_name, 
 {
     printf("map_id:%d, type:%d, key_size:%d, value_size:%d, max_elem:%d, name:%s \n",
             id, map->type, map->size_key, map->size_value, map->max_elem, map_name);
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static int _walk_prog_show(void *data, int offset, int len, char *sec_name, char *func_name, void *ud)
 {
     printf("prog:%s, sec:%s, offset:%d, size:%d \n", func_name, sec_name, offset, len);
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static int _show_elf_file(char *filename)
@@ -272,8 +262,8 @@ static int _show_file(int argc, char **argv)
 {
     static char *filename=NULL;
     static GETOPT2_NODE_S opt[] = {
-        {'P', 0, "filename", 's', &filename, "bpf file name", 0},
-        {'o', 'd', "debug", 0, NULL, "print debug info", 0},
+        {'P', 0, "filename", GETOPT2_V_STRING, &filename, "bpf file name", 0},
+        {'o', 'd', "debug", GETOPT2_V_NONE, NULL, "print debug info", 0},
         {0} };
 
     if (BS_OK != GETOPT2_Parse(argc, argv, opt)) {
@@ -299,7 +289,7 @@ static int _walk_prog_export(void *data, int offset, int len, char *sec_name, ch
     char buf[256];
 
     if ((func) && (strcmp(func, func_name) != 0)) {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     if (TXT_IS_EMPTY(func_name)) {
@@ -319,14 +309,14 @@ static int _walk_prog_export(void *data, int offset, int len, char *sec_name, ch
     fp = FILE_Open(buf, TRUE, "wb+");
     if (! fp) {
         fprintf(stderr, "Can't open %s \r\n", buf);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     fwrite(data, 1, len, fp);
 
     FILE_Close(fp);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static int _export_elf_prog(char *filename, char *function)
@@ -359,8 +349,8 @@ static int _export_prog(int argc, char **argv)
     static char *filename=NULL;
     static char *function = NULL;
     static GETOPT2_NODE_S opt[] = {
-        {'o', 'f', "function", 's', &function, "function name", 0},
-        {'P', 0, "filename", 's', &filename, "bpf file name", 0},
+        {'o', 'f', "function", GETOPT2_V_STRING, &function, "function name", 0},
+        {'P', 0, "filename", GETOPT2_V_STRING, &filename, "bpf file name", 0},
         {0} };
 
     if (BS_OK != GETOPT2_Parse(argc, argv, opt)) {
@@ -373,6 +363,42 @@ static int _export_prog(int argc, char **argv)
     } else {
         return _export_elf_prog(filename, function);
     }
+}
+
+
+static int _convert_bpfexp(int argc, char **argv)
+{
+    static char *filename=NULL;
+    static char *output_name=NULL;
+    static GETOPT2_NODE_S opt[] = {
+        {'P', 0, "filename", GETOPT2_V_STRING, &filename, "bpf file name", 0},
+        {'o', 'o', "output-name", GETOPT2_V_STRING, &output_name, "output name", 0},
+        {'o', 'd', "debug", GETOPT2_V_NONE, NULL, "print debug info", 0},
+        {0} };
+
+    char bpfexp_file[256];
+
+    if (0 != GETOPT2_Parse(argc, argv, opt)) {
+        _runbpf_opt_help(opt);
+        return -1;
+    }
+
+    if (GETOPT2_IsOptSetted(opt, 'd', NULL)) {
+        MYBPF_DBG_SetAllDebugFlags();
+    }
+
+    if (output_name) {
+        strlcpy(bpfexp_file, output_name, sizeof(bpfexp_file));
+    } else {
+        snprintf(bpfexp_file, sizeof(bpfexp_file), "%s.bpfexp.c", filename);
+    }
+
+    int ret = MYBPF_ASMEXP_ConvertFile(filename, bpfexp_file);
+    if (ret < 0) {
+        ErrCode_Print();
+    }
+
+    return ret;
 }
 
 #endif
@@ -442,19 +468,44 @@ static MYBPF_SIMPLE_CONVERT_CALL_MAP_S * _build_convert_calls_map(char *file)
     return map;
 }
 
+static int _porcess_mode(int mode, char *raw_map_file, OUT MYBPF_SIMPLE_CONVERT_PARAM_S *p)
+{
+    if (mode == 1) {
+        p->helper_mode = MYBPF_JIT_HELPER_MODE_ARRAY;
+        p->aot_map_index_to_ptr = 1;
+    } else if (mode == 2) {
+        if (! raw_map_file) {
+            PRINTLN_HYELLOW("Need --mapfile");
+            return -1;
+        }
+        if (! (p->helper_map = _build_convert_calls_map(raw_map_file))) {
+            return -1;
+        }
+        p->helper_mode = MYBPF_JIT_HELPER_MODE_RAW;
+    } else {
+        p->helper_mode = MYBPF_JIT_HELPER_MODE_AGENT;
+    }
+
+    return 0;
+}
+
 static int _convert_simple(int argc, char **argv)
 {
     static char *filename=NULL;
     static char *output_name=NULL;
     static char *jit_arch_name =NULL;
     static char *convert_map_file=NULL;
+    static U32 mode = 0;
     static GETOPT2_NODE_S opt[] = {
-        {'P', 0, "filename", 's', &filename, "bpf file name", 0},
-        {'o', 'j', "jit", 0, NULL, "jit", 0},
-        {'o', 'a', "arch", 's', &jit_arch_name, "select jit arch: arm64", 0},
-        {'o', 'm', "mapfile", 's', &convert_map_file, "helper map file", 0},
-        {'o', 'o', "output-name", 's', &output_name, "output name", 0},
-        {'o', 'd', "debug", 0, NULL, "print debug info", 0},
+        {'P', 0, "filename", GETOPT2_V_STRING, &filename, "bpf file name", 0},
+        {'o', 'j', "jit", GETOPT2_V_NONE, NULL, "jit/aot", 0},
+        {'o', 't', "target", GETOPT2_V_STRING, &jit_arch_name, "select target arch: arm64,x86_64", 0},
+        {'o', 'm', "mode", GETOPT2_V_U32, &mode, "for aot mode, default 0:agent, 1:array, 2:raw", 0},
+        {'o', 'f', "mapfile", GETOPT2_V_STRING, &convert_map_file, "for aot raw mode", 0},
+        {'o', 'o', "output-name", GETOPT2_V_STRING, &output_name, "output name", 0},
+        {'o', 'd', "debug", GETOPT2_V_NONE, NULL, "print debug info", 0},
+        {'o', 0, "with-map-name", GETOPT2_V_NONE, NULL, "with map name ", 0},
+        {'o', 0, "with-func-name", GETOPT2_V_NONE, NULL, "with function name ", 0},
         {0} };
     char simple_file[256];
     MYBPF_SIMPLE_CONVERT_PARAM_S p = {0};
@@ -482,42 +533,52 @@ static int _convert_simple(int argc, char **argv)
         }
 
         if (! p.jit_arch) {
-            PRINTLN_HYELLOW("Not support jit, to use raw code");
+            PRINTLN_HYELLOW("Can't support AOT, to use raw code");
         }
     }
 
     if (p.jit_arch) {
-        p.support_running_ctx = 1;
-        p.support_global_data = 1;
+        p.translate_mode_aot = 1;
     }
 
-    p.with_map_name = 0;
-    p.with_func_name = 1;
-
-    if (convert_map_file) {
-        if (! (p.helper_map = _build_convert_calls_map(convert_map_file))) {
-            return -1;
-        }
-        
-        p.helper_mode = MYBPF_JIT_HELPER_MODE_RAW;
-    } else {
-        p.helper_mode = MYBPF_JIT_HELPER_MODE_ARRAY;
-        p.map_index_to_ptr = 1;
+    if (GETOPT2_IsOptSetted(opt, 0, "with-map-name")) {
+        p.with_map_name = 1;
     }
 
-    int ret = MYBPF_SIMPLE_ConvertBpf2Simple(filename, simple_file, &p);
+    if (GETOPT2_IsOptSetted(opt, 0, "with-func-name")) {
+        p.with_func_name = 1;
+    }
+
+    if (_porcess_mode(mode, convert_map_file, &p) < 0) {
+        return -1;
+    }
+
+    int ret = MYBPF_SIMPLE_Bpf2SpfFile(filename, simple_file, &p);
     if (ret < 0) {
         ErrCode_Print();
     }
 
-    MEM_ExistFree(p.helper_map);
+    MEM_SafeFree(p.helper_map);
 
     return ret;
 }
 
 int main(int argc, char **argv)
 {
-    return SUBCMD_Do(g_subcmds, argc, argv);
+    static SUB_CMD_NODE_S subcmds[] = 
+    {
+#if (RUNBPF_ALL_CAPABILITY)
+        {"run", _runbpf_file, "run file"},
+        {"show", _show_file, "show file info"},
+        {"dump prog", _dump_prog, "dump prog"},
+        {"export prog", _export_prog, "export prog"},
+        {"convert asmexp", _convert_bpfexp, "convert to bpf expression file"},
+#endif
+        {"convert simple", _convert_simple, "convert to simple bpf file"},
+        {NULL, NULL}
+    };
+
+    return SUBCMD_Do(subcmds, argc, argv);
 }
 
 

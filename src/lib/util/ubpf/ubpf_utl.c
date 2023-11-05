@@ -4,30 +4,31 @@
 *
 ================================================================*/
 #include "bs.h"
+#include "pcap.h"
 #include "utl/ubpf_utl.h"
 #include "ubpf_int.h"
 #include "utl/ubpf/ebpf.h"
 
 enum reg {
-	R0 = 0, // return value
-	R1 = 1, // 1st argument
-	R2 = 2, // 2nd argument
-	R3 = 3, // 3rd argument
-	R4 = 4, // 4th argument
-	R5 = 5, // 5th argument
+	R0 = 0, 
+	R1 = 1, 
+	R2 = 2, 
+	R3 = 3, 
+	R4 = 4, 
+	R5 = 5, 
 	R6 = 6,
 	R7 = 7,
 	R8 = 8,
 	R9 = 9,
-	R10 = 10, // frame pointer (read only)
+	R10 = 10, 
 
-	// we use R0 for REG_A and R6 for REG_X. This can be changed
+	
 	REG_A = R0,
 	REG_X = R6,
 	REG_TMP = R7,
 };
 
-/* bpf op code from libpcap lacks BPF_MOD and BPF_XOR */
+
 #define BPF_MOD 0x90
 #define BPF_XOR 0xa0
 
@@ -70,7 +71,7 @@ static int ubpf_c2e(void *in, uint32_t in_len, void *out, uint32_t *out_len)
 
 	for (l = 0; l < i_len; ++l) {
 
-		/* We have inserted a init instruction */
+		
 #define EMMIT_CODE(o, d, s, off, im) do \
 {\
 	o_ins_order[o_len] = l + 1;\
@@ -84,8 +85,8 @@ static int ubpf_c2e(void *in, uint32_t in_len, void *out, uint32_t *out_len)
 		case BPF_RET:
 			switch (BPF_RVAL(n->code)) {
 			case BPF_A:
-				// currently we use R0 as REG_A, so we don't need to move REG_A to R0
-				//EMMIT_CODE(o, EBPF_OP_MOV_REG, R0, REG_A, 0, 0);
+				
+				
 				EMMIT_CODE(EBPF_OP_EXIT, 0, 0, 0, 0);
 				break;
 			case BPF_K:
@@ -99,7 +100,7 @@ static int ubpf_c2e(void *in, uint32_t in_len, void *out, uint32_t *out_len)
 		case BPF_LD: {
 			uint32_t size_mode = BPF_SIZE(n->code) << 8 | BPF_MODE(n->code);
 			switch (size_mode) {
-			// BPF_ABS
+			
 			case (BPF_W << 8 | BPF_ABS):
 				EMMIT_CODE(EBPF_OP_LDXW, REG_A, R1, ((uint16_t)n->k), 0);
 				EMMIT_CODE(EBPF_OP_BE, REG_A, 0, 0, 32);
@@ -112,9 +113,9 @@ static int ubpf_c2e(void *in, uint32_t in_len, void *out, uint32_t *out_len)
 				EMMIT_CODE(EBPF_OP_LDXB, REG_A, R1, ((uint16_t)n->k), 0);
 				break;
 
-			// BPF_IND
-			// REG_TMP <= R1 + REG_X
-			// REG_A <= [REG_TMP]
+			
+			
+			
 			case (BPF_W << 8 | BPF_IND):
 				EMMIT_CODE(EBPF_OP_MOV64_REG, REG_TMP, R1, 0, 0);
 				EMMIT_CODE(EBPF_OP_ADD64_REG, REG_TMP, REG_X, 0, 0);
@@ -133,7 +134,7 @@ static int ubpf_c2e(void *in, uint32_t in_len, void *out, uint32_t *out_len)
 				EMMIT_CODE(EBPF_OP_LDXB, REG_A, REG_TMP, (uint16_t)n->k, 0);
 				break;
 			case (BPF_W << 8 | BPF_LEN):
-				/* we use R2 to store len */
+				
 				EMMIT_CODE(EBPF_OP_MOV_REG, REG_A, R2, 0, 0);
 				break;
 			case (BPF_W << 8 | BPF_IMM):
@@ -151,7 +152,7 @@ static int ubpf_c2e(void *in, uint32_t in_len, void *out, uint32_t *out_len)
 			uint32_t size_mode = BPF_SIZE(n->code) << 8 | BPF_MODE(n->code);
 			switch (size_mode) {
 			case (BPF_W << 8 | BPF_LEN):
-				/* we use R2 to store len */
+				
 				EMMIT_CODE(EBPF_OP_MOV_REG, REG_X, R2, 0, 0);
 				break;
 			case (BPF_B << 8 | BPF_MSH):
@@ -199,8 +200,8 @@ static int ubpf_c2e(void *in, uint32_t in_len, void *out, uint32_t *out_len)
 				}
 				switch (BPF_SRC(n->code)) {
 				case BPF_K:
-					/* when we do conditional jmp, imm is signed extended */
-					/* we load it to reg_tmp to avoid this */
+					
+					
 					EMMIT_CODE(EBPF_OP_MOV_IMM, REG_TMP, 0, 0, (uint32_t)n->k);
 					EMMIT_CODE(opc, REG_A, REG_TMP, (uint16_t)n->jt, 0);
 					if (n->jf) {
@@ -322,13 +323,13 @@ static int ubpf_c2e(void *in, uint32_t in_len, void *out, uint32_t *out_len)
 	}
 	i_ins_count_acc[i_len + 1] = i_ins_count_acc[i_len] + i_ins_count[i_len];
 
-	/* we need to adjust jmp offset because inst number changed */
+	
 	for (l = 0; l < o_len; ++l) {
 		o_ins = ((struct ebpf_inst *)out) + l;
 		if ((o_ins->opcode & EBPF_CLS_MASK) == EBPF_CLS_JMP) {
 			if (i_len >= o_ins_order[l] + o_ins->offset) {
-				o_ins->offset = i_ins_count_acc[o_ins_order[l] + o_ins->offset + 1] // target
-					- l // src
+				o_ins->offset = i_ins_count_acc[o_ins_order[l] + o_ins->offset + 1] 
+					- l 
 					- 1;
 			} else {
 				return -4;
@@ -339,11 +340,12 @@ static int ubpf_c2e(void *in, uint32_t in_len, void *out, uint32_t *out_len)
 	return 0;
 }
 
-/* cbpf to ebpf */
-UBPF_VM_HANDLE UBPF_C2e(struct bpf_program *bpf_prog)
+
+UBPF_VM_HANDLE UBPF_C2e(void *bpfprog)
 {
 	unsigned ebpf_buffer[UBPF_INST];
 	uint32_t ebpf_len;
+    struct bpf_program *bpf_prog = bpfprog;
 
     if(ubpf_c2e(bpf_prog->bf_insns, bpf_prog->bf_len * sizeof(struct bpf_insn),
                 ebpf_buffer, &ebpf_len) < 0) {
@@ -353,9 +355,10 @@ UBPF_VM_HANDLE UBPF_C2e(struct bpf_program *bpf_prog)
     return UBPF_CreateLoad(ebpf_buffer, ebpf_len, NULL, 0);
 }
 
-/* cbpf to ebpf */
-ubpf_jit_fn UBPF_C2j(struct bpf_program *bpf_prog, OUT UBPF_JIT_S *jit)
+
+ubpf_jit_fn UBPF_C2j(void *bpfprog, OUT UBPF_JIT_S *jit)
 {
+    struct bpf_program *bpf_prog = bpfprog;
     UBPF_VM_HANDLE vm = UBPF_C2e(bpf_prog);
     if (NULL == vm) {
         return NULL;
@@ -448,7 +451,7 @@ UBPF_VM_HANDLE UBPF_CreateLoad(void *ebpf_code, int ebpf_len, void **funcs, int 
     return vm;
 }
 
-/* check ebpf中是否存在问题 */
+
 int BPF_Check(void *insts, int num_insts, OUT char * error_msg, int error_msg_size)
 {
     struct ebpf_inst *insn = insts;

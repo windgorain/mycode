@@ -37,20 +37,20 @@ WS_EV_RET_E _WS_PlugIndex_EventProcess(IN WS_TRANS_S *pstTrans, IN UINT uiEvent)
         return WS_EV_RET_ERR;
     }
 
-    /* 不是请求'/' */
+    
     if (strcmp(pcRequestFile, "/") != 0)
     {
         return WS_EV_RET_CONTINUE;
     }
 
-    /* 不是HTTP的标准方法, 不进行重定向 */
+    
     eMethod = HTTP_GetMethod(hReqParser);
     if (eMethod == HTTP_METHOD_BUTT)
     {
         return WS_EV_RET_CONTINUE;
     }
 
-    /* 请求是'/'才则进行Index重定向的处理 */
+    
     pcIndex = WS_Context_GetIndex(hContext);
     if ((pcIndex == NULL) || (pcIndex[0] == '\0'))
     {

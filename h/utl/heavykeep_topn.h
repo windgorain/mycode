@@ -13,7 +13,7 @@ extern "C"
 {
 #endif
 
-#define HEAVYKEEP_TOPN_HASH_NUM  4       /*hash表的个数*/
+#define HEAVYKEEP_TOPN_HASH_NUM  4       
 typedef unsigned int (*PF_HEAVYKEEP_TOPN_HASH_FUNC)(int level, void *key);
 
 typedef struct {
@@ -25,15 +25,15 @@ typedef struct {
 }HEAVYKEEP_TOPN_NODE_S;
 
 typedef struct {
-    int n; /* 最大结果数目 */
-    int current_num; /* 当前数目 */
+    int n; 
+    int current_num; 
     HEAVYKEEP_TOPN_NODE_S *nodes[0];
 }HEAVYKEEP_TOPN_RESULT_S;
 
 typedef struct {
-    UINT hash_size; /* 为2^n */
+    UINT hash_size; 
     UINT key_size;
-    UINT cycle;     /*hash 次数*/
+    UINT cycle;     
 	UINT freq;
 	UINT score;
     HEAVYKEEP_TOPN_NODE_S *hash;
@@ -55,4 +55,4 @@ int HeavyKeep_Topn_Get(HEAVYKEEP_TOPN_S *topn, OUT HEAVYKEEP_TOPN_RESULT_S *resu
 #ifdef __cplusplus
 }
 #endif
-#endif //HEAVYKEEP_TOPN_H_
+#endif 

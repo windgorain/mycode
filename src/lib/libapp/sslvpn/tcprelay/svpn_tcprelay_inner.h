@@ -13,7 +13,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct
 {
@@ -22,8 +22,8 @@ typedef struct
     SVPN_CONTEXT_HANDLE hSvpnContext;
     CONN_HANDLE hDownConn;
     CONN_HANDLE hUpConn;
-    VBUF_S stDownVBuf;   /* 缓冲从down方向收到的数据 */
-    VBUF_S stUpVBuf;     /* 缓冲从up方向收到的数据 */
+    VBUF_S stDownVBuf;   
+    VBUF_S stUpVBuf;     
 }SVPN_TCPRELAY_NODE_S;
 
 SVPN_TCPRELAY_NODE_S * SVPN_TcpRelayNode_New(IN CHAR *pcServer, IN USHORT usPort);
@@ -31,8 +31,8 @@ VOID SVPN_TcpRelayNode_Free(IN SVPN_TCPRELAY_NODE_S *pstNode);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_TCPRELAY_INNER_H_*/
+#endif 
 
 

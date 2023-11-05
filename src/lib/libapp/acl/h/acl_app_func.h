@@ -34,4 +34,4 @@ BS_STATUS ACL_URL_Ioctl(IN INT muc_id, IN COMP_ACL_IOCTL_E enCmd, IN VOID *pData
 #ifdef __cplusplus
 }
 #endif
-#endif //ACL_APP_FUNC_H_
+#endif 

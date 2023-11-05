@@ -10,7 +10,7 @@
 #include "nat_phy.h"
 #include "nat_arp.h"
 
-/* pcap private %INT */
+
 PLUG_API BS_STATUS NAT_CMD_Pcap(IN UINT ulArgc, IN CHAR **argv)
 {
 	if (ulArgc < 3)
@@ -21,7 +21,7 @@ PLUG_API BS_STATUS NAT_CMD_Pcap(IN UINT ulArgc, IN CHAR **argv)
     return NAT_Phy_PrivatePcap(argv[2]);
 }
 
-/* pcap pub %INT */
+
 PLUG_API BS_STATUS NAT_CMD_PubPcap(IN UINT ulArgc, IN CHAR **argv)
 {
     if (ulArgc < 3)
@@ -32,7 +32,7 @@ PLUG_API BS_STATUS NAT_CMD_PubPcap(IN UINT ulArgc, IN CHAR **argv)
     return NAT_Phy_PubPcap(argv[2]);
 }
 
-/* gateway-ip %STRING */
+
 PLUG_API BS_STATUS NAT_CMD_SetGateWay(IN UINT ulArgc, IN CHAR **argv)
 {
     if (ulArgc < 2)
@@ -45,7 +45,7 @@ PLUG_API BS_STATUS NAT_CMD_SetGateWay(IN UINT ulArgc, IN CHAR **argv)
 	return BS_OK;
 }
 
-/* pub-ip %STRING */
+
 PLUG_API BS_STATUS NAT_CMD_SetPubIp(IN UINT ulArgc, IN CHAR **argv)
 {
     if (ulArgc < 2)
@@ -58,7 +58,7 @@ PLUG_API BS_STATUS NAT_CMD_SetPubIp(IN UINT ulArgc, IN CHAR **argv)
 	return BS_OK;
 }
 
-/* pub-mac %STRING */
+
 PLUG_API BS_STATUS NAT_CMD_SetPubMac(IN UINT ulArgc, IN CHAR **argv)
 {
     if (ulArgc < 2)
@@ -72,15 +72,13 @@ PLUG_API BS_STATUS NAT_CMD_SetPubMac(IN UINT ulArgc, IN CHAR **argv)
 }
 
 
-/* start */
+
 PLUG_API BS_STATUS NAT_CMD_Enable(IN UINT uiArgc, IN CHAR **argv)
 {
     return NAT_Main_Start();
 }
 
-/*
-    执行命令: show nat
-*/
+
 PLUG_API BS_STATUS NAT_CMD_Show(IN UINT ulArgc, IN CHAR ** argv)
 {
     if (ulArgc < 2)
@@ -93,7 +91,7 @@ PLUG_API BS_STATUS NAT_CMD_Show(IN UINT ulArgc, IN CHAR ** argv)
     return BS_OK;
 }
 
-/* save */
+
 PLUG_API BS_STATUS NAT_CMD_Save(IN HANDLE hFile)
 {
     NAT_Phy_Save(hFile);

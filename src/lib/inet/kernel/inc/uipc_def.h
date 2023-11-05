@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define M_DONTWAIT  0
 #define M_TRYWAIT   1
@@ -20,28 +20,28 @@
 enum sopt_dir { SOPT_GET, SOPT_SET };
 typedef struct sockopt
 {
-    enum   sopt_dir sopt_dir; /* is this a get or a set? */
-    int    sopt_level;    /* second arg of [gs]etsockopt */
-    int    sopt_name;    /* third arg of [gs]etsockopt */
-    void  *sopt_val;    /* fourth arg of [gs]etsockopt */
-    int   sopt_valsize;    /* (almost) fifth arg of [gs]etsockopt */
+    enum   sopt_dir sopt_dir; 
+    int    sopt_level;    
+    int    sopt_name;    
+    void  *sopt_val;    
+    int   sopt_valsize;    
 }SOCKOPT_S;
 
 typedef struct keep_alive_arg
 {
-    short ka_idle;     /* idle time before keep alive probe, second */
-    short ka_intval;   /* probe interval time, second */
-    short ka_count;    /* probe count */
+    short ka_idle;     
+    short ka_intval;   
+    short ka_count;    
 }KEEP_ALIVE_ARG_S;
 
-/* Bits in the FLAGS argument to `send', `recv', et al.  */
+
 
 
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__UIPC_DEF_H_*/
+#endif 
 
 

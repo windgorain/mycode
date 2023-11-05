@@ -4,7 +4,7 @@
 * Description: User Online Managment
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_ULM
 
 #include "bs.h"
@@ -22,31 +22,31 @@
 #define _ULM_GET_INCNUM_BY_ULM_ID(ulUlmId)  (((ulUlmId) >>16) & 0xffff)
 
 
-/* struct */
+
 typedef struct
 {
 	CHAR  szUserName[ULM_MAX_USER_NAME_LEN + 1];
 	UCHAR szUserCookie[ULM_USER_COOKIE_LEN + 1];
-    ULONG ulLoginTime;	/*用户登录时间,单位秒, UTC, */
-    BOOL_T bIsStopTimeOut;  /* 是否停止老化 */
-    UINT ulTimeTickLeft;  /* 距离老化还剩多少时间 */
-    UINT ulRefNum;    /* 用户的引用计数 */
-    UINT ulMaxRefNum; /* 允许的最大应用计数, 0表示不限制 */
-    UINT uiUserFlag;  /* 用户自己设置的Flag */
+    ULONG ulLoginTime;	
+    BOOL_T bIsStopTimeOut;  
+    UINT ulTimeTickLeft;  
+    UINT ulRefNum;    
+    UINT ulMaxRefNum; 
+    UINT uiUserFlag;  
     HANDLE hUserHandle;
-    KV_HANDLE hKvList;  /* KVList */
+    KV_HANDLE hKvList;  
 }_ULM_NODE_S;
 
 typedef struct
 {
     NAP_HANDLE hNap;
     UINT ulMaxUserNum;
-    UINT ulTimeOutTime;    /* 这个实例中用户的超时时间.默认为0, 表示永不超时, 单位:ms */
-    BOOL_T bIsTimeOutIgnorRef;   /* 老化时是否忽略Ref . 默认不忽略 */
+    UINT ulTimeOutTime;    
+    BOOL_T bIsTimeOutIgnorRef;   
     PF_ULM_USER_DEL_NOTIFY pfUserDelNotifyFunc;
 }_ULM_INSTANCE_S;
 
-/* func */
+
 static _ULM_INSTANCE_S * _ULM_CreateInstance(IN UINT ulMaxUserNum)
 {
     _ULM_INSTANCE_S *pstUlmInstance;
@@ -109,7 +109,7 @@ static inline UINT _ULM_AddUser
     UINT ulUserId;
     _ULM_NODE_S *pstNode;
 
-    /* 如果用户已经存在,则无需再添加即可. */
+    
     ulUserId = _ULM_GetUserIdByName(pstInstance, pszUserName);
     if (ulUserId != 0)
     {
@@ -141,7 +141,7 @@ static inline BS_STATUS _ULM_DelUser(IN _ULM_INSTANCE_S *pstInstance, IN UINT ul
 
     if (NULL != pstInstance->pfUserDelNotifyFunc)
     {
-        /* 通知用户要删除这个User */
+        
         pstInstance->pfUserDelNotifyFunc(pstInstance, ulUserId);
     }
 
@@ -303,14 +303,14 @@ static CHAR * _ULM_GetUserNameById(IN _ULM_INSTANCE_S *pstInstance, IN UINT ulUs
     return pstUser->szUserName;
 }
 
-static inline BS_STATUS _ULM_SetTimeOutTime(IN _ULM_INSTANCE_S *pstInstance, IN UINT ulTimeOutTime /* ms. 0表示永不超时 */)
+static inline BS_STATUS _ULM_SetTimeOutTime(IN _ULM_INSTANCE_S *pstInstance, IN UINT ulTimeOutTime )
 {
     pstInstance->ulTimeOutTime = ulTimeOutTime;
 
     return BS_OK;
 }
 
-static inline BS_STATUS _ULM_GetTimeOutTime(IN _ULM_INSTANCE_S *pstInstance, OUT UINT *pulTimeOutTime /* ms. 0表示永不超时 */)
+static inline BS_STATUS _ULM_GetTimeOutTime(IN _ULM_INSTANCE_S *pstInstance, OUT UINT *pulTimeOutTime )
 {
     *pulTimeOutTime = pstInstance->ulTimeOutTime;
 
@@ -450,7 +450,7 @@ static inline CHAR * _ULM_GetUserCookie(IN _ULM_INSTANCE_S *pstUlmInstance, IN U
     {
         DH_Data2Hex((UCHAR *)&ulUserId, sizeof(UINT), (CHAR*)pstUser->szUserCookie);
 
-        /* 其余的放置随机数 */
+        
         for (i=sizeof(UINT) * 2; i<ULM_USER_COOKIE_LEN; i++)
         {
             pstUser->szUserCookie[i] = TXT_Random();
@@ -536,7 +536,7 @@ static inline UINT _ULM_GetNextUser(IN _ULM_INSTANCE_S *pstInstance, IN UINT uiC
     return (UINT)NAP_GetNextID(pstInstance->hNap, uiCurrentID);
 }
 
-ULM_HANDLE ULM_CreateInstance(IN UINT ulMaxUserNum /* 0表示不限制 */)
+ULM_HANDLE ULM_CreateInstance(IN UINT ulMaxUserNum )
 {
     return _ULM_CreateInstance(ulMaxUserNum);
 }
@@ -551,7 +551,7 @@ BS_STATUS ULM_DesTroyInstance(IN ULM_HANDLE hUlmHandle)
     return BS_OK;
 }
 
-/* 返回User ID */
+
 UINT ULM_AddUser(IN ULM_HANDLE hUlmHandle, IN CHAR *pszUserName)
 {
     BS_DBGASSERT(NULL != pszUserName);
@@ -695,29 +695,29 @@ BS_STATUS ULM_GetUserRefNum(IN ULM_HANDLE hUlmHandle, IN UINT ulUserId, OUT UINT
     return _ULM_GetUserRefNum(hUlmHandle, ulUserId, pulRefNum);
 }
 
-BS_STATUS ULM_SetTimeOutTime(IN ULM_HANDLE hUlmHandle, IN UINT ulTimeOutTime /* 触发次数. 0表示永不超时 */)
+BS_STATUS ULM_SetTimeOutTime(IN ULM_HANDLE hUlmHandle, IN UINT ulTimeOutTime )
 {
     return _ULM_SetTimeOutTime(hUlmHandle, ulTimeOutTime);
 }
 
-BS_STATUS ULM_GetTimeOutTime(IN ULM_HANDLE hUlmHandle, OUT UINT *pulTimeOutTime /*  触发次数. 0表示永不超时 */)
+BS_STATUS ULM_GetTimeOutTime(IN ULM_HANDLE hUlmHandle, OUT UINT *pulTimeOutTime )
 {
     return _ULM_GetTimeOutTime(hUlmHandle, pulTimeOutTime);
 }
 
-/* 指定用户停止老化 */
+
 BS_STATUS ULM_StopTimeOut(IN ULM_HANDLE hUlmHandle, IN UINT ulUserId)
 {
     return _ULM_StopTimeOut(hUlmHandle, ulUserId);
 }
 
-/* 指定用户开始按照规则老化, 是ULM_StopTimeOut的反函数 */
+
 BS_STATUS ULM_StartTimeOut(IN ULM_HANDLE hUlmHandle, IN UINT ulUserId)
 {
     return _ULM_StartTimeOut(hUlmHandle, ulUserId);
 }
 
-/* 重新开始用户的老化 */
+
 BS_STATUS ULM_ResetTimeOut(IN ULM_HANDLE hUlmHandle, IN UINT ulUserId)
 {
     return _ULM_ResetTimeOut(hUlmHandle, ulUserId);
@@ -742,7 +742,7 @@ VOID ULM_SetIfTimeOutIgnoreRef(IN ULM_HANDLE hUlmHandle, IN BOOL_T bIgnore)
     pstUlmInstance->bIsTimeOutIgnorRef = bIgnore;
 }
 
-/* 执行一次老化触发 */
+
 VOID ULM_TimeOut(IN ULM_HANDLE hUlmHandle)
 {
     _ULM_TimeOut(hUlmHandle);

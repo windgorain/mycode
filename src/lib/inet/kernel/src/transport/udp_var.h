@@ -10,11 +10,11 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 struct udpiphdr {
-    struct ipovly    ui_i;        /* overlaid ip structure */
-    UDP_HEAD_S    ui_u;        /* udp header */
+    struct ipovly    ui_i;        
+    UDP_HEAD_S    ui_u;        
 };
 #define    ui_x1        ui_i.ih_x1
 #define    ui_pr        ui_i.ih_pr
@@ -31,8 +31,8 @@ extern PROTOSW_USER_REQUEST_S udp_usrreqs;
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__UDP_VAR_H_*/
+#endif 
 
 

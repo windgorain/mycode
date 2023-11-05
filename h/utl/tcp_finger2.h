@@ -36,4 +36,4 @@ BS_STATUS TcpFinger2_ReadFingerFile(TCP_FINGER2_S *tcp_finger, char *filepath, U
 #ifdef __cplusplus
 }
 #endif
-#endif //TCP_FINGER2_H_
+#endif 

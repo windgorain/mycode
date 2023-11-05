@@ -12,16 +12,16 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS NAT_Link_Init();
 BS_STATUS NAT_Link_Input (IN UINT ulIfIndex, IN MBUF_S *pstMbuf);
-BS_STATUS NAT_Link_OutPut(IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType/* net order */);
+BS_STATUS NAT_Link_OutPut(IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__NAT_LINK_H_*/
+#endif 
 
 

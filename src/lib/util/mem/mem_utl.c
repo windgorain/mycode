@@ -131,8 +131,7 @@ int MEM_CaseCmp(UCHAR *pucMem1, UINT uiMem1Len, UCHAR *pucMem2, UINT uiMem2Len)
     return -1;
 }
 
-/* 按照C输入格式打印内存字面值到buf中.
-return: 实际打印了多少字节内存的字面值 */
+
 int MEM_SprintCFromat(void *mem, UINT mem_len, OUT char *buf, int buf_size)
 {
     UCHAR *d = mem;
@@ -142,7 +141,7 @@ int MEM_SprintCFromat(void *mem, UINT mem_len, OUT char *buf, int buf_size)
     int copyed_len = 0;
     int print_len = 0;
 
-    /* 6: length("0xaa,\n") */
+    
     while ((mem_len > print_len) && (reserved_size > 6)) {
         sprintf(info, "0x%02x,", *d);
         len = strlcpy(buf + copyed_len, info, reserved_size);
@@ -164,8 +163,7 @@ int MEM_SprintCFromat(void *mem, UINT mem_len, OUT char *buf, int buf_size)
     return print_len;
 }
 
-/* 打印内存字面值到buf中.
-return: 实际打印了多少字节内存的字面值 */
+
 int MEM_Sprint(void *mem, UINT mem_len, OUT char *buf, int buf_size)
 {
     UCHAR *d = mem;
@@ -175,7 +173,7 @@ int MEM_Sprint(void *mem, UINT mem_len, OUT char *buf, int buf_size)
     int copyed_len = 0;
     int print_len = 0;
 
-    /* 3: length("aa ") */
+    
     while ((mem_len > print_len) && (reserved_size > 3)) {
         sprintf(info, "%02x ", *d);
         len = strlcpy(buf + copyed_len, info, reserved_size);
@@ -195,7 +193,7 @@ int MEM_Sprint(void *mem, UINT mem_len, OUT char *buf, int buf_size)
     return print_len;
 }
 
-void MEM_Print(void *mem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */)
+void MEM_Print(void *mem, int len, PF_MEM_PRINT_FUNC print_func)
 {
     char info[3*16+1];
     PF_MEM_PRINT_FUNC func = print_func;
@@ -211,7 +209,7 @@ void MEM_Print(void *mem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺�
     }
 }
 
-void MEM_PrintCFormat(void *mem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */)
+void MEM_PrintCFormat(void *mem, int len, PF_MEM_PRINT_FUNC print_func)
 {
     char info[5*16+2];
     PF_MEM_PRINT_FUNC func = print_func;
@@ -235,7 +233,7 @@ VOID MEM_DiscreteFindInit(INOUT MEM_FIND_INFO_S *pstFindInfo, IN UCHAR *pucPatte
     pstFindInfo->uiPatternLen = uiPatternLen;
 }
 
-/* 在不连续缓冲区中查找数据 */
+
 BS_STATUS MEM_DiscreteFind
 (
     INOUT MEM_FIND_INFO_S *pstFindInfo,
@@ -287,7 +285,7 @@ BS_STATUS MEM_DiscreteFind
     return BS_NOT_FOUND;
 }
 
-/* 将内存中的内容反序 */
+
 void MEM_Invert(void *in, int len, void *out)
 {
     int i;
@@ -301,7 +299,7 @@ void MEM_Invert(void *in, int len, void *out)
     }
 }
 
-/* 是否全0 */
+
 int MEM_IsZero(void *data, int size)
 {
     int i;
@@ -316,7 +314,7 @@ int MEM_IsZero(void *data, int size)
     return 1;
 }
 
-/* 是否全部是0xff */
+
 int MEM_IsFF(void *data, int size)
 {
     int i;
@@ -331,7 +329,7 @@ int MEM_IsFF(void *data, int size)
     return 1;
 }
 
-/* 按照ULONG格式一个个的赋值为0 */
+
 void MEM_ZeroByUlong(void *data, int count)
 {
     ULONG *a = data;
@@ -343,7 +341,7 @@ void MEM_ZeroByUlong(void *data, int count)
     }
 }
 
-/* 将内存中的src字符替换为dst, 返回替换了多少个字符 */
+
 int MEM_ReplaceChar(void *data, int len, UCHAR src, UCHAR dst)
 {
     int i;
@@ -360,7 +358,7 @@ int MEM_ReplaceChar(void *data, int len, UCHAR src, UCHAR dst)
     return count;
 }
 
-/* 将内存中的src字符替换为dst, 只替换一个. 返回替换了多少个字符 */
+
 int MEM_ReplaceOneChar(void *data, int len, UCHAR src, UCHAR dst)
 {
     int i;
@@ -376,7 +374,7 @@ int MEM_ReplaceOneChar(void *data, int len, UCHAR src, UCHAR dst)
     return 0;
 }
 
-/* 交换两块内存的内容 */
+
 void MEM_Swap(void *buf1, void *buf2, int len)
 {
     unsigned char *d1 = buf1;

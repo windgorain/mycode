@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM VNET_RETCODE_FILE_NUM_MACFW
         
 #include "bs.h"
@@ -28,7 +28,7 @@
 #include "../inc/vnets_context.h"
 #include "../inc/vnets_wan_plug.h"
 
-/* VNET MAC FW的Debug 选项 */
+
 #define _VNETS_MAC_LAYER_DBG_PACKET 0x1
 
 static UINT g_ulVnetSMacLayerDebugFlag = 0;
@@ -83,7 +83,7 @@ BS_STATUS VNETS_MacLayer_Input (IN MBUF_S *pstMbuf)
         &pstEthHead->stDMac, &pstEthHead->stSMac,
         ntohs(pstEthHead->usProto)));
 
-    /* 判断目的MAC自己是否需要接受 */
+    
     if (TRUE != vnets_maclayer_IsPermit(&pstEthHead->stDMac))
     {
         MBUF_Free(pstMbuf);
@@ -141,19 +141,19 @@ BS_STATUS VNETS_MacLayer_Output(IN UINT uiDomainID, IN MBUF_S *pstMbuf)
 }
 
 
-/* debug mac layer packet */
+
 PLUG_API VOID VNETS_MacLayer_DebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetSMacLayerDebugFlag |= _VNETS_MAC_LAYER_DBG_PACKET;
 }
 
-/* no debug mac layer packet */
+
 PLUG_API VOID VNETS_MacLayer_NoDebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetSMacLayerDebugFlag &= ~_VNETS_MAC_LAYER_DBG_PACKET;
 }
 
-/* no debug mac layer all */
+
 VOID VNETS_MacLayer_NoDebugAll()
 {
     g_ulVnetSMacLayerDebugFlag = 0;

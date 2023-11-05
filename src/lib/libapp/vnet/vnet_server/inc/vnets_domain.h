@@ -6,18 +6,18 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* Domain事件 */
+
 #define VNET_DOMAIN_EVENT_AFTER_CREATE  1
 #define VNET_DOMAIN_EVENT_PRE_DESTROY   2
 
-/* 域类型 */
+
 typedef enum
 {
-    VNETS_DOMAIN_TYPE_NORMAL = 0,    /* 普通域, 只能以字母、数字和双字节字符开头 */
-    VNETS_DOMAIN_TYPE_PERSONAL,      /* 用户个人域, 以VNET_DOMAIN_TYPE_CHAR_PERSONAL开头 */
-    VNETS_DOMAIN_TYPE_INNER,         /* 预定义内置域, 以VNET_DOMAIN_TYPE_CHAR_INNER开头 */
+    VNETS_DOMAIN_TYPE_NORMAL = 0,    
+    VNETS_DOMAIN_TYPE_PERSONAL,      
+    VNETS_DOMAIN_TYPE_INNER,         
 
     VNETS_DOMAIN_TYPE_MAX
 }VNETS_DOMAIN_TYPE_E;
@@ -27,7 +27,7 @@ typedef enum
     VNETS_DOMAIN_PROPERTY_MACTBL = 0,
     VNETS_DOMAIN_WAN_VF_ID,
 
-    VNET_DOMAIN_PROPERTY_MAX  /* 在这个属性前面添加其他属性 */
+    VNET_DOMAIN_PROPERTY_MAX  
 }VNETS_DOMAIN_PROPERTY_E;
 
 typedef struct
@@ -78,14 +78,14 @@ UINT VNETS_Domain_GetSesCount(IN UINT uiDomainID);
 UINT VNETS_Domain_GetNextNode
 (
     IN CHAR *pcDomainName,
-    IN UINT uiCurrentNodeId/* 如果为0,则表示得到第一个SES ID */
+    IN UINT uiCurrentNodeId
 );
 
-typedef BS_WALK_RET_E (*PF_VNETS_DOMAIN_WALK_FUNC)(IN VNETS_DOMAIN_RECORD_S *pstParam, IN HANDLE hUserHandle);
+typedef int (*PF_VNETS_DOMAIN_WALK_FUNC)(IN VNETS_DOMAIN_RECORD_S *pstParam, IN HANDLE hUserHandle);
 
 VOID VNETS_Domain_WalkDomain(IN PF_VNETS_DOMAIN_WALK_FUNC pfFunc, IN HANDLE hUserHandle);
 
-typedef BS_WALK_RET_E (*PF_VNETS_DOMAIN_NODE_WALK_FUNC)(IN UINT uiNodeID, IN HANDLE hUserHandle);
+typedef int (*PF_VNETS_DOMAIN_NODE_WALK_FUNC)(IN UINT uiNodeID, IN HANDLE hUserHandle);
 
 VOID VNETS_Domain_WalkNode
 (
@@ -99,8 +99,8 @@ UINT VNETS_DomainCmd_GetDomainIdByEnv(IN VOID *pEnv);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_DOMAIN_H_*/
+#endif 
 
 

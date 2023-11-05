@@ -73,7 +73,7 @@ BS_STATUS WanVrf_Init()
 
 BS_STATUS WanVrf_Init2()
 {
-    /* 创建一个缺省VRF */
+    
     g_uiWanVrfDefault = WanVrf_CreateVrf("default");
     if (0 == g_uiWanVrfDefault)
     {
@@ -88,7 +88,7 @@ UINT WAN_VRF_GetDefaultVrf()
     return g_uiWanVrfDefault;
 }
 
-/* 返回0表示失败 */
+
 UINT WanVrf_CreateVrf(IN CHAR *pcVrfName)
 {
     UINT uiVrfID;
@@ -209,7 +209,7 @@ BS_STATUS WanVrf_GetNameByID(IN UINT uiVrfID, OUT CHAR szName[WAN_VRF_MAX_NAME_L
     return eRet;
 }
 
-/* 相比于WAN_VRF_GetNameByID, 直接返回字符串 */
+
 CHAR * WanVrf_GetNameByID2(IN UINT uiVrfID, OUT CHAR szName[WAN_VRF_MAX_NAME_LEN + 1])
 {
     if (uiVrfID == 0)
@@ -236,7 +236,7 @@ UINT WanVrf_GetNext(IN UINT uiCurrentVrf)
     return ulNext;
 }
 
-/* 自动分配一个DataIndex */
+
 UINT WanVrf_AllocDataIndex()
 {
     static UINT uiVrfIndex = WAN_VRF_PROPERTY_INDEX_MAX;

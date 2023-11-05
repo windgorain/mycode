@@ -50,4 +50,4 @@ static inline char * StrID_ID2Str(STR_ID_S *nodes, int id)
 #ifdef __cplusplus
 }
 #endif
-#endif //STR_NUM_H_
+#endif 

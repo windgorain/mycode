@@ -12,13 +12,13 @@
 #include <linux/err.h>
 #include "hashmap.h"
 
-/* make sure libbpf doesn't use kernel-only integer typedefs */
+
 #pragma GCC poison u8 u16 u32 u64 s8 s16 s32 s64
 
-/* prevent accidental re-addition of reallocarray() */
+
 #pragma GCC poison reallocarray
 
-/* start with 4 buckets */
+
 #define HASHMAP_MIN_CAP_BITS 2
 
 static void hashmap_add_entry(struct hashmap_entry **pprev,
@@ -94,7 +94,7 @@ size_t hashmap__capacity(const struct hashmap *map)
 
 static bool hashmap_needs_to_grow(struct hashmap *map)
 {
-	/* grow if empty or more than 75% filled */
+	
 	return (map->cap == 0) || ((map->sz + 1) * 4 / 3 > map->cap);
 }
 
@@ -128,7 +128,7 @@ static int hashmap_grow(struct hashmap *map)
 }
 
 static bool hashmap_find_entry(const struct hashmap *map,
-			       const void *key, size_t hash,
+			       const long key, size_t hash,
 			       struct hashmap_entry ***pprev,
 			       struct hashmap_entry **entry)
 {
@@ -151,18 +151,18 @@ static bool hashmap_find_entry(const struct hashmap *map,
 	return false;
 }
 
-int hashmap__insert(struct hashmap *map, const void *key, void *value,
-		    enum hashmap_insert_strategy strategy,
-		    const void **old_key, void **old_value)
+int hashmap_insert(struct hashmap *map, long key, long value,
+		   enum hashmap_insert_strategy strategy,
+		   long *old_key, long *old_value)
 {
 	struct hashmap_entry *entry;
 	size_t h;
 	int err;
 
 	if (old_key)
-		*old_key = NULL;
+		*old_key = 0;
 	if (old_value)
-		*old_value = NULL;
+		*old_value = 0;
 
 	h = hash_bits(map->hash_fn(key, map->ctx), map->cap_bits);
 	if (strategy != HASHMAP_APPEND &&
@@ -203,7 +203,7 @@ int hashmap__insert(struct hashmap *map, const void *key, void *value,
 	return 0;
 }
 
-bool hashmap__find(const struct hashmap *map, const void *key, void **value)
+bool hashmap_find(const struct hashmap *map, long key, long *value)
 {
 	struct hashmap_entry *entry;
 	size_t h;
@@ -217,8 +217,8 @@ bool hashmap__find(const struct hashmap *map, const void *key, void **value)
 	return true;
 }
 
-bool hashmap__delete(struct hashmap *map, const void *key,
-		     const void **old_key, void **old_value)
+bool hashmap_delete(struct hashmap *map, long key,
+		    long *old_key, long *old_value)
 {
 	struct hashmap_entry **pprev, *entry;
 	size_t h;

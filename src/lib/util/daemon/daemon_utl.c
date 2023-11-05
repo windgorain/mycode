@@ -29,7 +29,7 @@ int DAEMON_Init(int nochdir, int noclose)
         return -1;
     }
 
-    if (pid > 0) { /* parent */
+    if (pid > 0) { 
         exit(0);
     }
 
@@ -45,7 +45,7 @@ int DAEMON_Init(int nochdir, int noclose)
         return -1;
     }
 
-    if (pid > 0)  {/* parent */
+    if (pid > 0)  {
         exit(0);
     }
 

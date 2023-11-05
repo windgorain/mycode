@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define SFSM_STATE_ANY 0xffffffff
 
@@ -42,8 +42,8 @@ static inline UINT SFSM_GetState(IN SFSM_S *pstFsm)
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SFSM_UTL_H_*/
+#endif 
 
 

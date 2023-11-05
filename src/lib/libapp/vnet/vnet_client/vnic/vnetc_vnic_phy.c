@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM VNET_RETCODE_FILE_NUM_VNICPHY
 
 #include "bs.h"
@@ -28,10 +28,10 @@
 #include "../inc/vnetc_context.h"
 #include "../inc/vnetc_vnic_phy.h"
 
-/* VNET VNIC PHY的事件 */
+
 #define _VNET_VNIC_PHY_SEND_DATA_EVENT 0x1
 
-/* VNET VNIC PHY的消息类型 */
+
 #define _VNET_VNIC_PHY_SEND_DATA_MSG   1
 
 

@@ -4,43 +4,36 @@
 *
 ================================================================*/
 #include "bs.h"
-#include "utl/ufd_utl.h"
 #include "utl/umap_utl.h"
 
 typedef struct {
-    UMAP_HEADER_S hdr; /* 必须为第一个成员 */
+    UMAP_HEADER_S hdr; 
     UCHAR data[0];
 }UMAP_ARRAY_S;
 
-static void _umap_array_destroy_map(void *ufd_ctx, void *f)
+static void _umap_array_destroy_map(void *map)
 {
-    UMAP_ARRAY_S *ctrl = f;
+    UMAP_ARRAY_S *ctrl = map;
     MEM_RcuFree(ctrl);
 }
 
-static int _umap_array_open(UFD_S *ctx, UMAP_ELF_MAP_S *elfmap)
+static void * _umap_array_open(void *map_def)
 {
-    int fd;
+    UMAP_ELF_MAP_S *elfmap = map_def;
     int len;
 
     if ((! elfmap) || (elfmap->max_elem == 0) || (elfmap->size_key != sizeof(int))) {
-		return -EINVAL;
+		return NULL;
     }
 
     len = sizeof(UMAP_ARRAY_S) + (elfmap->size_value * elfmap->max_elem);
 
     UMAP_ARRAY_S *ctrl = MEM_RcuZMalloc(len);
     if (! ctrl) {
-        return -ENOMEM;
+        return NULL;
     }
 
-    fd = UFD_Open(ctx, UFD_FD_TYPE_MAP, ctrl, _umap_array_destroy_map);
-    if (fd < 0) {
-        MEM_RcuFree(ctrl);
-        return fd;
-    }
-
-    return fd;
+    return ctrl;
 }
 
 static void * _umap_array_lookup_elem(void *map, const void *key)
@@ -115,14 +108,14 @@ static long _umap_array_direct_value(void *map, OUT U64 *value, U32 off)
     return 0;
 }
 
-/* key: NULL表示Get第一个 */
-static void * _umap_array_getnext_key(void *map, void *key, OUT void **next_key)
+
+static int _umap_array_getnext_key(void *map, void *key, OUT void **next_key)
 {
     UMAP_ARRAY_S *ctrl = map;
     int n = 0;
 
     if (! next_key) {
-        return NULL;
+        return -1;
     }
 
     if (key) {
@@ -131,20 +124,21 @@ static void * _umap_array_getnext_key(void *map, void *key, OUT void **next_key)
     }
 
     if (n >= ctrl->hdr.max_elem) {
-        return NULL;
+        return -1;
     }
 
     *(int*)next_key = n;
 
-    return next_key;
+    return 0;
 }
 
 UMAP_FUNC_TBL_S g_umap_array_ops = {
     .open_func = _umap_array_open,
+    .destroy_func = _umap_array_destroy_map,
     .lookup_elem_func = _umap_array_lookup_elem,
     .delete_elem_func = _umap_array_delete_elem,
     .update_elem_func = _umap_array_update_elem,
-    .get_next_key = _umap_array_getnext_key,
+    .get_next_key_func = _umap_array_getnext_key,
     .direct_value_func = _umap_array_direct_value,
 };
 

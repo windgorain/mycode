@@ -18,4 +18,4 @@ char * fakecert_dnsnames_find(char *hostname);
 #ifdef __cplusplus
 }
 #endif
-#endif //FAKECERT_DNSNAMES_H_
+#endif 

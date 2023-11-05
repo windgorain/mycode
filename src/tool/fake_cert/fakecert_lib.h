@@ -20,7 +20,7 @@ extern "C"
 #endif
 
 int fakecert_init();
-int fakecert_build_by_dnsname(unsigned int ip/*netorder*/, unsigned short port, char *host_name);
+int fakecert_build_by_dnsname(unsigned int ip, unsigned short port, char *host_name);
 char * fakecert_build_by_cert(void *cert, char *host_name);
 int fakecert_create_by_hostname(char *host_name);
 void * fakecert_get_trusted_cert(void *realcert, char *domain_name);
@@ -28,4 +28,4 @@ void * fakecert_get_trusted_cert(void *realcert, char *domain_name);
 #ifdef __cplusplus
 }
 #endif
-#endif //FAKE_CERT_H_
+#endif 

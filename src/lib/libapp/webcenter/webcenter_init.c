@@ -24,7 +24,7 @@ BS_STATUS WebCenter_Init()
 	return BS_OK;
 }
 
-/* save */
+
 PLUG_API BS_STATUS WebCenter_Save(IN HANDLE hFile)
 {
     WebCenter_Cmd_Save(hFile);

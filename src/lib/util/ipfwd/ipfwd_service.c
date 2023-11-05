@@ -106,16 +106,13 @@ IPFWD_SERVICE_RET_E IPFWD_Service_Handle
     return eRet;
 }
 
-/*
-所有的注册必须要在系统正式运行前注册完成.
-如果某个系统不需要处理,到自己里面去判断,以免在注册过程中同时报文处理导致死机
-*/
+
 BS_STATUS IPFWD_Service_Reg
 (
     IN IPFWD_SERVICE_HANDLE hIpFwdService,
     IN IPFWD_SERVICE_PHASE_E ePhase,
-    IN UINT uiOrder, /* 优先级. 值越小优先级越高 */
-    IN CHAR *pcName, /* 必须静态存在 */
+    IN UINT uiOrder, 
+    IN CHAR *pcName, 
     IN PF_IPFWD_SERVICE_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle
 )

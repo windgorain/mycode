@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef RPC_MSG_S* (*PF_RPCC_SEND_FUNC)(IN HANDLE hRpccHandle, IN RPC_MSG_S *pstRpcMsg);
 
@@ -29,8 +29,8 @@ typedef struct
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__RPCC_TYPE_H_*/
+#endif 
 
 

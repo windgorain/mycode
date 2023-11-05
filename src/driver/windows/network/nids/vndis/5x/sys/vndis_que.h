@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE VNDIS_QUE_HANDLE;
 
@@ -25,9 +25,9 @@ VOID * VNDIS_QUE_ExtractPop(IN VNDIS_QUE_HANDLE hQue, IN VOID *pItem);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNDIS_QUE_H_*/
+#endif 
 
 
 

@@ -5,7 +5,7 @@
 * History:     
 ******************************************************************************/
 
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_OBJECT
     
 #include "bs.h"
@@ -15,7 +15,7 @@
 #include "utl/nap_utl.h"
 #include "utl/object_utl.h"
 
-/* 对象的内部属性 */
+
 typedef struct
 {
     DARRAY_HANDLE hPropertys;
@@ -36,7 +36,7 @@ static inline VOID * _object_Inner2User(IN OBJECT_S *pstInnerObj)
     return pstInnerObj + 1;
 }
 
-/* 返回Object集合ID . 失败则返回0 */
+
 HANDLE OBJECT_CreateAggregate(OBJECT_PARAM_S *p)
 {
     NAP_PARAM_S param = {0};
@@ -294,13 +294,11 @@ char * OBJECT_GetKeyValueByID(HANDLE hAggregate, UINT64 id, char *key)
 VOID OBJECT_Walk(IN HANDLE hAggregate, IN OBJECT_WALK_FUNC pfFunc, IN USER_HANDLE_S *pstUserHandle)
 {
     UINT64 ulID = 0;
-    BS_WALK_RET_E eRet;
+    int ret;
 
-    while ((ulID = NAP_GetNextID(hAggregate, ulID)) != 0)
-    {
-        eRet = pfFunc (hAggregate, ulID, pstUserHandle);
-        if (eRet != BS_WALK_CONTINUE)
-        {
+    while ((ulID = NAP_GetNextID(hAggregate, ulID)) != 0) {
+        ret = pfFunc (hAggregate, ulID, pstUserHandle);
+        if (ret < 0) {
             return;
         }
     }

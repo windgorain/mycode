@@ -22,21 +22,21 @@ typedef struct
     HTML_ESC_CODE_POINTS_S stCodePoints;
 }HTML_ESC_NAME_CHAR_REF_S;
 
-/* 解析状态 */
+
 enum
 {
-    HTML_ESC_DATA = 0,      /* 处于解析Data状态 */
-    HTML_ESC_REF_OPEN,      /* 解析到了& */
-    HTML_ESC_REF_NUM,       /* 解析到了&# */
-    HTML_ESC_REF_NUM_PRE_16,/* 解析到了&#X */
-    HTML_ESC_REF_NUM_16,    /* 16进制Num */
-    HTML_ESC_REF_NUM_10,    /* 10进制Num */
-    HTML_ESC_REF_NAME,      /* 解析到了&字母 */
+    HTML_ESC_DATA = 0,      
+    HTML_ESC_REF_OPEN,      
+    HTML_ESC_REF_NUM,       
+    HTML_ESC_REF_NUM_PRE_16,
+    HTML_ESC_REF_NUM_16,    
+    HTML_ESC_REF_NUM_10,    
+    HTML_ESC_REF_NAME,      
 };
 
 typedef struct
 {
-    CHAR *pcBuf;            /* 指针始终指向将要写入的位置 */
+    CHAR *pcBuf;            
     UINT uiBufLen;
 }HTML_ESC_BUF_S;
 
@@ -2287,7 +2287,7 @@ static HTML_ESC_NAME_CHAR_REF_S  g_astHtmlEscDef[] =
   CHAR_REF("zscr;", 0x0001d4cf),
   CHAR_REF("zwj;", 0x200d),
   CHAR_REF("zwnj;", 0x200c),
-  // Terminator.
+  
   CHAR_REF("", -1)
 };
 
@@ -2424,9 +2424,9 @@ static VOID html_esc_AppendChar(IN HTML_ESC_BUF_S *pstBuf, IN UCHAR ucChar)
 
 static VOID html_esc_AppendPoint(IN HTML_ESC_DATA_S *pstData, IN UINT uiData)
 {
-    // uiBytesNum is actually the number of continuation bytes, 1 less than the
-    // total number of bytes.  This is done to keep the loop below simple and
-    // should probably change if we unroll it.
+    
+    
+    
     UINT uiBytesNum, uiPrefix;
     INT iIndex;
 
@@ -2653,12 +2653,12 @@ static VOID html_esc_Translate(IN HTML_ESC_BUF_S *pstOutput, IN UCHAR ucInputCod
     }
 }
 
-/* 计算编码后需要多长. 0表示不需要编码 */
+
 UINT HTML_ESC_EncodeLen
 (
     IN const CHAR *pcInput,
     IN UINT uiInputLen,
-    IN const CHAR *pcTranslateCharset    /* 需要进行转换的字符集 */
+    IN const CHAR *pcTranslateCharset    
 )
 {
     UINT uiNeedLen = 0;
@@ -2688,7 +2688,7 @@ UINT HTML_ESC_Encode
 (
     IN const CHAR *pcInput,
     IN UINT uiInputLen,
-    IN const CHAR *pcTranslateCharset,    /* 需要进行转换的字符集 */
+    IN const CHAR *pcTranslateCharset,    
     IN UINT uiOutBufSize,
     OUT CHAR *pcOutput
 )

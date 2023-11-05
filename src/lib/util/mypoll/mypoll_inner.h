@@ -12,11 +12,11 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define _MYPOLL_FLAG_RESTART 0x1
-#define _MYPOLL_FLAG_PROCESSING_EVENT 0x2 /* 正在处理事件 */
-#define _MYPOLL_FLAG_LOOP_ODD         0x4 /* 循环奇偶位 */
+#define _MYPOLL_FLAG_PROCESSING_EVENT 0x2 
+#define _MYPOLL_FLAG_LOOP_ODD         0x4 
 
 #define _MYPOLL_MAX_SINGAL_NUM  32
 
@@ -45,7 +45,7 @@ typedef struct
     DARRAY_HANDLE hFdInfoTbl;
 }_MYPOLL_CTRL_S;
 
-#define MYPOLL_PROTO_FLAG_AT_ONCE 0x1  /* 1 - 表示此协议支持set操作立即生效; 0 - 不支持立即生效,需要等待下次调度后才能生效 */
+#define MYPOLL_PROTO_FLAG_AT_ONCE 0x1  
 
 typedef BS_STATUS (*PF_Mypoll_Proto_Init)(IN _MYPOLL_CTRL_S *pstMyPoll);
 typedef VOID (*PF_Mypoll_Proto_Fini)(IN _MYPOLL_CTRL_S *pstMyPoll);
@@ -68,7 +68,7 @@ typedef VOID (*PF_Mypoll_Proto_Del)
     IN _MYPOLL_CTRL_S *pstMyPoll,
     IN INT iSocketId
 );
-typedef BS_WALK_RET_E (*PF_Mypoll_Proto_Run)(IN _MYPOLL_CTRL_S *pstMyPoll);
+typedef int (*PF_Mypoll_Proto_Run)(IN _MYPOLL_CTRL_S *pstMyPoll);
 
 typedef struct
 {
@@ -81,7 +81,7 @@ typedef struct
     PF_Mypoll_Proto_Run pfRun;
 }MYPOLL_PROTO_S;
 
-#define _MYPOLL_FDINFO_LOOP_ODD 0x4 /* 循环奇偶位 */
+#define _MYPOLL_FDINFO_LOOP_ODD 0x4 
 
 typedef struct
 {
@@ -93,8 +93,8 @@ typedef struct
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__MYPOLL_INNER_H_*/
+#endif 
 
 

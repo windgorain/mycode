@@ -21,31 +21,31 @@ INT DHCP_GetDHCPMsgType (IN DHCP_HEAD_S *pstDhcpHead, IN UINT ulOptLen)
         const UCHAR type = p[i];
         const int room = ulOptLen - i - 1;
       
-        if (type == DHCP_END)           // didn't find what we were looking for
+        if (type == DHCP_END)           
         {
             return -1;
         }
-        else if (type == DHCP_PAD)      // no-operation
+        else if (type == DHCP_PAD)      
         {
             ;
         }
-        else if (type == DHCP_MSG_TYPE) // what we are looking for
+        else if (type == DHCP_MSG_TYPE) 
         {
             if (room >= 2)
             {
-                if (p[i+1] == 1)        // message length should be 1
+                if (p[i+1] == 1)        
                 {
-                    return p[i+2];        // return message type
+                    return p[i+2];        
                 }
             }
             return -1;
         }
-        else                            // some other message
+        else                            
         {
             if (room >= 1)
             {
-                const int len = p[i+1]; // get message length
-                i += (len + 1);         // advance to next message
+                const int len = p[i+1]; 
+                i += (len + 1);         
             }
         }
     }
@@ -53,7 +53,7 @@ INT DHCP_GetDHCPMsgType (IN DHCP_HEAD_S *pstDhcpHead, IN UINT ulOptLen)
     return -1;
 }
 
-/* 得到要申请的IP地址, 网络序 */
+
 UINT DHCP_GetRequestIpByDhcpRequest (IN DHCP_HEAD_S *pstDhcpHead, IN UINT ulOptLen)
 {
     const UCHAR *p = (UCHAR *) (pstDhcpHead + 1);
@@ -70,19 +70,19 @@ UINT DHCP_GetRequestIpByDhcpRequest (IN DHCP_HEAD_S *pstDhcpHead, IN UINT ulOptL
         const UCHAR type = p[i];
         const int room = ulOptLen - i - 1;
       
-        if (type == DHCP_END)           // didn't find what we were looking for
+        if (type == DHCP_END)           
         {
             return 0;
         }
-        else if (type == DHCP_PAD)      // no-operation
+        else if (type == DHCP_PAD)      
         {
             ;
         }
-        else if (type == DHCP_REQUEST_IP) // what we are looking for
+        else if (type == DHCP_REQUEST_IP) 
         {
             if (room >= 5)
             {
-                if (p[i+1] == 4)        // message length should be 4
+                if (p[i+1] == 4)        
                 {
                     ulIp = *(UINT*) (&p[i+2]);
                     return ulIp;
@@ -90,12 +90,12 @@ UINT DHCP_GetRequestIpByDhcpRequest (IN DHCP_HEAD_S *pstDhcpHead, IN UINT ulOptL
             }
             return 0;
         }
-        else                            // some other message
+        else                            
         {
             if (room >= 1)
             {
-                const int len = p[i+1]; // get message length
-                i += (len + 1);         // advance to next message
+                const int len = p[i+1]; 
+                i += (len + 1);         
             }
         }
     }
@@ -176,30 +176,30 @@ static BS_STATUS _DHCP_GetDhcpRequest(IN UDP_HEAD_S *udp_hdr, int pktlen, DHCP_R
         return BS_ERR;
     }
 
-    /* packet too short */
+    
     if (pktlen < IP_HDR_LEN + UDP_HDR_LEN + DHCP_HDR_LEN + DHCP_OPT_HDR_LEN) {
         return BS_ERR;
     }
 
-    /*Not request pkt*/
+    
     len = pktlen - IP_HDR_LEN;
 
     dhcp_h = (struct dhcp_hdr *) ((char *) udp_hdr + UDP_HDR_LEN);
     dhcp_opt = (struct dhcp_opt *) ((char *) dhcp_h + DHCP_HDR_LEN);
 
-    /* only care about REQUEST opcodes */
+    
     if (dhcp_h->op != DHCP_OP_REQUEST) {
         return BS_ERR;
     }
 
-    /*Can't use while(1), because there are illgeal packets coming in.*/
+    
     for (i = 0; i < MAX_LOOP_TIMES; ++i) {
         if (dhcp_opt->opt == DHCP_OPT_MSGTYPE) {
             if (dhcp_opt->len != 1) {
                 return BS_ERR;
             }
             memcpy(&msg_type, (char *) dhcp_opt + DHCP_OPT_HDR_LEN, dhcp_opt->len);
-            /* only care about REQUEST msg types */
+            
             if (msg_type != DHCP_TYPE_REQUEST) {
                 return BS_ERR;
             }
@@ -211,7 +211,7 @@ static BS_STATUS _DHCP_GetDhcpRequest(IN UDP_HEAD_S *udp_hdr, int pktlen, DHCP_R
             memcpy(&request_addr, (char *) dhcp_opt + DHCP_OPT_HDR_LEN, dhcp_opt->len);
             opt_flags |= HAS_OPT_REQIP;
         } else if (dhcp_opt->opt == DHCP_LEASE_TIME) {
-            /* do nothing */
+            
             opt_flags |= HAS_OPT_LEASTTIME;
          }else if (dhcp_opt->opt == DHCP_OPT_HOSTNAME) {
             if (dhcp_opt->len < 1) {

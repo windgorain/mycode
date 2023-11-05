@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #include "types.h"
 
@@ -20,8 +20,8 @@ BOOL_T TRAY_SetIcon(IN HANDLE hTrayId, IN HANDLE hIcon, IN CHAR *pszTip);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__TRAY_UTL_H_*/
+#endif 
 
 

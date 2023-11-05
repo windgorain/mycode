@@ -12,13 +12,13 @@
 #include "utl/data2hex_utl.h"
 #include "utl/in_checksum.h"
 
-/* 返回网络序的校验和 */
+
 USHORT UDP_CheckSum
 (
     IN UCHAR *pucBuf,
 	IN UINT ulLen,
-	IN UCHAR *pucSrcIp, /* 网络序 */
-	IN UCHAR *pucDstIp  /* 网络序 */
+	IN UCHAR *pucSrcIp, 
+	IN UCHAR *pucDstIp  
 )
 {
     USHORT usCheckSum = 0;
@@ -70,7 +70,7 @@ UDP_HEAD_S * UDP_GetUDPHeader(IN VOID *pucData, IN UINT uiDataLen, IN NET_PKT_TY
 
     if (enPktTypeTmp == NET_PKT_TYPE_UDP)
     {
-        /* 长度不够UDP头的长度则返回NULL */
+        
         if (uiHeadLen + sizeof(UDP_HEAD_S) > uiDataLen)
         {
             return NULL;

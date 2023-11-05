@@ -48,7 +48,7 @@ static BS_STATUS _ParseFingerFile(char* file)
     do {
         len = FILE_ReadLine(fp, line, sizeof(line), '\n');
         if ((len < sizeof(line)) && (len > 0)) {
-            //printf("len=%d\r\n", len);
+            
             ret = _parseline(line, id);
             id ++;
         }

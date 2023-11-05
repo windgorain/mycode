@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 extern UCHAR inetctlerrmap[];
 
@@ -34,8 +34,8 @@ int ip_ctloutput(IN SOCKET_S *so, IN SOCKOPT_S *sopt);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__INET_IP_H_*/
+#endif 
 
 

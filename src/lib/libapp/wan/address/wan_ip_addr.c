@@ -142,13 +142,13 @@ static VOID wan_ipaddr_DelRoute(IN UINT uiVrf, IN WAN_IP_ADDR_INFO_S *pstAddrInf
 
     memset(&stFib, 0, sizeof(stFib));
 
-    /* 删除直连网段路由 */
+    
     stFib.stFibKey.uiDstOrStartIp = pstAddrInfo->uiIP;
     stFib.stFibKey.uiMaskOrEndIp = pstAddrInfo->uiMask;
     stFib.uiNextHop = 0;
     WanFib_Del(uiVrf, &stFib);
 
-    /* 删除主机路由 */
+    
     stFib.stFibKey.uiDstOrStartIp = pstAddrInfo->uiIP;
     stFib.stFibKey.uiMaskOrEndIp = 0xffffffff;
     stFib.uiNextHop = 0;
@@ -235,7 +235,7 @@ static BOOL_T _wan_ipaddr_isConfiged(IN _IPADDR_IF_CTRL_S *pstIpAddrCtrl, IN UIN
     return FALSE;
 }
 
-static BS_STATUS _wan_ipaddr_kf_ModifyIpMask(IN IF_INDEX ifIndex, IN IP_MAKS_S *pstIpMask, IN UINT uiNum)
+static BS_STATUS _wan_ipaddr_kf_ModifyIpMask(IN IF_INDEX ifIndex, IN IP_MASK_S *pstIpMask, IN UINT uiNum)
 {
     _IPADDR_IF_CTRL_S *pstIpAddrCtrl;
     UINT i;
@@ -290,7 +290,7 @@ static BS_STATUS _wan_ipaddr_kf_Modify(IN MIME_HANDLE hMime, IN HANDLE hUserHand
     CHAR *pcName;
     CHAR *pcPropertyValue;
     IF_INDEX ifIndex;
-    IP_MAKS_S stIpMasks[WAN_IP_ADDR_MAX_IF_IP_NUM];
+    IP_MASK_S stIpMasks[WAN_IP_ADDR_MAX_IF_IP_NUM];
     UINT uiNum;
     BS_STATUS eRet = BS_OK;
 
@@ -344,8 +344,8 @@ BS_STATUS WAN_IPAddr_Init()
     return IFNET_RegEvent(wan_ipaddr_IfEvent, NULL);
 }
 
-/* 匹配本地网段 */
-BS_STATUS WAN_IPAddr_MatchNetCover(IN UINT uiIfIndex, IN UINT uiIpAddr/* 网络序 */, OUT WAN_IP_ADDR_INFO_S *pstAddr)
+
+BS_STATUS WAN_IPAddr_MatchNetCover(IN UINT uiIfIndex, IN UINT uiIpAddr, OUT WAN_IP_ADDR_INFO_S *pstAddr)
 {
     _IPADDR_IF_CTRL_S *pstIpAddrCtrl;
     WAN_IP_ADDR_INFO_S *pstFound = NULL;
@@ -380,11 +380,11 @@ BS_STATUS WAN_IPAddr_MatchNetCover(IN UINT uiIfIndex, IN UINT uiIpAddr/* 网络�
     return BS_NOT_FOUND;
 }
 
-/* 不考虑网段本地地址,或者不存在匹配的网段本地地址,进行普通最长匹配 */
+
 static BS_STATUS wan_ipaddr_MatchBestNetNormal
 (
     IN UINT uiIfIndex,
-    IN UINT uiIpAddr/* 网络序 */,
+    IN UINT uiIpAddr,
     OUT WAN_IP_ADDR_INFO_S *pstAddr
 )
 {
@@ -426,7 +426,7 @@ static BS_STATUS wan_ipaddr_MatchBestNetNormal
 }
 
 
-/* 在接口上最长匹配地址节点 */
+
 BS_STATUS WAN_IPAddr_MatchBestNet(IN UINT uiIfIndex, IN UINT uiIpAddr, OUT WAN_IP_ADDR_INFO_S *pstAddr)
 {
     if (BS_OK == WAN_IPAddr_MatchNetCover(uiIfIndex, uiIpAddr, pstAddr))
@@ -437,11 +437,11 @@ BS_STATUS WAN_IPAddr_MatchBestNet(IN UINT uiIfIndex, IN UINT uiIpAddr, OUT WAN_I
     return wan_ipaddr_MatchBestNetNormal(uiIfIndex, uiIpAddr, pstAddr);
 }
 
-/* 查找相同vrf下相同的IP */
+
 BS_STATUS WAN_IPAddr_FindVrfIp
 (
     IN UINT uiVrf,
-    IN UINT uiIp, /* 网络序 */
+    IN UINT uiIp, 
     OUT WAN_IP_ADDR_INFO_S *pstAddrInfoFound
 )
 {
@@ -469,12 +469,12 @@ BS_STATUS WAN_IPAddr_FindVrfIp
     return BS_OK;
 }
 
-/* 查找相同vrf下相同的网段 */
+
 BS_STATUS WAN_IPAddr_FindSameNet
 (
     IN UINT uiVrf,
-    IN UINT uiIp, /* 网络序 */
-    IN UINT uiMask, /* 网络序 */
+    IN UINT uiIp, 
+    IN UINT uiMask, 
     OUT WAN_IP_ADDR_INFO_S *pstAddrInfoFound
 )
 {
@@ -505,13 +505,13 @@ BS_STATUS WAN_IPAddr_FindSameNet
     return BS_OK;
 }
 
-/* 查找配置冲突IP地址 */
+
 BS_STATUS WAN_IPAddr_FindConflictIP
 (
     IN UINT uiVrf,
-    IN UINT uiIp, /* 网络序 */
-    IN UINT uiMask, /* 网络序 */
-    OUT WAN_IP_ADDR_INFO_S *pstAddrInfoFound  /* 可以为NULL */
+    IN UINT uiIp, 
+    IN UINT uiMask, 
+    OUT WAN_IP_ADDR_INFO_S *pstAddrInfoFound  
 )
 {
     if (BS_OK == WAN_IPAddr_FindVrfIp(uiVrf, uiIp, pstAddrInfoFound))
@@ -522,7 +522,7 @@ BS_STATUS WAN_IPAddr_FindConflictIP
     return WAN_IPAddr_FindSameNet(uiVrf, uiIp, uiMask, pstAddrInfoFound);
 }
 
-BOOL_T WAN_IPAddr_IsInterfaceIp(IN UINT uiIfIndex, IN UINT uiIP/* 网络序 */)
+BOOL_T WAN_IPAddr_IsInterfaceIp(IN UINT uiIfIndex, IN UINT uiIP)
 {
     _IPADDR_IF_CTRL_S *pstIpAddrCtrl;
     UINT i;
@@ -668,7 +668,7 @@ PLUG_API BS_STATUS WanIPAddr_AddIp(IN WAN_IP_ADDR_INFO_S *pstAddrInfo)
 
     memset(&stFib, 0, sizeof(stFib));
 
-    /* 添加直连网段路由 */
+    
     stFib.stFibKey.uiDstOrStartIp = pstAddrInfo->uiIP;
     stFib.stFibKey.uiMaskOrEndIp = pstAddrInfo->uiMask;
     stFib.uiOutIfIndex = pstAddrInfo->uiIfIndex;
@@ -676,7 +676,7 @@ PLUG_API BS_STATUS WanIPAddr_AddIp(IN WAN_IP_ADDR_INFO_S *pstAddrInfo)
     stFib.uiFlag = FIB_FLAG_DIRECT;
     WanFib_Add(uiVrf, &stFib);
 
-    /* 添加主机路由 */
+    
     stFib.stFibKey.uiDstOrStartIp = pstAddrInfo->uiIP;
     stFib.stFibKey.uiMaskOrEndIp = 0xffffffff;
     stFib.uiOutIfIndex = WAN_InLoop_GetIfIndex();
@@ -769,7 +769,7 @@ BS_STATUS WAN_IPAddr_DelInterfaceAllIp(IN IF_INDEX ifIndex)
     return BS_OK;
 }
 
-/* 获取主IP */
+
 BS_STATUS WAN_IPAddr_GetFirstIp(IN UINT uiIfIndex, OUT WAN_IP_ADDR_INFO_S *pstAddr)
 {
     _IPADDR_IF_CTRL_S *pstIpAddrCtrl;

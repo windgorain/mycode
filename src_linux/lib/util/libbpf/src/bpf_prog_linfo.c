@@ -26,13 +26,9 @@ static int dissect_jited_func(struct bpf_prog_linfo *prog_linfo,
 	const void *raw_jited_linfo;
 	const __u64 *jited_linfo;
 	__u64 last_jited_linfo;
-	/*
-	 * Index to raw_jited_linfo:
-	 *      i: Index for searching the next ksym_func
-	 * prev_i: Index to the last found ksym_func
-	 */
+	
 	__u32 i, prev_i;
-	__u32 f; /* Index to ksym_func */
+	__u32 f; 
 
 	raw_jited_linfo = prog_linfo->raw_jited_linfo;
 	jited_linfo = raw_jited_linfo;
@@ -53,7 +49,7 @@ static int dissect_jited_func(struct bpf_prog_linfo *prog_linfo,
 		if (ksym_func[f] == *jited_linfo) {
 			prog_linfo->jited_linfo_func_idx[f] = i;
 
-			/* Sanity check */
+			
 			if (last_jited_linfo - ksym_func[f - 1] + 1 >
 			    ksym_len[f - 1])
 				goto errout;
@@ -62,13 +58,10 @@ static int dissect_jited_func(struct bpf_prog_linfo *prog_linfo,
 				i - prev_i;
 			prev_i = i;
 
-			/*
-			 * The ksym_func[f] is found in jited_linfo.
-			 * Look for the next one.
-			 */
+			
 			f++;
 		} else if (*jited_linfo <= last_jited_linfo) {
-			/* Ensure the addr is increasing _within_ a func */
+			
 			goto errout;
 		}
 	}
@@ -108,10 +101,7 @@ struct bpf_prog_linfo *bpf_prog_linfo__new(const struct bpf_prog_info *info)
 	if (!nr_linfo)
 		return errno = EINVAL, NULL;
 
-	/*
-	 * The min size that bpf_prog_linfo has to access for
-	 * searching purpose.
-	 */
+	
 	if (info->line_info_rec_size <
 	    offsetof(struct bpf_line_info, file_name_off))
 		return errno = EINVAL, NULL;
@@ -120,7 +110,7 @@ struct bpf_prog_linfo *bpf_prog_linfo__new(const struct bpf_prog_info *info)
 	if (!prog_linfo)
 		return errno = ENOMEM, NULL;
 
-	/* Copy xlated line_info */
+	
 	prog_linfo->nr_linfo = nr_linfo;
 	prog_linfo->rec_size = info->line_info_rec_size;
 	data_sz = (__u64)nr_linfo * prog_linfo->rec_size;
@@ -137,10 +127,10 @@ struct bpf_prog_linfo *bpf_prog_linfo__new(const struct bpf_prog_info *info)
 	    info->nr_jited_func_lens != nr_jited_func ||
 	    !info->jited_ksyms ||
 	    !info->jited_func_lens)
-		/* Not enough info to provide jited_line_info */
+		
 		return prog_linfo;
 
-	/* Copy jited_line_info */
+	
 	prog_linfo->nr_jited_func = nr_jited_func;
 	prog_linfo->jited_rec_size = info->jited_line_info_rec_size;
 	data_sz = (__u64)nr_linfo * prog_linfo->jited_rec_size;
@@ -150,16 +140,13 @@ struct bpf_prog_linfo *bpf_prog_linfo__new(const struct bpf_prog_info *info)
 	memcpy(prog_linfo->raw_jited_linfo,
 	       (void *)(long)info->jited_line_info, data_sz);
 
-	/* Number of jited_line_info per jited func */
+	
 	prog_linfo->nr_jited_linfo_per_func = malloc(nr_jited_func *
 						     sizeof(__u32));
 	if (!prog_linfo->nr_jited_linfo_per_func)
 		goto err_free;
 
-	/*
-	 * For each jited func,
-	 * the start idx to the "linfo" and "jited_linfo" array,
-	 */
+	
 	prog_linfo->jited_linfo_func_idx = malloc(nr_jited_func *
 						  sizeof(__u32));
 	if (!prog_linfo->jited_linfo_func_idx)

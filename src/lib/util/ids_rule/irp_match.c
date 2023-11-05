@@ -103,7 +103,7 @@ static inline BOOL_T irp_match_threshold_opt(IN IRP_THRESHOLD_OPT_S *opt, IRP_PK
         return TRUE;
     }
 
-    /* TODO: 检测Threshold */
+    
 
     return TRUE;
 }
@@ -114,7 +114,7 @@ static inline BOOL_T irp_match_tcp_opt(IN IRP_TCP_OPT_S *opt, IRP_PKT_INFO_S *pk
         return TRUE;
     }
 
-    /* TODO: 处理Tcp选项 */
+    
 
     return TRUE;
 }
@@ -141,19 +141,19 @@ static UCHAR * irp_match_content_opt(IRP_CONTENT_OPT_S *opt, void *data, int dat
     UCHAR *find_content;
     LDATA_S d;
 
-    d.pucData = data;
-    d.uiLen = data_len;
+    d.data = data;
+    d.len = data_len;
 
     if (opt->offset) {
         if (opt->offset >= data_len) {
             return NULL;
         }
-        d.pucData += opt->offset;
-        d.uiLen -= opt->offset;
+        d.data += opt->offset;
+        d.len -= opt->offset;
     }
 
     if (opt->depth) {
-        d.uiLen = MIN(d.uiLen, opt->depth);
+        d.len = MIN(d.len, opt->depth);
     }
 
     if (opt->nocase) {
@@ -180,7 +180,7 @@ static UCHAR * irp_match_content_opt(IRP_CONTENT_OPT_S *opt, void *data, int dat
         }
     }
 
-    /* TODO: 其他选线处理  */
+    
 
     return find_content;
 }

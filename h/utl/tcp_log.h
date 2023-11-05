@@ -46,4 +46,4 @@ int TCPLOG_Input(TCP_LOG_S *config, VOID *ippkt, UINT pktlen, NET_PKT_TYPE_E pkt
 #ifdef __cplusplus
 }
 #endif
-#endif //TCP_LOG_H_
+#endif 

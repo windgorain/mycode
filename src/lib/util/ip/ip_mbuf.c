@@ -74,7 +74,7 @@ BS_STATUS IP_ValidPkt(IN MBUF_S *pstMbuf)
 
     uiHLen = IP_HEAD_LEN(pstIpHead);
 
-    /* 检查 IP 报文头的长度字段 */
+    
     if (unlikely(sizeof(IP_HEAD_S) != uiHLen))
     {
         if (unlikely(uiHLen < sizeof(IP_HEAD_S)))
@@ -103,30 +103,30 @@ BS_STATUS IP_ValidPkt(IN MBUF_S *pstMbuf)
         return BS_ERR;
     }
 
-    /* 如果偏移量为全1，即：0x1fff，则应为最后一个分片，即MF标志位不应被设置。如果MF被设置，为错误报文 */
+    
     usOff = ntohs(pstIpHead->usOff);
     if (unlikely((0 != (usOff & IP_MF)) && (IP_OFFMASK == (usOff & IP_OFFMASK))))
     {
         return BS_ERR;
     }
 
-    /* 如果该报文隐含的报文总长度大于65535字节，释放该IP报文 */
+    
     usOff = (USHORT) ((usOff & IP_OFFMASK) << 3);
     if (unlikely(uiLen + usOff > IP_MAXPACKET))
     {
         return BS_ERR;
     }
 
-    /* 目的地址合法性检查 */
+    
     uiDstIp = ntohl(pstIpHead->unDstIp.uiIp);
     
-    /* 按rfc，目的地址全0地址为非法，应丢弃。cisco的行为是放行。 */
+    
     if (unlikely(0 == uiDstIp))
     {
         return BS_ERR;
     }
 
-    /* 丢弃非法报文(除 255.255.255.255) */
+    
     if (unlikely(IP_IN_BADCLASS(uiDstIp) && (INADDR_BROADCAST != uiDstIp)))
     {
         return BS_ERR;
@@ -137,7 +137,7 @@ BS_STATUS IP_ValidPkt(IN MBUF_S *pstMbuf)
         return BS_ERR;
     }
 
-    /* 检查 MBUF 的数据长度是否等于 IP 报文的总长 */
+    
     uiTotalLen = MBUF_TOTAL_DATA_LEN(pstMbuf);
     if (unlikely(uiTotalLen != uiLen))
     {
@@ -147,7 +147,7 @@ BS_STATUS IP_ValidPkt(IN MBUF_S *pstMbuf)
         }
         else
         {
-            /* 截去多余的长度 */
+            
             MBUF_CutTail(pstMbuf, uiTotalLen - uiLen);
         }
     }
@@ -155,14 +155,14 @@ BS_STATUS IP_ValidPkt(IN MBUF_S *pstMbuf)
     return BS_OK;
 }
 
-/* 给Mbuf加上IP头 */
+
 BS_STATUS IP_BuildIPHeader
 (
     IN MBUF_S *pstMbuf,
-    IN UINT uiDstIp/* 网络序 */,
-    IN UINT uiSrcIp/* 网络序 */,
+    IN UINT uiDstIp,
+    IN UINT uiSrcIp,
     IN UCHAR ucProto,
-    IN USHORT usIdentification /* 网络序 */
+    IN USHORT usIdentification 
 )
 {
     IP_HEAD_S *pstIpHead;

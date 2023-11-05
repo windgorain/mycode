@@ -28,10 +28,10 @@
 
 #define _WEB_PROXY_NAME "WebProxy"
 
-#define _WEB_PROXY_CACHE_SIZE 1024  /* 为了避免频繁发送小报文进行缓存 */
+#define _WEB_PROXY_CACHE_SIZE 1024  
 #define _WEB_PROXY_WWW_AUTH_BASE64_LEN 511
 
-#define _WEB_PROXY_PREFIX_BEFORE_PATH_MAX_LEN 511 /* path之前的最大前缀长度, 比如"/_proxy_/https/65535/host/"的长度 */
+#define _WEB_PROXY_PREFIX_BEFORE_PATH_MAX_LEN 511 
 
 #define _WEB_RPOXY_MAX_TAG_NAME_LEN 15
 #define _WEB_RPOXY_MAX_JS_RW_FILEPATH_LEN 63
@@ -41,7 +41,7 @@
 typedef struct
 {
     UINT uiAuthID;
-    UINT uiRandom;  /* 随机数,防止被人猜测到AuthID从而被攻击 */
+    UINT uiRandom;  
 
     HTTP_AUTH_HANDLE hHttpAuth;
 }_WEB_PROXY_AUTH_NODE_S;
@@ -71,16 +71,16 @@ typedef enum
     _WEB_PROXY_PROTO_MAX
 }_WEB_PROXY_PROTO_E;
 
-#define _WEB_PROXY_FLAG_EMBED_RW_JS         0x1 /* 是否已经嵌入JS改写脚本 */
-#define _WEB_PROXY_FLAG_ERRTYPE_COMPATIBLE  0x2 /* 当content-type错误,进一步检测是否需要改写 */
-#define _WEB_PROXY_FLAG_DOWN_READ_OK_FAST   0x4 /* Down方向已经ReadOK了 */
+#define _WEB_PROXY_FLAG_EMBED_RW_JS         0x1 
+#define _WEB_PROXY_FLAG_ERRTYPE_COMPATIBLE  0x2 
+#define _WEB_PROXY_FLAG_DOWN_READ_OK_FAST   0x4 
 
 typedef BS_STATUS (*PF_WEBPROXY_RwFunc)(IN VOID *pstNode, IN UCHAR *pucData, IN UINT uiDataLen);
 
 typedef struct
 {
     FSM_S stFsm;
-    _WEB_PROXY_CTRL_S *pstCtrl;  /* 指向这个Node所属的WebProxy Ctrl */
+    _WEB_PROXY_CTRL_S *pstCtrl;  
     MYPOLL_HANDLE hPoller;
     void *sslctx;
     VOID *pstSsl;
@@ -92,7 +92,7 @@ typedef struct
     INT iUpSocketID;
     WS_TRANS_HANDLE hWsTrans;
     VBUF_S stVBuf;
-    MBUF_S *pstSend2UpBody; /* 需要发送给UP的body数据 */
+    MBUF_S *pstSend2UpBody; 
 
     PF_WEBPROXY_RwFunc pfRwFunc;
     HTML_UP_HANDLE hHtmlUp;
@@ -150,7 +150,7 @@ static FSM_EVENT_MAP_S g_astWebProxyEventMap[] =
     {"E.UpErr", _WEB_PROXY_EVENT_UP_ERR},
 };
 
-/* 函数声明 */
+
 static VOID _webproxy_RecvBodyEnd(IN _WEB_PROXY_NODE_S *pstNode);
 static BS_STATUS _webproxy_ConnectServer(IN _WEB_PROXY_NODE_S *pstNode);
 
@@ -382,12 +382,7 @@ static VOID _webproxy_RwSimpleAbsUrl
 }
 
 
-/* 将URL改为在线代理的格式:
-1. 相对当前目录的URL,无需改写. 
-2. 对于../这样的路径,如果越过根,则需要删除多余的../
-3. 基于root路径的url，更改为"/TAG/protocol/port/host/path"
-4. 基于http://等格式的绝对路径url，更改为"/TAG/protocol/port/host/path"
-*/
+
 static VOID _webproxy_UrlRw
 (
     IN _WEB_PROXY_NODE_S *pstNode,
@@ -398,7 +393,7 @@ static VOID _webproxy_UrlRw
 )
 {
     URL_LIB_URL_TYPE_E eType;
-    BOOL_T bQuted = FALSE; /* 是否被引号括起来了 */
+    BOOL_T bQuted = FALSE; 
     CHAR cFirst;
 
     cFirst = *pcUrl;
@@ -1037,7 +1032,7 @@ static BOOL_T _webproxy_IsIgnoreReplyHeader(IN CHAR *pcHeadField)
     return FALSE;
 }
 
-/* 是否是需要重写URL的头域 */
+
 static BOOL_T _webproxy_NeedRwReplyHeader(IN CHAR *pcHeadField)
 {
     UINT i;
@@ -1493,7 +1488,7 @@ static BOOL_T _webproxy_IsErrTypeCompatible(IN UCHAR *pucData, IN UINT uiDataLen
 
     if (uiDataLen >= 3)
     {
-        /* BOM */
+        
         if (((pucData[0] == 0xFF) && (pucData[1] == 0xFE))
             || ((pucData[0] == 0xFE) && (pucData[1] == 0xFF)))
         {
@@ -1588,7 +1583,7 @@ static BS_STATUS _webproxy_RecvUpHead(IN FSM_S *pstFsm, IN UINT uiEvent)
         return BS_OK;
     }
 
-    /* 打印收到的应答头 */
+    
     {
         pucData[uiHeadLen-2] = '\0';
         BS_DBG_OUTPUT(pstNode->pstCtrl->uiDbgFlag, WEB_PROXY_DBG_FLAG_PACKET,
@@ -1739,7 +1734,7 @@ static FSM_SWITCH_MAP_S g_astWebProxySwitchMap[] =
 
 static FSM_SWITCH_TBL g_hWebProxySwitchTbl = NULL;
 
-static BS_WALK_RET_E _webproxy_UpEvent(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int _webproxy_UpEvent(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     _WEB_PROXY_NODE_S *pstNode = pstUserHandle->ahUserHandle[0];
     BS_STATUS eRet = BS_OK;
@@ -1747,7 +1742,7 @@ static BS_WALK_RET_E _webproxy_UpEvent(IN INT iSocketId, IN UINT uiEvent, IN USE
     if (uiEvent & MYPOLL_EVENT_ERR)
     {
         eRet = FSM_EventHandle(&pstNode->stFsm, _WEB_PROXY_EVENT_UP_ERR);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     if (uiEvent & MYPOLL_EVENT_IN)
@@ -1765,7 +1760,7 @@ static BS_WALK_RET_E _webproxy_UpEvent(IN INT iSocketId, IN UINT uiEvent, IN USE
         WS_Trans_Err(pstNode->hWsTrans);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static BS_STATUS _webproxy_ConnectServer(IN _WEB_PROXY_NODE_S *pstNode)
@@ -1802,12 +1797,12 @@ static BS_STATUS _webproxy_ConnectServer(IN _WEB_PROXY_NODE_S *pstNode)
     return BS_OK;
 }
 
-/* URL格式为: /tag/proto/port/host/path */
+
 BS_STATUS WEB_Proxy_ParseServerUrl
 (
     IN CHAR *pcUrl,
-    OUT LSTR_S *pstTag,   /* tag ... */
-    OUT LSTR_S *pstProto, /* http/https/ftp/smb... */
+    OUT LSTR_S *pstTag,   
+    OUT LSTR_S *pstProto, 
     OUT LSTR_S *pstHost,
     OUT LSTR_S *pstPort,
     OUT LSTR_S *pstPath
@@ -1816,7 +1811,7 @@ BS_STATUS WEB_Proxy_ParseServerUrl
     CHAR *pcEnd;
     CHAR *pcStart;
 
-    /* 解析tag */
+    
     pcStart = pcUrl + 1;
     pcEnd = strchr(pcStart, '/');
     if (NULL == pcEnd)
@@ -1829,7 +1824,7 @@ BS_STATUS WEB_Proxy_ParseServerUrl
         pstTag->uiLen = pcEnd - pcStart;
     }
 
-    /* 解析Proto */
+    
     pcStart = pcEnd + 1;
     pcEnd = strchr(pcStart, '/');
     if (NULL == pcEnd)
@@ -1842,7 +1837,7 @@ BS_STATUS WEB_Proxy_ParseServerUrl
         pstProto->uiLen = pcEnd - pcStart;
     }
 
-    /* 解析Port */
+    
     pcStart = pcEnd + 1;
     pcEnd = strchr(pcStart, '/');
     if (NULL == pcEnd)
@@ -1855,7 +1850,7 @@ BS_STATUS WEB_Proxy_ParseServerUrl
         pstPort->uiLen = pcEnd - pcStart;
     }
 
-    /* 解析host */
+    
     pcStart = pcEnd + 1;
     pcEnd = strchr(pcStart, '/');
 
@@ -1872,7 +1867,7 @@ BS_STATUS WEB_Proxy_ParseServerUrl
         }
     }
 
-    /* 解析Path */
+    
     if (NULL != pstPath)
     {
         pstPath->pcData = pcEnd;
@@ -1890,8 +1885,8 @@ static BS_STATUS _webproxy_ParseServerUrlAndCheck
 (
     IN _WEB_PROXY_CTRL_S *pstCtrl,
     IN CHAR *pcUrl,
-    OUT LSTR_S *pstTag,   /* tag ... */
-    OUT LSTR_S *pstProto, /* http/https/ftp/smb... */
+    OUT LSTR_S *pstTag,   
+    OUT LSTR_S *pstProto, 
     OUT LSTR_S *pstHost,
     OUT LSTR_S *pstPort,
     OUT LSTR_S *pstPath
@@ -2310,7 +2305,7 @@ VOID WEB_Proxy_ClrDgbFlag(IN WEB_PROXY_HANDLE hWebProxy, IN UINT uiDbgFlag)
     pstCtrl->uiDbgFlag &= (~uiDbgFlag);
 }
 
-/* 判断是否改写后的URL */
+
 BOOL_T WEB_Proxy_IsRwedUrl(IN WEB_PROXY_HANDLE hWebProxy, IN CHAR *pcUrl)
 {
     _WEB_PROXY_CTRL_S *pstCtrl = hWebProxy;
@@ -2355,7 +2350,7 @@ static BS_STATUS _webproxy_Refer2Prefix
         return BS_ERR;
     }
 
-    /* 构造新的URL */
+    
     snprintf(pcPrefix, uiPrefixSize, "/%s/%s/%s/%s",
                 pstCtrl->szTag,
                 LSTR_Strlcpy(&stProto, sizeof(szTmpProto), szTmpProto),

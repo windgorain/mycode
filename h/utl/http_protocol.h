@@ -10,12 +10,12 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* ---define--- */
+
 #define HTTP_PROTOCOL_MAX_HEAD_LEN 4095
 
-/* ---struct--- */
+
 typedef enum
 {
     HTTP_PROTOCOL_VER_09 = 0,
@@ -34,8 +34,8 @@ typedef enum
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__HTTP_PROTOCOL_H_*/
+#endif 
 
 

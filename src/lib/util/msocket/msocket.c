@@ -6,7 +6,7 @@
 *                  比如UserHandle等
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_MSOCKET
 
 #include "bs.h"
@@ -151,7 +151,7 @@ BS_STATUS MSocket_Accept(IN MSOCKET_ID uilistenSocketId, OUT MSOCKET_ID *pAccept
     return BS_OK;
 }
 
-/* 返回值: >=0: 发送的字节数. <0 : 错误 */
+
 INT MSocket_Write(IN MSOCKET_ID uiSocketId, IN UCHAR *pucBuf, IN UINT uiLen, IN UINT uiFlag)
 {
     _MSOCKET_CTRL_S *pstMSocket;
@@ -165,7 +165,7 @@ INT MSocket_Write(IN MSOCKET_ID uiSocketId, IN UCHAR *pucBuf, IN UINT uiLen, IN 
     return Socket_Write(pstMSocket->iSocketId, pucBuf, uiLen, uiFlag);
 }
 
-int MSocket_Connect(IN MSOCKET_ID uiSocketId, IN UINT uiIp/* 主机序 */, IN USHORT usPort/* 主机序 */)
+int MSocket_Connect(IN MSOCKET_ID uiSocketId, IN UINT uiIp, IN USHORT usPort)
 {
     _MSOCKET_CTRL_S *pstMSocket;
 
@@ -191,7 +191,7 @@ BS_STATUS MSocket_Ioctl(IN MSOCKET_ID uiSocketId, IN INT lCmd, IN UINT *argp)
     return Socket_Ioctl(pstMSocket->iSocketId, lCmd, argp);
 }
 
-/* 返回主机序IP和Port */
+
 BS_STATUS MSocket_GetHostIpPort(IN MSOCKET_ID uiSocketId, OUT UINT *puiIp, OUT USHORT *pusPort)
 {
     _MSOCKET_CTRL_S *pstMSocket;
@@ -205,7 +205,7 @@ BS_STATUS MSocket_GetHostIpPort(IN MSOCKET_ID uiSocketId, OUT UINT *puiIp, OUT U
     return Socket_GetLocalIpPort(pstMSocket->iSocketId, puiIp, pusPort);
 }
 
-/* 返回主机序IP和Port */
+
 BS_STATUS MSocket_GetPeerIpPort(IN MSOCKET_ID uiSocketId, OUT UINT *pulIp, OUT USHORT *pusPort)
 {
     _MSOCKET_CTRL_S *pstMSocket;
@@ -219,7 +219,7 @@ BS_STATUS MSocket_GetPeerIpPort(IN MSOCKET_ID uiSocketId, OUT UINT *pulIp, OUT U
     return Socket_GetPeerIpPort(pstMSocket->iSocketId, pulIp, pusPort);
 }
 
-BS_STATUS MSocket_Bind(IN MSOCKET_ID uiSocketId, IN UINT uiIp/* 网络序 */, IN USHORT usPort/* 网络序 */)
+BS_STATUS MSocket_Bind(IN MSOCKET_ID uiSocketId, IN UINT uiIp, IN USHORT usPort)
 {
     _MSOCKET_CTRL_S *pstMSocket;
 
@@ -258,7 +258,7 @@ BS_STATUS MSocket_SetSendBufSize(IN MSOCKET_ID uiSocketId, IN UINT uiBufLen)
     return Socket_SetSendBufSize(pstMSocket->iSocketId, uiBufLen);
 }
 
-/*ip/port:网络序*/
+
 BS_STATUS MSocket_Listen(IN MSOCKET_ID uiSocketId, UINT uiLocalIp, IN USHORT usPort, IN UINT uiBacklog)
 {
     _MSOCKET_CTRL_S *pstMSocket;
@@ -277,8 +277,8 @@ BS_STATUS MSocket_SendTo
     IN MSOCKET_ID uiSocketId,
     IN VOID *pBuf,
     IN UINT uiBufLen,
-    IN UINT uiToIp/* 网络序 */,
-    IN USHORT usToPort/* 网络序 */
+    IN UINT uiToIp,
+    IN USHORT usToPort
 )
 {
     _MSOCKET_CTRL_S *pstMSocket;
@@ -298,8 +298,8 @@ BS_STATUS MSocket_RecvFrom
     OUT VOID *pBuf,
     IN UINT uiBufLen,
     OUT UINT *puiRecvLen,
-    OUT UINT *puiFromIp/* 网络序 */,
-    OUT USHORT *pusFromPort/* 网络序 */
+    OUT UINT *puiFromIp,
+    OUT USHORT *pusFromPort
 )
 {
     _MSOCKET_CTRL_S *pstMSocket;
@@ -413,7 +413,7 @@ UINT MSocket_GetSocketId(IN MSOCKET_ID uiSocketId)
     return pstMSocket->iSocketId;
 }
 
-/* 以下是MSOCKET的特有接口 */
+
 BS_STATUS MSocket_SetUserHandle(IN MSOCKET_ID uiSocketId, IN HANDLE hUserHandle)
 {
     _MSOCKET_CTRL_S *pstMSocket;

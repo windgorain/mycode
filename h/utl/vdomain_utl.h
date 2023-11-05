@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define VDOMAIN_MAX_USER_NAME_LEN 63
 #define VDOMAIN_MAX_PASSWORD_LEN  63
@@ -57,7 +57,7 @@ BS_STATUS VDOMAIN_SetAdmin
     IN CHAR *pcUserName,
     IN CHAR *pcPassWord
 );
-/* 判断用户名密码是否匹配 */
+
 BOOL_T VDOMAIN_CheckAdmin
 (
     IN VDOMAIN_HANDLE hVDomain,
@@ -73,7 +73,7 @@ BS_STATUS VDOMAIN_AddUser
     IN CHAR *pcPassWord,
     IN UINT uiUserFlag
 );
-/* 判断用户名密码是否匹配 */
+
 BOOL_T VDOMAIN_CheckUser
 (
     IN VDOMAIN_HANDLE hVDomain,
@@ -96,8 +96,8 @@ BS_STATUS VDOMAIN_AddTbl
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VDOMAIN_UTL_H_*/
+#endif 
 
 

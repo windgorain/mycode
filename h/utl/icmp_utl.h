@@ -6,10 +6,10 @@
     extern "C" {
 #endif /* __cplusplus */
 
-#define ICMP_MINLEN 8               /* abs minimum */
-#define ICMP_TSLEN  (8 + 3 * sizeof (UINT))   /* timestamp */
-#define ICMP_MASKLEN    12              /* address mask */
-#define ICMP_ADVLENMIN  (8 + sizeof (IP_HEAD_S) + 8)    /* min */
+#define ICMP_MINLEN 8               
+#define ICMP_TSLEN  (8 + 3 * sizeof (UINT))   
+#define ICMP_MASKLEN    12              
+#define ICMP_ADVLENMIN  (8 + sizeof (IP_HEAD_S) + 8)    
 #define ICMP_ADVLEN(p)  (8 + ((int)(p)->icmp_ip.ip_hl << 2) + 8)
 
 
@@ -25,7 +25,7 @@ typedef struct
     USHORT usSn;
 }ICMP_ECHO_S;
 
-/* ICMP header*/
+
 typedef struct
 {
     UCHAR ucType;
@@ -48,25 +48,25 @@ struct icmp_ra_addr
 
 typedef struct icmp
 {
-    UCHAR    icmp_type;        /* type of message, see below */
-    UCHAR    icmp_code;        /* type sub code */
-    USHORT   icmp_cksum;        /* ones complement cksum of struct */
+    UCHAR    icmp_type;        
+    UCHAR    icmp_code;        
+    USHORT   icmp_cksum;        
     union {
-        UCHAR ih_pptr;            /* ICMP_PARAMPROB */
-        UINT ih_gwaddr;    /* ICMP_REDIRECT */
+        UCHAR ih_pptr;            
+        UINT ih_gwaddr;    
         struct ih_idseq {
             USHORT    icd_id;
             USHORT    icd_seq;
         } ih_idseq;
         int ih_void;
 
-        /* ICMP_UNREACH_NEEDFRAG -- Path MTU Discovery (RFC1191) */
+        
         struct ih_pmtu {
             USHORT ipm_void;
             USHORT ipm_nextmtu;
         } ih_pmtu;
 
-        /* ICMP-MPLS (RFC4884) */
+        
         struct tagOrgDataLen
         {
             UCHAR ucUsed1;
@@ -93,14 +93,14 @@ typedef struct icmp
 #define icmp_lifetime    icmp_hun.ih_rtradv.irt_lifetime
 
     union {
-        struct id_ts {            /* ICMP Timestamp */
-            UINT its_otime;    /* Originate */
-            UINT its_rtime;    /* Receive */
-            UINT its_ttime;    /* Transmit */
+        struct id_ts {            
+            UINT its_otime;    
+            UINT its_rtime;    
+            UINT its_ttime;    
         } id_ts;
         struct id_ip  {
             IP_HEAD_S idi_ip;
-            /* options and then 64 bits of data */
+            
         } id_ip;
         struct icmp_ra_addr id_radv;
         UINT id_mask;
@@ -117,15 +117,15 @@ typedef struct icmp
 
 #pragma pack()
 
-/* 返回网络序的校验和 */
+
 USHORT ICMP_CheckSum (IN UCHAR *pucBuf, IN UINT ulLen);
 ICMP_HEAD_S * ICMP_GetIcmpHeader(IN VOID *pucData, IN UINT uiDataLen, IN NET_PKT_TYPE_E enPktType);
 ICMP_ECHO_HEAD_S * ICMP_GetEchoHeader(void *data, UINT datalen, NET_PKT_TYPE_E enPktType);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__ICMP_UTL_H_*/
+#endif 
 
 

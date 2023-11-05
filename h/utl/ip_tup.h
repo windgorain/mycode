@@ -21,9 +21,17 @@ typedef struct {
 }IP_2TUPS_S;
 
 typedef struct {
-    unsigned char ip_proto;
     unsigned int sip;
     unsigned int dip;
+    unsigned short sport;
+    unsigned short dport;
+}IP_4TUPS_S;
+
+#pragma pack(1)
+typedef struct {
+    unsigned int sip;
+    unsigned int dip;
+    unsigned char ip_proto;
 }IP_3TUPS_S;
 
 typedef struct {
@@ -31,18 +39,11 @@ typedef struct {
     unsigned int dip;
     unsigned short sport;
     unsigned short dport;
-}IP_4TUPS_S;
-
-typedef struct {
     unsigned char ip_proto;
-    unsigned int sip;
-    unsigned int dip;
-    unsigned short sport;
-    unsigned short dport;
 }IP_5TUPS_S;
-
+#pragma pack()
 
 #ifdef __cplusplus
 }
 #endif
-#endif //IP_TUP_H_
+#endif 

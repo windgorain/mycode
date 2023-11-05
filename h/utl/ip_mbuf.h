@@ -13,17 +13,17 @@ extern "C"
 
 IP_HEAD_S * IP_GetIPHeaderByMbuf(IN MBUF_S *pstMbuf, IN NET_PKT_TYPE_E enPktType);
 BS_STATUS IP_ValidPkt(IN MBUF_S *pstMbuf);
-/* 给Mbuf加上IP头 */
+
 BS_STATUS IP_BuildIPHeader
 (
     IN MBUF_S *pstMbuf,
-    IN UINT uiDstIp/* 网络序 */,
-    IN UINT uiSrcIp/* 网络序 */,
+    IN UINT uiDstIp,
+    IN UINT uiSrcIp,
     IN UCHAR ucProto,
-    IN USHORT usIdentification /* 网络序 */
+    IN USHORT usIdentification 
 );
 
 #ifdef __cplusplus
 }
 #endif
-#endif //IP_MBUF_H_
+#endif 

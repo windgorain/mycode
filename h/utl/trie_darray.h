@@ -39,4 +39,4 @@ TRIE_COMMON_S * Triedarray_PrefixMatch(void *trie_ctrl, UCHAR *data, int data_le
 #ifdef __cplusplus
 }
 #endif
-#endif //TRIE_DARRAY_H_
+#endif 

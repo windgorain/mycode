@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 VOID VNETS_FuncTbl_Reg();
@@ -19,8 +19,8 @@ VOID VNETS_FuncTbl_Reg();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_FUNCTBL_H_*/
+#endif 
 
 

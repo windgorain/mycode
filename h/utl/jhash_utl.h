@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define JHASH_INITVAL		0xdeadbeef
 
@@ -35,10 +35,79 @@
 	c ^= b; c -= NUM_Rol32(b, 24);		\
 }
 
-UINT JHASH_GeneralBuffer(void *key, UINT length, UINT initval);
-UINT JHASH_U32Buffer(UINT *k, UINT length, UINT initval);
+static inline UINT JHASH_GeneralBuffer(const void *key, UINT length, UINT initval)
+{
+	UINT a, b, c;
+	const UCHAR *k = key;
+    UINT *d;
 
-static inline UINT JHASH_NWORDS(UINT a, UINT b, UINT c, UINT initval)
+	a = b = c = JHASH_INITVAL + length + initval;
+
+	while (length > 12) {
+        d = (void*)k;
+		a += d[0];
+		b += d[1];
+		c += d[2];
+		JHASH_MIX(a, b, c);
+		length -= 12;
+		k += 12;
+	}
+
+	switch (length) {
+	case 12: c += (UINT)k[11]<<24; fallthrough;
+	case 11: c += (UINT)k[10]<<16; fallthrough;
+	case 10: c += (UINT)k[9]<<8; fallthrough;
+	case 9:  c += k[8]; fallthrough;
+	case 8:  b += (UINT)k[7]<<24; fallthrough;
+	case 7:  b += (UINT)k[6]<<16; fallthrough;
+	case 6:  b += (UINT)k[5]<<8; fallthrough;
+	case 5:  b += k[4]; fallthrough;
+	case 4:  a += (UINT)k[3]<<24; fallthrough;
+	case 3:  a += (UINT)k[2]<<16; fallthrough;
+	case 2:  a += (UINT)k[1]<<8; fallthrough;
+	case 1:  a += k[0]; JHASH_FINAL(a, b, c); fallthrough;
+	case 0:  break;
+	}
+
+	return c;
+}
+
+
+static inline UINT JHASH_U32Buffer(const UINT *k, UINT length, UINT initval)
+{
+	UINT a, b, c;
+
+	a = b = c = JHASH_INITVAL + (length<<2) + initval;
+
+	while (length > 3) {
+		a += k[0];
+		b += k[1];
+		c += k[2];
+		JHASH_MIX(a, b, c);
+		length -= 3;
+		k += 3;
+	}
+
+    switch (length) {
+        case 3: c += k[2];
+        case 2: b += k[1];
+        case 1: a += k[0]; JHASH_FINAL(a, b, c);
+        case 0:	break;
+    }
+
+    return c;
+}
+
+static inline UINT JHASH_Buffer(const void *k, UINT len, UINT initval)
+{
+    if ((len & 0x3) == 0) { 
+        return JHASH_U32Buffer(k, len >> 2, initval);
+    } else {
+        return JHASH_GeneralBuffer(k, len, initval);
+    }
+}
+
+static inline UINT _jhash_nwords(UINT a, UINT b, UINT c, UINT initval)
 {
 	a += initval;
 	b += initval;
@@ -49,23 +118,23 @@ static inline UINT JHASH_NWORDS(UINT a, UINT b, UINT c, UINT initval)
 
 static inline UINT JHASH_3Words(UINT a, UINT b, UINT c, UINT initval)
 {
-	return JHASH_NWORDS(a, b, c, initval + JHASH_INITVAL + (3 << 2));
+	return _jhash_nwords(a, b, c, initval + JHASH_INITVAL + (3 << 2));
 }
 
 static inline UINT JHASH_2Words(UINT a, UINT b, UINT initval)
 {
-	return JHASH_NWORDS(a, b, 0, initval + JHASH_INITVAL + (2 << 2));
+	return _jhash_nwords(a, b, 0, initval + JHASH_INITVAL + (2 << 2));
 }
 
 static inline UINT JHASH_Word(UINT a, UINT initval)
 {
-	return JHASH_NWORDS(a, 0, 0, initval + JHASH_INITVAL + (1 << 2));
+	return _jhash_nwords(a, 0, 0, initval + JHASH_INITVAL + (1 << 2));
 }
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__JHASH_UTL_H_*/
+#endif 
 
 

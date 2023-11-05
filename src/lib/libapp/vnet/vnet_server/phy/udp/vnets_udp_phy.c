@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM VNET_RETCODE_FILE_NUM_UDPPHY
     
 #include "bs.h"
@@ -24,28 +24,28 @@
 #include "../../inc/vnets_ses.h"
 #include "../../inc/vnets_vpn_link.h"
 
-/* 头部预留空间 */
+
 #define _VNETS_UDP_PHY_RESERVED_MBUF_HEAD_SPACE 0
 
-/* VNET UDP PHY的事件 */
+
 #define _VNETS_UDP_PHY_SEND_DATA_EVENT 0x1
 
-/* VNET UDP PHY的消息 */
+
 #define _VNETS_UDP_PHY_SEND_DATA_MSG   0x1
 
-/* udp PHY的Debug选项*/
+
 #define _VNETS_UDP_PHY_DBG_FLAG_PACKET    0x1
 
-/* var */
+
 static INT g_iVnetsUdpPhySocketId = 0;
-static UINT g_ulVnetsUdpPhyIfIndex = 0;     /* UDP PHY的接口IfIndex */
-static THREAD_ID g_ulVnetsUdpPhyRecvTid = 0;     /* 接收数据的线程 */
-static THREAD_ID g_ulVnetsUdpPhySendTid = 0;     /* 发送数据的线程 */
-static MSGQUE_HANDLE g_hVnetsUdpPhySendQid = NULL;     /* 发送报文队列 */
+static UINT g_ulVnetsUdpPhyIfIndex = 0;     
+static THREAD_ID g_ulVnetsUdpPhyRecvTid = 0;     
+static THREAD_ID g_ulVnetsUdpPhySendTid = 0;     
+static MSGQUE_HANDLE g_hVnetsUdpPhySendQid = NULL;     
 static EVENT_HANDLE g_hVnetsUdpPhySendEventid = 0;
 static UINT g_ulVnetsUdpPhyDbgFlag = 0;
 
-/* 每个pstMbuf中都包含一个且仅一个完整的 报文 */
+
 static BS_STATUS _VNETS_UDP_PHY_OutPut
 (
     IN UINT ulIfIndex,
@@ -70,7 +70,7 @@ static BS_STATUS _VNETS_UDP_PHY_OutPut
 
 static BS_STATUS _VNETS_UDP_PHY_CreateIf ()
 {
-    /* 如果已经创建，则返回OK */ 
+     
     if (g_ulVnetsUdpPhyIfIndex != 0)
     {
         return BS_OK;
@@ -270,8 +270,8 @@ static BS_STATUS _VNETS_UDP_PHY_CreateUdpSocket(IN UINT ulIp, IN USHORT usPort)
 
 static BS_STATUS _VNETS_UDP_PHY_Init
 (
-    IN UINT ulIp,    /* 网络序 */
-    IN USHORT usPort /* 网络序 */
+    IN UINT ulIp,    
+    IN USHORT usPort 
 )
 {
     IF_PHY_PARAM_S stPhyParam;
@@ -296,7 +296,7 @@ static BS_STATUS _VNETS_UDP_PHY_Init
 
     IFNET_AddIfType("vnets.l2.udp", &stTypeParam);
 
-    /* 创建UDP接口 */
+    
     if (BS_OK != _VNETS_UDP_PHY_CreateIf ())
     {
         RETURN(BS_ERR);
@@ -344,8 +344,8 @@ static BS_STATUS _VNETS_UDP_PHY_Init
 
 BS_STATUS VNETS_UDP_PHY_Init
 (
-    IN UINT ulServerIp/* 主机序 */,
-    IN USHORT usServerPort/* 主机序 */
+    IN UINT ulServerIp,
+    IN USHORT usServerPort
 )
 {
     BS_STATUS eRet;
@@ -358,19 +358,19 @@ BS_STATUS VNETS_UDP_PHY_Init
 
     if (BS_OK != Socket_SetRecvBufSize(g_iVnetsUdpPhySocketId, 1024*1024 * 5))
     {
-        /* 如果设置不成功,也不用返回失败,而是以小缓冲继续工作 */
+        
         BS_WARNNING(("Can't set socket receive buffer size!"));
     }
     return BS_OK;
 }
 
-/* debug udp-phy packet */
+
 PLUG_API VOID VNETS_UDP_PHY_DebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetsUdpPhyDbgFlag |= _VNETS_UDP_PHY_DBG_FLAG_PACKET;
 }
 
-/* no debug udp-phy packet */
+
 PLUG_API VOID VNETS_UDP_PHY_NoDebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetsUdpPhyDbgFlag &= ~_VNETS_UDP_PHY_DBG_FLAG_PACKET;

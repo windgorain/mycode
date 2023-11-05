@@ -47,4 +47,4 @@ void PCAPFILE_Close(FILE *fp);
 #ifdef __cplusplus
 }
 #endif
-#endif //PCAP_FILE_H_
+#endif 

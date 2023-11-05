@@ -45,8 +45,8 @@ static UINT precver_http_init(int argc, char **argv)
 {
     UINT flag = 0;
     GETOPT2_NODE_S opts[] = {
-        {'o', 'h', "help", 0, NULL, NULL, 0},
-        {'o', 's', "slow", 0, NULL, "slow down", 0},
+        {'o', 'h', "help", GETOPT2_V_NONE, NULL, NULL, 0},
+        {'o', 's', "slow", GETOPT2_V_NONE, NULL, "slow down", 0},
         {0}
     };
 

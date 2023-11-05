@@ -17,7 +17,6 @@ static void _bfunc_walk_config(HANDLE cff, char *tag, HANDLE ud)
     char *file, *sec_name = NULL, *func_name = NULL;
     MYBPF_PROG_NODE_S *prog;
     UINT id = (UINT)(int)-1;
-    int fd;
     MYBPF_LOADER_PARAM_S p = {0};
 
     if (CFF_GetPropAsString(cff, tag, "file", &file) < 0) {
@@ -32,7 +31,7 @@ static void _bfunc_walk_config(HANDLE cff, char *tag, HANDLE ud)
         return;
     }
 
-    /* sec name 和 func name至少要指定一个 */
+    
     if ((! sec_name) && (! func_name)) {
         return;
     }
@@ -45,20 +44,18 @@ static void _bfunc_walk_config(HANDLE cff, char *tag, HANDLE ud)
     }
 
     if (sec_name) {
-        fd = MYBPF_PROG_GetBySecName(rt, tag, sec_name);
+        prog = MYBPF_PROG_GetBySecName(rt, tag, sec_name);
     } else  {
-        fd = MYBPF_PROG_GetByFuncName(rt, tag, func_name);
+        prog = MYBPF_PROG_GetByFuncName(rt, tag, func_name);
     }
 
-    if (fd < 0) {
+    if (! prog) {
         return;
     }
 
-    prog = MYBPF_PROG_GetByFD(rt, fd);
-    BS_DBGASSERT(prog);
     MYBPF_LOADER_NODE_S *n = prog->loader_node;
 
-    BFUNC_Set(ctrl, id, n->jitted, fd, prog->insn);
+    BFUNC_Set(ctrl, id, n->jitted, prog, prog->insn);
 }
 
 int BFUNC_Load(BFUNC_S *ctrl, char *conf_file)

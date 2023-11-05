@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     http:
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 
-/* eBPF definitions */
+
 
 #define EBPF_CLS_MASK 0x07
 #define EBPF_ALU_OP_MASK 0xf0
@@ -42,7 +42,7 @@
 #define EBPF_SIZE_B 0x10
 #define EBPF_SIZE_DW 0x18
 
-/* Other memory modes are not yet supported */
+
 #define EBPF_MODE_IMM 0x00
 #define EBPF_MODE_MEM 0x60
 
@@ -114,6 +114,16 @@
 #define EBPF_OP_STXDW (EBPF_CLS_STX|EBPF_MODE_MEM|EBPF_SIZE_DW)
 #define EBPF_OP_LDDW  (EBPF_CLS_LD|EBPF_MODE_IMM|EBPF_SIZE_DW)
 
+
+#define BPF_ATOMIC 0xc0
+#define EPBF_OP_LOCK_STXW (EBPF_CLS_STX | BPF_ATOMIC | EBPF_SIZE_W)
+#define EPBF_OP_LOCK_STXDW (EBPF_CLS_STX | BPF_ATOMIC | EBPF_SIZE_DW)
+
+
+#define BPF_FETCH	0x01	
+#define BPF_XCHG	(0xe0 | BPF_FETCH)	
+#define BPF_CMPXCHG	(0xf0 | BPF_FETCH)	
+
 #define EBPF_MODE_JA 0x00
 #define EBPF_MODE_JEQ 0x10
 #define EBPF_MODE_JGT 0x20
@@ -144,7 +154,9 @@
 #define EBPF_OP_JSGT_REG (EBPF_CLS_JMP | EBPF_SRC_REG | EBPF_MODE_JSGT)
 #define EBPF_OP_JSGE_IMM (EBPF_CLS_JMP | EBPF_SRC_IMM | EBPF_MODE_JSGE)
 #define EBPF_OP_JSGE_REG (EBPF_CLS_JMP | EBPF_SRC_REG | EBPF_MODE_JSGE)
-#define EBPF_OP_CALL (EBPF_CLS_JMP | EBPF_MODE_CALL)
+#define EBPF_OP_CALL (EBPF_CLS_JMP | EBPF_SRC_IMM | EBPF_MODE_CALL)
+#define EBPF_OP_CALLA (EBPF_CLS_JMP | EBPF_SRC_IMM | BPF_CALL_ARGS) 
+#define EBPF_OP_CALLX (EBPF_CLS_JMP | EBPF_SRC_REG | EBPF_MODE_CALL)
 #define EBPF_OP_EXIT (EBPF_CLS_JMP | EBPF_MODE_EXIT)
 #define EBPF_OP_JLT_IMM (EBPF_CLS_JMP | EBPF_SRC_IMM | EBPF_MODE_JLT)
 #define EBPF_OP_JLT_REG (EBPF_CLS_JMP | EBPF_SRC_REG | EBPF_MODE_JLT)

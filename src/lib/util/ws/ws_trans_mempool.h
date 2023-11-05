@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WS_TransMemPool_Init(IN WS_TRANS_S *pstTrans);
 VOID WS_TransMemPool_Fini(IN WS_TRANS_S *pstTrans);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WS_TRANS_MEMPOOL_H_*/
+#endif 
 
 

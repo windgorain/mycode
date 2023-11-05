@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 VOID udp_Init();
 
@@ -29,8 +29,8 @@ void udp_ctlinput
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__UDP_FUNC_H_*/
+#endif 
 
 

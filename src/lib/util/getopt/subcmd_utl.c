@@ -126,14 +126,15 @@ static void subcmd_help(SUBCMD_MATCHED_S *matched, int argc, char **argv)
     printf("%s", subcmd_build_help_info(matched, buf, sizeof(buf)));
 }
 
-int SUBCMD_Do(SUB_CMD_NODE_S *subcmd, int argc, char **argv)
+
+int SUBCMD_DoExt(SUB_CMD_NODE_S *subcmd, int argc, char **argv, int flag)
 {
     PF_SUBCMD_FUNC func;
     int tok_num;
     SUBCMD_MATCHED_S matched;
 
     subcmd_search_subcmds(subcmd, argc-1, argv+1, &matched);
-    if (matched.shuld_help) {
+    if ((matched.shuld_help) && ((flag & SUBCMD_FLAG_HIDE_HELP) == 0)){
         subcmd_help(&matched, argc, argv);
         return -1;
     }
@@ -143,5 +144,10 @@ int SUBCMD_Do(SUB_CMD_NODE_S *subcmd, int argc, char **argv)
     func = matched.matched[0]->func;
 
     return func(argc - tok_num, argv + tok_num);
+}
+
+int SUBCMD_Do(SUB_CMD_NODE_S *subcmd, int argc, char **argv)
+{
+    return SUBCMD_DoExt(subcmd, argc, argv, 0);
 }
 

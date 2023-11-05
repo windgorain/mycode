@@ -24,8 +24,8 @@ typedef enum
 typedef struct
 {
     _SEM_TYPE_E eSemType;
-    THREAD_ID ulOwnerOsTID;     /* 仅用于互斥信号量, 表示哪个OS线程持有此信号量 */
-    UINT     ulOwnerCounter;   /* 仅用于互斥信号量, 表示当前持有者SEM_P了多少次了 */
+    THREAD_ID ulOwnerOsTID;     
+    UINT     ulOwnerCounter;   
     OS_SEM   osSem;
     volatile int count;
     CHAR     acName[_SEM_MAX_NAME_LEN+1];
@@ -63,14 +63,14 @@ static SEM_HANDLE sem_Create(const char *pcName, IN INT iInitNum, IN _SEM_TYPE_E
     return pstSem;
 }
 
-/* 主要用于递归取互斥信号量. 如果不存在递归情况,建议使用计数器信号量, 效率比这个高一倍左右 */
+
 SEM_HANDLE SEM_MCreate (const char *pcName)
 {
     return sem_Create(pcName, 1, _SEM_TYPE_MUTEX);
 }
 
 
-/* 当lInitNum为1时, 就相当于不支持递归SEM_P的互斥信号量. 如果使用者不存在递归情况,建议使用它 */
+
 SEM_HANDLE SEM_CCreate (const char *pcName, IN INT iInitNum)
 {
     return sem_Create(pcName, iInitNum, _SEM_TYPE_COUNTER);
@@ -131,7 +131,7 @@ static inline BS_STATUS sem_MPV
 
     ulSelfOsTid = THREAD_GetSelfID();
 
-    /* 持有此信号量的是本任务 */
+    
     if (pstSemToP->ulOwnerOsTID == ulSelfOsTid)
     {
         pstSemToP->ulOwnerCounter ++;
@@ -151,7 +151,7 @@ static inline BS_STATUS sem_MPV
         SEM_V(pstSemToV);
     }
 
-    if (iCount == 0)    /* 原来没有人持有此信号量 */
+    if (iCount == 0)    
     {
         pstSemToP->ulOwnerCounter = 1;
         pstSemToP->ulOwnerOsTID = ulSelfOsTid;
@@ -159,13 +159,13 @@ static inline BS_STATUS sem_MPV
     }
     else
     {
-        /* 持有此信号量的不是本任务 */
+        
         eRet = _OSSEM_P (&pstSemToP->osSem, eWaitMode, ulMilliseconds);
         if (BS_OK != eRet)
         {
             ATOM_INC_FETCH(&pstSemToP->count);
         }
-        else    /* 成功 */
+        else    
         {
             pstSemToP->ulOwnerOsTID = ulSelfOsTid;
             pstSemToP->ulOwnerCounter = 1;
@@ -194,7 +194,7 @@ BS_STATUS SEM_P (IN SEM_HANDLE hSem, IN BS_WAIT_E eWaitMode, IN UINT ulMilliseco
     }
 }
 
-/* 在取一个信号量的同时，释放另外一个信号量 */
+
 BS_STATUS SEM_PV
 (
     IN SEM_HANDLE hSemToP,
@@ -241,14 +241,14 @@ static inline BS_STATUS sem_MV (IN SEM_CTRL_S *pstSem)
 {
     INT iCount;
 
-    BS_DBGASSERT (pstSem->count != 1);     /* 根本就没有人SEM_P, 走到这里说明有问题, 有人多SEM_V了 */
-    BS_DBGASSERT (pstSem->ulOwnerOsTID == THREAD_GetSelfID());  /* 互斥信号量, 不用于同步, 所以SEM_V和SEM_P必然是同一个任务 */
+    BS_DBGASSERT (pstSem->count != 1);     
+    BS_DBGASSERT (pstSem->ulOwnerOsTID == THREAD_GetSelfID());  
 
     pstSem->ulOwnerCounter --;
 
     if (pstSem->ulOwnerCounter > 0)
     {
-        /* 本任务还持有此信号量 */
+        
         return BS_OK;        
     }
 
@@ -323,7 +323,7 @@ BS_STATUS SEM_VAll(IN SEM_HANDLE hSem)
     }
 }
 
-/* 有多少阻塞在上面 */
+
 INT SEM_CountPending(IN SEM_HANDLE hSem)
 {
     SEM_CTRL_S *pstSem = hSem;

@@ -13,7 +13,7 @@
 #include "../h/wan_udp_service.h"
 
 
-/* Debug 选项 */
+
 #define _WAN_UDP_SERVICE_DBG_PACKET 0x1
 
 typedef struct
@@ -24,7 +24,7 @@ typedef struct
 }_WAN_UDP_SERVICE_TBL_S;
 
 static UINT g_uiWanUdpServiceDebugFlag = 0;
-static _WAN_UDP_SERVICE_TBL_S g_astWanUdpService[65535];  /* 以网络序端口为下标 */
+static _WAN_UDP_SERVICE_TBL_S g_astWanUdpService[65535];  
 
 BS_STATUS WanUdpService_Input(IN MBUF_S *pstMbuf)
 {
@@ -123,8 +123,8 @@ BS_STATUS WanUdpService_Output(IN MBUF_S *pstMbuf, IN WAN_UDP_SERVICE_PARAM_S *p
 
 PLUG_API BS_STATUS WanUdpService_RegService
 (
-    IN USHORT usPort/* 网络序 */,
-    IN UINT uiFlag, /* WAN_UDP_SERVICE_FLAG_XXX */
+    IN USHORT usPort,
+    IN UINT uiFlag, 
     IN PF_WAN_SERVICE_FUNC pfServiceFunc,
     IN USER_HANDLE_S *pstUserHandle
 )
@@ -140,13 +140,13 @@ PLUG_API BS_STATUS WanUdpService_RegService
 }
 
 
-/* debug udp packet */
+
 PLUG_API VOID WAN_UDP_Service_DebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_uiWanUdpServiceDebugFlag |= _WAN_UDP_SERVICE_DBG_PACKET;
 }
 
-/* no debug udp packet */
+
 PLUG_API VOID WAN_UDP_Service_NoDebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_uiWanUdpServiceDebugFlag &= ~_WAN_UDP_SERVICE_DBG_PACKET;

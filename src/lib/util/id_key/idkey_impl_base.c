@@ -119,7 +119,7 @@ static void idkey_base_setcapacity(IDKEY_HDL hCtrl, INT64 capacity)
     MAP_SetCapacity(ctrl->id_tbl, capacity);
 }
 
-/* 不做key和ID的重复检查 */
+
 static int idkey_base_set(IDKEY_HDL hCtrl, INT64 id, void *key, int key_len, void *data, UINT flag)
 {
     IDKEY_IMPL_S *ctrl = hCtrl;
@@ -168,7 +168,7 @@ static int idkey_base_set(IDKEY_HDL hCtrl, INT64 id, void *key, int key_len, voi
     return 0;
 }
 
-/* 不做key的重复检查 */
+
 static INT64 idkey_base_add(IDKEY_HDL hCtrl, void *key, int key_len, void *data, UINT flag)
 {
     IDKEY_IMPL_S *ctrl = hCtrl;
@@ -183,7 +183,7 @@ static INT64 idkey_base_add(IDKEY_HDL hCtrl, void *key, int key_len, void *data,
     return id;
 }
 
-/* 删除并返回pData */
+
 static void * idkey_base_del_by_key(IDKEY_HDL hCtrl, void *key, int key_len)
 {
     void *data = NULL;
@@ -197,7 +197,7 @@ static void * idkey_base_del_by_key(IDKEY_HDL hCtrl, void *key, int key_len)
     return data;
 }
 
-/* 删除并返回pData */
+
 static void * idkey_base_del_by_id(IDKEY_HDL hCtrl, INT64 id)
 {
     void *data = NULL;

@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef enum
 {
@@ -49,12 +49,12 @@ typedef enum
 BS_STATUS VNETC_FSM_Init();
 VOID VNETC_FSM_EventHandle(IN UINT uiEvent);
 VOID VNETC_FSM_ChangeState(IN UINT uiState);
-BS_STATUS VNETC_FSM_RegStateListener(IN PF_FSM_STATE_LISTEN pfListenFunc, IN USER_HANDLE_S *pstUserHandle/* 可以为NULL */);
+BS_STATUS VNETC_FSM_RegStateListener(IN PF_FSM_STATE_LISTEN pfListenFunc, IN USER_HANDLE_S *pstUserHandle);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_FSM_H_*/
+#endif 
 
 

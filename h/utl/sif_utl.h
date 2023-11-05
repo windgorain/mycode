@@ -12,9 +12,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define SIF_FLAG_LOCK 0x1 /* 支持加锁 */
+#define SIF_FLAG_LOCK 0x1 
 
 BS_STATUS SIF_Init(IN UINT uiFlag);
 BS_STATUS SIF_RegEvent(IN PF_IF_EVENT_FUNC pfEventFunc, IN USER_HANDLE_S *pstUserHandle);
@@ -36,24 +36,24 @@ BS_STATUS SIF_PhyIoctl(IN IF_INDEX ifIndex, IN IF_PHY_IOCTL_CMD_E enCmd, IN HAND
 IF_INDEX SIF_GetIfIndex(IN CHAR *pcIfName);
 BS_STATUS SIF_PhyOutput(IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf);
 BS_STATUS SIF_LinkInput(IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf);
-BS_STATUS SIF_LinkOutput (IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType/* 主机序 */);
-BS_STATUS SIF_ProtoInput(IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType/* 网络序 */);
+BS_STATUS SIF_LinkOutput (IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType);
+BS_STATUS SIF_ProtoInput(IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType);
 UINT SIF_AllocUserDataIndex();
 BS_STATUS SIF_SetUserData(IN IF_INDEX ifIndex, IN UINT uiIndex, IN HANDLE hData);
 BS_STATUS SIF_GetUserData(IN IF_INDEX ifIndex, IN UINT uiIndex, IN HANDLE *phData);
-IF_INDEX SIF_GetNext(IN IF_INDEX ifIndexCurrent/* 0表示从头开始 */);
+IF_INDEX SIF_GetNext(IN IF_INDEX ifIndexCurrent);
 BS_STATUS SIF_RegPktProcesser
 (
     IN IF_INDEX ifIndex,
     IN IF_PKT_PROCESSER_TYPE_E enType,
-    IN UINT uiPri,  /* 优先级,数字越小优先级越高 */
+    IN UINT uiPri,  
     IN PF_IF_PKT_PORCESSER_FUNC pfFunc
 );
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SIF_UTL_H_*/
+#endif 
 
 

@@ -39,4 +39,4 @@ TRIE_COMMON_S * Triell_PrefixMatch(void *trie_ctrl, UCHAR *data, int data_len, P
 #ifdef __cplusplus
 }
 #endif
-#endif //TRIE_LL_H_
+#endif 

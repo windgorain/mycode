@@ -26,23 +26,23 @@
 #include "utl/trie_utl.h"
 
 enum dpi_pattern_match_ret {
-    PATTERN_MATCH,     /* 现有条件匹配了规则 */
-    PATTERN_NO_MATCH,  /* 现有条件没有匹配规则 */
-    PATTERN_NEED_MORE, /* 现有条件不充分, 需要更多报文匹配规则*/
+    PATTERN_MATCH,     
+    PATTERN_NO_MATCH,  
+    PATTERN_NEED_MORE, 
 
     PATTERN_MATCH_MAX
 };
 
 
 typedef struct {
-    UINT protocol_map[256];  /* protocol-appid映射 */
-    UINT tcp_port_map[65536];  /* 端口-appid映射 */
-    UINT udp_port_map[65536];  /* 端口-appid映射 */
-    UINT payload_tport_map[65536]; /*tcp port check flag */
-    UINT payload_uport_map[65536]; /*udp port check flag */
+    UINT protocol_map[256];  
+    UINT tcp_port_map[65536];  
+    UINT udp_port_map[65536];  
+    UINT payload_tport_map[65536]; 
+    UINT payload_uport_map[65536]; 
     BOX_S iptup3_map;
     LPM_S ipmask_map;
-    DPI_IPDOMAINNAME_S ipdomain_s; /* ip/domainname 映射数量 */
+    DPI_IPDOMAINNAME_S ipdomain_s; 
     
     ACSMX_S *tcp_acsm;
     ACSMX_S *udp_acsm;
@@ -50,8 +50,8 @@ typedef struct {
     hs_database_t *hs_db; 
     hs_scratch_t *scratch;
 #endif 
-    BOX_S id_name_map; /* id-name映射表 */
-    BOX_S name_id_map; /* name-id映射表 */
+    BOX_S id_name_map; 
+    BOX_S name_id_map; 
 
     TRIE_HANDLE trie;
     NAP_HANDLE rules_tbl;
@@ -108,7 +108,7 @@ static int dpi_LoadRuleLine(DPI_S *dpi, KV_HANDLE kv, UINT rule_id)
     char* content = KV_GetKeyValue(kv, "content");
     UCHAR protocol = 0;
     USHORT port = 0;
-    IP_MAKS_S ip_mask = {0};
+    IP_MASK_S ip_mask = {0};
     int appid;
 
     if (! app) {
@@ -150,7 +150,7 @@ static int dpi_LoadRuleLine(DPI_S *dpi, KV_HANDLE kv, UINT rule_id)
     rule->id = rule_id;
 
     if (ip_mask.uiIP) {
-        /* 仅仅配置了IP，未配置端口 */
+        
         if (port == 0) {
             return DPI_AddIPMask(dpi, ip_mask.uiIP, ip_mask.uiMask, rule_id);
         } else {
@@ -158,7 +158,7 @@ static int dpi_LoadRuleLine(DPI_S *dpi, KV_HANDLE kv, UINT rule_id)
         }
     }
 
-    /* protocol/port */
+    
     if (port && !hostname && !content) {
         if (protocol == IPPROTO_TCP) {
             return DPI_AddTcpPort(dpi, htons(port), rule_id);
@@ -169,12 +169,12 @@ static int dpi_LoadRuleLine(DPI_S *dpi, KV_HANDLE kv, UINT rule_id)
         }
     }
     
-    /* TODO: only protocol 如何处理 */
+    
     if (protocol && !hostname && !content) {
         return DPI_AddProtocol(dpi, protocol, rule_id);
     }
 
-    /* hostname */
+    
     if (hostname) {
         return DPI_AddHostname(dpi, hostname, rule_id);
     }
@@ -268,13 +268,13 @@ void DPI_EncryptIDNameMapFile(char* clear_file, char*cipher_file)
 #endif
 
 
-static UINT dpi_MatchRuleByIP(DPI_S *dpi, UCHAR protocol, UINT ip/*net order*/, USHORT port)
+static UINT dpi_MatchRuleByIP(DPI_S *dpi, UCHAR protocol, UINT ip, USHORT port)
 {
     IP_TUP3_KEY_S key = {0};
     DPI_IPTUP3_ID_S *node;
     UINT rule_id = 0;
 
-    /* 1. 精确匹配 */
+    
     key.ip = ip;
     key.port = port;
     key.protocol = protocol;
@@ -283,7 +283,7 @@ static UINT dpi_MatchRuleByIP(DPI_S *dpi, UCHAR protocol, UINT ip/*net order*/, 
         return node->rule_id;
     }
 
-    /* 2. 仅匹配端口 */
+    
     if (protocol == IPPROTO_TCP) {
         rule_id = dpi->tcp_port_map[port];
     } else if (protocol == IPPROTO_UDP) {
@@ -293,7 +293,7 @@ static UINT dpi_MatchRuleByIP(DPI_S *dpi, UCHAR protocol, UINT ip/*net order*/, 
         return rule_id;
     }
 
-    /* 3. 匹配网段 */
+    
     UINT64 next_hop;
     if (BS_OK == LPM_Lookup(&dpi->ipmask_map, ntohl(ip), &next_hop)) {
         return next_hop;
@@ -384,7 +384,7 @@ DPI_HANDLE DPI_New()
     BloomFilter_Init(&ctrl->ipdomain_s.ipdomain_bloom.bloomfilter, DPI_DOMAINNAME_BLOOMFILTER_SIZE);
     BloomFilter_SetStepsToClearAll(&ctrl->ipdomain_s.ipdomain_bloom.bloomfilter, 60);
     BloomFilter_SetAutoStep(&ctrl->ipdomain_s.ipdomain_bloom.bloomfilter, 1);
-    //直接修改树类型TRIE_TYPE_4BITS 即可切换
+    
     ctrl->trie = Trie_Create(TRIE_TYPE_4BITS);
 
     return ctrl;
@@ -408,7 +408,7 @@ void DPI_Delete(DPI_HANDLE hDpi)
         ACSMX_Free(dpi->udp_acsm, NULL);
     }
     BloomFilter_Final(&dpi->ipdomain_s.ipdomain_bloom.bloomfilter);
-    // 替换trie树
+    
     Trie_Destroy(dpi->trie, NULL);
     MEM_Free(dpi);
 }
@@ -498,21 +498,21 @@ int DPI_AddProtocol(DPI_HANDLE hDpi, USHORT ip_protocol, UINT rule_id)
     return 0;
 }
 
-int DPI_AddTcpPort(DPI_HANDLE hDpi, USHORT port/*net order*/, UINT rule_id)
+int DPI_AddTcpPort(DPI_HANDLE hDpi, USHORT port, UINT rule_id)
 {
     DPI_S *dpi = hDpi;
     dpi->tcp_port_map[port] = rule_id;
     return 0;
 }
 
-int DPI_AddUdpPort(DPI_HANDLE hDpi, USHORT port/*net order*/, UINT rule_id)
+int DPI_AddUdpPort(DPI_HANDLE hDpi, USHORT port, UINT rule_id)
 {
     DPI_S *dpi = hDpi;
     dpi->udp_port_map[port] = rule_id;
     return 0;
 }
 
-int DPI_AddIPTup3(DPI_HANDLE hDpi, UCHAR protocol, UINT ip/*net order*/, USHORT port, UINT rule_id)
+int DPI_AddIPTup3(DPI_HANDLE hDpi, UCHAR protocol, UINT ip, USHORT port, UINT rule_id)
 {
     DPI_S *dpi = hDpi;
     IP_TUP3_KEY_S key = {0};
@@ -544,7 +544,7 @@ int DPI_AddIPTup3(DPI_HANDLE hDpi, UCHAR protocol, UINT ip/*net order*/, USHORT 
     return BS_OK;
 }
 
-int DPI_AddIPMask(DPI_HANDLE hDpi, UINT ip/*host order*/, UCHAR depth, UINT rule_id)
+int DPI_AddIPMask(DPI_HANDLE hDpi, UINT ip, UCHAR depth, UINT rule_id)
 {
     DPI_S *dpi = hDpi;
     return LPM_Add(&dpi->ipmask_map, ip, depth, rule_id);
@@ -579,7 +579,7 @@ static int dpi_content_parse(IN CHAR* value, CHAR* buffer, INT length)
     UCHAR charactor;
     int encap_len = 0;
 
-    /*没有成对的||，认为是普通的字符串 */
+    
     do {
         start_ptr = strchr(value, '|');
         if(!start_ptr) {
@@ -616,7 +616,7 @@ static int dpi_content_parse(IN CHAR* value, CHAR* buffer, INT length)
                 return 0;
             }
             if(BS_OK == HEX_2_UCHAR(tmp, &charactor)) {
-                //printf("tmp %s is %c\r\n", tmp, charactor);
+                
                 encap_len += scnprintf(buffer+encap_len, length-encap_len, "%c", charactor);
             }
         }
@@ -628,7 +628,7 @@ static int dpi_content_parse(IN CHAR* value, CHAR* buffer, INT length)
     return encap_len;
 }
 
-DPI_PATTERN_STR_S* dpi_add_content_pattern(IN LSTR_S* content, IN DPI_RULE_S* rule)
+static DPI_PATTERN_STR_S* dpi_add_content_pattern(IN LSTR_S* content, IN DPI_RULE_S* rule)
 {
     DPI_PATTERN_STR_S *pattern = NULL;
     
@@ -637,7 +637,7 @@ DPI_PATTERN_STR_S* dpi_add_content_pattern(IN LSTR_S* content, IN DPI_RULE_S* ru
     pattern->str = MEM_ZMalloc(content->uiLen);
 
     pattern->length = dpi_content_parse(content->pcData, pattern->str, content->uiLen);
-    //printf("after parse: %s\r\n", pattern->str);
+    
     if(!pattern->length) {
         MEM_Free(pattern->str);
         MEM_Free(pattern);
@@ -651,7 +651,7 @@ DPI_PATTERN_STR_S* dpi_add_content_pattern(IN LSTR_S* content, IN DPI_RULE_S* ru
     return pattern;
 }
 
-DPI_PATTERN_PCRE_S* dpi_add_pcre_pattern(IN LSTR_S* pcre, IN DPI_RULE_S* rule)
+static DPI_PATTERN_PCRE_S * dpi_add_pcre_pattern(IN LSTR_S* pcre, IN DPI_RULE_S* rule)
 {
     DPI_PATTERN_PCRE_S *pattern = NULL;
     int erroroffset;
@@ -672,7 +672,7 @@ DPI_PATTERN_PCRE_S* dpi_add_pcre_pattern(IN LSTR_S* pcre, IN DPI_RULE_S* rule)
 }
 
 
-BS_WALK_RET_E dpi_add_pcre_rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE hUserHandle)
+static int dpi_add_pcre_rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE hUserHandle)
 {
     USER_HANDLE_S *ud = hUserHandle;
     KV_HANDLE hKvHandle = ud->ahUserHandle[0];
@@ -689,15 +689,15 @@ BS_WALK_RET_E dpi_add_pcre_rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE hUse
     char* nocase = NULL;
     
     if(strcmp(pcKey, "pcre") != 0) {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
-    /*每条rule只找一次protocol*/
+    
     if(rule->protocol == 0) {
         val_field = KV_GetKeyValue(hKvHandle, "protocol");
         if(!val_field) {
             printf("content rule[%s] must specify protocol\r\n", pcValue);
-            return BS_WALK_STOP;
+            return BS_STOP;
         }
         rule->protocol = TXT_Str2Ui(val_field);
     }
@@ -726,7 +726,7 @@ BS_WALK_RET_E dpi_add_pcre_rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE hUse
         lstr.uiLen = strlen(line);
         KV_Parse(kv, &lstr, ',', ':');
         
-        /* TODO: 后续支持更多的option */
+        
         offset = KV_GetKeyValue(kv, "offset");
         nocase = KV_GetKeyValue(kv,"nocase");
     }
@@ -736,7 +736,7 @@ BS_WALK_RET_E dpi_add_pcre_rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE hUse
     if(pattern) {
         pattern->offset = offset ? TXT_Str2Ui(offset) : 0; 
         pattern->nocase = nocase ? TXT_Str2Ui(nocase) : 0;
-        //printf("add pattern[%s]\r\n", pattern->str);
+        
     }else {
         printf("no memory for add pattern[%s]\r\n", pcValue);
     }
@@ -745,11 +745,11 @@ BS_WALK_RET_E dpi_add_pcre_rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE hUse
         KV_Destory(kv);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 
 }
 
-BS_WALK_RET_E dpi_add_content_rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE hUserHandle)
+static int dpi_add_content_rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE hUserHandle)
 {
     USER_HANDLE_S *ud = hUserHandle;
     KV_HANDLE hKvHandle = ud->ahUserHandle[0];
@@ -766,15 +766,15 @@ BS_WALK_RET_E dpi_add_content_rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE h
     char* nocase = NULL;
     
     if(strcmp(pcKey, "content") != 0) {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
-    /*每条rule只找一次protocol*/
+    
     if(rule->protocol == 0) {
         val_field = KV_GetKeyValue(hKvHandle, "protocol");
         if(!val_field) {        
             printf("content rule[%s] must specify protocol\r\n", pcValue);
-            return BS_WALK_STOP;
+            return BS_STOP;
         }
         rule->protocol = TXT_Str2Ui(val_field);
     }
@@ -803,7 +803,7 @@ BS_WALK_RET_E dpi_add_content_rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE h
         lstr.uiLen = strlen(line);
         KV_Parse(kv, &lstr, ',', ':');
         
-        /* TODO: 后续支持更多的option */
+        
         offset = KV_GetKeyValue(kv, "offset");
         nocase = KV_GetKeyValue(kv,"nocase");
     }
@@ -813,7 +813,7 @@ BS_WALK_RET_E dpi_add_content_rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE h
     if(pattern) {
         pattern->offset = offset ? TXT_Str2Ui(offset) : 0; 
         pattern->nocase = nocase ? TXT_Str2Ui(nocase) : 0;
-        //printf("add pattern[%s]\r\n", pattern->str);
+        
     }else {
         printf("no memory for add pattern[%s]\r\n", pcValue);
     }
@@ -822,11 +822,11 @@ BS_WALK_RET_E dpi_add_content_rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE h
         KV_Destory(kv);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 
 }
 
-BS_WALK_RET_E dpi_add_pattern2rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE hUserHandle)
+static int dpi_add_pattern2rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE hUserHandle)
 {
     if(strcmp(pcKey, "content") == 0) {
         dpi_add_content_rule(pcKey, pcValue, hUserHandle);
@@ -834,7 +834,7 @@ BS_WALK_RET_E dpi_add_pattern2rule(IN CHAR *pcKey, IN CHAR *pcValue, IN HANDLE h
         dpi_add_pcre_rule(pcKey, pcValue, hUserHandle);
     }
     
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static int dpi_SelectPattern_Add2ACSM(DPI_HANDLE hDpi, DPI_RULE_S* rule)
@@ -861,7 +861,7 @@ static int dpi_SelectPattern_Add2ACSM(DPI_HANDLE hDpi, DPI_RULE_S* rule)
     }
 
     if(acnode) {
-        //printf("ac node: %s\r\n", acnode->str);
+        
         acnode->flag = PATTERN_COMPILE_FLAG;
         ACSMX_AddPattern(acsm, (UCHAR*)acnode->str, acnode->length, rule);
     }
@@ -870,7 +870,7 @@ static int dpi_SelectPattern_Add2ACSM(DPI_HANDLE hDpi, DPI_RULE_S* rule)
 }
 
 
-/* content可能有多个限制条件，需要单独下挂在rule下面*/
+
 int DPI_AddContent(DPI_HANDLE hDpi,  KV_HANDLE kv, DPI_RULE_S* rule)
 {
     USER_HANDLE_S ud;
@@ -901,7 +901,7 @@ static int _dpi_hs_Compile(DPI_S* dpi)
     int count;
     DPI_RULE_S *rule;
     DPI_PATTERN_S* pattern;
-    //const hs_expr_ext_t **ext;
+    
     const char** exp;
     int ele = 0;
     unsigned int *ids, *flags;
@@ -918,7 +918,7 @@ static int _dpi_hs_Compile(DPI_S* dpi)
     }
 
     exp = MEM_ZMalloc(count * sizeof(char*));
-    //ext = MEM_ZMalloc(count * sizeof(hs_expr_ext_t *));
+    
     ids = MEM_ZMalloc(count * sizeof(INT));
     flags = MEM_ZMalloc(count * sizeof(INT));
     for(i=1; i<=count; i++) {
@@ -995,7 +995,7 @@ int DPI_LoadRuleFile(DPI_HANDLE hDpi, char *file, int encrypt, UINT baseid, int 
     return ret;
 }
 
-DPI_RULE_S* DPI_MatchIP(DPI_HANDLE hDpi, UCHAR protocol, UINT ip/*net order*/, USHORT port)
+DPI_RULE_S* DPI_MatchIP(DPI_HANDLE hDpi, UCHAR protocol, UINT ip, USHORT port)
 {
     DPI_S *dpi = hDpi;
     UINT rule_id = dpi_MatchRuleByIP(dpi, protocol, ip, port);
@@ -1088,7 +1088,7 @@ static int dpi_MatchFound(void* id, int index, void *data)
 
     for(; acmatch; acmatch=acmatch->next) {
         rule = acmatch->udata->id;
-        /*check port && protocol */
+        
 #if 0
         if (rule->protocol && (rule->protocol != rule->protocol)) {
             continue;
@@ -1144,7 +1144,7 @@ static int dpi_MatchFound_HS(unsigned int id, unsigned long long from,
     userdata->best_rule = NAP_GetNodeByIndex(dpi->rules_tbl, id);
 
     printf("hs match id=%d\r\n", id);
-    return 1; // cease scanning
+    return 1; 
 }
 
 VOID* DPI_MatchContent_HS(DPI_HANDLE hdpi, UCHAR protocol, USHORT port, UCHAR* data, int len)

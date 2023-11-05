@@ -20,7 +20,7 @@ static VOID _lasterr_Print()
         FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL,
         GetLastError(),
-        0, // Default language
+        0, 
         (LPTSTR) &lpMsgBuf,
         0,
         NULL 
@@ -41,7 +41,7 @@ static VOID _lasterr_SPrint(OUT CHAR *pcInfo)
         FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL,
         GetLastError(),
-        0, // Default language
+        0, 
         (LPTSTR) &lpMsgBuf,
         0,
         NULL 
@@ -62,7 +62,7 @@ static VOID _lasterr_PrintByErrno(IN UINT uiErrno)
         FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL,
         uiErrno,
-        0, // Default language
+        0, 
         (LPTSTR) &lpMsgBuf,
         0,
         NULL 

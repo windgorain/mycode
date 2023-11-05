@@ -10,9 +10,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define VNDIS_ADAPTER_REGED_SHUTDOWN_HANDLER 0x1  /* 调用过了NdisMRegisterAdapterShutdownHandler  */
+#define VNDIS_ADAPTER_REGED_SHUTDOWN_HANDLER 0x1  
 #define VNDIS_ADAPTER_SURPRISE_REMOVED       0x2
 
 #define VNDIS_NIC_MAX_MCAST_LIST 32
@@ -27,7 +27,7 @@ typedef struct
     LIST_ENTRY stListNode;
 
     NDIS_SPIN_LOCK  stLock;
-    UINT uiUsingCount;  /* 正在使用的计数 */
+    UINT uiUsingCount;  
 
     NDIS_HANDLE hAdapterHandle;
     UINT uiFlag;
@@ -110,8 +110,8 @@ NDIS_STATUS VNDIS_Adapter_QueryInformation
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNDIS_ADAPTER_H_*/
+#endif 
 
 

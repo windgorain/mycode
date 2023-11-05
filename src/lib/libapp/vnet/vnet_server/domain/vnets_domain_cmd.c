@@ -6,24 +6,23 @@
 
 #include "../inc/vnets_domain.h"
 
-static BS_WALK_RET_E vnets_domaincmd_ShowNode(IN UINT uiNodeID, IN HANDLE hUserHandle)
+static int vnets_domaincmd_ShowNode(IN UINT uiNodeID, IN HANDLE hUserHandle)
 {
     EXEC_OutInfo(" %-5d\r\n", uiNodeID);
-
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-static BS_WALK_RET_E vnets_domaincmd_ShowDomain(IN VNETS_DOMAIN_RECORD_S *pstParam, IN HANDLE hUserHandle)
+static int vnets_domaincmd_ShowDomain(IN VNETS_DOMAIN_RECORD_S *pstParam, IN HANDLE hUserHandle)
 {
     EXEC_OutInfo(" %-4d %-4d  %s\r\n",
         pstParam->uiDomainID,
         pstParam->eType,
         pstParam->szDomainName);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-/* show domain */
+
 PLUG_API BS_STATUS VNETS_DomainCmd_ShowDomain(IN UINT ulArgc, IN CHAR ** argv)
 {
     EXEC_OutString(" ID   Type  Name\r\n"
@@ -35,7 +34,7 @@ PLUG_API BS_STATUS VNETS_DomainCmd_ShowDomain(IN UINT ulArgc, IN CHAR ** argv)
     return BS_OK;
 }
 
-/* domain %STRING<1-63> */
+
 PLUG_API BS_STATUS VNETS_DomainCmd_CreateDomainView(int argc, char **argv, void *pEnv)
 {
     UINT uiDomainId;
@@ -62,7 +61,7 @@ UINT VNETS_DomainCmd_GetDomainIdByEnv(IN VOID *pEnv)
     return uiDomainId;
 }
 
-/* show domain node */
+
 PLUG_API BS_STATUS VNETS_DomainCmd_ShowNode
 (
     IN UINT ulArgc,

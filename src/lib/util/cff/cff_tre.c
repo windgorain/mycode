@@ -124,14 +124,14 @@ static MKV_MARK_S * cff_tre_ProcSectionLine(IN _CFF_S *pstCff, IN CHAR *pcLine)
     UINT uiLevel;
     MKV_MARK_S *pstSecCurrent;
 
-    /* 得到级别 */
+    
     uiLevel = cff_tre_GetSectionLineLevel(pcLine);
     if (0 == uiLevel)
     {
         return NULL;
     }
 
-    /*删除"[]"*/
+    
     pcLine++;
     pcSplit = strchr(pcLine, ']');
     BS_DBGASSERT(NULL != pcSplit);

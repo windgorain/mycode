@@ -47,9 +47,7 @@ UINT JHASH_GeneralBuffer(void *key, UINT length, UINT initval)
 	return c;
 }
 
-/*
-  对一个连续存放的Key计算Hash值。要求Key的起始地址和长度4字节对齐。
-*/
+
 UINT JHASH_U32Buffer(UINT *k, UINT length, UINT initval)
 {
 	UINT a, b, c;

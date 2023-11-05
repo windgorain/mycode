@@ -58,8 +58,7 @@ TRIE_COMMON_S * TrieSimple_Insert(TRIE_COMMON_S *cur_common, UCHAR c)
     return (void*) cur->nexts[c];
 }
 
-/* 部分匹配后就调用回调,回调决定返回哪个节点. 
- 部分匹配:比如,data:abc, 匹配a, ab, abc 三个,都会触发回调*/
+
 TRIE_COMMON_S * TrieSimple_PrefixMatch(void *root, UCHAR *data, int data_len, PF_TRIE_MATCH_CB func, void *ud)
 {
     TRIE_COMMON_S *match = NULL;

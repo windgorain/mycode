@@ -34,7 +34,7 @@ BS_STATUS VNETC_Protocol_Input(IN UINT uiTpId, IN MBUF_S *pstMbuf);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_PROTOCOL_H_*/
+#endif 
 

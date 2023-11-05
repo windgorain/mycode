@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #include "utl/tree_utl.h"
 
@@ -27,7 +27,7 @@ typedef struct
 #define PATHTREE_USER_HANDLE(pstNode) ((pstNode)->pUserHandle)
 
 
-typedef BS_WALK_RET_E (*PF_PathTree_DepthWalkNode)(IN PATHTREE_NODE_S *pstNode, IN UINT ulDeepth, IN BOOL_T bIsBack, IN VOID * pUserHandle);
+typedef int (*PF_PathTree_DepthWalkNode)(IN PATHTREE_NODE_S *pstNode, IN UINT ulDeepth, IN BOOL_T bIsBack, IN VOID * pUserHandle);
 typedef VOID (*PF_PathTree_DestoryNode)(IN PATHTREE_NODE_S *pstNode, IN VOID * pUserHandle);
 
 
@@ -42,18 +42,13 @@ VOID PathTree_Destory
 
 BS_STATUS PathTree_AddPath(IN PATHTREE_NODE_S *pstRoot, IN CHAR *pszPath, IN VOID * pUserHandle);
 
-BS_WALK_RET_E PathTree_DepthBackWalk
-(
-    IN PATHTREE_NODE_S *pstRoot,
-    IN PF_PathTree_DepthWalkNode pfFunc,
-    IN VOID * pUserHandle
-);
+int PathTree_DepthBackWalk(PATHTREE_NODE_S *pstRoot, PF_PathTree_DepthWalkNode pfFunc, VOID * pUserHandle);
 
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__PATHTREE_UTL_H_*/
+#endif 
 
 

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef enum
 {
@@ -31,9 +31,9 @@ typedef struct
 
 typedef enum
 {
-    UPDATE_FILE_RESULT_OK,          /* 更新完成 */
-    UPDATE_FILE_RESULT_IS_NEWEST,   /* 已经是最新版本,无需更新 */
-    UPDATE_FILE_RESULT_FAILED       /* 更新失败 */
+    UPDATE_FILE_RESULT_OK,          
+    UPDATE_FILE_RESULT_IS_NEWEST,   
+    UPDATE_FILE_RESULT_FAILED       
 }UPDATE_FILE_RESULT_E;
 
 typedef enum
@@ -56,8 +56,8 @@ UPDATE_RET_E UPD_Update
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__UPDATE_UTL_H_*/
+#endif 
 
 

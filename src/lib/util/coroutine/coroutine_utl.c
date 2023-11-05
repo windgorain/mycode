@@ -10,7 +10,7 @@
 #include <ucontext.h>
 
 #define COROUTINE_IDLE_TASK_ID 0
-#define COROUTINE_MAX 16 /* 最多多少个协程 */
+#define COROUTINE_MAX 16 
 #define COROUTINE_DFT_STACK_SIZE (1024*16)
 
 enum {
@@ -22,7 +22,7 @@ enum {
 
 typedef struct {
     int id;
-    UCHAR state; /* COROUTINE_STATE_XXX */
+    UCHAR state; 
     int stack_size;
     char *stack;
     char task_name[COROUTINE_NAME_SIZE];
@@ -32,10 +32,10 @@ typedef struct {
 }COROUTINE_NODE_S;
 
 typedef struct tagCOROUTINE_S{
-    int max_tasks;  /* 支持的最多任务个数 */
-    int current_task_id; /* 当前正在执行的task id */
-    int finished_task_id; /* 对应任务已经执行完成, 等待回收资源 */
-    UINT stop:1; /* stop标志,退出协程机 */
+    int max_tasks;  
+    int current_task_id; 
+    int finished_task_id; 
+    UINT stop:1; 
     COROUTINE_NODE_S idle_task;
     COROUTINE_NODE_S **tasks;
 }COROUTINE_S;
@@ -67,12 +67,12 @@ static void _coroutine_destroy_task(COROUTINE_S *ctrl, int task_id)
     ctrl->tasks[task_id] = NULL;
 }
 
-/* 获取一个空闲位置 */
+
 static int _coroutine_get_a_blank(COROUTINE_S *ctrl)
 {
     int i;
 
-    /* 0是内定的idle task, 所以从1开始找 */
+    
     for (i=1; i<ctrl->max_tasks; i++) {
         if (! ctrl->tasks[i]) {
             return i;
@@ -99,7 +99,7 @@ static inline int _coroutine_is_waiting(COROUTINE_NODE_S *node)
     return 0;
 }
 
-/* 将超时的node设置为ready */
+
 static void _coroutine_process_timeout_nodes(COROUTINE_S *ctrl)
 {
     int i;
@@ -118,7 +118,7 @@ static void _coroutine_process_timeout_nodes(COROUTINE_S *ctrl)
     }
 }
 
-/* 获取一个ready的任务 */
+
 static COROUTINE_NODE_S * _coroutine_get_a_ready(COROUTINE_S *ctrl)
 {
     int i;
@@ -143,7 +143,7 @@ static COROUTINE_NODE_S * _coroutine_get_a_ready(COROUTINE_S *ctrl)
         }
     }
 
-    return ctrl->tasks[COROUTINE_IDLE_TASK_ID]; /* 返回idle */
+    return ctrl->tasks[COROUTINE_IDLE_TASK_ID]; 
 }
 
 static void _coroutine_switch_to(COROUTINE_S *ctrl, COROUTINE_NODE_S *node)
@@ -189,7 +189,7 @@ static int _coroutine_suspend(COROUTINE_S *ctrl, COROUTINE_NODE_S *node, UINT64 
         node->sleep_end_tsc = 0;
     }
 
-    /* 如果是挂起self,则进行调度切换 */
+    
     if (ctrl->current_task_id == node->id) {
         _coroutine_schedule(ctrl);
     }
@@ -317,7 +317,7 @@ int Coroutine_Create(COROUTINE_S *ctrl, char *task_name, PF_COROUTINE_MAIN_FUNC 
 
 void Coroutine_Run(COROUTINE_S *ctrl)
 {
-    ctrl->current_task_id = COROUTINE_IDLE_TASK_ID; /* 把当前主协程作为idle环境 */
+    ctrl->current_task_id = COROUTINE_IDLE_TASK_ID; 
 
     while(ctrl->stop == 0) {
         _coroutine_schedule(ctrl);
@@ -354,7 +354,7 @@ void Coroutine_Sleep(COROUTINE_S *ctrl, UINT64 sec)
     _coroutine_usleep(ctrl, sec * 1000 * 1000);
 }
 
-int Coroutine_Suspend(COROUTINE_S *ctrl, int task_id, UINT64 timeout_us/* 0表示永不超时 */)
+int Coroutine_Suspend(COROUTINE_S *ctrl, int task_id, UINT64 timeout_us)
 {
     COROUTINE_NODE_S *node = _coroutine_get_by_id(ctrl, task_id);
     if (! node) {
@@ -364,7 +364,7 @@ int Coroutine_Suspend(COROUTINE_S *ctrl, int task_id, UINT64 timeout_us/* 0表�
     return _coroutine_suspend(ctrl, node, timeout_us);
 }
 
-int Coroutine_SuspendSelf(COROUTINE_S *ctrl, UINT64 timeout_us/* 0表示永不超时 */)
+int Coroutine_SuspendSelf(COROUTINE_S *ctrl, UINT64 timeout_us)
 {
     return _coroutine_suspend(ctrl, _coroutine_self(ctrl), timeout_us);
 }
@@ -421,8 +421,8 @@ int Coroutine_GetAttr(COROUTINE_S *ctrl, int task_id, OUT COROUTINE_ATTR_S *attr
     return 0;
 }
 
-/* 返回下一个有效的task_id, 如果没有下一个了则返回-1 */
-int Coroutine_GetNext(COROUTINE_S *ctrl, int curr_task_id /* -1表示从头开始 */)
+
+int Coroutine_GetNext(COROUTINE_S *ctrl, int curr_task_id )
 {
     int i;
 

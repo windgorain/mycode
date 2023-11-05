@@ -22,4 +22,4 @@ BOOL_T WinService_Uninstall();
 #ifdef __cplusplus
 }
 #endif
-#endif //WIN_SERVICE_H_
+#endif 

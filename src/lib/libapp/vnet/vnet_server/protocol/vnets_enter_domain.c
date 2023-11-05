@@ -49,7 +49,7 @@ BS_STATUS VNETS_EnterDomain_Input(IN MIME_HANDLE hMime, IN VNETS_PROTOCOL_PACKET
     return BS_OK;
 }
 
-static BS_WALK_RET_E vnets_enterdomain_KickAll(IN UINT uiNodeID, IN HANDLE hUserHandle)
+static int vnets_enterdomain_KickAll(IN UINT uiNodeID, IN HANDLE hUserHandle)
 {
     VNETS_NODE_S *pstNode;
     CHAR *pcKickOut = "Protocol=EnterDomain,Type=KickOut";
@@ -57,17 +57,17 @@ static BS_WALK_RET_E vnets_enterdomain_KickAll(IN UINT uiNodeID, IN HANDLE hUser
     pstNode = VNETS_NODE_GetNode(uiNodeID);
     if (NULL == pstNode)
     {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     VNETS_Protocol_SendData(pstNode->uiTpID, pcKickOut, strlen(pcKickOut) + 1);
 
     VNETS_Domain_DelNode(pstNode->uiDomainID, uiNodeID);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-static BS_WALK_RET_E vnets_enterdomain_RebootDomain(IN UINT uiNodeID, IN HANDLE hUserHandle)
+static int vnets_enterdomain_RebootDomain(IN UINT uiNodeID, IN HANDLE hUserHandle)
 {
     VNETS_NODE_S *pstNode;
     CHAR *pcKickOut = "Protocol=EnterDomain,Type=RebootDomain";
@@ -75,14 +75,14 @@ static BS_WALK_RET_E vnets_enterdomain_RebootDomain(IN UINT uiNodeID, IN HANDLE 
     pstNode = VNETS_NODE_GetNode(uiNodeID);
     if (NULL == pstNode)
     {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     VNETS_Protocol_SendData(pstNode->uiTpID, pcKickOut, strlen(pcKickOut) + 1);
 
     VNETS_Domain_DelNode(pstNode->uiDomainID, uiNodeID);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 BS_STATUS VNETS_EnterDomain_KickAll(IN UINT uiDomainID)

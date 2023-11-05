@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define VNET_NID_TYPE_CLIENT 0
 #define VNET_NID_TYPE_SERVER 1
@@ -63,14 +63,14 @@ static inline CHAR * VNET_NODE_GetTypeStringByNID(IN UINT uiNID)
     return pcType;
 }
 
-#define VNET_NODE_PKT_FLAG_GIVE_DETECTER 0x1    /* 转交直连探测权 */
-#define VNET_NODE_PKT_FLAG_NOT_ONLINE    0x8000 /* Not Online */
+#define VNET_NODE_PKT_FLAG_GIVE_DETECTER 0x1    
+#define VNET_NODE_PKT_FLAG_NOT_ONLINE    0x8000 
 
 
 typedef struct
 {
     USHORT usFlag;
-    USHORT usProto;    /* 承载的上层协议 */
+    USHORT usProto;    
     UINT   uiDstNodeID;
     UINT   uiSrcNodeID;
     UINT   uiCookie;
@@ -78,8 +78,8 @@ typedef struct
 
 typedef enum
 {
-    VNET_NODE_PKT_PROTO_TP,              /* TP协议 */
-    VNET_NODE_PKT_PROTO_DATA,            /* 数据报文 */
+    VNET_NODE_PKT_PROTO_TP,              
+    VNET_NODE_PKT_PROTO_DATA,            
 
     VNET_NODE_PKT_PROTO_MAX
 }VNET_NODE_PKT_PROTO_E;
@@ -87,8 +87,8 @@ typedef enum
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNET_NODE_H_*/
+#endif 
 
 

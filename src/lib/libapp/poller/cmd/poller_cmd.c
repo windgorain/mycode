@@ -8,7 +8,7 @@
 #include "comp/comp_poller.h"
 #include "../h/poller_core.h"
 
-/* poller %STRING */
+
 PLUG_API BS_STATUS POLLER_CMD_EnterIns(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     if (argv[0][0] != 'n') {
@@ -23,7 +23,7 @@ PLUG_API BS_STATUS POLLER_CMD_EnterIns(IN UINT ulArgc, IN CHAR **argv, IN VOID *
     return BS_OK;
 }
 
-/* show poller */
+
 PLUG_API BS_STATUS POLLER_CMD_Show(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     int id;

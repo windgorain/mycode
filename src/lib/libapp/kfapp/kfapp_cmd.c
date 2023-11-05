@@ -8,7 +8,7 @@
 #include "comp/comp_kfapp.h"
 #include "kfapp_func.h"
 
-/* do %STRING */
+
 PLUG_API int KFAPP_CmdDo(int argc, char **argv, void *env)
 {
     KFAPP_PARAM_S stKfappParam;

@@ -5,15 +5,15 @@
 #include "types.h"
 
 typedef struct _membuf_t {
-	/* data */
+	
 	char *buf;
 	int32_t sz;
 	uint32_t ctrl;
-	/* link */
+	
 	struct _membuf_t *next;
 } membuf_t;
 
-/*new mem buf */
+
 
 #define membuf_ctrl_bit(buf, bit) (!!(buf->ctrl & bit_value(typeof(buf->ctrl), bit)))
 
@@ -35,8 +35,8 @@ membuf_t *membuf_new_alloc(int32_t sz, membuf_t *next);
 membuf_t *_membuf_new_copy_merge(membuf_t *buf_list, char *append_str, int32_t append_len, bool free_origin_list);
 #define membuf_new_merge(__buf_list,__buf, __sz) _membuf_new_copy_merge(__buf_list, __buf, __sz, true)
 
-/*calucate the buf size */
-//static inline int32_t membuf_size(membuf_t *lb);
+
+
 #define MEMBUF_ONESZ(__lb)  ((__lb)->buf ? (__lb)->sz : 0)
 static inline int32_t membuf_size(membuf_t *lb)
 {
@@ -52,7 +52,7 @@ static inline int32_t membuf_size(membuf_t *lb)
 #define MEMBUF_SIZE(__lb)   \
 	((__lb && (__lb)->next == NULL) ? MEMBUF_ONESZ(__lb) : membuf_size(__lb))
 
-/*delete the membuf */
+
 #define free_with_func(__des_func, __ptr, args...)                              \
 	do {                                                                        \
 		if (__ptr) {                                                             \

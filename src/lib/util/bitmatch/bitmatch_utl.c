@@ -8,49 +8,35 @@
 #include "utl/array_bit.h"
 #include "utl/bitmatch_utl.h"
 
-typedef struct tagBITMATCH_S {
-    UINT tab_number;
-    UINT max_rule_num;
-    UCHAR data[0];
-}BITMATCH_S;
-
-static inline UCHAR * bitmatch_get_bits(BITMATCH_S *ctrl, int tbl_index, int pos)
-{
-    UCHAR *bits;
-
-    BS_DBGASSERT(tbl_index < ctrl->tab_number);
-
-    /* 先定位tbl_index所对应的表的起始地址 */
-    bits = ctrl->data + ((ctrl->max_rule_num / 8) * tbl_index * 256);
-
-    /* 再定位pos所对应的位图表 */
-    bits += ((ctrl->max_rule_num / 8) * tbl_index * pos);
-
-    return bits;
-}
-
 int BITMATCH_Init(INOUT BITMATCH_S *ctrl)
 {
-    int data_size = ctrl->tab_number * ctrl->max_rule_num / 8;
+    int size = ctrl->tab_number * ctrl->max_rule_num / 8;
 
     BS_DBGASSERT(ctrl->max_rule_num % 32 == 0);
 
-    if (data_size <= 0) {
+    if (size <= 0) {
         RETURN(BS_ERR);
     }
-    memset(ctrl->data, 0, data_size);
+
+    memset(ctrl->rule_bits, 0, size);
 
     return 0;
 }
 
 BITMATCH_S * BITMATCH_Create(int tab_number, int max_rule_num)
 {
-    int data_size = tab_number * max_rule_num / 8;
+    int size = tab_number * max_rule_num / 8;
 
     BS_DBGASSERT(max_rule_num % 32 == 0);
 
-    BITMATCH_S *ctrl = MEM_ZMalloc(sizeof(BITMATCH_S) + data_size);
+    BITMATCH_S *ctrl = MEM_ZMalloc(sizeof(BITMATCH_S));
     if (! ctrl) {
+        return NULL;
+    }
+
+    ctrl->rule_bits = MEM_ZMalloc(size);
+    if (! ctrl->rule_bits) {
+        MEM_Free(ctrl);
         return NULL;
     }
 
@@ -63,8 +49,14 @@ BITMATCH_S * BITMATCH_Create(int tab_number, int max_rule_num)
 void BITMATCH_Destroy(BITMATCH_S *ctrl)
 {
     if (ctrl) {
-        MEM_Free(ctrl);
+        return;
     }
+
+    if (ctrl->rule_bits) {
+        MEM_Free(ctrl->rule_bits);
+    }
+
+    MEM_Free(ctrl);
 }
 
 void BITMATCH_AddRule(BITMATCH_S *ctrl, UINT tbl_index, UCHAR range_min, UCHAR range_max, UINT rule_id)
@@ -77,43 +69,85 @@ void BITMATCH_AddRule(BITMATCH_S *ctrl, UINT tbl_index, UCHAR range_min, UCHAR r
     BS_DBGASSERT(range_max >= range_min);
 
     for (i=range_min; i<=range_max; i++) {
-        bits = bitmatch_get_bits(ctrl, tbl_index, i);
+        bits = _bitmatch_get_bits(ctrl->max_rule_num, ctrl->rule_bits, tbl_index, i);
         ArrayBit_Set(bits, rule_id);
     }
 }
 
-void BITMATCH_DelRule(BITMATCH_S *ctrl, UINT tbl_index, UCHAR range_min, UCHAR range_max, UINT rule_id)
+void BITMATCH_DelRule(BITMATCH_S *ctrl, UINT rule_id)
 {
-    int i;
+    int i, j;
     void *bits;
 
-    BS_DBGASSERT(tbl_index < ctrl->tab_number);
     BS_DBGASSERT(rule_id < ctrl->max_rule_num);
-    BS_DBGASSERT(range_max >= range_min);
 
-    for (i=range_min; i<=range_max; i++) {
-        bits = bitmatch_get_bits(ctrl, tbl_index, i);
-        ArrayBit_Clr(bits, rule_id);
+    for (i=0; i<ctrl->tab_number; i++) {
+        for (j=0; j<=255; j++) {
+            bits = _bitmatch_get_bits(ctrl->max_rule_num, ctrl->rule_bits, i, j);
+            ArrayBit_Clr(bits, rule_id);
+        }
     }
 }
 
-/* data的长度必须是ctrl->tab_number字节数 */
-int BITMATCH_Match(BITMATCH_S *ctrl, void *data, OUT void *matched_bits)
+void BITMATCH_GetRuleBits(BITMATCH_S *ctrl, OUT void *rule_bits)
 {
-    int i;
-    UCHAR *d = data;
+    int i, j;
     void *bits;
-    int bits_size = ctrl->max_rule_num / 8;
+    int size = ctrl->max_rule_num / 8;
 
-    bits = bitmatch_get_bits(ctrl, 0, d[0]);
+    memset(rule_bits, 0, size);
 
-    memcpy(matched_bits, bits, bits_size);
+    for (i=0; i<ctrl->tab_number; i++) {
+        for (j=0; j<=255; j++) {
+            bits = _bitmatch_get_bits(ctrl->max_rule_num, ctrl->rule_bits, i, j);
+            ArrayBit_Or(rule_bits, bits, ctrl->max_rule_num / 32, rule_bits);
+        }
+    }
+}
 
-    for (i=1; i<ctrl->tab_number; i++) {
-        bits = bitmatch_get_bits(ctrl, i, d[i]);
-        ArrayBit_And(matched_bits, bits, ctrl->max_rule_num / 32, matched_bits);
+int BITMATCH_GetRule(BITMATCH_S *ctrl, U32 rule_id, OUT void *min, OUT void *max)
+{
+    int tbl_index, i;
+    void *bits;
+    U8 *d_min, *d_max;
+    int ret = -1;
+
+
+    d_min = min;
+    d_max = max;
+
+    memset(d_min, 0, ctrl->tab_number);
+    memset(d_max, 0, ctrl->tab_number);
+
+    for (tbl_index = 0; tbl_index < ctrl->tab_number; tbl_index++) {
+        int found = 0;
+
+        
+        for (i=0; i<=255; i++) {
+            bits = _bitmatch_get_bits(ctrl->max_rule_num, ctrl->rule_bits, tbl_index, i);
+            if (ArrayBit_Test(bits, rule_id)) {
+                d_min[tbl_index] = i;
+                found = 1;
+                ret = 0;
+                break;
+            }
+        }
+
+        if (! found) {
+            continue;
+        }
+
+        
+        for (i=255; i>=d_min[tbl_index]; i--) {
+            bits = _bitmatch_get_bits(ctrl->max_rule_num, ctrl->rule_bits, tbl_index, i);
+            if (ArrayBit_Test(bits, rule_id)) {
+                d_max[tbl_index] = i;
+                break;
+            }
+        }
     }
 
-    return 0;
+    return ret;
 }
+
 

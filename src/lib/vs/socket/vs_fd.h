@@ -10,10 +10,10 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* uiFlag */
-#define O_NONBLOCK      00004  /* Non Blocking Open */
+
+#define O_NONBLOCK      00004  
 
 typedef struct
 {
@@ -23,8 +23,8 @@ typedef struct
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VS_FD_H_*/
+#endif 
 
 

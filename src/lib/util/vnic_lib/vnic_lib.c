@@ -88,7 +88,7 @@ BS_STATUS VNIC_Write (IN VNIC_HANDLE hVnic, OUT UCHAR *pucData, IN UINT ulDataLe
     return _OS_VNIC_Write(hVnic, pucData, ulDataLen, pulWriteLen);
 }
 
-/* IP和Mask都是网络序 */
+
 BS_STATUS VNIC_AddIP (IN VNIC_HANDLE hVnic, IN UINT ulIp, IN UINT ulMask)
 {
     BS_DBGASSERT (0 != hVnic);
@@ -96,7 +96,7 @@ BS_STATUS VNIC_AddIP (IN VNIC_HANDLE hVnic, IN UINT ulIp, IN UINT ulMask)
     return _OS_VNIC_AddIP(hVnic, ulIp, ulMask);
 }
 
-/* IP和Mask都是网络序 */
+
 BS_STATUS VNIC_GetIP(IN VNIC_HANDLE hVnic, OUT UINT *puiIp, OUT UINT *puiMask)
 {
     BS_DBGASSERT (0 != hVnic);
@@ -104,7 +104,7 @@ BS_STATUS VNIC_GetIP(IN VNIC_HANDLE hVnic, OUT UINT *puiIp, OUT UINT *puiMask)
     return _OS_VNIC_GetIP(hVnic, puiIp, puiMask);
 }
 
-BS_STATUS VNIC_AddDns(IN VNIC_HANDLE hVnic, IN UINT uiDns/* 网络序 */, IN UINT uiIndex)
+BS_STATUS VNIC_AddDns(IN VNIC_HANDLE hVnic, IN UINT uiDns, IN UINT uiIndex)
 {
     BS_DBGASSERT (0 != hVnic);
 
@@ -116,7 +116,7 @@ BS_STATUS VNIC_AddDns(IN VNIC_HANDLE hVnic, IN UINT uiDns/* 网络序 */, IN UIN
     return _OS_VNIC_AddDns(hVnic, uiDns, uiIndex);
 }
 
-BS_STATUS VNIC_SetDns(IN VNIC_HANDLE hVnic, IN UINT uiDns/* 网络序 */)
+BS_STATUS VNIC_SetDns(IN VNIC_HANDLE hVnic, IN UINT uiDns)
 {
     BS_DBGASSERT (0 != hVnic);
 
@@ -128,7 +128,7 @@ BS_STATUS VNIC_SetDns(IN VNIC_HANDLE hVnic, IN UINT uiDns/* 网络序 */)
     return _OS_VNIC_SetDns(hVnic, uiDns);
 }
 
-BS_STATUS VNIC_DelDns(IN VNIC_HANDLE hVnic, IN UINT uiDns/* 网络序 */)
+BS_STATUS VNIC_DelDns(IN VNIC_HANDLE hVnic, IN UINT uiDns)
 {
     BS_DBGASSERT (0 != hVnic);
 

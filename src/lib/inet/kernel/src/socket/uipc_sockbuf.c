@@ -16,7 +16,7 @@
 #include "uipc_sock_func.h"
 #include "uipc_func.h"
 
-#define    SB_MAX        (256*1024)    /* default for max chars in sockbuf */
+#define    SB_MAX        (256*1024)    
 
 #define SBLINKRECORD(sb, m0) do {                    \
     if ((sb)->sb_lastrecord != NULL)                \
@@ -24,11 +24,11 @@
     else                                \
         (sb)->sb_mb = (m0);                    \
     (sb)->sb_lastrecord = (m0);                    \
-} while (/*CONSTCOND*/0)
+} while (0)
 
 static void    sbflush_internal(IN SOCKBUF_S *sb, IN SOCKET_S *so);
 
-/* 返回0:正常; EWOULDBLOCK: 超时 */
+
 int so_msleep(IN SEM_HANDLE hSemToP, IN SEM_HANDLE hSemToV, IN int timeo)
 {
     BS_STATUS eRet;
@@ -45,7 +45,7 @@ int so_msleep(IN SEM_HANDLE hSemToP, IN SEM_HANDLE hSemToV, IN int timeo)
     return EWOULDBLOCK;
 }
 
-/* 和socantsendmore功能类似，但是调用者需要已将发送缓存加锁，并在此接口中释放锁 */
+
 void socantsendmore_locked(IN SOCKET_S *so)
 {
     SOCKBUF_LOCK_ASSERT(&so->so_snd);
@@ -55,7 +55,7 @@ void socantsendmore_locked(IN SOCKET_S *so)
     mtx_assert(SOCKBUF_MTX(&so->so_snd), MA_NOTOWNED);
 }
 
-/* 设置SOCKET对象为不可发送状态，并唤醒阻塞在发送缓存上的进程 */
+
 void socantsendmore(IN SOCKET_S *so)
 {
     SOCKBUF_LOCK(&so->so_snd);
@@ -72,7 +72,7 @@ void socantrcvmore_locked(IN SOCKET_S *so)
     mtx_assert(SOCKBUF_MTX(&so->so_rcv), MA_NOTOWNED);
 }
 
-/* 设置SOCKET对象为不可接收状态，并唤醒阻塞在接收缓存上的进程 */
+
 void socantrcvmore(struct socket *so)
 {
 
@@ -81,7 +81,7 @@ void socantrcvmore(struct socket *so)
     mtx_assert(SOCKBUF_MTX(&so->so_rcv), MA_NOTOWNED);
 }
 
-/* 在接收或者发送缓存上阻塞等待。有数据空间或者超时时，则会返回 */
+
 int sbwait(struct sockbuf *sb)
 {
 
@@ -92,10 +92,7 @@ int sbwait(struct sockbuf *sb)
     return (so_msleep(sb->sb_wait, sb->sb_mtx, sb->sb_timeo));
 }
 
-/*
-对sockbuf信号量进行down操作。如果socket对象为阻塞方式，获取到信号
-量后返回；若socket对象为不可阻塞方式，且没有获取到信号量，则返回
-*/
+
 int sblock(IN SOCKBUF_S *sb, IN int flags)
 {
     BS_DBGASSERT((flags & SBL_VALID) == flags);
@@ -115,15 +112,13 @@ int sblock(IN SOCKBUF_S *sb, IN int flags)
     return 0;
 }
 
-/* 对sockbuf信号量进行up操作。 */
+
 void sbunlock(IN SOCKBUF_S *sb)
 {
     MUTEX_V(&sb->sb_sx);
 }
 
-/*
-唤醒阻塞在SOCKET对象接收或者发送缓存的进程
-*/
+
 void sowakeup(IN SOCKET_S *so, IN SOCKBUF_S *sb)
 {
     SOCKBUF_LOCK_ASSERT(sb);
@@ -144,7 +139,7 @@ void sowakeup(IN SOCKET_S *so, IN SOCKBUF_S *sb)
     mtx_assert(SOCKBUF_MTX(sb), MA_NOTOWNED);
 }
 
-/* 为socket对象接收和发送缓存设置高水位，即设置了接收、发送缓存大小 */
+
 int soreserve(IN SOCKET_S *so, IN UINT sndcc, IN UINT rcvcc)
 {
     SOCKBUF_LOCK(&so->so_snd);
@@ -174,11 +169,7 @@ bad:
     return (ENOBUFS);
 }
 
-/*
-为socket对象接收或发送缓存设置高水位，即设置了接收或者发送缓存大
-小，此函数和sbreserve的差别在于调用此接口时，调用者已经对SOCKBUF
-加锁保护
-*/
+
 int sbreserve_locked(IN SOCKBUF_S *sb, IN UINT cc, IN SOCKET_S *so)
 {
     SOCKBUF_LOCK_ASSERT(sb);
@@ -193,9 +184,7 @@ int sbreserve_locked(IN SOCKBUF_S *sb, IN UINT cc, IN SOCKET_S *so)
     return (1);
 }
 
-/*
-为socket对象接收或发送缓存设置高水位，即设置接收或者发送缓存大小
-*/
+
 int sbreserve(IN SOCKBUF_S *sb, IN UINT cc, IN SOCKET_S *so)
 {
     int error;
@@ -206,9 +195,7 @@ int sbreserve(IN SOCKBUF_S *sb, IN UINT cc, IN SOCKET_S *so)
     return (error);
 }
 
-/*
- * Free mbufs held by a socket, and reserved mbuf space.
- */
+
 static void sbrelease_internal(IN SOCKBUF_S *sb, IN SOCKET_S *so)
 {
     sbflush_internal(sb, so);
@@ -234,10 +221,7 @@ void sbdestroy(IN SOCKBUF_S *sb, IN SOCKET_S *so)
     sbrelease_internal(sb, so);
 }
 
-/*
-将接收或者待发送的数据添加到接收缓存或者发送缓存的MBUF链中，此
-接口和sbappend的区别则在于调用此接口时需要对缓存进行加锁
-*/
+
 void sbappend_locked(IN SOCKBUF_S *sb, IN MBUF_S *m)
 {
     UINT len = 0;
@@ -252,7 +236,7 @@ void sbappend_locked(IN SOCKBUF_S *sb, IN MBUF_S *m)
     SBLASTRECORDCHK(sb);
     len = MBUF_TOTAL_DATA_LEN(m);
 
-    /* If datalen is 0, we don't append it. */
+    
     if (0 == len)
     {
         MBUF_Free(m);
@@ -283,9 +267,7 @@ void sbappend(IN SOCKBUF_S *sb, IN MBUF_S *m)
     SOCKBUF_UNLOCK(sb);
 }
 
-/* 此接口专门提供给面向流模式的协议使用，将接收或者待发送的数据添加
-到接收缓存或者发送缓存的MBUF链中，和sbappend_locked的区别则在于因
-为面向流的协议的缓存中，只有一条MBUF链表，直接添加到此链表后面即可 */
+
 void sbappendstream_locked(IN SOCKBUF_S *sb, IN MBUF_S *m)
 {
     MBUF_S *nextmbuf = NULL;
@@ -304,7 +286,7 @@ void sbappendstream_locked(IN SOCKBUF_S *sb, IN MBUF_S *m)
     BS_DBGASSERT(sb->sb_mb == sb->sb_lastrecord);
 
     len = MBUF_TOTAL_DATA_LEN(m);
-    /* If datalen is 0, we don't append it. */
+    
     if (0 == len)
     {
         MBUF_Free(m);
@@ -338,11 +320,7 @@ void sbappendstream(IN SOCKBUF_S *sb, IN MBUF_S *m)
     SOCKBUF_UNLOCK(sb);
 }
 
-/*
-将接收或者待发送的MBUF作为一条新的MBUF链添加在接收或者发送缓存中,
-此接口和sbappendrecord的区别则在于调用此接口时，调用者需要对缓存
-加锁
-*/
+
 void sbappendrecord_locked(IN SOCKBUF_S *sb, IN MBUF_S *m0)
 {
     UINT len;
@@ -354,7 +332,7 @@ void sbappendrecord_locked(IN SOCKBUF_S *sb, IN MBUF_S *m0)
         return;
     }
     len = MBUF_TOTAL_DATA_LEN(m0);
-    /* If datalen is 0, we don't append it. */
+    
     if (0 == len)
     {
         (void)MBUF_Free(m0);
@@ -375,11 +353,7 @@ void sbappendrecord(IN SOCKBUF_S *sb, IN MBUF_S *m0)
     SOCKBUF_UNLOCK(sb);
 }
 
-/*
-为传入的地址结构创建地址MBUF，并将地址MBUF、控制MBUF、和数据MBUF
-串在一条MBUF链中，并将新的MBUF链添加在接收或者发送缓存中。此接口
-和sbappendaddr的区别则在于调用此接口前需要对缓存加锁
-*/
+
 int sbappendaddr_locked
 (
     IN SOCKBUF_S *sb,
@@ -441,7 +415,7 @@ int sbappendaddr_locked
             return (0);
         }
 
-        /* something may be copied to m if needed */
+        
         ret = MBUF_Cat(m, tmpm0);
         if (BS_OK != ret)
         {
@@ -454,10 +428,7 @@ int sbappendaddr_locked
     
     sballoc(sb, MBUF_TOTAL_DATA_LEN(m));
 
-    /*
-     * Hayek: Now we release control and data mbuf, and the callers cann't
-     * use control and m0 either.
-     */
+    
     if (NULL != control)
     {
         MBUF_Free(control);
@@ -485,11 +456,7 @@ int sbappendaddr
     return (retval);
 }
 
-/*
-将传入的控制MBUF、和数据MBUF串在一条MBUF链中，并将新的MBUF链添加
-在接收或者发送缓存中，和sbappendcontrol的区别在于调用此接口前需要
-对缓存加锁保护
-*/
+
 int sbappendcontrol_locked
 (
     IN SOCKBUF_S *sb,
@@ -516,7 +483,7 @@ int sbappendcontrol_locked
 
     if (m0)
     {
-        /* something may be copied to m if needed */
+        
         ret = MBUF_Cat(control, m0);
         if (BS_OK != ret)
         {
@@ -548,10 +515,7 @@ int sbappendcontrol
     return (retval);
 }
 
-/*
-清空接收或者发送缓存中所有MBUF链中的所有数据，
-此接口和sbflush的区别在于调用此接口前需要对缓存加锁保护
-*/
+
 static void sbflush_internal(IN SOCKBUF_S *sb, IN SOCKET_S *so)
 {
     MBUF_S *m, *next;
@@ -576,7 +540,7 @@ void sbflush_locked(IN SOCKBUF_S *sb, IN SOCKET_S *so)
     sbflush_internal(sb, so);
 }
 
-/* 清空接收或者发送缓存中所有MBUF链中的所有数据 */
+
 void sbflush(struct sockbuf *sb, struct socket *so)
 {
 
@@ -628,7 +592,7 @@ void sbdrop_locked(IN SOCKBUF_S *sb, IN int len)
     sbdrop_internal(sb, len);
 }
 
-/* 在传入的接收或者发送缓存的MBUF链表前部，丢弃指定长度的数据 */
+
 void sbdrop(IN SOCKBUF_S *sb, IN int len)
 {
 
@@ -655,7 +619,7 @@ void sbdroprecord_locked(IN SOCKBUF_S *sb)
     return;
 }
 
-/* 释放接收或者发送缓存中第一条MBUF链 */
+
 void sbdroprecord(struct sockbuf *sb)
 {
     SOCKBUF_LOCK(sb);
@@ -663,7 +627,7 @@ void sbdroprecord(struct sockbuf *sb)
     SOCKBUF_UNLOCK(sb);
 }
 
-/* 根据传入的数据长度创建控制MBUF结构，并将传入的数据、类型拷贝到MBUF */
+
 MBUF_S * sbcreatecontrol(IN VOID * p, IN int size, IN int type, IN int level)
 {
     CMSGHDR_S *cp;

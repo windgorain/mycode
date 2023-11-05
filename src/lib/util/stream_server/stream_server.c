@@ -93,13 +93,13 @@ static int _stream_server_recv(STREAM_CONN_S *conn)
     return _stream_server_notify_event(conn->cfg, conn, STREAM_SERVER_EVENT_RECV_MSG);
 }
 
-static BS_WALK_RET_E _stream_server_socket_event(int fd, UINT event, USER_HANDLE_S *ud)
+static int _stream_server_socket_event(int fd, UINT event, USER_HANDLE_S *ud)
 {
     STREAM_CONN_S *conn = ud->ahUserHandle[0];
 
     if ((event & MYPOLL_EVENT_ERR) || (event & MYPOLL_EVENT_HUP)) {
         _stream_server_close_conn(conn);
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     if (event & MYPOLL_EVENT_IN) {
@@ -112,7 +112,7 @@ static BS_WALK_RET_E _stream_server_socket_event(int fd, UINT event, USER_HANDLE
         _stream_server_send(conn, NULL, 0);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static int _stream_server_new_conn(STREAM_SERVER_S *cfg, int fd)
@@ -146,7 +146,7 @@ static int _stream_server_new_conn(STREAM_SERVER_S *cfg, int fd)
     return 0;
 }
 
-static BS_WALK_RET_E _stream_server_listen_socket_event(int listen_fd, UINT event, USER_HANDLE_S *ud)
+static int _stream_server_listen_socket_event(int listen_fd, UINT event, USER_HANDLE_S *ud)
 {
     int fd;
     STREAM_SERVER_S *cfg = ud->ahUserHandle[0];
@@ -160,7 +160,7 @@ static BS_WALK_RET_E _stream_server_listen_socket_event(int listen_fd, UINT even
         }
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static int _stream_server_open_listen(STREAM_SERVER_S *cfg)
@@ -238,13 +238,13 @@ void StreamServer_Stop(STREAM_SERVER_S *cfg)
     cfg->enable = 0;
 }
 
-/* 发送数据.如果len为0,则仅仅触发一次发送缓存vbuf中的数据 */
+
 int StreamServer_Send(STREAM_CONN_S *conn, void *msg, int len)
 {
     return _stream_server_send(conn, msg, len);
 }
 
-/* 发送结束,后续再也没有数据需要发送了 */
+
 void StreamServer_SendFinish(STREAM_CONN_S *conn)
 {
     conn->send_finish = 1;

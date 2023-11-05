@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define DC_X_DATA_MAX_NUM 32
 
@@ -42,11 +42,11 @@ typedef struct
     CHAR *pcUserName;
     CHAR *pcPassWord;
     CHAR *pcDbName;
-    USHORT usPort;      /* 主机序 */
+    USHORT usPort;      
 }DC_MYSQL_PARAM_S;
 
-typedef BS_WALK_RET_E (*PF_DC_WALK_TBL_CB_FUNC)(IN CHAR *pszTblName, IN HANDLE hUserHandle);
-typedef BS_WALK_RET_E (*PF_DC_WALK_OBJECT_CB_FUNC)(IN DC_DATA_S *pstKey, IN HANDLE hUserHandle);
+typedef int (*PF_DC_WALK_TBL_CB_FUNC)(IN CHAR *pszTblName, IN HANDLE hUserHandle);
+typedef int (*PF_DC_WALK_OBJECT_CB_FUNC)(IN DC_DATA_S *pstKey, IN HANDLE hUserHandle);
 
 HANDLE       DC_OpenInstance(IN DC_TYPE_E eDcType, IN VOID *pParam);
 VOID        DC_CloseInstance(IN HANDLE hDcHandle);
@@ -134,8 +134,8 @@ BS_STATUS   DC_Save(IN HANDLE hDcHandle);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__DC_UTL_H_*/
+#endif 
 
 

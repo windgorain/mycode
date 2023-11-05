@@ -17,8 +17,8 @@ typedef struct {
 }POLLER_BS_S;
 
 enum {
-    POLLER_BS_MODE_THREAD = 0, /* 默认启动一个线程 */
-    POLLER_BS_MODE_MAIN        /* 使用主线程,不用启动额外线程 */
+    POLLER_BS_MODE_THREAD = 0, 
+    POLLER_BS_MODE_MAIN        
 };
 
 
@@ -36,13 +36,13 @@ static void pollerbs_TriggerOb(POLLER_BS_S *ins)
     }
 }
 
-static BS_WALK_RET_E pollerbs_PollerEvent(UINT uiEvent, USER_HANDLE_S *ud)
+static int pollerbs_PollerEvent(UINT uiEvent, USER_HANDLE_S *ud)
 {
     if (uiEvent & POLLERBS_EVENT_TRIGGER) {
         pollerbs_TriggerOb(&g_poller_bs);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static void pollerbs_Main(IN USER_HANDLE_S *ud)

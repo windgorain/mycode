@@ -47,10 +47,7 @@ BS_STATUS WAN_PCAP_Init()
     return BS_OK;
 }
 
-/*
-Interface PCAP视图下:
- ip address host
-*/
+
 PLUG_API BS_STATUS WAN_PCAP_SetIpHost
 (
     IN UINT ulArgc,

@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID (*PF_svpn_mf_map_func)(IN MIME_HANDLE hMime, IN SVPN_DWEB_S *pstDweb);
 
@@ -90,8 +90,8 @@ VOID SVPN_MF_CommonList
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_MF_H_*/
+#endif 
 
 

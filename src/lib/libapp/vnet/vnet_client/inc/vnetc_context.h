@@ -10,7 +10,7 @@
 
 typedef struct
 {
-    UINT   uiRecvSesId;    /* 收取报文的会话ID */
+    UINT   uiRecvSesId;    
     UINT   uiSendSesId;
 }VNETC_LINK_CONTEXT_S;
 
@@ -58,7 +58,7 @@ MBUF_S * VNETC_Context_CreateMbufByCluster
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_CONTEXT_H_*/
+#endif 
 

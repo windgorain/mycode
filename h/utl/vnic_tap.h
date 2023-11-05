@@ -10,18 +10,14 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/*
- * =============
- * TAP IOCTLs
- * =============
- */
+
 
 #define TAP_WIN_CONTROL_CODE(request,method) \
   CTL_CODE (FILE_DEVICE_UNKNOWN, request, method, FILE_ANY_ACCESS)
 
-/* Present in 8.1 */
+
 
 #define TAP_WIN_IOCTL_GET_MAC               TAP_WIN_CONTROL_CODE (1, METHOD_BUFFERED)
 #define TAP_WIN_IOCTL_GET_VERSION           TAP_WIN_CONTROL_CODE (2, METHOD_BUFFERED)
@@ -33,26 +29,18 @@
 #define TAP_WIN_IOCTL_GET_LOG_LINE          TAP_WIN_CONTROL_CODE (8, METHOD_BUFFERED)
 #define TAP_WIN_IOCTL_CONFIG_DHCP_SET_OPT   TAP_WIN_CONTROL_CODE (9, METHOD_BUFFERED)
 
-/* Added in 8.2 */
 
-/* obsoletes TAP_WIN_IOCTL_CONFIG_POINT_TO_POINT */
+
+
 #define TAP_WIN_IOCTL_CONFIG_TUN            TAP_WIN_CONTROL_CODE (10, METHOD_BUFFERED)
 
-/*
- * =================
- * Registry keys
- * =================
- */
+
 
 #define ADAPTER_KEY "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}"
 
 #define NETWORK_CONNECTIONS_KEY "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}"
 
-/*
- * ======================
- * Filesystem prefixes
- * ======================
- */
+
 
 #define USERMODEDEVICEDIR "\\\\.\\Global\\"
 #define SYSDEVICEDIR      "\\Device\\"
@@ -61,14 +49,14 @@
 
 
 VNIC_HANDLE VNIC_Dev_Open();
-VOID VNIC_Dev_SetTun(VNIC_HANDLE hVnic, UINT ip/*net order*/, UINT mask);
+VOID VNIC_Dev_SetTun(VNIC_HANDLE hVnic, UINT ip, UINT mask);
 BS_STATUS VNIC_Dev_RegMediaStatus(VNIC_HANDLE hVnic, BOOL_T bUp);
 BS_STATUS VNIC_Dev_RegAllowNonAdmin(VNIC_HANDLE hVnic, BOOL_T bAllow);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_VNIC_TAP_H_*/
+#endif 
 
 

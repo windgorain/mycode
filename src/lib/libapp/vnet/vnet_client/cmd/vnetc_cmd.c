@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM VNET_RETCODE_FILE_NUM_CLIENTCMD
             
 #include "bs.h"
@@ -20,11 +20,8 @@
 
 static BOOL_T g_bVnetClientIsEnable = FALSE;
 
-/* server _STRING_<1-255> */
-/* 地址格式为:
- udp://Server:Port
- icp://Server
-*/
+
+
 PLUG_API BS_STATUS VNETC_CMD_SetServer(IN UINT ulArgc, IN CHAR **argv)
 {
     if (ulArgc < 2)
@@ -35,7 +32,7 @@ PLUG_API BS_STATUS VNETC_CMD_SetServer(IN UINT ulArgc, IN CHAR **argv)
     return VNETC_SetServer(argv[1]);
 }
 
-/* domain _STRING_<1-128> */
+
 PLUG_API BS_STATUS VNETC_CMD_SetDomain(IN UINT ulArgc, IN CHAR **argv)
 {
     if (ulArgc < 2)
@@ -48,7 +45,7 @@ PLUG_API BS_STATUS VNETC_CMD_SetDomain(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* user _STRING_<1-128> */
+
 PLUG_API BS_STATUS VNETC_CMD_SetUser(IN UINT ulArgc, IN CHAR **argv)
 {
     if (ulArgc < 2)
@@ -61,7 +58,7 @@ PLUG_API BS_STATUS VNETC_CMD_SetUser(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* password { simple _STRING_<1-128> | cipher _STRING_<1-171> }  */
+
 PLUG_API BS_STATUS VNETC_CMD_SetPassword(IN UINT ulArgc, IN CHAR **argv)
 {
     if (ulArgc < 3)
@@ -81,21 +78,21 @@ PLUG_API BS_STATUS VNETC_CMD_SetPassword(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* vnet-client direct */
+
 PLUG_API BS_STATUS VNETC_CMD_SupportDirect(IN UINT ulArgc, IN CHAR **argv)
 {
     VNETC_CONF_SetSupportDirect(TRUE);
     return BS_OK;
 }
 
-/* no vnet-client direct */
+
 PLUG_API BS_STATUS VNETC_CMD_NoSupportDirect(IN UINT ulArgc, IN CHAR **argv)
 {
     VNETC_CONF_SetSupportDirect(FALSE);
     return BS_OK;
 }
 
-/* start */
+
 PLUG_API BS_STATUS VNETC_CMD_Start(IN UINT ulArgc, IN CHAR **argv)
 {
     if (BS_OK != VNETC_Start())
@@ -109,13 +106,13 @@ PLUG_API BS_STATUS VNETC_CMD_Start(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* stop */
+
 PLUG_API BS_STATUS VNETC_CMD_Stop(IN UINT ulArgc, IN CHAR **argv)
 {
     return VNETC_Stop();
 }
 
-/* alias %STRING */
+
 PLUG_API BS_STATUS VNETC_CMD_SetAlias(IN UINT ulArgc, IN CHAR **argv)
 {
     UINT uiLen;
@@ -134,7 +131,7 @@ PLUG_API BS_STATUS VNETC_CMD_SetAlias(IN UINT ulArgc, IN CHAR **argv)
     return VNETC_Alias_SetAlias(argv[1]);
 }
 
-/* description %STRING */
+
 PLUG_API BS_STATUS VNETC_CMD_SetDescription(IN UINT ulArgc, IN CHAR **argv)
 {
     UINT uiLen;

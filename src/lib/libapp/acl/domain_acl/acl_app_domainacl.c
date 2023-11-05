@@ -115,7 +115,7 @@ static BS_STATUS _acldomain_GetListIDByName(IN DOMAINACL_HANDLE domainacl, IN AC
     return BS_OK;
 }
 
-/* 增加List引用计数 */
+
 static BS_STATUS _acldomain_AddListRef(IN DOMAINACL_HANDLE domainacl, IN CHAR *pcListName)
 {
     return DOMAINACL_AddListRef(domainacl, DOMAINACL_GetListByName(domainacl, pcListName));
@@ -234,13 +234,17 @@ static BOOL_T _acldomain_ClearStats(IN UINT uiRuleID, IN DOMAINACL_RULE_S *pstRu
 static INT _acldomain_IpKey2Str(IN DOMAINACL_IPKEY_S *pstIpKey, IN CHAR *pCmd, IN INT iStrLen, CHAR *pStr)
 {
     INT len;
-    IP_MAKS_S stIpMask;
+    IP_MASK_S stIpMask;
 
     stIpMask.uiIP = pstIpKey->uiIP;
     stIpMask.uiMask = pstIpKey->uiWildcard;
 
-    len = scnprintf(pStr, iStrLen, "%s", pCmd);
+    len = SNPRINTF(pStr, iStrLen, "%s", pCmd);
+    if (len < 0) {
+        return len;
+    }
     len += IPString_IpMask2String_OutIpPrefix(&stIpMask, iStrLen - len, pStr + len);
+
     return len;
 }
 
@@ -318,7 +322,7 @@ static VOID _acldomain_SaveCmdInList(IN DOMAINACL_HANDLE domainacl, IN HANDLE hF
 static BS_STATUS _acldomain_ParseIp(IN CHAR *pcIpStr, OUT DOMAINACL_IPKEY_S *pstIpKey)
 {
     BS_STATUS enRet;
-    IP_MAKS_S stMask;
+    IP_MASK_S stMask;
 
     enRet = IPString_IpPrefixString2IpMask(pcIpStr, &stMask);
     if (BS_OK == enRet)
@@ -400,6 +404,7 @@ static BS_STATUS _acldomain_ParseRule(IN INT muc_id, IN UINT uiArgc, IN CHAR **p
     BS_ACTION_E enAction;
     CHAR *pcAction = ppcArgv[3];
     DOMAINACL_RULE_CFG_S stRuleCfg = {0};
+
     CHAR *pcSip = NULL;
     CHAR *pcDport = NULL;
     CHAR *pcSipPool = NULL;
@@ -410,15 +415,15 @@ static BS_STATUS _acldomain_ParseRule(IN INT muc_id, IN UINT uiArgc, IN CHAR **p
     UINT uiProto = 0;
     CHAR acHelp[1024];
     GETOPT2_NODE_S opts[] = {
-        {'o', 's', "src_ip", 's', &pcSip, "source ip/prefix, eg 10.10.10.10 or 10.0.0.0/8", 0},
-        {'o', 'o', "dst_port", 's', &pcDport, "destination port range,  eg 80 or 100/200", 0},
-        {'o', 'S', "src_ip_group", 's', &pcSipPool, "source ip addresses group name, eg sip-pool", 0},
-        {'o', 'O', "dst_port_group", 's', &pcDportPool, "destination port group name, eg dport-pool", 0},
-        {'o', 'd', "domain", 's', &pcDomain, "Domain string", 0},
-        {'o', 'D', "domain_group", 's', &pcDomainGroup, "Domain group name", 0},
-        {'o', 't', "protocol", 'u', &uiProto, "protocal num, eg 17", 0},
-        {'o', 'a', "application_group", 's', &pcApp, "Application_group name, eg:google/Search", 0},
-        {'o', 'A', "application_set", 's', &pcGroup, "Application or group set", 0},
+        {'o', 's', "src_ip", GETOPT2_V_STRING, &pcSip, "source ip/prefix, eg 10.10.10.10 or 10.0.0.0/8", 0},
+        {'o', 'o', "dst_port", GETOPT2_V_STRING, &pcDport, "destination port range,  eg 80 or 100/200", 0},
+        {'o', 'S', "src_ip_group", GETOPT2_V_STRING, &pcSipPool, "source ip addresses group name, eg sip-pool", 0},
+        {'o', 'O', "dst_port_group", GETOPT2_V_STRING, &pcDportPool, "destination port group name, eg dport-pool", 0},
+        {'o', 'd', "domain", GETOPT2_V_STRING, &pcDomain, "Domain string", 0},
+        {'o', 'D', "domain_group", GETOPT2_V_STRING, &pcDomainGroup, "Domain group name", 0},
+        {'o', 't', "protocol", GETOPT2_V_U32, &uiProto, "protocal num, eg 17", 0},
+        {'o', 'a', "application_group", GETOPT2_V_STRING, &pcApp, "Application_group name, eg:google/Search", 0},
+        {'o', 'A', "application_set", GETOPT2_V_STRING, &pcGroup, "Application or group set", 0},
         {0}};
 
 
@@ -567,7 +572,7 @@ void AclDomain_DestroyMuc(ACL_MUC_S *acl_muc)
     return;
 }
 
-/* ip-acl %STRING */
+
 PLUG_API BS_STATUS AclDomain_EnterListView(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS eRet;
@@ -587,7 +592,7 @@ PLUG_API BS_STATUS AclDomain_EnterListView(IN UINT uiArgc, IN CHAR **ppcArgv, IN
     return BS_OK;
 }
 
-/* no domain-acl %STRING */
+
 PLUG_API BS_STATUS AclDomain_CmdNoList(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS eRet;
@@ -617,7 +622,7 @@ PLUG_API BS_STATUS AclDomain_Clear(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *p
 }
 
 
-/* move rule %INT to %INT */
+
 PLUG_API BS_STATUS AclDomain_CmdMoveRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName;
@@ -654,7 +659,7 @@ PLUG_API BS_STATUS AclDomain_CmdMoveRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN V
     return eRet;
 }
 
-/* no rule %INT */
+
 PLUG_API BS_STATUS AclDomain_CmdNoRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName;
@@ -793,7 +798,7 @@ PLUG_API BS_STATUS AclDomain_Cmd_IncreaseID(IN UINT uiArgc, IN CHAR **ppcArgv, I
     return BS_OK;
 }
 
-/* default action permit|deny */
+
 PLUG_API BS_STATUS AclDomain_CmdSet_DefaultAction(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName = CMD_EXP_GetCurrentModeValue(pEnv);
@@ -826,7 +831,7 @@ PLUG_API BS_STATUS AclDomain_CmdSet_DefaultAction(IN UINT uiArgc, IN CHAR **ppcA
     return DOMAINACL_SetDefaultActionByID(domainacl, uiListID, enAction);
 }
 
-/* rule %INT<1-10000> action {permit|deny} --sip 10.0.0.0/8 --dip 10.0.0.0/8 --sport 100000-60000 --dport 443,80 --proto 17  */
+
 PLUG_API BS_STATUS AclDomain_CmdRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS enRet = BS_OK;

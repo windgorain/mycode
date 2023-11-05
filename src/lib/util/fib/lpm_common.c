@@ -20,7 +20,7 @@ typedef struct {
     UINT64 nexthop;
 }LPM_RECORD_NODE_S;
 
-static BS_WALK_RET_E _lpm_recording_walk(IN MAP_ELE_S *pstEle, IN VOID *pUserHandle)
+static int _lpm_recording_walk(IN MAP_ELE_S *pstEle, IN VOID *pUserHandle)
 {
     LPM_RECORD_NODE_S *node = pstEle->pData;
     USER_HANDLE_S *uh = pUserHandle;
@@ -82,7 +82,7 @@ int LPM_EnableRecording(IN LPM_S *lpm)
     return 0;
 }
 
-int LPM_Add(IN LPM_S *lpm, UINT ip/*host order*/, UCHAR depth, UINT64 nexthop)
+int LPM_Add(IN LPM_S *lpm, UINT ip, UCHAR depth, UINT64 nexthop)
 {
     UINT mask = PREFIX_2_MASK(depth);
     ip = ip & mask;
@@ -134,7 +134,7 @@ void LPM_Final(LPM_S *lpm)
     lpm->funcs->final_func(lpm);
 }
 
-int LPM_Del(IN LPM_S *lpm, UINT ip/*host order*/, UCHAR depth, UCHAR new_depth, UINT64 new_nexthop)
+int LPM_Del(IN LPM_S *lpm, UINT ip, UCHAR depth, UCHAR new_depth, UINT64 new_nexthop)
 {
     UINT mask = PREFIX_2_MASK(depth);
     ip = ip & mask;
@@ -147,7 +147,7 @@ int LPM_Del(IN LPM_S *lpm, UINT ip/*host order*/, UCHAR depth, UCHAR new_depth, 
 
     LPM_RECORD_NODE_S * node = _lpm_get_parent(lpm, ip, depth);
     if (node) {
-        /* 使能了recording, 则外界不再需要传递new_depth和new_nexthop了,由recording负责 */
+        
         new_depth = node->key.depth;
         new_nexthop = node->nexthop;
     }
@@ -171,7 +171,7 @@ int LPM_WalkRecording(LPM_S *lpm, PF_LPM_WALK_CB walk_func, void *ud)
     return 0;
 }
 
-int LPM_FindRecording(LPM_S *lpm, UINT ip/*host order*/, UCHAR depth, OUT UINT64 *nexthop/* 可以为NULL */)
+int LPM_FindRecording(LPM_S *lpm, UINT ip, UCHAR depth, OUT UINT64 *nexthop)
 {
     UINT mask = PREFIX_2_MASK(depth);
     LPM_RECORD_KEY_S key = {0};

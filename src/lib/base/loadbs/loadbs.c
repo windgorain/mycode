@@ -22,7 +22,7 @@ static BOOL_T _Load_ConsoleCtrlHander(IN INT lEvent)
 {
     switch (lEvent)
      {
-        // Handle the CTRL+C signal.
+        
         case CTRL_C_EVENT:
         case CTRL_SHUTDOWN_EVENT:
         case CTRL_CLOSE_EVENT:
@@ -31,7 +31,7 @@ static BOOL_T _Load_ConsoleCtrlHander(IN INT lEvent)
             return FALSE;
         }
 
-        // Pass other signals to the next handler.
+        
         case CTRL_LOGOFF_EVENT:
         case CTRL_BREAK_EVENT:
         default:
@@ -49,12 +49,12 @@ static BS_STATUS _Load_RegConsoleCtrlHander()
 #ifdef IN_UNIXLIKE
 static BS_STATUS _Load_RegConsoleCtrlHander()
 {
-    /* Not support yet ! */
+    
 
 	return BS_OK;
 }
 
-#if 0 /* 因为编译告警无用函数原因注释掉 */
+#if 0 
 static void loadbs_linuxDump(int signo)
 {
     char buf[1024];

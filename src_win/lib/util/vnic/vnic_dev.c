@@ -116,7 +116,7 @@ VNETC_VNIC_PHY_REGTAP_S * get_tap_reg ()
                         reg->guid = TXT_Strdup(net_cfg_instance_id);
                         reg->unit_key = unit_key;
 
-                        /* link into return list */
+                        
                         if (!first) {
                             first = reg;
                         }
@@ -144,13 +144,13 @@ static CHAR * get_unspecified_device_guid(IN int device_number, IN struct tap_re
   const struct tap_reg *tap_reg = tap_reg_src;
   int i;
 
-    /* Make sure we have at least one TAP adapter */
+    
     if (!tap_reg)
     {
         return NULL;
     }
 
-    /* Move on to specified device number */
+    
     for (i = 0; i < device_number; i++)
     {
         tap_reg = tap_reg->next;
@@ -220,7 +220,7 @@ static HANDLE _vnic_dev_TryOpen(OUT CHAR *pcGuidOut, IN UINT uiSize)
     return NULL;
 }
 
-/* 安装Tap虚拟网卡 */
+
 static VOID _vnic_dev_InstallTap()
 {
     CHAR *pcExePath;
@@ -237,17 +237,17 @@ static HANDLE _vnic_dev_Open(OUT CHAR *pcGuidOut, IN UINT uiSize)
 {
     HANDLE hVnicAgent;
 
-    /* 1. 尝试打开 */
+    
     hVnicAgent = _vnic_dev_TryOpen(pcGuidOut, uiSize);
     if (NULL != hVnicAgent)
     {
         return hVnicAgent;
     }
 
-    /* 2. 尝试安装tap */
+    
     _vnic_dev_InstallTap();
 
-    /* 3. 再次尝试打开 */
+    
     hVnicAgent = _vnic_dev_TryOpen(pcGuidOut, uiSize);
     if (NULL != hVnicAgent)
     {
@@ -273,7 +273,7 @@ VNIC_HANDLE VNIC_Dev_Open()
     return hVnic;
 }
 
-VOID VNIC_Dev_SetTun(VNIC_HANDLE hVnic, UINT ip/*net order*/, UINT mask)
+VOID VNIC_Dev_SetTun(VNIC_HANDLE hVnic, UINT ip, UINT mask)
 {
 	unsigned int ep[3] = {0};
 

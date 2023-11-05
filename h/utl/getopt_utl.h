@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE GETOPT_HANDLE;
 
@@ -31,8 +31,8 @@ INT GETOPT_GetOpt
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__GETOPT_UTL_H_*/
+#endif 
 
 

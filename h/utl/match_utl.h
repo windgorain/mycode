@@ -10,7 +10,7 @@ extern "C"
 {
 #endif
 
-#if 1 /* MATCH */
+#if 1 
 
 typedef void* MATCH_HANDLE;
 
@@ -26,7 +26,7 @@ void Match_Disable(MATCH_HANDLE head, int index);
 BOOL_T Match_IsEnable(MATCH_HANDLE head, int index);
 void Match_SetUD(MATCH_HANDLE head, int index, void *ud);
 void * Match_GetUD(MATCH_HANDLE head, int index);
-/* 返回Match的index */
+
 int Match_Do(MATCH_HANDLE head, void *key);
 UINT64 Match_GetMatchedCount(MATCH_HANDLE head, int index);
 void Match_ResetMatchedCount(MATCH_HANDLE head, int index);
@@ -35,7 +35,7 @@ void Match_ResetAllMatchedCount(MATCH_HANDLE head);
 #endif
 
 
-#if 1 /* IP MATCH */
+#if 1 
 typedef struct {
     UINT sip;
     UINT dip;
@@ -58,11 +58,11 @@ MATCH_HANDLE IPMatch_Create(UINT max);
 void IPMatch_LoadConfig(MATCH_HANDLE head, char *file);
 #endif
 
-#if 1 /* UINT MATCH */
+#if 1 
 MATCH_HANDLE UintMatch_Create(UINT max);
 #endif
 
-#if 1 /* BPF MATCH */
+#if 1 
 typedef struct {
     void *pkt;
     int len;
@@ -74,5 +74,5 @@ MATCH_HANDLE BpfMatch_Create(UINT max);
 #ifdef __cplusplus
 }
 #endif
-#endif //MATCH_UTL_H
+#endif 
 

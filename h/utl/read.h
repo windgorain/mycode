@@ -7,21 +7,18 @@
 
 #ifndef __HIREDIS_READ_H
 #define __HIREDIS_READ_H
-#include <stdio.h> /* for size_t */
+#include <stdio.h> 
 
 #define REDIS_ERR -1
 #define REDIS_OK 0
 
-/* When an error occurs, the err flag in a context is set to hold the type of
- * error that occurred. REDIS_ERR_IO means there was an I/O error and you
- * should use the "errno" variable to find out what is wrong.
- * For other values, the "errstr" field will hold a description. */
-#define REDIS_ERR_IO 1 /* Error in read or write */
-#define REDIS_ERR_EOF 3 /* End of file */
-#define REDIS_ERR_PROTOCOL 4 /* Protocol error */
-#define REDIS_ERR_OOM 5 /* Out of memory */
-#define REDIS_ERR_TIMEOUT 6 /* Timed out */
-#define REDIS_ERR_OTHER 2 /* Everything else... */
+
+#define REDIS_ERR_IO 1 
+#define REDIS_ERR_EOF 3 
+#define REDIS_ERR_PROTOCOL 4 
+#define REDIS_ERR_OOM 5 
+#define REDIS_ERR_TIMEOUT 6 
+#define REDIS_ERR_OTHER 2 
 
 #define REDIS_REPLY_STRING 1
 #define REDIS_REPLY_ARRAY 2
@@ -38,10 +35,10 @@
 #define REDIS_REPLY_BIGNUM 13
 #define REDIS_REPLY_VERB 14
 
-/* Default max unused reader buffer. */
+
 #define REDIS_READER_MAX_BUF (1024*16)
 
-/* Default multi-bulk element limit */
+
 #define REDIS_READER_MAX_ARRAY_ELEMENTS ((1LL<<32) - 1)
 
 #ifdef __cplusplus
@@ -50,11 +47,11 @@ extern "C" {
 
 typedef struct redisReadTask {
     int type;
-    long long elements; /* number of elements in multibulk container */
-    int idx; /* index in parent (array) object */
-    void *obj; /* holds user-generated value for a read task */
-    struct redisReadTask *parent; /* parent task */
-    void *privdata; /* user-settable arbitrary field */
+    long long elements; 
+    int idx; 
+    void *obj; 
+    struct redisReadTask *parent; 
+    void *privdata; 
 } redisReadTask;
 
 typedef struct redisReplyObjectFunctions {
@@ -68,26 +65,26 @@ typedef struct redisReplyObjectFunctions {
 } redisReplyObjectFunctions;
 
 typedef struct redisReader {
-    int err; /* Error flags, 0 when there is no error */
-    char errstr[128]; /* String representation of error when applicable */
+    int err; 
+    char errstr[128]; 
 
-    char *buf; /* Read buffer */
-    size_t pos; /* Buffer cursor */
-    size_t len; /* Buffer length */
-    size_t maxbuf; /* Max length of unused buffer */
-    long long maxelements; /* Max multi-bulk elements */
+    char *buf; 
+    size_t pos; 
+    size_t len; 
+    size_t maxbuf; 
+    long long maxelements; 
 
     redisReadTask **task;
     int tasks;
 
-    int ridx; /* Index of current read task */
-    void *reply; /* Temporary reply pointer */
+    int ridx; 
+    void *reply; 
 
     redisReplyObjectFunctions *fn;
     void *privdata;
 } redisReader;
 
-/* Public API for the protocol parser. */
+
 redisReader *redisReaderCreateWithFunctions(redisReplyObjectFunctions *fn);
 void redisReaderFree(redisReader *r);
 int redisReaderFeed(redisReader *r, const char *buf, size_t len);

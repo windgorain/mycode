@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_TXT
 
 #include "bs.h"
@@ -17,25 +17,13 @@
 #ifdef IN_WINDOWS
 
 
-/************************************************************************
- 函数说明    : Unicode 转 ANSI                                    
- 参数        : Unicode数据、ANSI接收缓存、缓存大小
- 返回值      : 
-    1. uiSize==0时,返回需要的字节数
-    2. uiSize!=0时,返回0(失败)或者填充的字节数(包含结束符)
-************************************************************************/
+
 UINT STR_UnicodeToAnsi(IN VOID * pUnicode, OUT CHAR * pcStr, IN UINT uiSize)
 {  
     return WideCharToMultiByte(CP_ACP, 0, pUnicode, -1, pcStr, uiSize, NULL, FALSE);
 }  
 
-/************************************************************************  
- 函数说明    : ANSI 转 Unicode                                       
- 参数        : ANSI数据、Unicode接收缓存、缓存大小                                 
- 返回值      : 
-    1. uiSize==0时,返回需要的字节数
-    2. uiSize!=0时,返回0(失败)或者填充的字节数(包含结束符)
-***********************************************************************/
+
 UINT STR_AnsiToUnicode(IN CHAR *pcStr, OUT VOID *pUnicode, IN UINT uiSize)  
 {
     UINT uiLen;
@@ -45,23 +33,13 @@ UINT STR_AnsiToUnicode(IN CHAR *pcStr, OUT VOID *pUnicode, IN UINT uiSize)
     return uiLen * sizeof(wchar_t);  
 }
 
-/***********************************************************************
- 函数说明    : Unicode 转 UTF8
- 返回值      : 
-    1. uiSize==0时,返回需要的字节数
-    2. uiSize!=0时,返回0(失败)或者填充的字节数(包含结束符)
-***********************************************************************/
+
 UINT STR_UnicodeToUtf8(IN VOID *pUnicode, OUT VOID *pUtf8, IN UINT uiSize)
 {  
     return WideCharToMultiByte (CP_UTF8, 0, pUnicode, -1, pUtf8, uiSize, NULL,NULL);
 }
 
-/**********************************************************************  
- 函数说明    : Unicode 转 UTF8
- 返回值      : 
-    1. uiSize==0时,返回需要的字节数
-    2. uiSize!=0时,返回0(失败)或者填充的字节数(包含结束符)
-***********************************************************************/
+
 UINT STR_Utf8ToUnicode(IN CHAR *pUtf8, OUT VOID *pUnicode, IN UINT uiSize)
 {  
     UINT uiLen;
@@ -71,10 +49,7 @@ UINT STR_Utf8ToUnicode(IN CHAR *pUtf8, OUT VOID *pUnicode, IN UINT uiSize)
     return uiLen * sizeof(wchar_t); 
 }
 
-/* 返回值 :
-    1. uiSize==0时,返回需要的字节数
-    2. uiSize!=0时,返回0(失败)或者填充的字节数(包含结束符)
-*/
+
 UINT STR_AnsiToUtf8(IN CHAR *pcStr, OUT VOID *pUtf8, IN UINT uiSize)
 {
     UINT uiLen;
@@ -102,10 +77,7 @@ UINT STR_AnsiToUtf8(IN CHAR *pcStr, OUT VOID *pUtf8, IN UINT uiSize)
     return uiLen;
 }
 
-/* 返回值 :
-    1. uiSize==0时,返回需要的字节数
-    2. uiSize!=0时,返回0(失败)或者填充的字节数(包含结束符)
-*/
+
 UINT STR_Utf8ToAnsi(IN VOID *pUtf8, OUT CHAR * pcStr, IN UINT uiSize)
 {
     VOID *pWide;

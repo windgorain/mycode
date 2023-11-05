@@ -272,7 +272,7 @@ static BOOL_T _svpn_context_DelNotify(IN HANDLE hUserHandle, IN CHAR *pcNodeName
 {
     SVPN_Context_DelContext(pcNodeName);
 
-    /* 已经删除了,无需再删除一次,所以返回FALSE */
+    
     return FALSE;
 }
 

@@ -6,15 +6,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* UDP header*/
+
 typedef struct 
 {
-	USHORT usSrcPort;		// Source port
-	USHORT usDstPort; 		// Destination port
-	USHORT usDataLength; 	/* Datagram length. 包含udp首部和用户数据*/
-	USHORT usCrc;			// Checksum
+	USHORT usSrcPort;		
+	USHORT usDstPort; 		
+	USHORT usDataLength; 	
+	USHORT usCrc;			
 }UDP_HEAD_S;
 
 USHORT UDP_CheckSum
@@ -29,7 +29,7 @@ UDP_HEAD_S * UDP_GetUDPHeader(IN VOID *pucData, IN UINT uiDataLen, IN NET_PKT_TY
 
 CHAR * UDP_Header2String(IN VOID *udp, OUT CHAR *info, IN UINT infosize);
 
-/* 检查UDP头长度是否足够 */
+
 static inline BOOL_T UDP_IsHeaderEnough(UDP_HEAD_S *udp_head, int len)
 {
     if (len < sizeof(UDP_HEAD_S)) {
@@ -41,8 +41,8 @@ static inline BOOL_T UDP_IsHeaderEnough(UDP_HEAD_S *udp_head, int len)
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__UDP_UTL_H_*/
+#endif 
 
 

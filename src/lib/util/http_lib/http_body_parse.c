@@ -16,9 +16,9 @@ typedef struct
 {
     HTTP_HEAD_PARSER hHeadParser;
     HTTP_BODY_TRAN_TYPE_E eTranType;
-    UINT uiRemainLen;   /* 剩余多少数据未读,当eTranType==HTTP_BODY_TRAN_TYPE_CONTENT_LENGTH时有效 */
-    HTTP_CHUNK_HANDLE hChunkParser; /* 当eTranType==HTTP_BODY_TRAN_TYPE_CHUNKED时有效 */
-    BOOL_T bIsFinish;   /* 处理Body完成 */
+    UINT uiRemainLen;   
+    HTTP_CHUNK_HANDLE hChunkParser; 
+    BOOL_T bIsFinish;   
 
     PF_HTTP_BODY_FUNC pfBodyFunc;
     USER_HANDLE_S stUserHandle;
@@ -198,17 +198,13 @@ VOID HTTP_BODY_DestroyParser(IN HTTP_BODY_PARSER hBodyParser)
     }
 }
 
-/*
-    OK: 接收完成
-    NOT_COMPLETE: 需要继续接收数据
-    其他: 错误原因
-*/
+
 BS_STATUS HTTP_BODY_Parse
 (
     IN HTTP_BODY_PARSER hBodyParser,
     IN UCHAR *pucData,
-    IN UINT uiDataLen,      /* 为0表示对端Closed了 */
-    OUT UINT *puiParsedLen  /* 解析了多少数据 */
+    IN UINT uiDataLen,      
+    OUT UINT *puiParsedLen  
 )
 {
     HTTP_BODY_PSRSER_S *pstParser = hBodyParser;

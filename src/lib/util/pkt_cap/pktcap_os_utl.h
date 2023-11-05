@@ -17,7 +17,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef int	(*PF_pcap_findalldevs)(pcap_if_t **, char *);
 typedef void (*PF_pcap_freealldevs)(pcap_if_t *);
@@ -49,8 +49,8 @@ typedef struct
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__PKTCAP_OS_UTL_H_*/
+#endif 
 
 

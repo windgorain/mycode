@@ -15,4 +15,4 @@ BS_STATUS LocalUserCore_Init();
 #ifdef __cplusplus
 }
 #endif
-#endif //LOCALUSER_CORE_H_
+#endif 

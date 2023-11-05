@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 static inline INT HEX_2_NUM(IN CHAR cHex)
 {
@@ -56,9 +56,9 @@ static inline BS_STATUS HEX_2_UCHAR(IN CHAR *pcHex, OUT UCHAR *puch)
 
 void UCHAR_2_HEX(UCHAR c, OUT CHAR *hex);
 
-/* 最后不添加'\0' */
+
 extern BS_STATUS DH_Data2Hex(IN UCHAR *pucData, IN UINT ulLen, OUT CHAR *pszOutString);
-/* 最后添加'\0' */
+
 extern BS_STATUS DH_Data2HexString(IN UCHAR *pucData, IN UINT ulLen, OUT CHAR *pszOutString);
 
 extern BS_STATUS DH_Hex2Data(IN CHAR *pszHex, IN UINT ulHexLen, OUT UCHAR *pucData);
@@ -68,8 +68,8 @@ extern BS_STATUS HexStrToByte(const char* source, unsigned char* dest, int sourc
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__DATA2HEX_UTL_H_*/
+#endif 
 
 

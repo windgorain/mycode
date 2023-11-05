@@ -9,11 +9,6 @@
 #include "utl/time_utl.h"
 #include "utl/rand_utl.h"
 
-UINT RAND_Get(void)
-{
-    return rand();
-}
-
 UINT RAND_GetNonZero(void)
 {
     UINT uiRand;
@@ -31,7 +26,7 @@ VOID RAND_Entropy(IN UINT uiEntropy)
     srand(seed);
 }
 
-/* 生成一段随机内存 */
+
 void RAND_Mem(OUT UCHAR *buf, int len)
 {
     int i;
@@ -42,7 +37,7 @@ void RAND_Mem(OUT UCHAR *buf, int len)
 }
 
 #ifdef IN_UNIXLIKE
-/* 获取/dev/urandom随机数 */
+
 unsigned long RAND_GetRandom(void)
 {
 	int fd=0;
@@ -72,7 +67,7 @@ unsigned long RAND_GetRandom(void)
 
 static void rand_init(void)
 {
-    srand(time(NULL));
+    RAND_Init();
 }
 
 CONSTRUCTOR(init) {

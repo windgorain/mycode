@@ -62,12 +62,12 @@ VOID VNETC_ArpMonitor_ProcArpRequest(IN UINT ulIfIndex, IN MBUF_S *pstMbuf)
     }
 
     pstArp = MBUF_MTOD (pstMbuf);
-    if (pstArp->usOperation != htons(ARP_REQUEST))          /*  只处理ARP请求 */
+    if (pstArp->usOperation != htons(ARP_REQUEST))          
     {
         return;
     }
 
-    if (pstArp->ulDstIp == pstArp->ulSenderIp)   /* 如果目标地址是自己, 则是在进行地址冲突检测 */
+    if (pstArp->ulDstIp == pstArp->ulSenderIp)   
     {
         return;
     }

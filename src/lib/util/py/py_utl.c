@@ -11,7 +11,7 @@
 #include "utl/py_utl.h"
 #include "python/Python.h"
 
-/* 初始化Py环境 */
+
 BS_STATUS PY_Init()
 {
     if (Py_IsInitialized())
@@ -56,7 +56,7 @@ VOID PY_DecRef(IN VOID *pPyObject)
     }
 }
 
-/* 获取Python模块 */
+
 VOID * PY_ImportModule(IN CHAR *pcModule)
 {
     return PyImport_ImportModule(pcModule);
@@ -72,14 +72,14 @@ VOID * PY_NewClassInstance(IN VOID *pMod, IN CHAR *pcClassName, IN CHAR *pcForma
     PyObject *pParm = NULL, *pClass, *pInstance;
     va_list    vargs;
 
-    /* 获取类 */
+    
     pClass = PY_GetAttrString(pMod, pcClassName);
     if (!pClass)
     {
         return NULL;
     }
 
-    /* 创建参数 */
+    
     if (pcFormat)
     {
         va_start(vargs, pcFormat);
@@ -92,7 +92,7 @@ VOID * PY_NewClassInstance(IN VOID *pMod, IN CHAR *pcClassName, IN CHAR *pcForma
         }
     }
 
-    /* 生成一个对象 */
+    
     pInstance = PyEval_CallObject(pClass, pParm);
 
     PY_DecRef(pParm);
@@ -101,14 +101,14 @@ VOID * PY_NewClassInstance(IN VOID *pMod, IN CHAR *pcClassName, IN CHAR *pcForma
     return pInstance;
 }
 
-/* 调用Python方法 */
+
 VOID * PY_CallObject(IN VOID *pMethod, IN CHAR *pcFormat, ...)
 {
     PyObject * pParm = NULL;
     PyObject * pRetVal;
     va_list    vargs;
 
-    /* 创建参数 */
+    
     if (pcFormat)
     {
         va_start(vargs, pcFormat);
@@ -121,7 +121,7 @@ VOID * PY_CallObject(IN VOID *pMethod, IN CHAR *pcFormat, ...)
         }
     }
 
-    /* 函数调用 */
+    
     pRetVal = PyEval_CallObject(pMethod, pParm);
 
     PY_DecRef(pParm);
@@ -150,7 +150,7 @@ VOID * PY_SimpleCallFunction(IN CHAR *pcModuleName, IN CHAR *pcFunctionName, IN 
         return NULL;
     }
 
-    /* 创建参数 */
+    
     if (pcFormat)
     {
         va_start(vargs, pcFormat);
@@ -165,7 +165,7 @@ VOID * PY_SimpleCallFunction(IN CHAR *pcModuleName, IN CHAR *pcFunctionName, IN 
         }
     }
 
-    /* 函数调用 */
+    
     pRetVal = PyEval_CallObject(pFunc, pParm);
 
     PY_DecRef(pParm);
@@ -205,7 +205,7 @@ VOID * PY_SimpleCallMethod(IN CHAR *pcModuleName, IN CHAR *pcClass, IN CHAR *pcM
         return NULL;
     }
 
-    /* 创建参数 */
+    
     if (pcFormat)
     {
         va_start(vargs, pcFormat);
@@ -221,7 +221,7 @@ VOID * PY_SimpleCallMethod(IN CHAR *pcModuleName, IN CHAR *pcClass, IN CHAR *pcM
         }
     }
 
-    /* 函数调用 */
+    
     pRetVal = PyEval_CallObject(pMethod, pParm);
 
     PY_DecRef(pParm);

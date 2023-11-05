@@ -20,4 +20,4 @@ void LOGAGENT_TCP_Save(HANDLE hFile);
 #ifdef __cplusplus
 }
 #endif
-#endif //LOG_AGENT_TCP_H_
+#endif 

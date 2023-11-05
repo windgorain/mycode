@@ -149,7 +149,7 @@ static int match_GetByKey(MATCH_S *ctrl, void *key)
     return -1;
 }
 
-/* 返回Match的index */
+
 int Match_Do(MATCH_HANDLE head, void *key)
 {
     MATCH_S *ctrl = head;

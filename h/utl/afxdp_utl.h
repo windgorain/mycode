@@ -40,4 +40,4 @@ int AFXDP_SendPkt(AFXDP_HANDLE hAfXdp, void *data, int data_len);
 #ifdef __cplusplus
 }
 #endif
-#endif //AFXDP_UTL_H_
+#endif 

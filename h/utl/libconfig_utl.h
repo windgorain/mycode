@@ -120,4 +120,4 @@ static inline int LibConfig_SetStrNumArray(void *cfg, char *name, char *eles)
 #ifdef __cplusplus
 }
 #endif
-#endif //LIBCONFIG_UTL_H_
+#endif 

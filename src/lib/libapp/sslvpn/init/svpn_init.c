@@ -45,7 +45,7 @@ BS_STATUS SVPN_Init()
     return BS_OK;
 }
 
-/* save */
+
 PLUG_API BS_STATUS SVPN_Save(IN HANDLE hFile)
 {
     SVPN_ContextCmd_Save(hFile);

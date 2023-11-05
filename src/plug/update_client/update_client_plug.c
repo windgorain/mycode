@@ -86,7 +86,7 @@ static VOID uc_Start(IN CHAR *pcVerPath)
     }
 }
 
-/* update %STRING<1-255> */
+
 PLUG_API BS_STATUS UC_CmdStart(IN UINT ulArgc, IN CHAR **argv)
 {
     if (ulArgc < 2)

@@ -23,7 +23,7 @@ int readNlSock(int sockFd, char *bufPtr, int seqNum, int pId)     
 
     do
     {
-        //收到内核的应答
+        
         if((readLen = recv(sockFd, bufPtr, BUFSIZE - msgLen, 0)) < 0)
         {
             perror("SOCK READ: ");
@@ -32,7 +32,7 @@ int readNlSock(int sockFd, char *bufPtr, int seqNum, int pId)     
 
         nlHdr = (struct nlmsghdr *)bufPtr;
 
-        //检查header是否有效
+        
         if((NLMSG_OK(nlHdr, readLen) == 0) || (nlHdr->nlmsg_type == NLMSG_ERROR))
         {
             perror("Error in recieved packet");
@@ -60,7 +60,7 @@ int readNlSock(int sockFd, char *bufPtr, int seqNum, int pId)     
 }
 
 
-//分析返回的路由信息
+
 void parseRoutes(struct nlmsghdr *nlHdr, struct route_info *rtInfo,char *gateway)
 {
     struct rtmsg *rtMsg;
@@ -72,8 +72,8 @@ void parseRoutes(struct nlmsghdr *nlHdr, struct route_info *rtInfo,char *gateway
     tempBuf = (char *)malloc(100);
     rtMsg = (struct rtmsg *)NLMSG_DATA(nlHdr);
 
-    // If the route is not for AF_INET or does not belong to main routing table
-    //then return.
+    
+    
     if((rtMsg->rtm_family != AF_INET) || (rtMsg->rtm_table != RT_TABLE_MAIN))
     {
         return;
@@ -136,11 +136,11 @@ int get_gateway(char *gateway)
     memset(msgBuf, 0, BUFSIZE);
     nlMsg = (struct nlmsghdr *)msgBuf;
     rtMsg = (struct rtmsg *)NLMSG_DATA(nlMsg);
-    nlMsg->nlmsg_len = NLMSG_LENGTH(sizeof(struct rtmsg)); // Length of message.
-    nlMsg->nlmsg_type = RTM_GETROUTE; // Get the routes from kernel routing table .
-    nlMsg->nlmsg_flags = NLM_F_DUMP | NLM_F_REQUEST; // The message is a request for dump.
-    nlMsg->nlmsg_seq = msgSeq++; // Sequence of the message packet.
-    nlMsg->nlmsg_pid = getpid(); // PID of process sending the request.
+    nlMsg->nlmsg_len = NLMSG_LENGTH(sizeof(struct rtmsg)); 
+    nlMsg->nlmsg_type = RTM_GETROUTE; 
+    nlMsg->nlmsg_flags = NLM_F_DUMP | NLM_F_REQUEST; 
+    nlMsg->nlmsg_seq = msgSeq++; 
+    nlMsg->nlmsg_pid = getpid(); 
 
     if(send(sock, nlMsg, nlMsg->nlmsg_len, 0) < 0)
     {

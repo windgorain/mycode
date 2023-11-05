@@ -19,8 +19,8 @@ typedef struct
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNET_OFFLINE_H_*/
+#endif 
 
 

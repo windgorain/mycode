@@ -15,4 +15,4 @@ int PollerComp_Init();
 #ifdef __cplusplus
 }
 #endif
-#endif //POLLER_COMP_H_
+#endif 

@@ -40,7 +40,7 @@
 
 typedef BS_STATUS (*PF_VNETC_INIT_FUNC)();
 
-/* 第一阶段初始化, 放置不需要依赖于任何其他模块初始化的函数 */
+
 static PF_VNETC_INIT_FUNC g_apfVnetcInit1[] =
 {
     VNETC_Ipmac_Init,
@@ -56,7 +56,7 @@ static PF_VNETC_INIT_FUNC g_apfVnetcInit1[] =
     VNETC_P_AddrChange_Init
 };
 
-/* 第二阶段初始化, 放置需要依赖第一阶段已经完成的初始化函数 */
+
 static PF_VNETC_INIT_FUNC g_apfVnetcInit2[] =
 {
     VNETC_SesC2S_Init,

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 BS_STATUS SCALL_Start();
@@ -18,8 +18,8 @@ BS_STATUS SCALL_Start();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SCALL_H_*/
+#endif 
 
 

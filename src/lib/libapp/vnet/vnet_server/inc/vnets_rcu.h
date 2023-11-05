@@ -6,7 +6,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETS_RCU_Init();
 VOID VNETS_RCU_Free(IN RCU_NODE_S * pstNode, IN PF_RCU_FREE_FUNC pfFreeFunc);
@@ -15,8 +15,8 @@ VOID VNETS_RCU_UnLock(IN UINT uiPhase);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_RCU_H_*/
+#endif 
 
 

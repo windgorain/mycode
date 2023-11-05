@@ -56,7 +56,7 @@ BS_STATUS _OS_PROCESS_SuspendMainThread(IN LONG lPid)
 
 HANDLE _OS_PROCESS_GetProcess(IN LONG lId)
 {
-    return NULL; /* 不支持 */
+    return NULL; 
 }
 
 BOOL_T _OS_PROCESS_IsPidExist(IN UINT pid)
@@ -77,7 +77,7 @@ BOOL_T _OS_PROCESS_IsPidExist(IN UINT pid)
         return FALSE;
     }
 
-    if(strcmp(buff,"ABNORMAL")==0) {  /*ps command error*/
+    if(strcmp(buff,"ABNORMAL")==0) {  
         pclose(ptr);
         return FALSE;
     }
@@ -107,7 +107,7 @@ BOOL_T _OS_PROCESS_IsProcessNameExist(IN char *process)
 
     printf("%s\r\n", buff);
 
-    if(strcmp(buff,"ABNORMAL")==0) {  /*ps command error*/
+    if(strcmp(buff,"ABNORMAL")==0) {  
         pclose(ptr);
         return FALSE;
     }

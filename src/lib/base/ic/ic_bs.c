@@ -18,7 +18,7 @@
 #define BS_PRINTF_MAX_LEN    2048
 #define _IC_MAX_OB 1
 
-/*structs*/
+
 typedef struct {
     UINT used:1;
     UINT events;
@@ -26,7 +26,7 @@ typedef struct {
     USER_HANDLE_S stUserHandle;
 }_IC_REG_NODE_S;
 
-/*vars*/
+
 static DLL_HEAD_S  g_stIcRegList = DLL_HEAD_INIT_VALUE(&g_stIcRegList);
 static MUTEX_S g_stIcMutex;
 static _IC_REG_NODE_S g_ic_obs[_IC_MAX_OB];
@@ -44,7 +44,7 @@ void IC_OutString(UINT event, char *msg)
     }
 
 #ifndef USE_BS
-    /* 可能出现了bug,进行提醒,可能需要修复 */
+    
     PRINT_COLOR(SHELL_FONT_COLOR_GREEN, "%s", msg);
 #endif
 

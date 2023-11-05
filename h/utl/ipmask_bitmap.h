@@ -11,19 +11,19 @@ extern "C"
 #endif
 
 typedef struct {
-    UCHAR depth; /* 最大支持的掩码长度 */
+    UCHAR depth; 
     UCHAR *bits;
 }IPMASK_BITMAP_S;
 
 #define IPMASK_BITMAP_DEPTH_2_BYTES(depth) (PREFIX_2_COUNT(depth) >> 3)
 
 void IPMASK_BITMAP_Init(IPMASK_BITMAP_S *ctrl, UCHAR depth);
-int IPMASK_BITMAP_Add(IPMASK_BITMAP_S *ctrl, UINT ip/*host order*/, UINT mask);
+int IPMASK_BITMAP_Add(IPMASK_BITMAP_S *ctrl, UINT ip, UINT mask);
 int IPMASK_BITMAP_Del(IPMASK_BITMAP_S *ctrl, UINT ip, UINT mask);
-int IPMASK_BITMAP_IsSet(IPMASK_BITMAP_S *ctrl, UINT ip/*host order*/);
+int IPMASK_BITMAP_IsSet(IPMASK_BITMAP_S *ctrl, UINT ip);
 void IPMASK_BITMAP_Show(IPMASK_BITMAP_S *ctrl);
 
 #ifdef __cplusplus
 }
 #endif
-#endif //IPMASK_BITMAP_H_
+#endif 

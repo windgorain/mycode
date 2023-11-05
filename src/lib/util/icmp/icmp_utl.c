@@ -6,7 +6,7 @@
 #include "utl/icmp_utl.h"
 #include "utl/in_checksum.h"
 
-/* 返回网络序的校验和 */
+
 USHORT ICMP_CheckSum (IN UCHAR *pucBuf, IN UINT uiLen)
 {
     return IN_CHKSUM_CheckSum(pucBuf, uiLen);
@@ -26,7 +26,7 @@ ICMP_HEAD_S * ICMP_GetIcmpHeader(IN VOID *pucData, IN UINT uiDataLen, IN NET_PKT
 
         if (pstIpHeader.family == ETH_P_IP) {
             if ((pstIpHeader.iph.ip4->ucProto != IP_PROTO_ICMP)) {
-                /*not icmp packet or packet is a fragment one*/
+                
                 return NULL;
             }
             uiHeadLen = ((UCHAR*)(pstIpHeader.iph.ip4) - (UCHAR*)pucData) + IP_HEAD_LEN(pstIpHeader.iph.ip4);
@@ -41,7 +41,7 @@ ICMP_HEAD_S * ICMP_GetIcmpHeader(IN VOID *pucData, IN UINT uiDataLen, IN NET_PKT
     }
 
     if (enPktTypeTmp == NET_PKT_TYPE_ICMP) {
-        /* 长度不够ICMP头的长度则返回NULL */
+        
         if (uiHeadLen + sizeof(ICMP_HEAD_S) > uiDataLen) {
             return NULL;
         }

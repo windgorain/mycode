@@ -19,7 +19,7 @@ typedef struct
     VOID *pUserContext;
 }HTML_UP_S;
 
-typedef VOID (*PF_HTML_UP_ATTR_VALUE_SPEC_PROCESS)(IN HTML_UP_S *pstUp, IN HTML_PARSER_TAG_S *pstTag);  /* attr value特殊处理 */
+typedef VOID (*PF_HTML_UP_ATTR_VALUE_SPEC_PROCESS)(IN HTML_UP_S *pstUp, IN HTML_PARSER_TAG_S *pstTag);  
 
 typedef struct
 {
@@ -61,10 +61,7 @@ static HTML_UP_LINK_S g_astHtmlUpLinks[] =
     HTML_UP_LINK("*", "pluginurl", NULL),
 };
 
-/* 检查是否URL:
-   1. 必须以"字母/."开头, 否则不是URL
-   2. 如果前缀是javascript或者script,则不认为是URL
-*/
+
 static BOOL_T html_up_UrlCheck(IN CHAR *pcString)
 {
     CHAR *pcStringTmp;
@@ -234,7 +231,7 @@ static VOID html_up_SpecProcessMetaContent(IN HTML_UP_S *pstUp, IN HTML_PARSER_T
         return;
     }
 
-    /* 1.输出url前面的内容 */
+    
     uiLen = pstUrl->pcData - pcAttrValue;
     if (uiLen > 0)
     {

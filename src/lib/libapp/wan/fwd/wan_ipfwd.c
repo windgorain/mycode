@@ -23,7 +23,7 @@
 #include "../h/wan_deliver_up.h"
 #include "../h/wan_ipfwd.h"
 
-/* Debug 选项 */
+
 #define WAN_IP_FWD_DBG_PACKET 0x1
 
 #define _WAN_IPFWD_DBG_WITH_ACL(_flag, _switch, _pstIpHead, _X) \
@@ -94,7 +94,7 @@ BS_STATUS WAN_IpFwd_Input (IN MBUF_S *pstMbuf)
         return BS_OK;
     }
 
-    /* 判断该报文是否是全1、全0广播地址 */
+    
     if ((pstIpHead->unDstIp.uiIp == 0xffffffff) || (pstIpHead->unDstIp.uiIp == 0))
     {
         _WAN_IPFWD_DBG_WITH_ACL(g_uiWanIpFwdDbgFlag, WAN_IP_FWD_DBG_PACKET, pstIpHead,
@@ -160,10 +160,10 @@ BS_STATUS WAN_IpFwd_Input (IN MBUF_S *pstMbuf)
     return IFNET_LinkOutput(stFibNode.uiOutIfIndex, pstMbuf, htons(ETH_P_IP));
 }
 
-/* 相比于OutPut, 不再填写IP头的东西,认为上面已经填写好了 */
+
 static BS_STATUS wan_ipfwd_PreSend
 (
-    IN MBUF_S *pstMbuf /* 带IP头 */
+    IN MBUF_S *pstMbuf 
 )
 {
     IP_HEAD_S *pstIpHead;
@@ -171,7 +171,7 @@ static BS_STATUS wan_ipfwd_PreSend
     FIB_NODE_S stFibNode;
     UINT uiVrfID;
 
-    /* 是否指定了出接口 */
+    
     ulIfIndex = MBUF_GET_SEND_IF_INDEX(pstMbuf);
     if (0 != ulIfIndex)
     {
@@ -210,7 +210,7 @@ static BS_STATUS wan_ipfwd_PreSend
 }
 
 
-/* 相比于OutPut, 不再填写IP头的东西,认为上面已经填写好了 */
+
 BS_STATUS WAN_IpFwd_Send(IN MBUF_S *pstMbuf)
 {
     UINT uiIfIndex;
@@ -237,8 +237,8 @@ BS_STATUS WAN_IpFwd_Send(IN MBUF_S *pstMbuf)
 BS_STATUS WAN_IpFwd_Output
 (
     IN MBUF_S *pstMbuf,
-    IN UINT uiDstIp,    /* 网络序 */
-    IN UINT uiSrcIp,    /* 网络序 */
+    IN UINT uiDstIp,    
+    IN UINT uiSrcIp,    
     IN UCHAR ucProto
 )
 {
@@ -259,9 +259,7 @@ BS_STATUS WAN_IpFwd_Output
     return WAN_IpFwd_Send(pstMbuf);
 }
 
-/*
-debug ip packet [acl xxx]
-*/
+
 PLUG_API BS_STATUS WAN_IpFwd_DebugPacket
 (
     IN UINT ulArgc,
@@ -295,9 +293,7 @@ PLUG_API BS_STATUS WAN_IpFwd_DebugPacket
     return BS_OK;
 }
 
-/*
-no debug ip packet
-*/
+
 PLUG_API BS_STATUS WAN_IpFwd_NoDebugPacket
 (
     IN UINT ulArgc,

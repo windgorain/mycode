@@ -10,7 +10,7 @@
 
 #ifdef IN_WINDOWS
 
-#define _VNIC_INS_MAX_RECEIVER_NUM 8 /* 最多支持32个receiver */
+#define _VNIC_INS_MAX_RECEIVER_NUM 8 
 
 typedef struct
 {

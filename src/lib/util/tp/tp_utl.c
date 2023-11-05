@@ -77,7 +77,7 @@ TP_HANDLE TP_Create
     IN PF_TP_SEND_FUNC pfSendFunc,
     IN PF_TP_EVENT_FUNC pfEventFunc,
     IN USER_HANDLE_S *pstUserHandle,
-    IN UINT uiMaxPropertys /* 支持多少个属性 */
+    IN UINT uiMaxPropertys 
 )
 {
     _TP_CTRL_S *pstCtrl;
@@ -322,7 +322,7 @@ BS_STATUS TP_Bind
 (
     IN TP_HANDLE hTpHandle,
     IN TP_ID uiTpId,
-    IN UINT uiProtocolId    /* 主机序 */
+    IN UINT uiProtocolId    
 )
 {
     _TP_CTRL_S *pstCtrl = hTpHandle;
@@ -635,7 +635,7 @@ BS_STATUS TP_RecvData
     return BS_OK;
 }
 
-/* 触发KeepAlive */
+
 VOID TP_TiggerKeepAlive(IN TP_HANDLE hTpHandle, IN TP_ID uiTpId)
 {
     

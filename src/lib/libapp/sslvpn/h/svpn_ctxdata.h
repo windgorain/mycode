@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef enum
 {
@@ -66,7 +66,7 @@ HSTRING SVPN_CtxData_GetPropAsHString
 BOOL_T SVPN_CtxData_IsObjectExist(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN SVPN_CTXDATA_E enDataIndex, IN CHAR *pcTag);
 VOID SVPN_CtxData_DelObject(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN SVPN_CTXDATA_E enDataIndex, IN CHAR *pcTag);
 UINT SVPN_CtxData_GetObjectCount(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN SVPN_CTXDATA_E enDataIndex);
-/* 删除指定表里面所有行的Prop里面的一项元素. 这个prop必须是以逗号分隔元素的 */
+
 VOID SVPN_CtxData_AllDelPropElement
 (
     IN SVPN_CONTEXT_HANDLE hSvpnContext,
@@ -149,8 +149,8 @@ VOID SVPN_CD_SaveElements
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_CTXDATA_H_*/
+#endif 
 
 

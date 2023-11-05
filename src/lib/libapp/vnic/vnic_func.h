@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VnicIns_Init();
 BS_STATUS VnicIns_Start();
@@ -24,8 +24,8 @@ MAC_ADDR_S * VnicIns_GetVnicMac();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNIC_FUNC_H_*/
+#endif 
 
 

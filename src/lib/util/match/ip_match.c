@@ -44,7 +44,7 @@ static void ipmatch_ConfByFileEach(MATCH_HANDLE head,
 {
     int var;
     char *string;
-    IP_MAKS_S ipmask;
+    IP_MASK_S ipmask;
     IP_MATCH_PATTERN_S pattern = {0};
 
     int index = 0;

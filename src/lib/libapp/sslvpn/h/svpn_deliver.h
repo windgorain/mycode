@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 BS_STATUS SVPN_Deliver_Init();
@@ -18,8 +18,8 @@ VOID SVPN_Deliver_BindContext(IN CHAR *pcWsService);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_DELIVER_H_*/
+#endif 
 
 

@@ -14,42 +14,36 @@
 #include <errno.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
+#include <linux/genetlink.h>
 
-/* avoid multiple definition of netlink features */
+
 #define __LINUX_NETLINK_H
 
-/**
- * Standard attribute types to specify validation policy
- */
+
 enum {
-	LIBBPF_NLA_UNSPEC,	/**< Unspecified type, binary data chunk */
-	LIBBPF_NLA_U8,		/**< 8 bit integer */
-	LIBBPF_NLA_U16,		/**< 16 bit integer */
-	LIBBPF_NLA_U32,		/**< 32 bit integer */
-	LIBBPF_NLA_U64,		/**< 64 bit integer */
-	LIBBPF_NLA_STRING,	/**< NUL terminated character string */
-	LIBBPF_NLA_FLAG,	/**< Flag */
-	LIBBPF_NLA_MSECS,	/**< Micro seconds (64bit) */
-	LIBBPF_NLA_NESTED,	/**< Nested attributes */
+	LIBBPF_NLA_UNSPEC,	
+	LIBBPF_NLA_U8,		
+	LIBBPF_NLA_U16,		
+	LIBBPF_NLA_U32,		
+	LIBBPF_NLA_U64,		
+	LIBBPF_NLA_STRING,	
+	LIBBPF_NLA_FLAG,	
+	LIBBPF_NLA_MSECS,	
+	LIBBPF_NLA_NESTED,	
 	__LIBBPF_NLA_TYPE_MAX,
 };
 
 #define LIBBPF_NLA_TYPE_MAX (__LIBBPF_NLA_TYPE_MAX - 1)
 
-/**
- * @ingroup attr
- * Attribute validation policy.
- *
- * See section @core_doc{core_attr_parse,Attribute Parsing} for more details.
- */
+
 struct libbpf_nla_policy {
-	/** Type of attribute or LIBBPF_NLA_UNSPEC */
+	
 	uint16_t	type;
 
-	/** Minimal length of payload required */
+	
 	uint16_t	minlen;
 
-	/** Maximal length of payload allowed */
+	
 	uint16_t	maxlen;
 };
 
@@ -58,27 +52,18 @@ struct libbpf_nla_req {
 	union {
 		struct ifinfomsg ifinfo;
 		struct tcmsg tc;
+		struct genlmsghdr gnl;
 	};
 	char buf[128];
 };
 
-/**
- * @ingroup attr
- * Iterate over a stream of attributes
- * @arg pos	loop counter, set to current attribute
- * @arg head	head of attribute stream
- * @arg len	length of attribute stream
- * @arg rem	initialized to len, holds bytes currently remaining in stream
- */
+
 #define libbpf_nla_for_each_attr(pos, head, len, rem) \
 	for (pos = head, rem = len; \
 	     nla_ok(pos, rem); \
 	     pos = nla_next(pos, &(rem)))
 
-/**
- * libbpf_nla_data - head of payload
- * @nla: netlink attribute
- */
+
 static inline void *libbpf_nla_data(const struct nlattr *nla)
 {
 	return (void *)nla + NLA_HDRLEN;
@@ -89,9 +74,19 @@ static inline uint8_t libbpf_nla_getattr_u8(const struct nlattr *nla)
 	return *(uint8_t *)libbpf_nla_data(nla);
 }
 
+static inline uint16_t libbpf_nla_getattr_u16(const struct nlattr *nla)
+{
+	return *(uint16_t *)libbpf_nla_data(nla);
+}
+
 static inline uint32_t libbpf_nla_getattr_u32(const struct nlattr *nla)
 {
 	return *(uint32_t *)libbpf_nla_data(nla);
+}
+
+static inline uint64_t libbpf_nla_getattr_u64(const struct nlattr *nla)
+{
+	return *(uint64_t *)libbpf_nla_data(nla);
 }
 
 static inline const char *libbpf_nla_getattr_str(const struct nlattr *nla)
@@ -99,10 +94,7 @@ static inline const char *libbpf_nla_getattr_str(const struct nlattr *nla)
 	return (const char *)libbpf_nla_data(nla);
 }
 
-/**
- * libbpf_nla_len - length of payload
- * @nla: netlink attribute
- */
+
 static inline int libbpf_nla_len(const struct nlattr *nla)
 {
 	return nla->nla_len - NLA_HDRLEN;
@@ -161,4 +153,4 @@ static inline void nlattr_end_nested(struct libbpf_nla_req *req,
 	tail->nla_len = (void *)req_tail(req) - (void *)tail;
 }
 
-#endif /* __LIBBPF_NLATTR_H */
+#endif 

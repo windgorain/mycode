@@ -6,11 +6,11 @@
 
 /* 
  扩展的URL地址解析.
-   通常的地址是 http://xxx.com:port/zzz/;  https://xxx.com:port/zzz/
-   扩展一下可以为: yyy://xxx.com:port/zzz/
+   通常的地址是 http:
+   扩展一下可以为: yyy:
 */
 
-/* 解析地址,将地址解析为协议/地址/端口 */
+
 BS_STATUS EXTURL_Parse
 (
 	IN CHAR *pcExtUrl,
@@ -27,7 +27,7 @@ BS_STATUS EXTURL_Parse
 	CHAR szPort[6];
 	UINT uiPortStrlen;
 	
-	/* 1. 解析协议名 */
+	
 	pcProtocol = pcExtUrl;
 	pcSplit = strstr(pcProtocol, "://");
 	if (NULL == pcSplit)
@@ -43,7 +43,7 @@ BS_STATUS EXTURL_Parse
 
 	TXT_Strlcpy(pstExtUrl->szProtocol, pcProtocol, uiLen + 1);
 
-	/* 解析path */
+	
 	pcSplit += 3;
 	pcAddress = pcSplit;
 	pcPath = strchr(pcAddress, '/');
@@ -56,21 +56,21 @@ BS_STATUS EXTURL_Parse
 
 		TXT_Strlcpy(pstExtUrl->szPath, pcPath, sizeof(pstExtUrl->szPath));
 
-		uiLen = pcPath - pcAddress;	/* address:port的长度 */
+		uiLen = pcPath - pcAddress;	
 	}
 	else
 	{
 		pstExtUrl->szPath[0] = '/';
 		pstExtUrl->szPath[1] = '\0';
 		
-		uiLen = strlen(pcAddress);	/* address:port的长度 */
+		uiLen = strlen(pcAddress);	
 	}
 
-	/* 解析端口号 */
+	
 	pcSplit = TXT_Strnchr(pcAddress, ':', uiLen);
 	if (pcSplit != NULL)
 	{
-		/* 解析端口 */
+		
 		pcPort = pcSplit + 1;
 		uiPortStrlen = uiLen - (pcPort - pcAddress);
 		if (uiPortStrlen >= sizeof(szPort))
@@ -80,10 +80,10 @@ BS_STATUS EXTURL_Parse
 		TXT_Strlcpy(szPort, pcPort, uiPortStrlen + 1);
 		TXT_Atoui(pcPort, &uiPort);
 
-		uiLen = pcSplit - pcAddress; /* address的长度 */
+		uiLen = pcSplit - pcAddress; 
 	}
 
-	/* 复制地址 */
+	
 	if (uiLen > EXTURL_MAX_ADDRESS_LEN)
 	{
 		return BS_OUT_OF_RANGE;

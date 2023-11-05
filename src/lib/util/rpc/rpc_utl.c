@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_RPCUTL
 
 #include "bs.h"
@@ -13,8 +13,8 @@
 
 #include "rpc_inner.h"
 
-/* 创建消息 */
-RPC_MSG_S * RPC_CreateMsg(IN UCHAR ucMsgType /* RPC_MSG_TYPE_REQUEST等 */)
+
+RPC_MSG_S * RPC_CreateMsg(IN UCHAR ucMsgType )
 {
     RPC_MSG_S *pstMsg;
 
@@ -175,13 +175,13 @@ UCHAR * RPC_CreateDataByMsg(IN RPC_MSG_S *pstMsg)
     RPC_MSG_S *pstParam = pstMsg;
     _RPC_DATA_HEAD_S *pstDataHead;
     _RPC_DATA_PARAM_NODE_S *pstParamNode;
-    UINT ulMallocLen;  /* 需要申请内存的长度 */
+    UINT ulMallocLen;  
     UINT i;
     UCHAR *pucData;
     UINT ulParamOffset = 0;
 
-    /* 计算需要申请多长内存 */
-    ulMallocLen = sizeof(_RPC_DATA_HEAD_S); /* RPC报文头 */
+    
+    ulMallocLen = sizeof(_RPC_DATA_HEAD_S); 
     ulMallocLen += NUM_UP_ALIGN(pstParam->ulRpcHeadDataLen, _RPC_ALIGN_MODE);
     ulMallocLen += sizeof(_RPC_DATA_PARAM_NODE_S) * pstParam->ulParamNum;
     for (i=0; i<pstParam->ulParamNum; i++)
@@ -197,7 +197,7 @@ UCHAR * RPC_CreateDataByMsg(IN RPC_MSG_S *pstMsg)
     }
     Mem_Zero(pstDataHead, sizeof(_RPC_DATA_HEAD_S));
 
-    /* 填充头 */
+    
     pstDataHead->ucVer = _RPC_VER;
     pstDataHead->ucMsgType = pstParam->ucMsgType;
     pstDataHead->ucReturnType = pstParam->ucReturnType;
@@ -211,14 +211,14 @@ UCHAR * RPC_CreateDataByMsg(IN RPC_MSG_S *pstMsg)
         pstDataHead->ulFirstParamOffset = htonl(ulParamOffset);
     }
 
-    /* 填充函数名/返回值 */
+    
     pucData = (UCHAR*)(pstDataHead + 1);
     if (pstParam->ulRpcHeadDataLen != 0)
     {
         MEM_Copy(pucData, pstParam->pucRpcHeadDataValue, pstParam->ulRpcHeadDataLen);
     }
 
-    /* 填充参数 */
+    
     pucData = (UCHAR*)pstDataHead;
     pucData += ulParamOffset;
     for (i=0; i<pstParam->ulParamNum; i++)

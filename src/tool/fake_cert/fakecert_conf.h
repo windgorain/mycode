@@ -16,4 +16,4 @@ int fakecert_conf_init();
 #ifdef __cplusplus
 }
 #endif
-#endif //FAKECERT_CONF_H_
+#endif 

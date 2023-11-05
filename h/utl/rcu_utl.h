@@ -7,7 +7,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 typedef void (*PF_RCU_FREE_FUNC)(void *pstRcuNode);
@@ -42,8 +42,8 @@ VOID RCU_UnLock(IN RCU_HANDLE hRcuHandle, IN UINT uiPhase);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__RCU_UTL_H_*/
+#endif 
 
 

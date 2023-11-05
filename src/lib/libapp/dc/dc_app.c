@@ -12,7 +12,7 @@
 #include "utl/mutex_utl.h"
 #include "comp/comp_dc.h"
 
-#define DC_APP_FLAG_HAVE_LOCK 0x1  /* 有锁,访问时需要加解锁 */
+#define DC_APP_FLAG_HAVE_LOCK 0x1  
 
 typedef struct
 {
@@ -20,7 +20,7 @@ typedef struct
     DC_TYPE_E eDcType;
     UINT uiFlag;
     MUTEX_S stLock;
-    UINT uiRefCount;  /* 引用计数 */
+    UINT uiRefCount;  
     LSTR_S stFile;
     HANDLE hDc;
 }DC_APP_NODE_S;

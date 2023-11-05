@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define LVM_LOCAL_VAR_SIZE 256
 
@@ -45,9 +45,9 @@ static inline VOID LVM_Free(IN LVM_S *pstLvm)
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__LVM_UTL_H_*/
+#endif 
 
 
 

@@ -44,17 +44,17 @@ enum {
 };
 
 typedef struct {
-    unsigned char fmt_type; /* TLP Fmt Type. Type: [0,4], Fmt: [5,7] */
-    unsigned char flag; /* th:0,attr:2,TC:[4,6] */
-    unsigned short len_attr; /* len:[0-9], AT:[10-11], Attr:[12-13], EP:14, TD:15 */
+    unsigned char fmt_type; 
+    unsigned char flag; 
+    unsigned short len_attr; 
 }PCIE_TLP_HEADER_S;
 
 typedef struct {
-    unsigned char fmt_type; /* TLP Fmt Type. Type: [0,4], Fmt: [5,7] */
-    unsigned char flag; /* th:0,attr:2,TC:[4,6] */
-    unsigned short len_attr; /* len:[0-9], AT:[10-11], Attr:[12-13], EP:14, TD:15 */
+    unsigned char fmt_type; 
+    unsigned char flag; 
+    unsigned short len_attr; 
 
-    unsigned int bytes[3]; /* type相关字段 */
+    unsigned int bytes[3]; 
 
     unsigned int payload[1024];
 }PCIE_TLP_S;
@@ -169,17 +169,17 @@ UINT PCIE_GetTlpDataLength(PCIE_TLP_HEADER_S *tlp);
 void PCIE_WriteTlpData(void *data, int data_len, BOOL_T is4dw, OUT PCIE_TLP_S *tlp);
 int PCIE_ReadTlpData(UINT64 addr, OUT void *data, int data_size, BOOL_T is4dw, PCIE_TLP_S *tlp);
 
-/* TLP字节序转换 */
+
 void PCIE_ChangeTlpOrder(INOUT void *tlp);
 
 static inline UINT PCIE_FirstBe2LowAddr(UINT addr, UCHAR first_be)
 {
     UINT low_addr = addr & 0x7f;
-    low_addr += BIT_GetLastIndex(first_be);
+    low_addr += BIT_GetLowIndex(first_be);
     return low_addr;
 }
 
-/* 看be有几位 */
+
 static inline UCHAR PCIE_BeSettedCount(UCHAR be)
 {
     int i;
@@ -192,7 +192,7 @@ static inline UCHAR PCIE_BeSettedCount(UCHAR be)
     return count;
 }
 
-/* 看be忽略几位 */
+
 static inline UCHAR PCIE_BeUnsetCount(UCHAR be)
 {
     return 4 - PCIE_BeSettedCount(be);

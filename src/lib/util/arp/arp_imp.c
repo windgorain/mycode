@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_ARPUTL
     
 #include "bs.h"
@@ -19,18 +19,18 @@
 
 #define _ARP_HASH_BUCKET_NUM 1024
 
-#define _ARP_RETRY_TIME_INTERVAL 1    /* 每次发送ARP请求的时间间隔, 单位tick */
+#define _ARP_RETRY_TIME_INTERVAL 1    
 
 typedef struct
 {
     SEM_HANDLE hSem;
     MAC_ADDR_S stHostMac;
     HASH_HANDLE hHashId;
-    DLL_HEAD_S stResolvingList; /* 正在进行ARP解析的表项 */
+    DLL_HEAD_S stResolvingList; 
     VCLOCK_INSTANCE_HANDLE hVclock;
-    UINT uiTimeOutTick;  /* ARP表项超时时间, 单位tick */
+    UINT uiTimeOutTick;  
 
-    /* 回调函数 */
+    
     PF_ARP_SEND_PACKET_FUNC pfSendPacketFunc;
     USER_HANDLE_S stSendPacketUserHandle;
     PF_ARP_IS_HOST_IP_FUNC pfIsHostIp;
@@ -43,7 +43,7 @@ typedef struct
 typedef struct
 {
     HASH_NODE_S stHashNode;
-    UINT ulIp;     /* 网络序 */
+    UINT ulIp;     
     MAC_ADDR_S stMacAddr;
     ARP_TYPE_E eType;
     VCLOCK_NODE_S vclock_node;
@@ -52,14 +52,14 @@ typedef struct
 typedef struct
 {
     DLL_NODE_S stListNode;
-    UINT ulIpToResolve;  /* 网络序 */
+    UINT ulIpToResolve;  
     VCLOCK_NODE_S vclock_node;
     MBUF_S *pstPacketList;
 }_ARP_RESOLVING_NODE_S;
 
 static UINT _arp_GetHashIndex(IN _ARP_NODE_S *pstArpNode)
 {
-    return ntohl(pstArpNode->ulIp);    /* 返回主机序的IP，注意不能是网络序，否则很容易HASH 冲突 */
+    return ntohl(pstArpNode->ulIp);    
 }
 
 static UINT _arp_CmpHashNode(IN _ARP_NODE_S *pstArpNode1, IN _ARP_NODE_S *pstArpNode2)
@@ -178,7 +178,7 @@ static MBUF_S * _arp_BuildPacket
     MAC_ADDR_S stSrcMac;
     MAC_ADDR_S *pstSrcMac;
 
-    /* 优先使用接口mac, 如果接口mac不存在,则使用全局mac */
+    
     IFNET_Ioctl(uiIfIndex, IFNET_CMD_GET_MAC, (HANDLE)&stSrcMac);
     pstSrcMac = &stSrcMac;
     if (MAC_ADDR_IS_ZERO(pstSrcMac->aucMac))
@@ -204,7 +204,7 @@ static VOID _arp_AddPacketToResolvingNode
     pstResolvingNode->pstPacketList = pstMbuf;
 }
 
-/* 发送解析报文去解析IP */
+
 static BS_STATUS _arp_ResolveIp
 (
     IN _ARP_INSTANCE_S *pstArpInstance,
@@ -217,7 +217,7 @@ static BS_STATUS _arp_ResolveIp
     _ARP_RESOLVING_NODE_S *pstResolvingNode;
     UINT uiHostIP;
 
-    /* 检查是否正在解析,如果正在解析,则不用再次解析 */
+    
     pstResolvingNode = _arp_GetResolvingNode(pstArpInstance, ulIpToResolve);
     if (NULL != pstResolvingNode)
     {
@@ -231,7 +231,7 @@ static BS_STATUS _arp_ResolveIp
         return BS_NOT_FOUND;
     }
 
-    /* 构造报文 */
+    
     pstArpMbuf = _arp_BuildPacket(pstArpInstance, uiIfIndex,
                        uiHostIP,
                        ulIpToResolve, NULL, ARP_REQUEST);
@@ -240,7 +240,7 @@ static BS_STATUS _arp_ResolveIp
         RETURN(BS_NO_MEMORY);
     }
 
-    /* 加入一个正在解析的表项 */
+    
     pstResolvingNode = _arp_AddResolvingNode(pstArpInstance, ulIpToResolve);
     if (NULL == pstResolvingNode)
     {
@@ -301,7 +301,7 @@ static VOID _arp_NodeTimeOut(IN HANDLE hTimerHandle, IN USER_HANDLE_S *pstUserHa
 static inline BS_STATUS _arp_Add
 (
     IN _ARP_INSTANCE_S *pstArpInstance,
-    IN UINT ulIp /* 网络序 */,
+    IN UINT ulIp ,
     IN MAC_ADDR_S *pstMac,
     IN ARP_TYPE_E eType
 )
@@ -322,7 +322,7 @@ static inline BS_STATUS _arp_Add
         pstNode->stMacAddr = *pstMac;
         pstNode->eType = eType;
 
-        /* 由动态变静态,可以直接返回了,不用删除定时器,因为在定时器中有判断是否静态 */
+        
 
         return BS_OK;
     }
@@ -448,7 +448,7 @@ static VOID _arp_FreeAllNode(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID *
     MEM_Free(pstArpNode);
 }
 
-static BS_WALK_RET_E _arp_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
+static int _arp_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
 {
     _ARP_NODE_S *pstArpNode = (_ARP_NODE_S*)pstNode;
     USER_HANDLE_S *pstUserHandle = pUserHandle;
@@ -481,7 +481,7 @@ static VOID _arp_Walk
 
 ARP_HANDLE ARP_CreateInstance
 (
-    IN UINT uiTimeOutTick,  /* ARP表项超时时间, 单位tick */
+    IN UINT uiTimeOutTick,  
     IN BOOL_T bIsCreateSem
 )
 {
@@ -610,7 +610,7 @@ BS_STATUS ARP_SetHostMac(IN ARP_HANDLE hArpInstance, IN MAC_ADDR_S *pstHostMac)
 BS_STATUS ARP_AddStaticARP
 (
     IN ARP_HANDLE hArpInstance,
-    IN UINT uiIP, /* 网络序 */
+    IN UINT uiIP, 
     IN MAC_ADDR_S *pstMac
 )
 {
@@ -624,12 +624,12 @@ BS_STATUS ARP_AddStaticARP
     return eRet;
 }
 
-/* 根据IP得到MAC，如果得不到,则发送ARP请求，并返回BS_PROCESSED. */
+
 BS_STATUS ARP_GetMacByIp
 (
     IN ARP_HANDLE hArpInstance,
     IN UINT uiIfIndex,
-    IN UINT ulIpToResolve /* 网络序 */,
+    IN UINT ulIpToResolve ,
     IN MBUF_S *pstMbuf,
     OUT MAC_ADDR_S *pstMacAddr
 )
@@ -659,7 +659,7 @@ BS_STATUS ARP_PacketInput(IN ARP_HANDLE hArpInstance, IN MBUF_S *pstArpPacket)
     switch (ntohs(pstArpHeader->usOperation))
     {
         case ARP_REQUEST:
-            /* 对于Request不用释放Mbuf，这个Mbuf修改一下就可以用来发送了 */
+            
             (VOID) _arp_DealArpRequest(hArpInstance, pstArpPacket);
             break;
 

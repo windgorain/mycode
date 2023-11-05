@@ -20,7 +20,7 @@
 #include "../inc/vnets_context.h"
 #include "../inc/vnets_node_fwd.h"
 
-/* Debug 选项 */
+
 #define _VNETS_NODE_FWD_DBG_PACKET 0x1
 
 
@@ -42,7 +42,7 @@ static BS_STATUS vnets_nodefwd_SendTo(IN UINT uiNodeID, IN MBUF_S *pstMbuf)
     return IFNET_LinkOutput(VNETS_SES_GetIfIndex(pstNode->uiSesID), pstMbuf, 0);
 }
 
-static BS_WALK_RET_E vnets_nodefwd_SendToEach(IN UINT uiNodeID, IN HANDLE hUserHandle)
+static int vnets_nodefwd_SendToEach(IN UINT uiNodeID, IN HANDLE hUserHandle)
 {
     UINT uiSrcNodeID;
     MBUF_S *pstMbuf = hUserHandle;
@@ -51,18 +51,18 @@ static BS_WALK_RET_E vnets_nodefwd_SendToEach(IN UINT uiNodeID, IN HANDLE hUserH
     uiSrcNodeID = VNETS_Context_GetSrcNodeID(pstMbuf);
     if (uiNodeID == uiSrcNodeID)
     {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     pstMbufTmp = MBUF_RawCopy(pstMbuf, 0, MBUF_TOTAL_DATA_LEN(pstMbuf), MBUF_DFT_RESERVED_HEAD_SPACE);
     if (NULL == pstMbufTmp)
     {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     vnets_nodefwd_SendTo(uiNodeID, pstMbufTmp);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static BS_STATUS vnets_nodefwd_BroadCast(IN MBUF_S *pstMbuf)
@@ -162,13 +162,13 @@ BS_STATUS VNETS_NodeFwd_OutputBySes(IN UINT uiSesID, IN MBUF_S *pstMBuf, IN USHO
     return IFNET_LinkOutput(VNETS_SES_GetIfIndex(uiSesID), pstMBuf, 0);
 }
 
-/* debug node packet fwd */
+
 PLUG_API VOID VNETS_NodeFwd_DebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetSNodeFwdDebugFlag |= _VNETS_NODE_FWD_DBG_PACKET;
 }
 
-/* no debug node packet fwd */
+
 PLUG_API VOID VNETS_NodeFwd_NoDebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetSNodeFwdDebugFlag &= ~_VNETS_NODE_FWD_DBG_PACKET;

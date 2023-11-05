@@ -7,7 +7,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef enum
 {
@@ -33,8 +33,8 @@ UINT VNETC_SES_GetIfIndex(IN UINT uiSesID);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_SES_H_*/
+#endif 
 
 

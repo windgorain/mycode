@@ -14,18 +14,18 @@ extern "C"
 #define CIOCTL_PIPE_FILE_PATH "/tmp/cioctl_pipe"
 
 typedef struct {
-    UINT size; /* msg size, include CIOCTL_REQUEST_S */
+    UINT size; 
     char name[CIOCTL_MODULE_NAME_SIZE];
-    /* data */
+    
 }CIOCTL_REQUEST_S;
 
 typedef struct {
-    UINT size; /* msg size */
+    UINT size; 
     int ret;
-    /* data */
+    
 }CIOCTL_REPLY_S;
 
 #ifdef __cplusplus
 }
 #endif
-#endif //CIOCTL_UTL_H_
+#endif 

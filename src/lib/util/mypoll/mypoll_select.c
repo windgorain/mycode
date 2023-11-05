@@ -136,7 +136,7 @@ static void _mypoll_select_SetOdd(_MYPOLL_CTRL_S *pstMyPoll, int odd)
     }
 }
 
-static BS_WALK_RET_E mypoll_select_Run(IN _MYPOLL_CTRL_S *pstMyPoll)
+static int mypoll_select_Run(IN _MYPOLL_CTRL_S *pstMyPoll)
 {
     _MYPOLL_SELECT_CTRL_S *pstCtrl = pstMyPoll->pProtoHandle;
     fd_set stReadFds, stWriteFds, stExecptFds;
@@ -145,7 +145,7 @@ static BS_WALK_RET_E mypoll_select_Run(IN _MYPOLL_CTRL_S *pstMyPoll)
     int count;
     UINT uiEvent;
     MYPOLL_FDINFO_S *pstFdInfo;
-    BS_WALK_RET_E eRet = BS_WALK_STOP;
+    int ret = BS_STOP;
 
     while (1)
     {
@@ -169,7 +169,7 @@ static BS_WALK_RET_E mypoll_select_Run(IN _MYPOLL_CTRL_S *pstMyPoll)
 
         for (i=0; i<=pstCtrl->iMaxSocketId; i++)
         {
-            /* 检测到ReStart标记,则重新Select */
+            
             if (pstCtrl->pstMyPollCtrl->uiFlag & _MYPOLL_FLAG_RESTART) {
                 break;
             }
@@ -202,14 +202,14 @@ static BS_WALK_RET_E mypoll_select_Run(IN _MYPOLL_CTRL_S *pstMyPoll)
                 continue;
             }
 
-            eRet = pstFdInfo->pfNotifyFunc(i, uiEvent, &(pstFdInfo->stUserHandle));
-            if (BS_WALK_CONTINUE != eRet) {
-                return eRet;
+            ret = pstFdInfo->pfNotifyFunc(i, uiEvent, &(pstFdInfo->stUserHandle));
+            if (ret < 0) {
+                return ret;
             }
         }
     }
 
-    return eRet;
+    return ret;
 }
 
 static MYPOLL_PROTO_S g_stMypollSelectProto = 

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 HANDLE WFS_Create(IN CHAR *pszFileName, IN UINT uiSsltcpId);
 VOID WFS_Destory(IN HANDLE hWfsHandle);
@@ -20,8 +20,8 @@ UINT64 WFS_GetRemainLen(IN HANDLE hWfsHandle);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WFS_UTL_H_*/
+#endif 
 
 

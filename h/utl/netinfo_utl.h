@@ -11,7 +11,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define NETINFO_ADATER_NAME_MAX_LEN 63
 #define NETINFO_ADATER_DES_MAX_LEN 127
@@ -42,8 +42,8 @@ BS_STATUS NETINFO_GetAdapterInfo(IN CHAR *pcAdapterName, OUT NETINFO_ADAPTER_S *
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__NETINFO_UTL_H_*/
+#endif 
 
 

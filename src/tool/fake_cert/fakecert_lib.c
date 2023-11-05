@@ -54,7 +54,7 @@ static int _fakecert_is_cert_exist(char *fake_cert_name)
     return 1;
 }
 
-/* 返回构造的证书名 */
+
 char * fakecert_build_by_cert(void *cert, char *host_name)
 {
     char cert_name[512];
@@ -74,7 +74,7 @@ char * fakecert_build_by_cert(void *cert, char *host_name)
     FakeCert_BuildByCert(&g_untrusted_ctrl, cert);
     PKI_SaveCertToPemFile(cert, cert_name);
 
-    /*need add to tree after certificate created */
+    
     sprintf(cert_name, "%s.crt", host_name);
     return fakecert_dnsnames_add(cert, cert_name);
 }
@@ -114,8 +114,8 @@ int fakecert_create_by_hostname(char *host_name)
     return ret;
 }
 
-/* 获取得到realcert，再根据realcert伪造证书 */
-int fakecert_build_by_dnsname(unsigned int ip/*netorder*/, unsigned short port, char *host_name)
+
+int fakecert_build_by_dnsname(unsigned int ip, unsigned short port, char *host_name)
 {
     void *ssl;
     void *cert;

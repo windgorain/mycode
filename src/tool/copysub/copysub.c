@@ -17,10 +17,10 @@ static CHAR *g_pcToFile = NULL;
 
 static GETOPT2_NODE_S g_astCopySubOpts[] =
 {
-    {'o', 0, "start-address", 'u', &g_uiStartAddress, "start address", 0},
-    {'o', 0, "stop-address", 'u', &g_uiStopAddress, "stop address"0},
-    {'p', 0, NULL, 's', &g_pcFromFile, NULL, 0},
-    {'p', 0, NULL, 's', &g_pcToFile, NULL, 0},
+    {'o', 0, "start-address", GETOPT2_V_U32, &g_uiStartAddress, "start address", 0},
+    {'o', 0, "stop-address", GETOPT2_V_U32, &g_uiStopAddress, "stop address"0},
+    {'p', 0, NULL, GETOPT2_V_STRING, &g_pcFromFile, NULL, 0},
+    {'p', 0, NULL, GETOPT2_V_STRING, &g_pcToFile, NULL, 0},
     {0}
 };
 
@@ -35,9 +35,7 @@ static VOID copysub_help()
         );
 }
 
-/* 
-    copysub [option] fromFile [toFile].
-*/
+
 VOID main(IN INT uiArgc, IN CHAR **ppcArgv)
 {
     FILE *pstFrom, *pstTo = NULL;

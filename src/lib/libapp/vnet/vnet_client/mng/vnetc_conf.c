@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM VNET_RETCODE_FILE_NUM_CLIENTCONF
         
 #include "bs.h"
@@ -72,13 +72,13 @@ static VNETC_CONN_TYPE_E vnetc_conf_GetConnTypeByName(IN CHAR *pcTypeName)
     return VNETC_CONN_TYPE_MAX;
 }
 
-/* 将udp://xxx.com:443解析出来 */
+
 BS_STATUS VNETC_CONF_ParseServerAddress
 (
     IN CHAR *pcServerAddress,
     OUT VNETC_CONN_TYPE_E *penConnType,
     OUT CHAR szServerName[VNETC_CONF_SERVER_ADDRESS_MAX_LEN + 1],
-    OUT USHORT *pusPort  /* 主机序 */
+    OUT USHORT *pusPort  
 )
 {
     VNETC_CONN_TYPE_E enType;
@@ -150,7 +150,7 @@ BS_STATUS VNETC_Start ()
                 RETURN(BS_ERR);
             }
 
-            /* 创建C2S Ses */
+            
             stPhyContext.uiIfIndex = VNETC_CONF_GetC2SIfIndex();
             stPhyContext.unPhyContext.stUdpPhyContext.uiPeerIp = htonl(uiIp);
             stPhyContext.unPhyContext.stUdpPhyContext.usPeerPort = htons(usPort);
@@ -179,7 +179,7 @@ BS_STATUS VNETC_Stop ()
     
     VNETC_Proto_Stop();
 
-    /* 等待它停止 */
+    
     do {
         Sleep(20);
         uiTimes ++;

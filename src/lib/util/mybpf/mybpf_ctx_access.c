@@ -78,7 +78,7 @@ static void _mybpf_prog_mark_regs_alu(struct reg_state *regs, MYBPF_INSN_S *insn
     }
 }
 
-/* 标记寄存器type */
+
 static void _mybpf_prog_mark_regs(struct reg_state *regs, MYBPF_INSN_S *insn)
 {
     UCHAR class = BPF_CLASS(insn->opcode);
@@ -95,7 +95,7 @@ static void _mybpf_prog_mark_regs(struct reg_state *regs, MYBPF_INSN_S *insn)
     }
 }
 
-/* 是否dword指令 */
+
 static BOOL_T _mybpf_prog_is_dword_insn(MYBPF_INSN_S *insn)
 {
     UCHAR class = BPF_CLASS(insn->opcode);

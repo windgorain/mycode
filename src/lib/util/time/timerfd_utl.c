@@ -97,12 +97,12 @@ static void _os_timerfd_getime(int fd,int* val_sec,int* val_nsec,int* interval_s
 }
 #endif
 
-int TimerFd_Create(int interval/* ms */, UINT flag)
+int TimerFd_Create(int interval, UINT flag)
 {
     return _os_timerfd_create_ext(interval, interval, flag);
 }
 
-int TimerFd_Create_Ext(int first_ts/* ms*/,int interval/* ms */, UINT flag)
+int TimerFd_Create_Ext(int first_ts,int interval, UINT flag)
 {
     return _os_timerfd_create_ext(first_ts,interval, flag);
 }

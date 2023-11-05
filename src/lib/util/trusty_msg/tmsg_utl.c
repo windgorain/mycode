@@ -87,7 +87,7 @@ static VOID tmsg_TimeOut(IN HANDLE hTimerId, IN USER_HANDLE_S *pstUserHandle)
     }
     else if (pstNode->uiCount > pstNode->stOpt.uiRetryTimes)
     {
-        /* 上次发送的最后一次报文,也超时了,则认为重发全部完成 */
+        
         VCLOCK_DestroyTimer(pstCtrl->hVclock, hTimerId);
 
         if (pstNode->stOpt.stTmsg.uiFlag & TMSG_FLAG_NEED_ACK)
@@ -129,7 +129,7 @@ BS_STATUS TMSG_Send
         pstNode->stUserHandle = *pstUserHandle;
     }
 
-    pstNode->uiCount ++;  /* 上面已经发送了一次 */
+    pstNode->uiCount ++;  
 
     DLL_ADD(&pstCtrl->stMsgList, pstNode);
 
@@ -156,7 +156,7 @@ UINT TMSG_GetMsgNum(IN TMSG_HANDLE hTmsgHandle)
     return DLL_COUNT(&pstCtrl->stMsgList);
 }
 
-/* 中断所有的正在进行的消息 */
+
 VOID TMSG_StopAll(IN TMSG_HANDLE hTmsgHandle)
 {
     TMSG_NODE_S *pstNode, *pstNodeNext;
@@ -195,10 +195,7 @@ static BOOL_T tmsg_RecvedAck(IN TMSG_CTRL_S *pstCtrl, IN TMSG_S *pstTmsg)
     return FALSE;
 }
 
-/* 
-  要求msg中的flag是主机序.
-  如果成功找到的对应的报文,返回TRUE,否则返回FALSE
-*/
+
 BOOL_T TMSG_RecvedAck(IN TMSG_HANDLE hTmsgHandle, IN TMSG_S *pstTmsg)
 {
     TMSG_CTRL_S *pstCtrl = hTmsgHandle;

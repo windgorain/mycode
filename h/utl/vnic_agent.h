@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #include "utl/vnic_lib.h"
 #include "utl/mbuf_utl.h"
@@ -46,8 +46,8 @@ extern VNIC_HANDLE VNIC_Agent_GetVnic(IN VNIC_AGENT_HANDLE hVnicAgent);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNIC_AGENT_H_*/
+#endif 
 
 

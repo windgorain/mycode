@@ -22,7 +22,7 @@ static UCHAR loadcmd_win_Getch(HANDLE hExec)
     return getch();
 }
 
-VOID Load_Cmd(IN UINT uiRunForLinux /* 对windows来说是忽略的参数 */)
+VOID Load_Cmd(IN UINT uiRunForLinux )
 {
     UCHAR ucCmdChar;
     HANDLE hHandle;

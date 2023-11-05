@@ -11,10 +11,10 @@ extern "C"
 #endif
 
 #ifdef IN_UNIXLIKE
-#define DLL_PROCESS_ATTACH 0 /*\!< loading library (before Get*Version) */
-#define DLL_THREAD_ATTACH  1 /*\!< attaching a thread */
-#define DLL_THREAD_DETACH  2 /*\!< detaching from a thread */
-#define DLL_PROCESS_DETACH 3 /*\!< about to unload (after Terminate*) */
+#define DLL_PROCESS_ATTACH 0 
+#define DLL_THREAD_ATTACH  1 
+#define DLL_THREAD_DETACH  2 
+#define DLL_PROCESS_DETACH 3 
 #endif
 
 #ifdef IN_UNIXLIKE
@@ -42,4 +42,4 @@ void PLUG_UnloadLib(PLUG_HDL plug);
 #ifdef __cplusplus
 }
 #endif
-#endif //PLUG_UTL_H_
+#endif 

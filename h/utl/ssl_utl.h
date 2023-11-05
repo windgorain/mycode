@@ -12,9 +12,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define SSL_UTL_E_NONE       1      /* 无错误 */
+#define SSL_UTL_E_NONE       1      
 #define SSL_UTL_E_ERROR      -1
 #define SSL_UTL_E_WANT_READ  -2
 #define SSL_UTL_E_WANT_WRITE -3
@@ -26,13 +26,13 @@ VOID * SSL_UTL_Ctx_Create(int min_version, int max_version);
 VOID SSL_UTL_Ctx_Free(IN VOID *pstSslCtx);
 VOID SSL_UTL_Ctx_DisableSsl3(IN VOID *pstSslCtx, IN BOOL_T bDisable);
 BS_STATUS SSL_UTL_Ctx_LoadCert(IN VOID *pstSslCtx, IN CHAR *pcCACert, IN CHAR *pcLocalCert, IN CHAR *pcKeyFile);
-BS_STATUS SSL_UTL_Ctx_LoadSelfSignCert(IN VOID *pstSslCtx, IN PKI_DOMAIN_CONFIGURE_S *pstConf/* 可以为NULL */);
+BS_STATUS SSL_UTL_Ctx_LoadSelfSignCert(IN VOID *pstSslCtx, IN PKI_DOMAIN_CONFIGURE_S *pstConf);
 int SSL_UTL_Ctx_LoadVerifyLocations(IN VOID *pstSslCtx, IN CHAR *caFile, IN CHAR *caPath);
 VOID * SSL_UTL_New(IN VOID *pstSslCtx);
 VOID SSL_UTL_Free(IN VOID *pstSsl);
 INT SSL_UTL_SetFd(IN VOID * pstSsl, IN INT iFd);
 INT SSL_UTL_Connect(IN VOID *pstSsl);
-void * SSL_UTL_BlockConnect(unsigned int ip/*netorder*/, unsigned short port/*netorder*/, char * host_name, int timeout/*us, 0:not set*/);
+void * SSL_UTL_BlockConnect(unsigned int ip, unsigned short port, char * host_name, int timeout);
 INT SSL_UTL_Accept(IN VOID *pstSsl);
 INT SSL_UTL_Read(IN VOID *pstSsl, IN VOID *pBuf, IN INT iNum);
 INT SSL_UTL_Write(IN VOID *pstSsl, IN VOID *pBuf, IN INT iNum);
@@ -44,8 +44,8 @@ void * SSL_UTL_GetSslCert(void *ssl);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SSL_UTL_H_*/
+#endif 
 
 

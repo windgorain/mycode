@@ -12,7 +12,7 @@
 #include "process_inc.h"
 #include "tlhelp32.h"
 
-/* 提升进程权限 */
+
 BOOL WIN_EnableDebugPrivilege(){
     HANDLE hToken;
     static BOOL fOk = FALSE;
@@ -37,35 +37,35 @@ BOOL WIN_EnableDebugPrivilege(){
     return fOk;
 }
 
-// 由进程名获取进程ID
-// 失败返回0
+
+
 DWORD WIN_GetProcessIDFromName(IN LPCSTR szName)
 {
-    DWORD id = 0; // 进程ID
-    PROCESSENTRY32 pe; // 进程信息 
+    DWORD id = 0; 
+    PROCESSENTRY32 pe; 
     HANDLE hSnapshot;
 
     pe.dwSize = sizeof(PROCESSENTRY32);    
-    hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0); // 获取系统进程列表 
+    hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0); 
     
-    if(Process32First(hSnapshot, &pe)) // 返回系统中第一个进程的信息 
+    if(Process32First(hSnapshot, &pe)) 
     {
         do {
-            if(0 == _stricmp(pe.szExeFile, szName)) // 不区分大小写比较
+            if(0 == _stricmp(pe.szExeFile, szName)) 
             {
                 id = pe.th32ProcessID;
                 break;
             }
-        }while(Process32Next(hSnapshot, &pe)); // 下一个进程
+        }while(Process32Next(hSnapshot, &pe)); 
     }
 
-    CloseHandle(hSnapshot); // 删除快照
+    CloseHandle(hSnapshot); 
 
     return id;
 }
 
-// 由进程名获取主线程ID(需要头文件tlhelp32.h)
-// 失败返回0
+
+
 DWORD WIN_GetMainThreadIdFromProcessId(IN DWORD idProcess)
 {
     DWORD idThread = 0;
@@ -74,19 +74,19 @@ DWORD WIN_GetMainThreadIdFromProcessId(IN DWORD idProcess)
 
     te.dwSize = sizeof(THREADENTRY32);
 
-    hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0); // 系统所有线程快照
-    if(Thread32First(hSnapshot, &te)) // 第一个线程 
+    hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0); 
+    if(Thread32First(hSnapshot, &te)) 
     {
         do {
-            if(idProcess == te.th32OwnerProcessID) // 认为找到的第一个该进程的线程为主线程 
+            if(idProcess == te.th32OwnerProcessID) 
             {
                 idThread = te.th32ThreadID;
                 break;
             }
-        }while(Thread32Next(hSnapshot, &te)); // 下一个线程
+        }while(Thread32Next(hSnapshot, &te)); 
     }
 
-    CloseHandle(hSnapshot); // 删除快照
+    CloseHandle(hSnapshot); 
 
     return idThread;
 } 
@@ -128,17 +128,17 @@ LONG _OS_PROCESS_CreateByFile
 
     si.cb = sizeof(si);
 
-    // Start the child process. 
+    
     if( !CreateProcess(NULL,   
         (LPTSTR)szParam, 
-        NULL,             // Process handle not inheritable. 
-        NULL,             // Thread handle not inheritable. 
-        FALSE,            // Set handle inheritance to FALSE. 
-        ulFlag,                // No creation flags. 
-        NULL,             // Use parent's environment block. 
-        NULL,             // Use parent's starting directory. 
-        &si,              // Pointer to STARTUPINFO structure.
-        &pi )             // Pointer to PROCESS_INFORMATION structure.
+        NULL,             
+        NULL,             
+        FALSE,            
+        ulFlag,                
+        NULL,             
+        NULL,             
+        &si,              
+        &pi )             
     )
     {
         return 0;

@@ -142,7 +142,7 @@ UINT ByteQue_PopSpec(IN QUE_HANDLE hQue, IN UINT uiIndex)
     return ucChar;
 }
 
-/* 弹出尾巴 */
+
 UINT ByteQue_PopTail(IN QUE_HANDLE hQue)
 {
     BYTE_QUE_CTRL_S *pstQue = hQue;
@@ -171,7 +171,7 @@ UINT ByteQue_PeekOne(IN IN QUE_HANDLE hQue, IN UINT uiIndex)
     return pstQue->aucData[uiSrc];
 }
 
-/* 从指定位置开始,读取指定个数个数据, 返回实际读取的个数 */
+
 UINT ByteQue_Peek
 (
     IN IN QUE_HANDLE hQue, 

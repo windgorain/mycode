@@ -104,11 +104,11 @@ static TRIE_COMMON_S * trie_wildcard_match(TRIE_COMMON_S *old, TRIE_COMMON_S *cu
 {
     TRIE_MATCH_INFO_S *info = ud;
 
-    if (matched_len == info->data_len) { /* 完全匹配了 */
+    if (matched_len == info->data_len) { 
         return cur;
     }
 
-    if (cur->flag & TRIE_NODE_FLAG_WILDCARD) { /* 匹配上了通配 */
+    if (cur->flag & TRIE_NODE_FLAG_WILDCARD) { 
         return cur;
     }
 
@@ -119,7 +119,7 @@ static TRIE_COMMON_S * trie_hostname_match(TRIE_COMMON_S *old, TRIE_COMMON_S *cu
 {
     TRIE_MATCH_INFO_S *info = ud;
 
-    if (matched_len == info->data_len) { /* 完全匹配了 */
+    if (matched_len == info->data_len) { 
         return cur;
     }
 
@@ -216,7 +216,7 @@ TRIE_COMMON_S * Trie_Insert(TRIE_HANDLE trie_handle, UCHAR *data, int data_len, 
     return Trie_InsertEx(trie_handle, data, data_len, flag, trie_dft_set_ud, ud);
 }
 
-/* 返回原来的ud */
+
 void * Trie_Del(TRIE_HANDLE trie_handle, UCHAR *data, int data_len)
 {
     TRIE_COMMON_S *common;
@@ -234,15 +234,14 @@ void * Trie_Del(TRIE_HANDLE trie_handle, UCHAR *data, int data_len)
     return ud;
 }
 
-/* 部分匹配后就调用回调,回调决定返回哪个节点. 
- 部分匹配:比如,data:abc, 匹配a, ab, abc 三个,都会触发回调*/
+
 TRIE_COMMON_S * Trie_PrefixMatch(TRIE_HANDLE trie_handle, UCHAR *data, int data_len, PF_TRIE_MATCH_CB func, void *ud)
 {
     TRIE_CTRL_S *ctrl = trie_handle;
     return ctrl->func_tbl->prefix_match(ctrl->root, data, data_len, func, ud);
 }
 
-/* match_type: TRIE_MATCH_x */
+
 TRIE_COMMON_S * Trie_Match(TRIE_HANDLE trie_handle, UCHAR *data, int data_len, int match_type)
 {
     TRIE_MATCH_INFO_S info;

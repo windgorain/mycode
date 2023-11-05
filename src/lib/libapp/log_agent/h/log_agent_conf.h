@@ -16,4 +16,4 @@ char * LOGAGENT_CONF_GetLogDir();
 #ifdef __cplusplus
 }
 #endif
-#endif //LOG_AGENT_CONF_H_
+#endif 

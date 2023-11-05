@@ -15,7 +15,7 @@
 
 #ifdef IN_LINUX
 
-/* 带有文件名的路径 */
+
 char * _SYS_OS_GetSelfFileName(void)
 {
     static CHAR szFileName[FILE_MAX_PATH_LEN + 1] = "";
@@ -39,7 +39,7 @@ char * _SYS_OS_GetSelfFileName(void)
     return szFileName;
 }
 
-/* 不带有文件名的路径 */
+
 CHAR * _SYS_OS_GetSelfFilePath(void)
 {
     static CHAR szFilePath[FILE_MAX_PATH_LEN + 1] = "";
@@ -77,7 +77,7 @@ CHAR * _SYS_OS_GetSelfFilePath(void)
 #ifdef IN_MAC
 #include <mach-o/dyld.h>
 
-/* 带有文件名的路径 */
+
 char * _SYS_OS_GetSelfFileName(void)
 {
     static CHAR szFileName[FILE_MAX_PATH_LEN + 1] = "";
@@ -93,7 +93,7 @@ char * _SYS_OS_GetSelfFileName(void)
     return szFileName;
 }
 
-/* 不带有文件名的路径 */
+
 CHAR * _SYS_OS_GetSelfFilePath(void)
 {
     static CHAR szFilePath[FILE_MAX_PATH_LEN + 1] = "";

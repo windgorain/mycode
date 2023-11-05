@@ -190,7 +190,7 @@ void * AclIPGroup_FindByName(int muc_id, char *list_name)
     return AddressPool_FindListByName(_acl_ip_group_get_instance(muc_id), list_name);
 }
 
-/***** cmds *****/
+
 
 PLUG_API int AclIPGroup_Show(int argc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
@@ -250,7 +250,7 @@ PLUG_API int AclIPGroup_Clear(int argc, char **argv, IN VOID *pEnv)
         return 0;
     }
 
-    /* 如果有被引用，则不能被清除 */
+    
     if (ListRule_IsAnyListRefed(muc->address_pool_handle)) {
         EXEC_OutString("group has been refered, can not be cleared. \r\n");
         RETURN(BS_REF_NOT_ZERO);

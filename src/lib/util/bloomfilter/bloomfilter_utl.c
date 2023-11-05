@@ -90,7 +90,7 @@ void BloomFilter_Set(BLOOM_FILTER_S *pstBloomFilter, void *pData, UINT uiDataLen
     BITMAP_SET(&pstBloomFilter->stBitMap, uiHash);
 }
 
-/* 成功返回0,如果已经存在则返回ALREADY_EXIST */
+
 int BloomFilter_TrySet(IN BLOOM_FILTER_S *pstBloomFilter, IN VOID *pData, IN UINT uiDataLen)
 {
     UINT uiHash;

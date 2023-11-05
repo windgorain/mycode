@@ -124,7 +124,7 @@ static const char *modestr(char mode, int format)
         case 'w':
             return istext(format) ? "w" : "wb";
     }
-    /* The assert above should make sure we never reach this point */
+    
     return NULL;
 }
 

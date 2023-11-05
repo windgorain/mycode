@@ -7,7 +7,7 @@
 #include "utl/list_sl.h"
 #include "utl/rcu_delay.h"
 
-/* 检查是否可以立即动作 */
+
 static inline BOOL_T rcudelay_do_just(RCU_DELAY_S *ctrl)
 {
     if ((ctrl->counter[0] == 0) && (ctrl->counter[1] == 0)) {
@@ -23,9 +23,7 @@ int RcuDelay_Init(RCU_DELAY_S *ctrl)
     return 0;
 }
 
-/* 返回条件: 宽限期过去
-   对于某些假设宽限期肯定能完成而没加Rcu Lock的情况,需要使用这个接口代替Sync接口
- */
+
 void RcuDelay_Wait(RCU_DELAY_S *ctrl)
 {
     int old_period_count;
@@ -44,10 +42,7 @@ void RcuDelay_Wait(RCU_DELAY_S *ctrl)
     return;
 }
 
-/* 返回条件: 1. 没有任何人在Rcu区
-   2. 宽限期过去
-   因为检查了Rcu区是否为空,所以要求使用者必须配套使用RCU LOCK
-*/
+
 void RcuDelay_Sync(RCU_DELAY_S *ctrl)
 {
     int old_period_count;
@@ -85,7 +80,7 @@ void RcuDelay_Step(RCU_DELAY_S *ctrl)
     RCU_NODE_S *node;
     int next_state = ctrl->state == 0 ? 1 : 0;
 
-    /* 如果有人还在使用,则继续延迟 */
+    
     if (ctrl->counter[next_state] > 0) {
         return;
     }

@@ -28,9 +28,9 @@ typedef struct
     PF_HTML_OUTPUT_FUNC pfOutput;
     VOID *pUserContext;
 
-    CHAR *pcHtmlData;   /* 指向当前数据 */
-    UINT uiHtmlDataLen; /* 当前数据长度 */
-    CHAR *pcHtmlCurrent; /* 指向扫描到的位置 */
+    CHAR *pcHtmlData;   
+    UINT uiHtmlDataLen; 
+    CHAR *pcHtmlCurrent; 
 
     HTML_PARSER_SAVE_S stSaveBuf;
 
@@ -43,9 +43,9 @@ typedef struct
 typedef enum
 {
     HTML_LEX_INIT = 0,
-    HTML_LEX_DATA,            /* 处于解析Data状态 */
-    HTML_LEX_TAG_OPEN,        /* 解析到了< */
-    HTML_LEX_END_TAG_OPEN,    /* 解析到了</ */
+    HTML_LEX_DATA,            
+    HTML_LEX_TAG_OPEN,        
+    HTML_LEX_END_TAG_OPEN,    
     HTML_LEX_SELF_CLOSING_START_TAG,
     HTML_LEX_TAG_NAME,
     HTML_LEX_BEFORE_ATTR_NAME,
@@ -59,22 +59,22 @@ typedef enum
     HTML_LEX_BOGUS_COMMENT,
     HTML_LEX_MARKUP_DECLARATION,
     HTML_LEX_JS,
-    HTML_LEX_JS_ENDTAG_START, /* < */
-    HTML_LEX_JS_ENDTAG_SLASH, /* / */
-    HTML_LEX_JS_ENDTAG_S, /* S */
-    HTML_LEX_JS_ENDTAG_C, /* C */
-    HTML_LEX_JS_ENDTAG_R, /* R */
-    HTML_LEX_JS_ENDTAG_I, /* I */
-    HTML_LEX_JS_ENDTAG_P, /* P */
-    HTML_LEX_JS_ENDTAG_T, /* T */
+    HTML_LEX_JS_ENDTAG_START, 
+    HTML_LEX_JS_ENDTAG_SLASH, 
+    HTML_LEX_JS_ENDTAG_S, 
+    HTML_LEX_JS_ENDTAG_C, 
+    HTML_LEX_JS_ENDTAG_R, 
+    HTML_LEX_JS_ENDTAG_I, 
+    HTML_LEX_JS_ENDTAG_P, 
+    HTML_LEX_JS_ENDTAG_T, 
     HTML_LEX_CSS,
-    HTML_LEX_CSS_END_START, /* < */
-    HTML_LEX_CSS_END_SLASH, /* / */
-    HTML_LEX_CSS_END_S,     /* S */
-    HTML_LEX_CSS_END_T,     /* T */
-    HTML_LEX_CSS_END_Y,     /* Y */
-    HTML_LEX_CSS_END_L,     /* L */
-    HTML_LEX_CSS_END_E,     /* E */
+    HTML_LEX_CSS_END_START, 
+    HTML_LEX_CSS_END_SLASH, 
+    HTML_LEX_CSS_END_S,     
+    HTML_LEX_CSS_END_T,     
+    HTML_LEX_CSS_END_Y,     
+    HTML_LEX_CSS_END_L,     
+    HTML_LEX_CSS_END_E,     
 
     HTML_LEX_MAX
 }HTML_TP_STATE_E;
@@ -105,27 +105,7 @@ static VOID html_parser_EndTagSlash(IN DFA_HANDLE hDfa);
 static VOID html_parser_JsEnd(IN DFA_HANDLE hDfa);
 static VOID html_parser_CssEnd(IN DFA_HANDLE hDfa);
 
-/*
-notHtml:不是html
-outputRecord: 输出数据
-outputJs: 输出JS
-outputTag: 输出Tag
-record: 记录数据
-save: 将数据记录到临时缓冲区
-outputSave: 将临时缓冲区中的数据输出
-tagStart: Tag开始
-tagEnd: Tag结束
-testSpecTag: 检查是否特殊的tag,比如script, style
-endTagSlash: 这是一个结束类型的Tag
-tagName: Tag Name
-tagAttrName: Tag Attr Name
-tagAttrValue: Tag Attr Value
-clearTagAttrValue: Clear tag attr value
-clearTagName: Clear tag name
-clearTagAttrName: Clear tag attr name
-selfClose: 这是一个自关闭的Tag
-JsEnd: JS结束
-*/
+
 
 static ACTION_S g_astHtmlParserActions[] =
 {
@@ -160,8 +140,8 @@ static ACTION_S g_astHtmlParserActions[] =
 static DFA_NODE_S g_astHtmlParserStateInit[] = 
 {
     {DFA_CODE_LWS, DFA_STATE_SELF, "record"},
-    {'{', DFA_STATE_SELF, "notHtml,record,outputRecord"},    /* json */
-    {'[', DFA_STATE_SELF, "notHtml,record,outputRecord"},    /* json */
+    {'{', DFA_STATE_SELF, "notHtml,record,outputRecord"},    
+    {'[', DFA_STATE_SELF, "notHtml,record,outputRecord"},    
     {'<', HTML_LEX_TAG_OPEN, "outputRecord,tagStart,clearTagName,clearSave,save"},
     {DFA_CODE_EDGE, DFA_STATE_SELF, "outputRecord"},
     {DFA_CODE_END, HTML_LEX_DATA, "outputRecord"},
@@ -940,7 +920,7 @@ VOID HTML_Parser_Run
     {
         if (*pstCtrl->pcHtmlCurrent == 0)
         {
-            /* 不是一个html */
+            
             pstCtrl->uiFlag |= HTML_PARSER_FLAG_NOT_HTML;
             break;
         }

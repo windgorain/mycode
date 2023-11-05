@@ -17,7 +17,7 @@ extern "C"
 #define TCP_HEADER_SIZE 20
 #define UDP_HEADER_SIZE 8
 
-/* 填充IP头, sip和dip都是网络序 */
+
 static inline void IP_FillIpHeader(UINT sip, UINT dip, UCHAR protocol, USHORT total_len, OUT struct iphdr *iph)
 {
     iph->saddr = sip;
@@ -36,4 +36,4 @@ static inline void IP_FillIpHeader(UINT sip, UINT dip, UCHAR protocol, USHORT to
 #ifdef __cplusplus
 }
 #endif
-#endif //IP_DEF_H_
+#endif 

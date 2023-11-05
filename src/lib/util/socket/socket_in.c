@@ -66,7 +66,7 @@ static int inet_pton6(const char *src, unsigned char *dst)
   memset((tp = tmp), 0, IN6ADDRSZ);
   endp = tp + IN6ADDRSZ;
   colonp = NULL;
-  /* Leading :: requires some special handling. */
+  
   if(*src == ':')
     if(*++src != ':')
       return (0);
@@ -105,7 +105,7 @@ static int inet_pton6(const char *src, unsigned char *dst)
         inet_pton4(curtok, tp) > 0) {
       tp += INADDRSZ;
       saw_xdigit = 0;
-      break;    /* '\0' was seen by inet_pton4(). */
+      break;    
     }
     return (0);
   }
@@ -116,10 +116,7 @@ static int inet_pton6(const char *src, unsigned char *dst)
     *tp++ = (unsigned char) val & 0xff;
   }
   if(colonp != NULL) {
-    /*
-     * Since some memmove()'s erroneously fail to handle
-     * overlapping regions, we'll do the shift by hand.
-     */
+    
     const size_t n = tp - colonp;
     size_t i;
 
@@ -137,14 +134,7 @@ static int inet_pton6(const char *src, unsigned char *dst)
   return (1);
 }
 
-/*****************************************************************************
-  Description: 把ascii码表示的IP地址转换为网络字节序的二进制结构,
-               并且能够同时处理IPv6,IPv4的地址
-  Input: int af, 指明是IPv6还是IPv4
-               const char *src,要转换的ascii码表示的IP地址  
-  Output: void *dst,转换为网络字节序的二进制结构
-  Return: 1--成功；-1--出错；0--输入的不是有效的表达格式
-*****************************************************************************/
+
 int inet_pton(int af,const char *src,void *dst)
 {
     switch (af) {
@@ -158,10 +148,7 @@ int inet_pton(int af,const char *src,void *dst)
 }
 
 
-/*****************************************************************************
-  将字符格式转换为IP地址通用结构
-  本函数只支持转换为网络序地址
-*****************************************************************************/
+
 BS_STATUS INET_ADDR_Str2IP(IN USHORT usFamily, IN const CHAR *pcStr, OUT INET_ADDR_S *pstAddr)
 {
     if( inet_pton(usFamily, pcStr, (VOID *)&(pstAddr->un_addr)) > 0 )
@@ -175,10 +162,7 @@ BS_STATUS INET_ADDR_Str2IP(IN USHORT usFamily, IN const CHAR *pcStr, OUT INET_AD
     }
 }
 
-/*****************************************************************************
-  将字符格式转换为IP地址通用结构
-  本函数只支持转换为网络序地址
-*****************************************************************************/
+
 BS_STATUS INET_ADDR_N_Str2IP(IN USHORT usFamily, IN const CHAR *pcStr, IN UINT uiStrLen, OUT INET_ADDR_S *pstAddr)
 {
     CHAR szTmp[INET_ADDR_STR_LEN + 1];

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define _DEF_CMD_EXP_MAX_VIEW_NAME_LEN           31
 #define _DEF_CMD_EXP_MAX_MODE_NAME_LEN           31
@@ -21,8 +21,8 @@ PLUG_API CMD_EXP_HDL CMD_EXP_GetHdl();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__CMD_FUNC_H_*/
+#endif 
 
 

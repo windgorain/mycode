@@ -13,7 +13,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 WS_DELIVER_RET_E WebCenter_RequestIn(IN WS_TRANS_HANDLE hTrans, IN UINT uiEvent);
 WS_DELIVER_RET_E WebCenter_Login(IN WS_TRANS_HANDLE hTrans, IN UINT uiEvent);
@@ -33,8 +33,8 @@ CHAR * WebCenter_GetBindedWsService();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WEBCENTER_INNER_H_*/
+#endif 
 
 

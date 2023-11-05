@@ -15,9 +15,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define WSAPP_SERVICE_MAX_BIND_NUM 10  /* 一个Service最多绑定多少个GateWay */
+#define WSAPP_SERVICE_MAX_BIND_NUM 10  
 
 typedef struct
 {
@@ -30,15 +30,15 @@ typedef struct
 
 typedef struct
 {
-    /* 配置相关项 */
+    
     WSAPP_SERVICE_BIND_INFO_S astBindGateWay[WSAPP_SERVICE_MAX_BIND_NUM];
     BOOL_T bStart;
 
-    /* 路径 */
+    
     CHAR szRootPath[FILE_MAX_PATH_LEN + 1];
     CHAR szIndex[WS_CONTEXT_MAX_INDEX_LEN + 1];
 
-    /* 运行相关项 */
+    
     UINT uiFlag;
     UINT64 ulUserData;
     WS_DELIVER_TBL_HANDLE hDeliverTbl;
@@ -46,8 +46,8 @@ typedef struct
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WSAPP_SERVICE_CFG_H_*/
+#endif 
 
 

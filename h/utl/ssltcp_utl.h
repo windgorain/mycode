@@ -13,13 +13,13 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 #define SSLTCP_MAX_TYPE_NAME_LEN 11
 #define SSLTCP_MAX_SSLTCP_NUM    3072
 
-/* 事件类型 */
+
 #define SSLTCP_EVENT_ALL     0xffffffff
 #define SSLTCP_EVENT_READ    0x1
 #define SSLTCP_EVENT_WRITE   0x2
@@ -49,7 +49,7 @@ typedef BS_STATUS (*PF_SSLTCP_SET_ASYN_FUNC)
 (
     IN HANDLE hAsynInstance,
     IN HANDLE hFileHandle,
-    IN ULONG ulEvent,    /* 关心的事件 */
+    IN ULONG ulEvent,    
     IN PF_SSLTCP_INNER_CB_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle
 );
@@ -67,7 +67,7 @@ typedef struct
     HANDLE hDftAsynInstance;
     THREAD_ID uiDftAsynThreadId;
     
-    /* 下面注册者需要填写 */
+    
     CHAR szProtoName[SSLTCP_MAX_TYPE_NAME_LEN + 1];
     PF_SSLTCP_CREATE_FUNC pfCreate;
     PF_SSLTCP_LISTEN_FUNC pfListen;
@@ -95,14 +95,14 @@ PLUG_API BS_STATUS SSLTCP_Display (IN UINT ulArgc, IN UCHAR **argv);
 PLUG_API BS_STATUS SSLTCP_RegProto(IN SSLTCP_PROTO_S *pstProto);
 PLUG_API UINT SSLTCP_Create(IN CHAR *pszProtoName, IN UINT ulFamily, IN VOID *pParam);
 PLUG_API BOOL_T SSLTCP_IsValid (IN UINT ulSslTcpId);
-/*ip/port:主机序*/
+
 PLUG_API BS_STATUS SSLTCP_Listen(IN UINT uiSslTcpId, IN UINT uiIp, IN USHORT usPort, IN UINT uiBackLog);
-/* BS_OK:成功, BS_AGAIN:本次Accept失败但listen的fd是好的; 其他:listen的fd出错了 */
+
 PLUG_API BS_STATUS SSLTCP_Accept(IN UINT hListenSslTcpId, OUT UINT *puiAcceptSslTcpId);
 PLUG_API BS_STATUS SSLTCP_Connect(IN UINT ulSslTcpId, IN UINT ulIp, IN USHORT usPort);
-/* 返回BS_OK为成功; 成功情况下,发送字节数如果少于ulSize，则表示缓冲区满 */
+
 PLUG_API BS_STATUS SSLTCP_Write(IN UINT ulSslTcpId, IN UCHAR * pucBuf, IN UINT ulSize, OUT UINT *puiWriteSize);
-/* 只能是阻塞式SSLTCP 才能调这个函数 */
+
 PLUG_API BS_STATUS SSLTCP_WriteUntilFinish(IN UINT ulSslTcpId, IN UCHAR * pucBuf, IN UINT ulSize);
 PLUG_API BS_STATUS SSLTCP_Read(IN UINT ulSslTcpId, OUT void* pucBuf, IN UINT ulBufSize, OUT UINT *ulReadSize);
 PLUG_API BS_STATUS SSLTCP_Close(IN UINT ulSslTcpId);
@@ -133,8 +133,8 @@ PLUG_API UINT SSLTCP_GetHostIP(IN UINT ulSslTcpId);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__UTL_SSLTCP_H_*/
+#endif 
 
 

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     http:
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,7 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include <inttypes.h>
+#include "pcap.h"
 #include "ubpf_int.h"
 
 #if defined(UBPF_HAS_ELF_H)
@@ -111,7 +112,7 @@ ubpf_load_elf(struct ubpf_vm *vm, const void *elf, size_t elf_size, char **errms
         goto error;
     }
 
-    /* Parse section headers into an array */
+    
     struct section sections[MAX_SECTIONS];
     for (i = 0; i < ehdr->e_shnum; i++) {
         const Elf64_Shdr *shdr = bounds_check(&b, ehdr->e_shoff + i*ehdr->e_shentsize, sizeof(*shdr));
@@ -131,7 +132,7 @@ ubpf_load_elf(struct ubpf_vm *vm, const void *elf, size_t elf_size, char **errms
         sections[i].size = shdr->sh_size;
     }
 
-    /* Find first text section */
+    
     int text_shndx = 0;
     for (i = 0; i < ehdr->e_shnum; i++) {
         const Elf64_Shdr *shdr = sections[i].shdr;
@@ -149,7 +150,7 @@ ubpf_load_elf(struct ubpf_vm *vm, const void *elf, size_t elf_size, char **errms
 
     struct section *text = &sections[text_shndx];
 
-    /* May need to modify text for relocations, so make a copy */
+    
     text_copy = malloc(text->size);
     if (!text_copy) {
         *errmsg = ubpf_error("failed to allocate memory");
@@ -157,7 +158,7 @@ ubpf_load_elf(struct ubpf_vm *vm, const void *elf, size_t elf_size, char **errms
     }
     memcpy(text_copy, text->data, text->size);
 
-    /* Process each relocation section */
+    
     for (i = 0; i < ehdr->e_shnum; i++) {
         struct section *rel = &sections[i];
         if (rel->shdr->sh_type != SHT_REL) {

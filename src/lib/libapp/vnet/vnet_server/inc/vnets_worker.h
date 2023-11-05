@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define VNETS_WORKER_CLOCK_TIME_OF_TICK 5000
 
@@ -28,9 +28,9 @@ VOID VNETS_Worker_DelTimer(IN UINT uiDomainId, IN VCLOCK_HANDLE hTimerHandle);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_WORKER_H_*/
+#endif 
 
 
 

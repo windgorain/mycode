@@ -77,7 +77,7 @@ void BlockQue_Put(BLOCKQUE_HANDLE q, STQ_NODE_S *node)
     COND_Wake(&q->cond);
 }
 
-/* 非阻塞获取 */
+
 void * BlockQue_Poll(BLOCKQUE_HANDLE q)
 {
     STQ_NODE_S *node;
@@ -89,7 +89,7 @@ void * BlockQue_Poll(BLOCKQUE_HANDLE q)
     return node;
 }
 
-/* 阻塞式获取 */
+
 void * BlockQue_Take(BLOCKQUE_HANDLE q)
 {
     STQ_NODE_S *node;
@@ -104,7 +104,7 @@ void * BlockQue_Take(BLOCKQUE_HANDLE q)
     return node;
 }
 
-/* 通过判断阻塞标记来决定是否阻塞式获取 */
+
 void * BlockQue_CondTake(BLOCKQUE_HANDLE q)
 {
     STQ_NODE_S *node;

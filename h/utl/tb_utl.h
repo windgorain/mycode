@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define TB_MAX_NAME_LEN 256
 #define TB_MAX_KEY_NUM  8
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__TB_UTL_H_*/
+#endif 
 
 

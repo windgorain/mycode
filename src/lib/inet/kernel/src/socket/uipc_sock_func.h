@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 int so_msleep(IN SEM_HANDLE hSemToP, IN SEM_HANDLE hSemToV, IN int timeo);
 int sbreserve(IN SOCKBUF_S *sb, IN UINT cc, IN SOCKET_S *so);
@@ -52,8 +52,8 @@ int sogetpeername(IN SOCKET_S *so, OUT SOCKADDR_S **ppstSa);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__UIPC_SOCK_FUNC_H_*/
+#endif 
 
 

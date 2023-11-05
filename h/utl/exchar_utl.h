@@ -17,8 +17,8 @@ typedef UINT EXCHAR;
 #define EXCHAR_EXTEND_DOWN  259
 #define EXCHAR_EXTEND_LEFT  260
 #define EXCHAR_EXTEND_RIGHT 261
-#define EXCHAR_EXTEND_HOME  262   /* 移动光标到起始位置 */
-#define EXCHAR_EXTEND_END   263   /* 移动光标到最后位置 */
+#define EXCHAR_EXTEND_HOME  262   
+#define EXCHAR_EXTEND_END   263   
 
 HANDLE EXCHAR_Create();
 void EXCHAR_Reset(IN HANDLE hExcharHandle);

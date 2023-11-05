@@ -6,7 +6,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE VNETS_DQL_HANDLE;
 
@@ -17,8 +17,8 @@ MBUF_S * VNETS_DQL_GetMbuf(IN VNETS_DQL_HANDLE *pstHandle);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_DNS_LIST_H_*/
+#endif 
 
 

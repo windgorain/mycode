@@ -141,7 +141,7 @@ BS_STATUS WAN_ArpAgent_Init()
     return BS_OK;
 }
 
-static BOOL_T _wan_arpagent_IsAgentOn(IN IF_INDEX ifIndex, IN UINT uiIP/* 主机序 */)
+static BOOL_T _wan_arpagent_IsAgentOn(IN IF_INDEX ifIndex, IN UINT uiIP)
 {
     WAN_ARP_AGENT_CTRL_S *pstCtrl;
 
@@ -164,7 +164,7 @@ static BOOL_T _wan_arpagent_IsAgentOn(IN IF_INDEX ifIndex, IN UINT uiIP/* 主机
     return FALSE;
 }
 
-BOOL_T WAN_ArpAgent_IsAgentOn(IN IF_INDEX ifIndex, IN UINT uiIP/* 主机序 */)
+BOOL_T WAN_ArpAgent_IsAgentOn(IN IF_INDEX ifIndex, IN UINT uiIP)
 {
     BOOL_T bRet;
     UINT uiPhase;
@@ -176,10 +176,7 @@ BOOL_T WAN_ArpAgent_IsAgentOn(IN IF_INDEX ifIndex, IN UINT uiIP/* 主机序 */)
     return bRet;
 }
 
-/*
-Interface 视图下:
-[no] arp-agent ippool begin end
-*/
+
 PLUG_API BS_STATUS WAN_ArpAgent_IpPool
 (
     IN UINT ulArgc,
@@ -249,10 +246,7 @@ PLUG_API BS_STATUS WAN_ArpAgent_IpPool
     return eRet;
 }
 
-/*
-Interface 视图下:
-[no] arp-agent enable
-*/
+
 PLUG_API BS_STATUS WAN_ArpAgent_Enable
 (
     IN UINT ulArgc,
@@ -282,7 +276,7 @@ PLUG_API BS_STATUS WAN_ArpAgent_Enable
     }
     else
     {
-        /* no arp-agent enable */
+        
         if (argv[0][0] != 'n')
         {
             BIT_SET(pstCtrl->uiFlag, _WAN_ARP_AGENT_ON);

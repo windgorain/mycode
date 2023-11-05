@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS SVPNC_CMD_Init();
 BS_STATUS SVPNC_Login();
@@ -22,8 +22,8 @@ BS_STATUS SVPNC_KF_Init();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPNC_FUNC_H_*/
+#endif 
 
 

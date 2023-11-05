@@ -52,7 +52,7 @@ static void idkey_wrapper_idmgr_free_subres(IDKEY_S *impl, IDMGR_S *idmgr)
     }
 }
 
-/* 此函数会吸收掉impl和idmgr */
+
 IDKEY_S * IDKEY_WrapperIdmgrCreate(IDKEY_S *impl, IDMGR_S *idmgr)
 {
     if ((!impl) || (!idmgr)) {
@@ -98,7 +98,7 @@ static void idkey_wrapper_idmgr_setcapacity(IDKEY_HDL hCtrl, INT64 capacity)
     IDKEY_SetCapacity(ctrl->impl, capacity);
 }
 
-/* 做ID的重复检查 */
+
 static int idkey_wrapper_idmgr_set(IDKEY_HDL hCtrl, INT64 id, void *key, int key_len, void *data, UINT flag)
 {
     IDKEY_WRAPPER_IDMGR_S *ctrl = hCtrl;
@@ -138,7 +138,7 @@ static INT64 idkey_wrapper_idmgr_add(IDKEY_HDL hCtrl, void *key, int key_len, vo
     return id;
 }
 
-/* 删除并返回pData */
+
 static void * idkey_wrapper_idmgr_del_by_key(IDKEY_HDL hCtrl, void *key, int key_len)
 {
     IDKEY_WRAPPER_IDMGR_S *ctrl = hCtrl;
@@ -153,7 +153,7 @@ static void * idkey_wrapper_idmgr_del_by_key(IDKEY_HDL hCtrl, void *key, int key
     return IDKEY_DelByID(ctrl->impl, id);
 }
 
-/* 删除并返回pData */
+
 static void * idkey_wrapper_idmgr_del_by_id(IDKEY_HDL hCtrl, INT64 id)
 {
     IDKEY_WRAPPER_IDMGR_S *ctrl = hCtrl;

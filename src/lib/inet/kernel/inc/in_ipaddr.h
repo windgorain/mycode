@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS IN_IPAddr_SelectSrcAddr
 (
@@ -52,8 +52,8 @@ BS_STATUS IN_IPAddr_GetPriorAddr
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__IN_IPADDR_H_*/
+#endif 
 
 

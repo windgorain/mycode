@@ -17,4 +17,4 @@ void CaseConvert_ToLower(UCHAR *dst, UCHAR *src, int len);
 #ifdef __cplusplus
 }
 #endif
-#endif //CASE_CONVERT_H_
+#endif 

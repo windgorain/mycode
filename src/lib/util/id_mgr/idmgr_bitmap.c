@@ -82,10 +82,7 @@ static void idmgr_bitmap_free(void *tbl, INT64 id)
 static BOOL_T idmgr_bitmap_is_exist(void *tbl, INT64 id)
 {
     IDMGR_BITMAP_S *ctrl = tbl;
-    if (ArrayBit_Test(ctrl->bits, id)) {
-        return TRUE;
-    }
-    return FALSE;
+    return ArrayBit_Test(ctrl->bits, id);
 }
 
 static INT64 idmgr_bitmap_getnext(void *tbl, INT64 curr)

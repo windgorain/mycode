@@ -7,7 +7,7 @@
 #include "bs.h"
 #include "utl/aes_utl.h"
 
-/* 获取系统内置的Key */
+
 void * AES_GetSysKey()
 {
     static UINT key[32] = {

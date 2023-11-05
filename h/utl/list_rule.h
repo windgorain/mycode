@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define LIST_RULE_LIST_NAME_SIZE 64
 
@@ -28,7 +28,7 @@ typedef struct {
     char list_name[LIST_RULE_LIST_NAME_SIZE];
     UCHAR default_action;
     UINT list_id;
-    UINT uiRefCount; //引用计数
+    UINT uiRefCount; 
     RULE_LIST_S stRuleList;
     union {
         UCHAR user_data[0];
@@ -67,8 +67,8 @@ BS_STATUS ListRule_SetDefaultActionByID(IN LIST_RULE_HANDLE hListRule, IN UINT u
 UINT ListRule_GetListIDByName(IN LIST_RULE_HANDLE hListRule, IN CHAR *pcListName);
 LIST_RULE_LIST_S* ListRule_GetListByID(IN LIST_RULE_HANDLE hListRule, IN UINT uiListID);
 LIST_RULE_LIST_S* ListRule_GetListByName(IN LIST_RULE_HANDLE hListRule, IN CHAR *pcListName);
-LIST_RULE_HEAD_S * ListRule_GetNextList(IN LIST_RULE_HANDLE ctx, IN LIST_RULE_HEAD_S *curr/* NULL表示获取第一个 */);
-UINT ListRule_GetNextListID(IN LIST_RULE_HANDLE hListRule, IN UINT ulCurrentListID/* 0表示获取第一个 */);
+LIST_RULE_HEAD_S * ListRule_GetNextList(IN LIST_RULE_HANDLE ctx, IN LIST_RULE_HEAD_S *curr);
+UINT ListRule_GetNextListID(IN LIST_RULE_HANDLE hListRule, IN UINT ulCurrentListID);
 CHAR * ListRule_GetListNameByID(IN LIST_RULE_HANDLE hListRule, IN UINT ulListID);
 
 BS_STATUS ListRule_AddRule2List(LIST_RULE_LIST_S *pstList, IN UINT uiRuleID, IN RULE_NODE_S *pstRule);
@@ -77,7 +77,7 @@ RULE_NODE_S * ListRule_DelRule(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UI
 RULE_NODE_S * ListRule_GetRule(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UINT uiRuleID);
 RULE_NODE_S *ListRule_GetLastRule(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID);
 BS_STATUS ListRule_IncreaseID(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UINT uiStart, IN UINT uiEnd, IN UINT uiStep);
-/* 移动rule */
+
 BS_STATUS ListRule_MoveRule(LIST_RULE_HANDLE hCtx, UINT uiListID, UINT uiOldRuleID, UINT uiNewRuleID);
 RULE_NODE_S * ListRule_GetNextRule(LIST_RULE_HANDLE hCtx, UINT uiListID, UINT uiCurrentRuleID);
 BS_STATUS ListRule_ResetID(IN LIST_RULE_HANDLE hCtx, IN UINT uiListID, IN UINT uiStep);
@@ -99,8 +99,8 @@ static inline void * ListRule_GetUserHandle(IN LIST_RULE_LIST_S *list, int index
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__LIST_RULE_H_*/
+#endif 
 
 

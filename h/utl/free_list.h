@@ -23,7 +23,7 @@ static inline void FreeList_Put(FREE_LIST_S *list, void *node)
     SL_AddHead(&list->free_list, node);
 }
 
-/* 从free list中摘取一个 */
+
 static inline void * FreeList_Get(FREE_LIST_S *list)
 {
     return (void*) SL_DelHead(&list->free_list);
@@ -38,4 +38,4 @@ static inline BOOL_T FreeList_IsEmpty(FREE_LIST_S *list)
 #ifdef __cplusplus
 }
 #endif
-#endif //_FREE_LIST_H
+#endif 

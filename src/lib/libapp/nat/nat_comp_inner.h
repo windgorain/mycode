@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 VOID NAT_Comp_Init();
@@ -18,8 +18,8 @@ VOID NAT_Comp_Init();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__NAT_COMP_INNER_H_*/
+#endif 
 
 

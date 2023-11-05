@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 typedef BS_STATUS (*PF_VNETC_NODE_PROTO_FUNC)(IN MBUF_S *pstMbuf);
@@ -18,8 +18,8 @@ typedef BS_STATUS (*PF_VNETC_NODE_PROTO_FUNC)(IN MBUF_S *pstMbuf);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_NODE_PKT_H_*/
+#endif 
 
 

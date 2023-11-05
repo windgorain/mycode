@@ -34,9 +34,9 @@
 #include <sys/types.h>
 #include <stdio.h>
 
-/* list of readline stuff supported by editline library's readline wrapper */
 
-/* typedefs */
+
+
 typedef int	  Function(const char *, int);
 typedef void	  VFunction(void);
 typedef void	  VCPFunction(char *);
@@ -45,7 +45,7 @@ typedef char	**CPPFunction(const char *, int, int);
 typedef char     *rl_compentry_func_t(const char *, int);
 typedef int	  rl_command_func_t(int, int);
 
-/* only supports length */
+
 typedef struct {
 	int length;
 } HISTORY_STATE;
@@ -92,7 +92,7 @@ typedef KEYMAP_ENTRY *Keymap;
 #define RL_PROMPT_START_IGNORE	'\1'
 #define RL_PROMPT_END_IGNORE	'\2'
 
-/* global variables used by readline enabled applications */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -122,9 +122,7 @@ extern Function		*rl_startup_hook;
 extern char		*rl_terminal_name;
 extern int		rl_already_prompted;
 extern char		*rl_prompt;
-/*
- * The following is not implemented
- */
+
 extern int		rl_catch_signals;
 extern int		rl_catch_sigwinch;
 extern KEYMAP_ENTRY_ARRAY emacs_standard_keymap,
@@ -140,7 +138,7 @@ extern VFunction	*rl_deprep_term_function;
 extern int		readline_echoing_p;
 extern int		_rl_print_completions_horizontally;
 
-/* supported functions */
+
 char		*readline(const char *);
 int		 rl_initialize(void);
 
@@ -206,9 +204,7 @@ void		 rl_forced_update_display(void);
 int		 rl_set_prompt(const char *);
 int		 rl_on_new_line(void);
 
-/*
- * The following are not implemented
- */
+
 int		 rl_kill_text(int, int);
 Keymap		 rl_get_keymap(void);
 void		 rl_set_keymap(Keymap);
@@ -221,4 +217,4 @@ void		 rl_free_line_state(void);
 }
 #endif
 
-#endif /* _READLINE_H_ */
+#endif 

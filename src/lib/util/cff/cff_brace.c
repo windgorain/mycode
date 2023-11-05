@@ -61,7 +61,7 @@ static char * cff_brace_ProcCfg(IN _CFF_S *pstCff, MKV_MARK_S *pstSecCurrent, IN
             read = cff_brace_ProcCfg(pstCff, mark, read + 1);
         } else if (*read == '}') {
             return read + 1;
-        } else { /* value */
+        } else { 
             value = read;
             pcSplit = TXT_MStrnchr(value, strlen(value), ";}");
             if (NULL != pcSplit) {
@@ -85,11 +85,11 @@ static char * cff_brace_ProcCfg(IN _CFF_S *pstCff, MKV_MARK_S *pstSecCurrent, IN
 
 static VOID cff_brace_Init(IN _CFF_S *pstCff)
 {
-    /* 删除注释行 */
+    
     TXT_DelLineComment(pstCff->pcFileContent, "#", pstCff->pcFileContent);
-    /* 压缩成一行 */
+    
     pstCff->pcFileContent = TXT_CompressLine(pstCff->pcFileContent);
-    /* 删除其中的空白字符 */
+    
     pstCff->pcFileContent = TXT_StrimAll(pstCff->pcFileContent);
 
     cff_brace_ProcCfg(pstCff, &pstCff->stCfgRoot, pstCff->pcFileContent);
@@ -184,7 +184,7 @@ CFF_HANDLE CFF_BRACE_OpenBuf(IN CHAR *buf, IN UINT uiFlag)
     return pstCff;
 }
 
-/* 将cff设置为brace格式 */
+
 VOID CFF_BRACE_SetAs(IN CFF_HANDLE hCff)
 {
     _CFF_S *pstCff = hCff;

@@ -16,7 +16,7 @@
 
 typedef struct sockaddr* saddrp;
 
-int Socket_Bind(int iSocketId, unsigned int ulIp/* 网络序 */, unsigned short usPort/* 网络序 */)
+int Socket_Bind(int iSocketId, unsigned int ulIp, unsigned short usPort)
 {
     struct sockaddr_in server_addr;
 
@@ -58,7 +58,7 @@ static conn(unsigned int sip)
         addr.sin_addr.s_addr = inet_addr("202.118.1.2");
 
         connect(sockfd,(saddrp)&addr,sizeof(addr));
-        //usleep(1);
+        
     }
 
     printf("Success......\r\n");

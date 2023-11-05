@@ -98,7 +98,7 @@ CHAR * SXMLC_GetNextSec(IN HANDLE hHandle, IN CHAR *pcCruSecName)
     return XMLC_GetNextMark(hHandle, &stTreParam, pcCruSecName);
 }
 
-CHAR * SXMLC_GetSecByIndex(IN HANDLE hHandle, IN UINT uiIndex/* 从0开始计算 */)
+CHAR * SXMLC_GetSecByIndex(IN HANDLE hHandle, IN UINT uiIndex)
 {
     MKV_X_PARA_S stTreParam;
 
@@ -169,7 +169,7 @@ BS_STATUS SXMLC_GetKeyValueAsInt(IN HANDLE hHandle, IN CHAR *pucMarkName, IN CHA
     return XMLC_GetKeyValueAsInt(hHandle, &stTreParam, pucKeyName, plKeyValue);
 }
 
-/* 返回section的个数 */
+
 UINT SXMLC_GetSectionNum(IN HANDLE hHandle)
 {
     MKV_MARK_S *pstMarkRoot;
@@ -182,14 +182,14 @@ UINT SXMLC_GetSectionNum(IN HANDLE hHandle)
     return XMLC_GetMarkNumInMark(pstMarkRoot);
 }
 
-static BS_WALK_RET_E _SXMLC_WalkTreSecFunc(IN MKV_MARK_S *pstMarkRoot, IN MKV_MARK_S *pstMark, IN USER_HANDLE_S *pstUserHandle)
+static int _SXMLC_WalkTreSecFunc(IN MKV_MARK_S *pstMarkRoot, IN MKV_MARK_S *pstMark, IN USER_HANDLE_S *pstUserHandle)
 {
     PF_SXMLC_SEC_WALK_FUNC pfFunc;
     
     pfFunc = (PF_SXMLC_SEC_WALK_FUNC) (pstUserHandle->ahUserHandle[1]);
     pfFunc(pstUserHandle->ahUserHandle[0], pstMark->pucMarkName, pstUserHandle->ahUserHandle[2]);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 VOID SXMLC_WalkSection(IN HANDLE hHandle, IN PF_SXMLC_SEC_WALK_FUNC pfFunc, IN HANDLE hUsrHandle)
@@ -214,7 +214,7 @@ VOID SXMLC_WalkSection(IN HANDLE hHandle, IN PF_SXMLC_SEC_WALK_FUNC pfFunc, IN H
     XMLC_WalkMarkInMark(pstMarkRoot, (PF_MKV_MARK_WALK_FUNC)_SXMLC_WalkTreSecFunc, &stUserHandle);
 }
 
-static BS_WALK_RET_E _SXMLC_WalkTreKeyFunc(IN MKV_MARK_S *pstMarkRoot, IN MKV_KEY_S *pstKey, IN USER_HANDLE_S *pstUserHandle)
+static int _SXMLC_WalkTreKeyFunc(IN MKV_MARK_S *pstMarkRoot, IN MKV_KEY_S *pstKey, IN USER_HANDLE_S *pstUserHandle)
 {
     PF_SXMLC_KEY_WALK_FUNC pfFunc;
     
@@ -245,7 +245,7 @@ VOID SXMLC_WalkKey(IN HANDLE hHandle, IN CHAR *pszSecName, IN PF_SXMLC_KEY_WALK_
     XMLC_WalkKeyInMark(pstMarkRoot, (PF_MKV_KEY_WALK_FUNC)_SXMLC_WalkTreKeyFunc, &stUserHandle);
 }
 
-/* 返回section中属性的个数 */
+
 UINT SXMLC_GetKeyNumOfSection(IN HANDLE hHandle, IN CHAR *pucMarkName)
 {
     MKV_MARK_S *pstMarkRoot;

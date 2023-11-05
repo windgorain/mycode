@@ -16,7 +16,7 @@ typedef struct {
 }ADJ_NODE_S;
 
 typedef struct {
-    UINT size; /* adj数组能容纳的节点个数 */
+    UINT size; 
     ADJ_NODE_S *array;
 }ADJ_S;
 
@@ -29,4 +29,4 @@ void ADJ_DelByNexthop(IN ADJ_S *adj, IN UINT nexthop);
 #ifdef __cplusplus
 }
 #endif
-#endif //ADJ_UTL_H_
+#endif 

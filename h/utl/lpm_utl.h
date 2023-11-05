@@ -15,10 +15,10 @@ extern "C"
 #endif
 
 enum {
-    LPM_ENTRY_STATE_FREE = 0, /* 空闲 */
-    LPM_ENTRY_STATE_INVALID,  /* 无效 */
-    LPM_ENTRY_STATE_VALID,    /* 本级有效 */
-    LPM_ENTRY_STATE_GROUP     /* 拥有下一级 */
+    LPM_ENTRY_STATE_FREE = 0, 
+    LPM_ENTRY_STATE_INVALID,  
+    LPM_ENTRY_STATE_VALID,    
+    LPM_ENTRY_STATE_GROUP     
 };
 
 typedef struct {
@@ -41,14 +41,14 @@ typedef struct {
     UINT64 nexthop;
 }LPM64B_ENTRY_S;
 
-typedef BS_WALK_RET_E (*PF_LPM_WALK_CB)(UINT ip, int depth, UINT64 nexthop, void *ud);
+typedef int (*PF_LPM_WALK_CB)(UINT ip, int depth, UINT64 nexthop, void *ud);
 
 typedef void (*PF_LPM_Reset)(void *lpm);
 typedef void (*PF_LPM_Final)(void *lpm);
 typedef int (*PF_LPM_SetLevel)(void *lpm, int level, int first_bit_num);
-typedef int (*PF_LPM_Add)(void *lpm, UINT ip/*host order*/, UCHAR depth, UINT64 nexthop);
-typedef int (*PF_LPM_Del)(void *lpm, UINT ip/*host order*/, UCHAR depth, UCHAR new_depth, UINT64 new_nexthop);
-typedef int (*PF_LPM_Lookup)(void *lpm, UINT ip/*host order*/, UINT64 *next_hop);
+typedef int (*PF_LPM_Add)(void *lpm, UINT ip, UCHAR depth, UINT64 nexthop);
+typedef int (*PF_LPM_Del)(void *lpm, UINT ip, UCHAR depth, UCHAR new_depth, UINT64 new_nexthop);
+typedef int (*PF_LPM_Lookup)(void *lpm, UINT ip, UINT64 *next_hop);
 typedef void (*PF_LPM_Walk)(void *lpm, PF_LPM_WALK_CB walk_func, void *ud);
 
 typedef struct {
@@ -71,35 +71,35 @@ typedef struct {
     void *memcap;
     MAP_HANDLE recording_map;
     LPM_FUNC_S *funcs;
-    void *array; /* 指向节点数组, 同时也是第一级指针 */
+    void *array; 
 }LPM_S;
 
-/* 24 bits nexthop, static */
-int LPM_Init(IN LPM_S *lpm, IN UINT array_size, IN LPM_ENTRY_S *array /* 可以为NULL */);
 
-/* 32 bits nexthop, static */
-int LPM32B_Init(IN LPM_S *lpm, IN UINT array_size, IN LPM32B_ENTRY_S *array /* 可以为NULL */);
+int LPM_Init(IN LPM_S *lpm, IN UINT array_size, IN LPM_ENTRY_S *array );
 
-/* 64 bits nexthop, static */
-int LPM64B_Init(IN LPM_S *lpm, IN UINT array_size, IN LPM64B_ENTRY_S *array /* 可以为NULL */);
 
-/* 64 bits nexthop, dynamic */
+int LPM32B_Init(IN LPM_S *lpm, IN UINT array_size, IN LPM32B_ENTRY_S *array );
+
+
+int LPM64B_Init(IN LPM_S *lpm, IN UINT array_size, IN LPM64B_ENTRY_S *array );
+
+
 int DLPM64B_Init(IN LPM_S *lpm, void *memcap);
 
 int LPM_EnableRecording(IN LPM_S *lpm);
-int LPM_Add(IN LPM_S *lpm, UINT ip/*host order*/, UCHAR depth, UINT64 nexthop);
+int LPM_Add(IN LPM_S *lpm, UINT ip, UCHAR depth, UINT64 nexthop);
 void LPM_Reset(LPM_S *lpm);
 void LPM_Final(LPM_S *lpm);
-int LPM_Del(IN LPM_S *lpm, UINT ip/*host order*/, UCHAR depth, UCHAR new_depth, UINT64 new_nexthop);
-int LPM_FindRecording(LPM_S *lpm, UINT ip/*host order*/, UCHAR depth, OUT UINT64 *nexthop/* 可以为NULL */);
+int LPM_Del(IN LPM_S *lpm, UINT ip, UCHAR depth, UCHAR new_depth, UINT64 new_nexthop);
+int LPM_FindRecording(LPM_S *lpm, UINT ip, UCHAR depth, OUT UINT64 *nexthop);
 int LPM_WalkRecording(LPM_S *lpm, PF_LPM_WALK_CB walk_func, void *ud);
 
 static inline int LPM_SetLevel(LPM_S *lpm, int level, int first_bit_num) {
     return lpm->funcs->set_level_func(lpm, level, first_bit_num);
 }
 
-/* return: 0. look up ok; <0: look up failed */
-static inline int LPM_Lookup(LPM_S *lpm, UINT ip/*host order*/, UINT64 *next_hop)
+
+static inline int LPM_Lookup(LPM_S *lpm, UINT ip, UINT64 *next_hop)
 {
     return lpm->funcs->lookup_func(lpm, ip, next_hop);
 }
@@ -112,4 +112,4 @@ static inline void LPM_Walk(LPM_S *lpm, PF_LPM_WALK_CB walk_func, void *ud)
 #ifdef __cplusplus
 }
 #endif
-#endif //LPM_UTL_H_
+#endif 

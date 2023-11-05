@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 #define VNDIS_BIT_ISSET(ulFlag, ulBits)  ((ulFlag) & (ulBits))
@@ -47,7 +47,7 @@ typedef struct {
   MACADDR stAddr;
 }VNDIS_ETH_ADDR_S;
 
-/* ETH II 封装 */
+
 typedef struct
 {
     MACADDR dest;
@@ -57,15 +57,15 @@ typedef struct
 }VNDIS_ETH_HEADER_S;
 
 #define ETH_SNAPORI_LEN         3
-/* SNAP 封装 */
+
 typedef struct tagETHSNAP
 {
     MACADDR    dest;
     MACADDR    src;
-    USHORT     usLen;                                   /* 以太网帧长度 */
-    UCHAR      ucDSAP;                                  /* destination service access point*/
-    UCHAR      ucSSAP;                                  /* source service access point */
-    UCHAR      ucCtrl;                                  /* control domain */
+    USHORT     usLen;                                   
+    UCHAR      ucDSAP;                                  
+    UCHAR      ucSSAP;                                  
+    UCHAR      ucCtrl;                                  
     UCHAR      aucORI[ETH_SNAPORI_LEN];
     USHORT     usType;
 } VNDIS_ETH_SNAPENCAP_S;
@@ -83,16 +83,16 @@ typedef struct tagETHSNAP
 #define ETH_IS_PKTLEN(usPktLenOrType) ((usPktLenOrType) <= ETH_MAX_MTU)
 
 
-#define ETHERTYPE_IP         0x0800   /* IP protocol */
-#define ETHERTYPE_IP6        0x86DD   /*IPv6 protocol*/
-#define ETHERTYPE_ARP        0x0806   /* Addr. resolution protocol */
-#define ETHERTYPE_ISIS       0x8000   /* need tested with cisco*/
-#define ETHERTYPE_ISIS2      0x8870   /* Large 802.3/802.2 frames , now support isis */
-#define ETHERTYPE_IP_MPLS    0x8847   /* MPLS */
-#define ETHERTYPE_OTHER      0xFFFF   /* use for bridge */
+#define ETHERTYPE_IP         0x0800   
+#define ETHERTYPE_IP6        0x86DD   
+#define ETHERTYPE_ARP        0x0806   
+#define ETHERTYPE_ISIS       0x8000   
+#define ETHERTYPE_ISIS2      0x8870   
+#define ETHERTYPE_IP_MPLS    0x8847   
+#define ETHERTYPE_OTHER      0xFFFF   
 
 
-#define VNDIS_LITTLE_ENDIAN  /* windows系统上是小序 */
+#define VNDIS_LITTLE_ENDIAN  
 #ifdef VNDIS_LITTLE_ENDIAN
 #define ntohs(x) RtlUshortByteSwap(x)
 #define htons(x) RtlUshortByteSwap(x)
@@ -107,8 +107,8 @@ typedef struct tagETHSNAP
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNDIS_DEF_H_*/
+#endif 
 
 

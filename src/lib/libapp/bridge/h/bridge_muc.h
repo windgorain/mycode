@@ -21,4 +21,4 @@ BRIDGE_MUC_S * BridgeMuc_Get(int muc_id);
 #ifdef __cplusplus
 }
 #endif
-#endif //BRIDGE_MUC_H_
+#endif 

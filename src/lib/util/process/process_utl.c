@@ -39,13 +39,13 @@ BS_STATUS PROCESS_SuspendMainThread(IN LONG lProcessID)
     return _OS_PROCESS_SuspendMainThread(lProcessID);
 }
 
-/* 仅windows支持 */
+
 HANDLE PROCESS_GetProcess(IN LONG lProcessID)
 {
     return _OS_PROCESS_GetProcess(lProcessID);
 }
 
-/* 指定pid的进程是否存在 */
+
 BOOL_T PROCESS_IsPidExist(IN UINT pid)
 {
     return _OS_PROCESS_IsPidExist(pid);
@@ -61,13 +61,13 @@ int PROCESS_RenameSelf(IN char *new_name)
     return _OS_PROCESS_RenameSelf(new_name);
 }
 
-/* 获取进程id */
+
 UINT PROCESS_GetPid()
 {
     return _OS_PROCESS_GetPid();
 }
 
-/* 获取线程id */
+
 UINT64 PROCESS_GetTid()
 {
     return _OS_PROCESS_GetTid();

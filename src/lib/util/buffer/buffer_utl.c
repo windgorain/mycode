@@ -52,7 +52,7 @@ void BUFFER_AttachBuf(BUFFER_S *pstBuffer, void *buf, UINT buf_size)
 
 int BUFFER_AllocBuf(BUFFER_S *pstBuffer, UINT buf_size)
 {
-    pstBuffer->buf = MEM_Malloc(buf_size + 1);  /* +1是给\0留一个位置 */
+    pstBuffer->buf = MEM_Malloc(buf_size + 1);  
     if (! pstBuffer->buf) {
         RETURN(BS_NO_MEMORY);
     }

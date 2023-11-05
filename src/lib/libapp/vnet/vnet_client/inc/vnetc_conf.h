@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define VNETC_CONF_SERVER_ADDRESS_MAX_LEN 255
 
@@ -47,7 +47,7 @@ BS_STATUS VNETC_SetUserPasswdCipher(IN CHAR *pszPasswd);
 
 BS_STATUS VNETC_SetDomainName(IN CHAR *pszDomainName);
 
-/* 将udp:xxx.com:443解析出来 */
+
 BS_STATUS VNETC_CONF_ParseServerAddress
 (
     IN CHAR *pcServerAddress,
@@ -73,8 +73,8 @@ BS_STATUS VNETC_FuncTbl_Reg();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_CONF_H_*/
+#endif 
 
 

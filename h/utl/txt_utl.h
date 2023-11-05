@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #ifdef IN_WINDOWS
 #define isdigit(c)	('0' <= (c) && (c) <= '9')
@@ -27,9 +27,9 @@
 
 #define TXT_BLANK_CHARS " \t\r\n"
 
-#define TXT_SL(_x)  (_x), (sizeof(_x)-1)
+#define TXT_SL(_x)  (sizeof(_x)-1)
 
-/* 判断是否一行的最后一个字符 */
+
 #define TXT_IS_LINE_LAST_CHAR(ucChar) ((ucChar) == '\n')
 
 #define TXT_IS_BLANK(x) (((x) == ' ') || ((x) == '\t'))
@@ -56,29 +56,31 @@
         print_func(__msg, user_data);                 \
     }while(0)
 
+#define TXT_STRNCMP(_str1, _str2) strncmp((_str1), (_str2), TXT_SL(_str2))
+
 extern BS_STATUS TXT_Lower(INOUT CHAR *pucTxtBuf);
 
 extern BS_STATUS TXT_Upper(INOUT CHAR *pucTxtBuf);
 
 extern VOID TXT_DelSubStr(IN CHAR *pucTxtBuf, IN CHAR *pucSubStr, OUT CHAR *pucTxtOutBuf, IN ULONG ulSize);
 
-/* 去除行注释 */
+
 extern VOID TXT_DelLineComment
 (
     IN CHAR *pcInBuf,
-    IN CHAR *pcCommentFlag,  /* 注释标记, 如"#", "//" */
+    IN CHAR *pcCommentFlag,  
     OUT CHAR *pcOutBuf
 );
 
-/*得到一行长度，不包括换行符*/
+
 extern BS_STATUS TXT_GetLine(IN CHAR *pucTxtBuf, OUT UINT *puiLineLen, OUT BOOL_T *pbIsFoundLineEnd, OUT CHAR **ppucLineNext);
 
-/*得到一行长度，不包括换行符*/
-extern BS_STATUS TXT_N_GetLine(IN CHAR *pucTxtBuf, IN UINT ulLen, OUT UINT *pulLineLen, OUT BOOL_T *pbIsFoundLineEndFlag/*是否找到了\n*/, OUT CHAR **ppucLineNext);
+
+extern BS_STATUS TXT_N_GetLine(IN CHAR *pucTxtBuf, IN UINT ulLen, OUT UINT *pulLineLen, OUT BOOL_T *pbIsFoundLineEndFlag, OUT CHAR **ppucLineNext);
 
 extern CHAR *TXT_Strnchr(IN CHAR *pcBuf, IN CHAR ch2Find, IN UINT ulLen);
 
-/* 在字符串中查找多个字符之一 */
+
 extern CHAR * TXT_MStrnchr
 (
     IN CHAR *pcString,
@@ -88,13 +90,13 @@ extern CHAR * TXT_MStrnchr
 
 char * TXT_MStrchr(char *string, char *to_finds);
 
-/* 将字符串反序 */
+
 extern char * TXT_Invert(char *in, char *out);
 
-/* 从最后开始扫描字符 */
+
 extern CHAR * TXT_ReverseStrchr(IN CHAR *pcBuf, IN CHAR ch2Find);
 
-/* 从最后开始扫描字符 */
+
 extern CHAR * TXT_ReverseStrnchr(CHAR *pcBuf, CHAR cToFind, UINT len);
 
 extern CHAR *TXT_Strnstr(IN CHAR *s1, IN CHAR *s2, IN ULONG ulLen) ;
@@ -136,10 +138,10 @@ extern CHAR * TXT_StrimHeadTail(CHAR *pcData, ULONG ulDataLen, CHAR *pcSkipChars
 
 extern CHAR * TXT_StrimString(IN CHAR *pcData, IN CHAR *pcSkipChars);
 
-/* 删除字符串头和尾的空格\t \n \r 字符 */
+
 extern CHAR *TXT_Strim(IN CHAR *pszStr);
 
-/* 删除字符串头和尾的空格\t \n \r 字符, 并移动数据到头 */
+
 extern VOID TXT_StrimAndMove(IN CHAR *pszStr);
 
 extern char * TXT_StrimAll(IN CHAR *pcStr);
@@ -148,7 +150,7 @@ extern char * TXT_StrimTo(char *in, char *out);
 
 extern char * TXT_StrimAllTo(char *in, char *out);
 
-/* 得到字符串中第一个非空格\t \n \r 字符的指针, 如果找不到, 返回NULL . */
+
 extern UCHAR * TXT_FindFirstNonBlank(IN UCHAR *pszStr, IN UINT ulLen);
 
 extern UCHAR *TXT_FindFirstNonSuch(IN UCHAR *pszStr, IN UINT ulLen, IN UCHAR *pszNoSuch, IN UINT ulNoSuchLen);
@@ -161,12 +163,10 @@ extern UINT TXT_StrToToken(IN CHAR *pszStr, IN CHAR *pszPatterns, OUT CHAR *apsz
 
 extern UINT TXT_GetTokenNum(IN CHAR *pszStr, IN CHAR *pszPatterns);
 
-/*
- 将解析后的结果放在HSTACK中返回
-*/
+
 extern HANDLE TXT_StrToDynamicToken(IN CHAR *pszStr, IN CHAR *pszPatterns);
 
-/*  查找第N个字符在字符串中的位置  */
+
 extern CHAR * TXT_StrchrX(IN CHAR *pszStr, IN CHAR pcToFind, IN UINT ulNum);
 
 extern UINT TXT_CountCharNum(IN CHAR *pszString, IN CHAR cCharToCount);
@@ -195,16 +195,14 @@ extern BS_STATUS TXT_FindBracket
 (
     IN CHAR *pszString,
     IN UINT ulLen,
-    IN CHAR *pszBracket/*两个字节,用来表示左右括号*/,
+    IN CHAR *pszBracket,
     OUT CHAR **ppcStart,
     OUT CHAR **ppcEnd
 );
 
 extern char * TXT_Str2Translate(char *str, char *trans_char_sets, char *out, int out_size);
 
-/* 将数字转为二进制字符串:
- * min_len: 最小输出字节数, 如果不足则在前面补0
- */
+
 char * TXT_Num2BitString(uint64_t v, int min_len, OUT char *str);
 
 #define TXT_SCAN_N_LINE_BEGIN(pszTxtBuf, uiBufLen, pszLine, uiLineLen) \
@@ -227,7 +225,7 @@ char * TXT_Num2BitString(uint64_t v, int min_len, OUT char *str);
 
 #define TXT_SCAN_LINE_END()     }}while(0)
 
-/* 遍历字符串中的每个元素. 元素是用cSplitChar隔开的字符串 */
+
 #define TXT_SCAN_ELEMENT_BEGIN(pszTxtBuf, cSplitChar, pszElement)  \
     do {    \
         CHAR *_pc = pszTxtBuf;    \
@@ -256,8 +254,8 @@ char * TXT_Num2BitString(uint64_t v, int min_len, OUT char *str);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__UTL_TXT_H_*/
+#endif 
 
 

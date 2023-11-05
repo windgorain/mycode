@@ -16,13 +16,13 @@
 #include "../h/pcap_main.h"
 
 
-/* pcap %INT<0-31> */
+
 PLUG_API BS_STATUS PCAP_CMD_EnterAgent(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     return BS_OK;
 }
 
-/* show device */
+
 PLUG_API BS_STATUS PCAP_CMD_ShowDev(IN UINT ulArgc, IN CHAR ** argv)
 {
     PKTCAP_NIDS_INFO_HANDLE hInfo;
@@ -38,7 +38,7 @@ PLUG_API BS_STATUS PCAP_CMD_ShowDev(IN UINT ulArgc, IN CHAR ** argv)
     return BS_OK;
 }
 
-/* device %STRING */
+
 PLUG_API BS_STATUS PCAP_CMD_SetDev(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     UINT uiIndex;
@@ -55,7 +55,7 @@ PLUG_API BS_STATUS PCAP_CMD_SetDev(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv
     return PCAP_Main_SetNdis(uiIndex, argv[1]);
 }
 
-/* start */
+
 PLUG_API BS_STATUS PCAP_CMD_Start(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     UINT uiIndex;
@@ -68,7 +68,7 @@ PLUG_API BS_STATUS PCAP_CMD_Start(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
     return PCAP_Main_Start(uiIndex);
 }
 
-/* show this */
+
 PLUG_API BS_STATUS PCAP_CMD_ShowThis(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcNdisName;

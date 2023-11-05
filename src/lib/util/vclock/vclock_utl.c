@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_VCLOCK
     
 #include "bs.h"
@@ -26,19 +26,19 @@ static void _VCLOCK_UnLock(VCLOCK_INSTANCE_S *pstVClockInstance)
     }
 }
 
-/* function */
+
 static VOID _VCLOCK_Timer_Add
 (
     IN VCLOCK_INSTANCE_S *pstVClockInstance,
     IN VCLOCK_NODE_S *pstNode,
-    IN UINT uiTick  /* 多少个Tick后触发 */
+    IN UINT uiTick  
 )
 {
     UINT ulLevel = 0;
     UINT ulTickTmp = uiTick;
     DLL_HEAD_S *head;
 
-    DLL_DelIfInList(&pstNode->stDllNode);  /* 从原来链表中摘除 */
+    DLL_DelIfInList(&pstNode->stDllNode);  
 
     pstNode->uiTriggerTick = pstVClockInstance->uiCurrentTick + uiTick;
 
@@ -82,7 +82,7 @@ static inline int _VCLOCK_AddTimer
 
     pstVClockInstance->ulNodeCount ++;
 
-    /* 加1是为了避免当前tick马上就过去了 */
+    
     _VCLOCK_Timer_Add(pstVClockInstance, pstNode, first_tick + 1); 
 
     return 0;
@@ -225,7 +225,7 @@ void VCLOCK_FiniInstance(IN VCLOCK_INSTANCE_S *pstVClockInstance)
     }
 }
 
-/* 推荐使用VCLOCK_InitInstance */
+
 VCLOCK_INSTANCE_HANDLE VCLOCK_CreateInstance(BOOL_T bCreateLock)
 {
     VCLOCK_INSTANCE_S  *vclock;
@@ -250,8 +250,8 @@ int VCLOCK_AddTimer
 (
     IN VCLOCK_INSTANCE_S *pstVClockInstance,
     IN VCLOCK_NODE_S *vclock_node,
-    IN UINT first_tick, /* 第一次超时时间 */
-    IN UINT tick,      /* 后续超时时间 */
+    IN UINT first_tick, 
+    IN UINT tick,      
     IN UINT flag,
     IN PF_TIME_OUT_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle
@@ -293,8 +293,8 @@ BS_STATUS VCLOCK_DelTimer(VCLOCK_INSTANCE_S *pstVClockInstance,
 VCLOCK_HANDLE VCLOCK_CreateTimer
 (
     IN VCLOCK_INSTANCE_HANDLE hVClockInstanceId,
-    IN UINT first_tick, /* 第一次超时时间 */
-    IN UINT tick,      /* 后续超时时间 */
+    IN UINT first_tick, 
+    IN UINT tick,      
     IN UINT flag,
     IN PF_TIME_OUT_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle
@@ -392,7 +392,7 @@ BS_STATUS VCLOCK_Refresh(IN VCLOCK_INSTANCE_HANDLE hVClockInstance,
 
     pstNode = (VCLOCK_NODE_S*)hTimer;
 
-    /* 意味着不需刷新 */
+    
     if (pstNode->ulTick == _VCLOCK_GetTickLeft(hVClockInstance, hTimer)) {
         return BS_OK;
     }
@@ -402,7 +402,7 @@ BS_STATUS VCLOCK_Refresh(IN VCLOCK_INSTANCE_HANDLE hVClockInstance,
 }
 
 
-/* 得到还有多少Tick就超时了 */
+
 UINT VCLOCK_GetTickLeft(IN VCLOCK_INSTANCE_HANDLE hVClockInstance,
         IN VCLOCK_HANDLE hTimer)
 {
@@ -419,7 +419,7 @@ UINT VCLOCK_GetTickLeft(IN VCLOCK_INSTANCE_HANDLE hVClockInstance,
     return ulTick;
 }
 
-/* 触发一次tick */
+
 BS_STATUS VCLOCK_Step(IN VCLOCK_INSTANCE_HANDLE hVClockInstance)
 {
     VCLOCK_NODE_S *pstNode, *pstNodeTmp;
@@ -446,7 +446,7 @@ BS_STATUS VCLOCK_Step(IN VCLOCK_INSTANCE_HANDLE hVClockInstance)
         i = _VCLOCK_TIMER_TOTLE_LEVEL - 1;
     }
 
-    /* 将处于高级别的Timer拿到低级别 */
+    
     for (; i>0; i--) {
         index = pstVClockInstance->ulCurrentLevelTick[i];
         dll_head = &pstVClockInstance->stTimerLevel[i][index];
@@ -456,7 +456,7 @@ BS_STATUS VCLOCK_Step(IN VCLOCK_INSTANCE_HANDLE hVClockInstance)
         }
     }
 
-    /* 遍历最低级别,对超时节点进行触发 */
+    
     while (1) {
         index = pstVClockInstance->ulCurrentLevelTick[0];
         dll_head = &pstVClockInstance->stTimerLevel[0][index];

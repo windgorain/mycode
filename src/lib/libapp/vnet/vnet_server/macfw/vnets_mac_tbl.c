@@ -250,9 +250,7 @@ static VOID vnets_mactbl_Show(IN UINT uiDomainId)
     return;
 }
 
-/*
-    执行命令: show mac-table domain-name %STRING
-*/
+
 PLUG_API BS_STATUS VNETS_MACTBL_ShowByDomainName(IN UINT ulArgc, IN CHAR ** argv)
 {
     UINT uiDomainId;
@@ -271,9 +269,7 @@ PLUG_API BS_STATUS VNETS_MACTBL_ShowByDomainName(IN UINT ulArgc, IN CHAR ** argv
     return BS_OK;
 }
 
-/*
-    执行命令: show mac-table domain-id %INT
-*/
+
 PLUG_API BS_STATUS VNETS_MACTBL_ShowByDomainID(IN UINT ulArgc, IN CHAR ** argv)
 {
     UINT uiDomainId = 0;

@@ -35,4 +35,4 @@ BS_STATUS CMDLST_ScanByFile(CMDLST_S *ctrl, char *filename);
 #ifdef __cplusplus
 }
 #endif
-#endif //CMD_LST_H_
+#endif 

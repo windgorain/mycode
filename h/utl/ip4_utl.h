@@ -29,28 +29,28 @@ extern "C"
     #define IN_CLASSC_HOST      (0xffffffff & ~IN_CLASSC_NET)
     
     #define IN_CLASSD(a)        (((UINT)(a) & 0xf0000000) == 0xe0000000)
-    #define IN_CLASSD_NET       0xf0000000  /* These ones aren't really */
-    #define IN_CLASSD_NSHIFT    28      /* net and host fields, but */
-    #define IN_CLASSD_HOST      0x0fffffff  /* routing needn't know.    */
+    #define IN_CLASSD_NET       0xf0000000  
+    #define IN_CLASSD_NSHIFT    28      
+    #define IN_CLASSD_HOST      0x0fffffff  
     #define IN_MULTICAST(a)     IN_CLASSD(a)
     
-    /* Address to accept any incoming messages.  */
+    
     #define INADDR_ANY      ((UINT) 0x00000000)
     
-    /* Address to send to all hosts.  */
+    
     #define INADDR_BROADCAST    ((UINT) 0xffffffff)
     
-    /* Address indicating an error return.  */
+    
     #ifndef INADDR_NONE
         #define INADDR_NONE     ((UINT) 0xffffffff)
     #endif
     
-    /* Network number for local host loopback.  */
+    
     #define IN_LOOPBACKNET      127
 
-    /* Address to loopback in software to local host.  */
-    #define INADDR_LOOPBACK    ((UINT) 0x7f000001) /* Inet 127.0.0.1.  */
-#endif /* IN_CLASSA */
+    
+    #define INADDR_LOOPBACK    ((UINT) 0x7f000001) 
+#endif 
 
 #define IP_IN_LOOPBACK(a)      (((UINT) (a) & 0xff000000) == 0x7f000000)
 #define IP_IN_EXPERIMENTAL(a)  ((((UINT)(a)) & 0xe0000000) == 0xe0000000)
@@ -64,23 +64,23 @@ extern "C"
 
 #define MAX_IPHEADLEN    60
 
-/* 子网地址 */
+
 #define IP_IS_SUB_NET(uiIp, uiMask) ((uiIp) & (uiMask) == (uiIp))
-/* 子网广播 */
+
 #define IP_IS_SUB_BROADCAST(uiIp, uiMask) (((uiIp) & (~(uiMask))) == (~(uiMask)))
 
-#define IP_PROTO_HOPOPTS        0   /* Hop-by-hop option header */
-#define IP_PROTO_ICMP  1   /* ICMP protocol */
-#define IP_PROTO_IGMP  2   /* IGMP protocol */
-#define IP_PROTO_TCP   6   /* TCP protocol */
-#define IP_PROTO_UDP   17  /* UDP protocol */
-#define IP_PROTO_ROUTE 43  /* Routing header */
-#define IP_PROTO_FRAGMENT 44  /* fragmentheader */
-#define IP_PROTO_ICMP6 58  /* icmp6*/
-#define IP_PROTO_NONE  59  /* no next header */
+#define IP_PROTO_HOPOPTS        0   
+#define IP_PROTO_ICMP  1   
+#define IP_PROTO_IGMP  2   
+#define IP_PROTO_TCP   6   
+#define IP_PROTO_UDP   17  
+#define IP_PROTO_ROUTE 43  
+#define IP_PROTO_FRAGMENT 44  
+#define IP_PROTO_ICMP6 58  
+#define IP_PROTO_NONE  59  
 
-#define IP_VERSION      4       /* IPv4 version */
-#define IP6_VERSION     6       /* IPv6 version */
+#define IP_VERSION      4       
+#define IP6_VERSION     6       
 
 #define IP_HEAD_VER(pstIpHead) ((pstIpHead)->ucVer)
 #define IP_HEAD_LEN(pstIpHead) (((pstIpHead)->ucHLen) << 2)
@@ -89,33 +89,33 @@ extern "C"
 #define IP_HEAD_FLAG(pstIpHead) ((ntohs((pstIpHead)->usOff) & 0xe000) >> 13)
 #define IP_HEAD_FRAG_OFFSET(pstIpHead) ((ntohs((pstIpHead)->usOff) & 0x1fff))
 
-/* ip fragment flag */
-#define IP_DF           0x4000  /* dont fragment flag */
-#define IP_MF           0x2000  /* more fragments flag */
-#define IP_OFFMASK      0x1fff  /* mask for fragmenting bits */
 
-#define IP_MAXPACKET    65535       /* maximum packet size */
+#define IP_DF           0x4000  
+#define IP_MF           0x2000  
+#define IP_OFFMASK      0x1fff  
+
+#define IP_MAXPACKET    65535       
 
 #pragma pack(1)
-/* IPv4 头的定义 */
+
 typedef struct 
 {
 #if BS_BIG_ENDIAN
-    UCHAR    ucVer:4;              /* version */
-    UCHAR    ucHLen:4;             /* header length */
+    UCHAR    ucVer:4;              
+    UCHAR    ucHLen:4;             
 #else
     UCHAR    ucHLen:4;
     UCHAR    ucVer:4;
 #endif
-	UCHAR 		ucTos; // TOS类型
-	USHORT 		usTotlelen; // 总长度
-	USHORT 		usIdentification; // Identification
-	USHORT 		usOff; // Flags (3 bits) + Fragment offset (13 bits)
-	UCHAR  		ucTtl; // 生存期
-	UCHAR  		ucProto;  /* 报文协议类型 */
-	USHORT 		usCrc; // 首部校验和
-	IP_ADDR_U   unSrcIp; // 源IP
-	IP_ADDR_U   unDstIp; // 目的IP
+	UCHAR 		ucTos; 
+	USHORT 		usTotlelen; 
+	USHORT 		usIdentification; 
+	USHORT 		usOff; 
+	UCHAR  		ucTtl; 
+	UCHAR  		ucProto;  
+	USHORT 		usCrc; 
+	IP_ADDR_U   unSrcIp; 
+	IP_ADDR_U   unDstIp; 
 }IP_HEAD_S;
 #pragma pack()
 
@@ -124,4 +124,4 @@ char * inet_ntop4(const struct in_addr *addr, char *buf, socklen_t len);
 #ifdef __cplusplus
 }
 #endif
-#endif //IP4_UTL_H_
+#endif 

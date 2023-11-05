@@ -16,6 +16,7 @@
 #include <asm/barrier.h>
 #include <sys/mman.h>
 #include <sys/epoll.h>
+#include <time.h>
 
 #include "libbpf.h"
 #include "libbpf_internal.h"
@@ -39,6 +40,23 @@ struct ring_buffer {
 	int ring_cnt;
 };
 
+struct user_ring_buffer {
+	struct epoll_event event;
+	unsigned long *consumer_pos;
+	unsigned long *producer_pos;
+	void *data;
+	unsigned long mask;
+	size_t page_size;
+	int map_fd;
+	int epoll_fd;
+};
+
+
+struct ringbuf_hdr {
+	__u32 len;
+	__u32 pad;
+};
+
 static void ringbuf_unmap_ring(struct ring_buffer *rb, struct ring *r)
 {
 	if (r->consumer_pos) {
@@ -51,7 +69,7 @@ static void ringbuf_unmap_ring(struct ring_buffer *rb, struct ring *r)
 	}
 }
 
-/* Add extra RINGBUF maps to this ring buffer manager */
+
 int ring_buffer__add(struct ring_buffer *rb, int map_fd,
 		     ring_buffer_sample_fn sample_cb, void *ctx)
 {
@@ -59,12 +77,13 @@ int ring_buffer__add(struct ring_buffer *rb, int map_fd,
 	__u32 len = sizeof(info);
 	struct epoll_event *e;
 	struct ring *r;
+	__u64 mmap_sz;
 	void *tmp;
 	int err;
 
 	memset(&info, 0, sizeof(info));
 
-	err = bpf_obj_get_info_by_fd(map_fd, &info, &len);
+	err = bpf_map_get_info_by_fd(map_fd, &info, &len);
 	if (err) {
 		err = -errno;
 		pr_warn("ringbuf: failed to get map info for fd=%d: %d\n",
@@ -96,9 +115,8 @@ int ring_buffer__add(struct ring_buffer *rb, int map_fd,
 	r->ctx = ctx;
 	r->mask = info.max_entries - 1;
 
-	/* Map writable consumer page */
-	tmp = mmap(NULL, rb->page_size, PROT_READ | PROT_WRITE, MAP_SHARED,
-		   map_fd, 0);
+	
+	tmp = mmap(NULL, rb->page_size, PROT_READ | PROT_WRITE, MAP_SHARED, map_fd, 0);
 	if (tmp == MAP_FAILED) {
 		err = -errno;
 		pr_warn("ringbuf: failed to mmap consumer page for map fd=%d: %d\n",
@@ -107,12 +125,13 @@ int ring_buffer__add(struct ring_buffer *rb, int map_fd,
 	}
 	r->consumer_pos = tmp;
 
-	/* Map read-only producer page and data pages. We map twice as big
-	 * data size to allow simple reading of samples that wrap around the
-	 * end of a ring buffer. See kernel implementation for details.
-	 * */
-	tmp = mmap(NULL, rb->page_size + 2 * info.max_entries, PROT_READ,
-		   MAP_SHARED, map_fd, rb->page_size);
+	
+	mmap_sz = rb->page_size + 2 * (__u64)info.max_entries;
+	if (mmap_sz != (__u64)(size_t)mmap_sz) {
+		pr_warn("ringbuf: ring buffer size (%u) is too big\n", info.max_entries);
+		return libbpf_err(-E2BIG);
+	}
+	tmp = mmap(NULL, (size_t)mmap_sz, PROT_READ, MAP_SHARED, map_fd, rb->page_size);
 	if (tmp == MAP_FAILED) {
 		err = -errno;
 		ringbuf_unmap_ring(rb, r);
@@ -193,19 +212,19 @@ err_out:
 
 static inline int roundup_len(__u32 len)
 {
-	/* clear out top 2 bits (discard and busy, if set) */
+	
 	len <<= 2;
 	len >>= 2;
-	/* add length prefix */
+	
 	len += BPF_RINGBUF_HDR_SZ;
-	/* round up to 8 byte alignment */
+	
 	return (len + 7) / 8 * 8;
 }
 
-static int64_t ringbuf_process_ring(struct ring* r)
+static int64_t ringbuf_process_ring(struct ring *r)
 {
 	int *len_ptr, len, err;
-	/* 64-bit to avoid overflow in case of extreme application behavior */
+	
 	int64_t cnt = 0;
 	unsigned long cons_pos, prod_pos;
 	bool got_new_data;
@@ -219,7 +238,7 @@ static int64_t ringbuf_process_ring(struct ring* r)
 			len_ptr = r->data + (cons_pos & r->mask);
 			len = smp_load_acquire(len_ptr);
 
-			/* sample not committed yet, bail out for now */
+			
 			if (len & BPF_RINGBUF_BUSY_BIT)
 				goto done;
 
@@ -230,7 +249,7 @@ static int64_t ringbuf_process_ring(struct ring* r)
 				sample = (void *)len_ptr + BPF_RINGBUF_HDR_SZ;
 				err = r->sample_cb(r->ctx, sample, len);
 				if (err < 0) {
-					/* update consumer pos and bail out */
+					
 					smp_store_release(r->consumer_pos,
 							  cons_pos);
 					return err;
@@ -245,11 +264,7 @@ done:
 	return cnt;
 }
 
-/* Consume available ring buffer(s) data without event polling.
- * Returns number of records consumed across all registered ring buffers (or
- * INT_MAX, whichever is less), or negative number if any of the callbacks
- * return error.
- */
+
 int ring_buffer__consume(struct ring_buffer *rb)
 {
 	int64_t err, res = 0;
@@ -268,10 +283,7 @@ int ring_buffer__consume(struct ring_buffer *rb)
 	return res;
 }
 
-/* Poll for available data and consume records, if any are available.
- * Returns number of records consumed (or INT_MAX, whichever is less), or
- * negative number, if any of the registered callbacks returned error.
- */
+
 int ring_buffer__poll(struct ring_buffer *rb, int timeout_ms)
 {
 	int i, cnt;
@@ -295,8 +307,251 @@ int ring_buffer__poll(struct ring_buffer *rb, int timeout_ms)
 	return res;
 }
 
-/* Get an fd that can be used to sleep until data is available in the ring(s) */
+
 int ring_buffer__epoll_fd(const struct ring_buffer *rb)
 {
 	return rb->epoll_fd;
+}
+
+static void user_ringbuf_unmap_ring(struct user_ring_buffer *rb)
+{
+	if (rb->consumer_pos) {
+		munmap(rb->consumer_pos, rb->page_size);
+		rb->consumer_pos = NULL;
+	}
+	if (rb->producer_pos) {
+		munmap(rb->producer_pos, rb->page_size + 2 * (rb->mask + 1));
+		rb->producer_pos = NULL;
+	}
+}
+
+void user_ring_buffer__free(struct user_ring_buffer *rb)
+{
+	if (!rb)
+		return;
+
+	user_ringbuf_unmap_ring(rb);
+
+	if (rb->epoll_fd >= 0)
+		close(rb->epoll_fd);
+
+	free(rb);
+}
+
+static int user_ringbuf_map(struct user_ring_buffer *rb, int map_fd)
+{
+	struct bpf_map_info info;
+	__u32 len = sizeof(info);
+	__u64 mmap_sz;
+	void *tmp;
+	struct epoll_event *rb_epoll;
+	int err;
+
+	memset(&info, 0, sizeof(info));
+
+	err = bpf_map_get_info_by_fd(map_fd, &info, &len);
+	if (err) {
+		err = -errno;
+		pr_warn("user ringbuf: failed to get map info for fd=%d: %d\n", map_fd, err);
+		return err;
+	}
+
+	if (info.type != BPF_MAP_TYPE_USER_RINGBUF) {
+		pr_warn("user ringbuf: map fd=%d is not BPF_MAP_TYPE_USER_RINGBUF\n", map_fd);
+		return -EINVAL;
+	}
+
+	rb->map_fd = map_fd;
+	rb->mask = info.max_entries - 1;
+
+	
+	tmp = mmap(NULL, rb->page_size, PROT_READ, MAP_SHARED, map_fd, 0);
+	if (tmp == MAP_FAILED) {
+		err = -errno;
+		pr_warn("user ringbuf: failed to mmap consumer page for map fd=%d: %d\n",
+			map_fd, err);
+		return err;
+	}
+	rb->consumer_pos = tmp;
+
+	
+	mmap_sz = rb->page_size + 2 * (__u64)info.max_entries;
+	if (mmap_sz != (__u64)(size_t)mmap_sz) {
+		pr_warn("user ringbuf: ring buf size (%u) is too big\n", info.max_entries);
+		return -E2BIG;
+	}
+	tmp = mmap(NULL, (size_t)mmap_sz, PROT_READ | PROT_WRITE, MAP_SHARED,
+		   map_fd, rb->page_size);
+	if (tmp == MAP_FAILED) {
+		err = -errno;
+		pr_warn("user ringbuf: failed to mmap data pages for map fd=%d: %d\n",
+			map_fd, err);
+		return err;
+	}
+
+	rb->producer_pos = tmp;
+	rb->data = tmp + rb->page_size;
+
+	rb_epoll = &rb->event;
+	rb_epoll->events = EPOLLOUT;
+	if (epoll_ctl(rb->epoll_fd, EPOLL_CTL_ADD, map_fd, rb_epoll) < 0) {
+		err = -errno;
+		pr_warn("user ringbuf: failed to epoll add map fd=%d: %d\n", map_fd, err);
+		return err;
+	}
+
+	return 0;
+}
+
+struct user_ring_buffer *
+user_ring_buffer__new(int map_fd, const struct user_ring_buffer_opts *opts)
+{
+	struct user_ring_buffer *rb;
+	int err;
+
+	if (!OPTS_VALID(opts, user_ring_buffer_opts))
+		return errno = EINVAL, NULL;
+
+	rb = calloc(1, sizeof(*rb));
+	if (!rb)
+		return errno = ENOMEM, NULL;
+
+	rb->page_size = getpagesize();
+
+	rb->epoll_fd = epoll_create1(EPOLL_CLOEXEC);
+	if (rb->epoll_fd < 0) {
+		err = -errno;
+		pr_warn("user ringbuf: failed to create epoll instance: %d\n", err);
+		goto err_out;
+	}
+
+	err = user_ringbuf_map(rb, map_fd);
+	if (err)
+		goto err_out;
+
+	return rb;
+
+err_out:
+	user_ring_buffer__free(rb);
+	return errno = -err, NULL;
+}
+
+static void user_ringbuf_commit(struct user_ring_buffer *rb, void *sample, bool discard)
+{
+	__u32 new_len;
+	struct ringbuf_hdr *hdr;
+	uintptr_t hdr_offset;
+
+	hdr_offset = rb->mask + 1 + (sample - rb->data) - BPF_RINGBUF_HDR_SZ;
+	hdr = rb->data + (hdr_offset & rb->mask);
+
+	new_len = hdr->len & ~BPF_RINGBUF_BUSY_BIT;
+	if (discard)
+		new_len |= BPF_RINGBUF_DISCARD_BIT;
+
+	
+	__atomic_exchange_n(&hdr->len, new_len, __ATOMIC_ACQ_REL);
+}
+
+void user_ring_buffer__discard(struct user_ring_buffer *rb, void *sample)
+{
+	user_ringbuf_commit(rb, sample, true);
+}
+
+void user_ring_buffer__submit(struct user_ring_buffer *rb, void *sample)
+{
+	user_ringbuf_commit(rb, sample, false);
+}
+
+void *user_ring_buffer__reserve(struct user_ring_buffer *rb, __u32 size)
+{
+	__u32 avail_size, total_size, max_size;
+	
+	__u64 cons_pos, prod_pos;
+	struct ringbuf_hdr *hdr;
+
+	
+	if (size & (BPF_RINGBUF_BUSY_BIT | BPF_RINGBUF_DISCARD_BIT))
+		return errno = E2BIG, NULL;
+
+	
+	cons_pos = smp_load_acquire(rb->consumer_pos);
+	
+	prod_pos = smp_load_acquire(rb->producer_pos);
+
+	max_size = rb->mask + 1;
+	avail_size = max_size - (prod_pos - cons_pos);
+	
+	total_size = (size + BPF_RINGBUF_HDR_SZ + 7) / 8 * 8;
+
+	if (total_size > max_size)
+		return errno = E2BIG, NULL;
+
+	if (avail_size < total_size)
+		return errno = ENOSPC, NULL;
+
+	hdr = rb->data + (prod_pos & rb->mask);
+	hdr->len = size | BPF_RINGBUF_BUSY_BIT;
+	hdr->pad = 0;
+
+	
+	smp_store_release(rb->producer_pos, prod_pos + total_size);
+
+	return (void *)rb->data + ((prod_pos + BPF_RINGBUF_HDR_SZ) & rb->mask);
+}
+
+static __u64 ns_elapsed_timespec(const struct timespec *start, const struct timespec *end)
+{
+	__u64 start_ns, end_ns, ns_per_s = 1000000000;
+
+	start_ns = (__u64)start->tv_sec * ns_per_s + start->tv_nsec;
+	end_ns = (__u64)end->tv_sec * ns_per_s + end->tv_nsec;
+
+	return end_ns - start_ns;
+}
+
+void *user_ring_buffer__reserve_blocking(struct user_ring_buffer *rb, __u32 size, int timeout_ms)
+{
+	void *sample;
+	int err, ms_remaining = timeout_ms;
+	struct timespec start;
+
+	if (timeout_ms < 0 && timeout_ms != -1)
+		return errno = EINVAL, NULL;
+
+	if (timeout_ms != -1) {
+		err = clock_gettime(CLOCK_MONOTONIC, &start);
+		if (err)
+			return NULL;
+	}
+
+	do {
+		int cnt, ms_elapsed;
+		struct timespec curr;
+		__u64 ns_per_ms = 1000000;
+
+		sample = user_ring_buffer__reserve(rb, size);
+		if (sample)
+			return sample;
+		else if (errno != ENOSPC)
+			return NULL;
+
+		
+		cnt = epoll_wait(rb->epoll_fd, &rb->event, 1, ms_remaining);
+		if (cnt < 0)
+			return NULL;
+
+		if (timeout_ms == -1)
+			continue;
+
+		err = clock_gettime(CLOCK_MONOTONIC, &curr);
+		if (err)
+			return NULL;
+
+		ms_elapsed = ns_elapsed_timespec(&start, &curr) / ns_per_ms;
+		ms_remaining = timeout_ms - ms_elapsed;
+	} while (ms_remaining > 0);
+
+	
+	return user_ring_buffer__reserve(rb, size);
 }

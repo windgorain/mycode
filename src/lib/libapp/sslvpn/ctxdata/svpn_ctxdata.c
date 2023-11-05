@@ -473,7 +473,7 @@ VOID SVPN_CtxData_DelPropElement
     return;
 }
 
-/* 删除指定表里面所有行的Prop里面的一项元素. */
+
 VOID SVPN_CtxData_AllDelPropElement
 (
     IN SVPN_CONTEXT_HANDLE hSvpnContext,

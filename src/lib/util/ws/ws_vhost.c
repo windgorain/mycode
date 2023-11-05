@@ -80,7 +80,7 @@ static _WS_VHOST_S * ws_vhost_Match(IN _WS_S *pstWs, IN CHAR *pcVHost, IN UINT u
     return pstVHostFound;
 }
 
-WS_VHOST_HANDLE WS_VHost_Add(IN WS_HANDLE hWs, IN CHAR *pcVHost/* ""表示缺省Host */)
+WS_VHOST_HANDLE WS_VHost_Add(IN WS_HANDLE hWs, IN CHAR *pcVHost)
 {
     _WS_VHOST_S *pstVHost;
 
@@ -119,13 +119,13 @@ VOID WS_VHost_Del(IN WS_VHOST_HANDLE hVHost)
     MEM_Free(pstVHost);
 }
 
-/* 精确查找 */
+
 WS_VHOST_HANDLE WS_VHost_Find(IN WS_HANDLE hWs, IN CHAR *pcVHost)
 {
     return ws_vhost_Find(hWs, pcVHost);
 }
 
-/* 模糊匹配 */
+
 WS_VHOST_HANDLE WS_VHost_Match(IN WS_HANDLE hWs, IN CHAR *pcVHost, IN UINT uiVHostLen)
 {
     if (NULL == pcVHost)

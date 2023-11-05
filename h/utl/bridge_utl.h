@@ -34,4 +34,4 @@ int BR_PktInput(BR_HANDLE br, IF_INDEX ifindex, BR_PKT_S *pkt, void *ud);
 #ifdef __cplusplus
 }
 #endif
-#endif //BRIDGE_UTL_H_
+#endif 

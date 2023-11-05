@@ -11,7 +11,7 @@
 
 #include "arpcheat_main.h"
 
-#define _ARPCHEAT_DFT_INTERVAL  10000  /* ms, 发送报文的时间间隔 */
+#define _ARPCHEAT_DFT_INTERVAL  10000  
 
 static ARP_CHEAT_HANDLE g_hArpCheatHandle;
 static MTIMER_S g_stArpCheatMTimer;
@@ -38,7 +38,7 @@ VOID ARPCheat_Main_SetPcapIndex(IN UINT uiPcapIndex)
     ARPCheat_SetPcapIndex(g_hArpCheatHandle, uiPcapIndex);
 }
 
-VOID ARPCheat_Main_SetCheatIP(IN UINT uiIP/* net order */)
+VOID ARPCheat_Main_SetCheatIP(IN UINT uiIP)
 {
     ARPCheat_SetCheatIP(g_hArpCheatHandle, uiIP);
 }

@@ -4,7 +4,7 @@
 * Description: 环形buf
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_RBUF
 
 #include "bs.h"
@@ -14,9 +14,9 @@
 typedef struct
 {
     UINT ulMaxDataLen;
-    UINT ulDataLen;    /* 已经有的数据的长度 */
-    UINT ulReadIndex;  /* 数据的起始Index */
-    UINT ulWriteIndex; /* 数据结束的下一个的Index */
+    UINT ulDataLen;    
+    UINT ulReadIndex;  
+    UINT ulWriteIndex; 
     UCHAR *pucData;
 }_RBUF_CTRL_S;
 
@@ -58,7 +58,7 @@ BS_STATUS RBUF_Delete(IN HANDLE hHandle)
     return BS_OK;
 }
 
-/* 向RingBUf 写入数据, 如果写不下，则覆盖已经存在的数据 */
+
 BS_STATUS RBUF_WriteForce(IN HANDLE hHandle, IN UCHAR *pucBuf, IN UINT ulBufLen)
 {
     _RBUF_CTRL_S *pstCtrl = (_RBUF_CTRL_S*)hHandle;
@@ -75,7 +75,7 @@ BS_STATUS RBUF_WriteForce(IN HANDLE hHandle, IN UCHAR *pucBuf, IN UINT ulBufLen)
         return BS_OK;
     }
 
-    /* 如果超出整个缓冲区的大小，则只复制最后和缓冲区大小一样大的那部分数据 */
+    
     if (ulBufLen > pstCtrl->ulMaxDataLen)
     {
         ulBufLen = pstCtrl->ulMaxDataLen;
@@ -90,11 +90,11 @@ BS_STATUS RBUF_WriteForce(IN HANDLE hHandle, IN UCHAR *pucBuf, IN UINT ulBufLen)
             (pstCtrl->ulReadIndex + ulBufLen - (pstCtrl->ulMaxDataLen - pstCtrl->ulDataLen)) % (pstCtrl->ulMaxDataLen);
     }
 
-    if ((pstCtrl->ulWriteIndex + ulBufLen) <= pstCtrl->ulMaxDataLen)  /* 没有回环 */
+    if ((pstCtrl->ulWriteIndex + ulBufLen) <= pstCtrl->ulMaxDataLen)  
     {
         MEM_Copy(pstCtrl->pucData + pstCtrl->ulWriteIndex, pucBuf, ulBufLen);
     }
-    else    /* 回环了,需要拷贝两次 */
+    else    
     {
         ulWriteLenFirst = pstCtrl->ulMaxDataLen - pstCtrl->ulWriteIndex;
         MEM_Copy(pstCtrl->pucData + pstCtrl->ulWriteIndex, pucBuf, ulWriteLenFirst);
@@ -107,7 +107,7 @@ BS_STATUS RBUF_WriteForce(IN HANDLE hHandle, IN UCHAR *pucBuf, IN UINT ulBufLen)
     return BS_OK;
 }
 
-/* 向RingBUf 写入数据, 如果写不下，则写部分数据,并输出成功写入的字节数 */
+
 BS_STATUS RBUF_Write(IN HANDLE hHandle, IN UCHAR *pucBuf, IN UINT ulBufLen, OUT UINT *pulWriteLen)
 {
     _RBUF_CTRL_S *pstCtrl = (_RBUF_CTRL_S*)hHandle;
@@ -153,7 +153,7 @@ BS_STATUS RBUF_ReadNoDel(IN HANDLE hHandle, OUT UCHAR **ppucData, OUT UINT *pulD
 
     if ((pstCtrl->ulWriteIndex < pstCtrl->ulReadIndex) && (pstCtrl->ulWriteIndex != 0))
     {
-        /* 数据回环, 为了使用者能够正常使用返回的地址,移动数据位置,使其不回环 */
+        
         UCHAR *pucTmp = MEM_Malloc(pstCtrl->ulWriteIndex - 1);
         if (pucTmp == NULL)
         {
@@ -194,7 +194,7 @@ BS_STATUS RBUF_Read(IN HANDLE hHandle, OUT UCHAR **ppucData, OUT UINT *pulDataLe
 }
 
 
-/* 得到写指针, 并且返回从这个位置开始的连续内存的长度 */
+
 BS_STATUS RBUF_GetContinueWritePtr(IN HANDLE hHandle, OUT UCHAR **ppucWritePtr, OUT UINT *pulContinueMemLen)
 {
     _RBUF_CTRL_S *pstCtrl = (_RBUF_CTRL_S*)hHandle;
@@ -220,7 +220,7 @@ BS_STATUS RBUF_GetContinueWritePtr(IN HANDLE hHandle, OUT UCHAR **ppucWritePtr, 
     return BS_OK;
 }
 
-/* 移动WriteIndex */
+
 VOID RBUF_MoveWriteIndex(IN HANDLE hHandle, IN INT lIndexMovOffset)
 {
     _RBUF_CTRL_S *pstCtrl = (_RBUF_CTRL_S*)hHandle;
@@ -228,7 +228,7 @@ VOID RBUF_MoveWriteIndex(IN HANDLE hHandle, IN INT lIndexMovOffset)
     pstCtrl->ulWriteIndex = (pstCtrl->ulWriteIndex + lIndexMovOffset) % pstCtrl->ulMaxDataLen;
 }
 
-/* 移动ReadIndex */
+
 VOID RBUF_MoveReadIndex(IN HANDLE hHandle, IN INT lIndexMovOffset)
 {
     _RBUF_CTRL_S *pstCtrl = (_RBUF_CTRL_S*)hHandle;

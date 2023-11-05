@@ -177,7 +177,7 @@ BS_STATUS TMSG2_Input(IN TMSG2_HANDLE hTmsg2, IN MBUF_S *pstMbuf)
     {
         if (TMSG_RecvedAck(pstCtrl->hTmsg, &stTmsg) == FALSE)
         {
-            /* 超时了 */
+            
             MBUF_Free(pstMbuf);
             return BS_TIME_OUT;
         }

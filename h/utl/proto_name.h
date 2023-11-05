@@ -15,11 +15,7 @@
  * 02110-1301, USA.
  */
 
-/**
- * \file
- *
- * \author Gurvinder Singh <gurvindersinghdahiya@gmail.com>
- */
+
 
 #ifndef __PROTO_NAME_H__
 #define	__PROTO_NAME_H__
@@ -30,15 +26,14 @@
 #define PROTO_FILE    "/etc/protocols"
 #else
 #define PROTO_FILE    "C:\\Windows\\system32\\drivers\\etc\\protocol"
-#endif /* OS_WIN32 */
+#endif 
 
-/** Lookup array to hold the information related to known protocol
- *  in /etc/protocols */
-//extern char *known_proto[256];
+
+
 
 uint8_t ProtoNameValid(uint16_t);
 void ProtoNameInit(char *p[256]);
 void ProtoNameDeInit(char *p[256]);
 
-#endif	/* __UTIL_PROTO_NAME_H__ */
+#endif	
 

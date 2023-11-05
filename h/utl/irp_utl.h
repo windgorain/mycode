@@ -38,8 +38,8 @@ typedef struct {
     char *sport_pool;
     char *dport_pool;
 
-    IP_MAKS_S sip;
-    IP_MAKS_S dip;
+    IP_MASK_S sip;
+    IP_MASK_S dip;
     USHORT sport;
     USHORT dport;
 
@@ -102,13 +102,13 @@ typedef struct {
 
 typedef struct {
     DLL_NODE_S link_node;
-    IRP_RTN_S *rtn; /* 指向所属的rtn */
+    IRP_RTN_S *rtn; 
     IRP_CONTENT_OPT_S *fast_opt;
     DLL_HEAD_S content_opt_list;
     IRP_TCP_OPT_S tcp_opt;
     IRP_THRESHOLD_OPT_S threshold_opt;
     IRP_PCRE_S pcre_opt;
-    UINT action:8; /* IRP_RULE_ACTION_E */
+    UINT action:8; 
     int gid;
     int sid;
     char *msg;
@@ -131,7 +131,7 @@ typedef struct {
     UDP_HEAD_S *udp_header;
 }IRP_PKT_INFO_S;
 
-/* 返回>0表示中断匹配, <=0表示继续匹配 */
+
 typedef int (*PF_IRP_MATCH_FUNC)(IRP_OTN_S *otn, void *ud);
 
 int IRP_Init(IRP_CTRL_S *ctrl);
@@ -144,4 +144,4 @@ int IRP_Match(IRP_CTRL_S *ctrl, IRP_PKT_INFO_S *info, PF_IRP_MATCH_FUNC func, vo
 #ifdef __cplusplus
 }
 #endif
-#endif //_IRP_UTL_H
+#endif 

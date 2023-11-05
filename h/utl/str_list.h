@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE STRLIST_HANDLE;
 
@@ -21,8 +21,8 @@ typedef struct
 }STRLIST_NODE_S;
 
 
-#define STRLIST_FLAG_CASE_SENSITIVE 0x1  /* 大小写敏感 */
-#define STRLIST_FLAG_CHECK_REPEAT   0x2  /* 进行重复性检查 */
+#define STRLIST_FLAG_CASE_SENSITIVE 0x1  
+#define STRLIST_FLAG_CHECK_REPEAT   0x2  
 
 
 STRLIST_HANDLE StrList_Create(IN UINT uiFlag);
@@ -30,12 +30,12 @@ BS_STATUS StrList_Add(IN STRLIST_HANDLE hStrList, IN CHAR *pcStr);
 VOID StrList_Del(IN STRLIST_HANDLE hStrList, IN CHAR *pcStr);
 CHAR * StrList_Find(IN STRLIST_HANDLE hStrList, IN CHAR *pcStr);
 CHAR * StrList_FindByLstr(IN STRLIST_HANDLE hStrList, IN LSTR_S *pstLstr);
-STRLIST_NODE_S * StrList_GetNext(IN STRLIST_HANDLE hStrList, IN STRLIST_NODE_S *pstCurr/* NULL表示获取第一个 */);
+STRLIST_NODE_S * StrList_GetNext(IN STRLIST_HANDLE hStrList, IN STRLIST_NODE_S *pstCurr);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__STR_LIST_H_*/
+#endif 
 
 

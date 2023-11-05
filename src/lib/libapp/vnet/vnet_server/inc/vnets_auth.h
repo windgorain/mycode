@@ -9,7 +9,7 @@
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_AUTH_H_*/
+#endif 
 

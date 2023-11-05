@@ -17,7 +17,7 @@
 
 static CHAR g_szWebProxyAppBindWsService[WSAPP_SERVICE_NAME_LEN + 1];
 
-/* bind ws-service %STRING */
+
 PLUG_API BS_STATUS WebProxyApp_Cmd_BindWsService(IN UINT ulArgc, IN CHAR **argv)
 {
     CHAR *pcWsService = argv[2];

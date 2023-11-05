@@ -17,7 +17,7 @@
 #include "../h/log_agent_alert.h"
 #include "../h/log_agent_conf.h"
 
-/* show config-path */
+
 PLUG_API int LOGAGENT_CmdShowConfigPath(int argc, char **argv)
 {
     EXEC_OutInfo("Config path: %s\r\n", LOGAGENT_CONF_GetConfDir());

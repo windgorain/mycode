@@ -17,20 +17,20 @@ static MUC_S * muc_cmd_get_muc(void *env)
     return MucCore_Get(index);
 }
 
-/* muc %INT */
+
 PLUG_API BS_STATUS MucCmd_CreateInstance(int argc, char **argv, void *env)
 {
     return MucCore_Create(TXT_Str2Ui(argv[1]));
 }
 
-/* no muc %INT */
+
 PLUG_API BS_STATUS MucCmd_DestroyInstance(int argc, char **argv, void *env)
 {
     MucCore_Destroy(TXT_Str2Ui(argv[2]));
     return BS_OK;
 }
 
-/* description %STRING */
+
 PLUG_API int MucCmd_SetDescription(int argc, char **argv, void *env)
 {
     MUC_S *muc = muc_cmd_get_muc(env);
@@ -40,7 +40,7 @@ PLUG_API int MucCmd_SetDescription(int argc, char **argv, void *env)
     return 0;
 }
 
-/* start */
+
 PLUG_API int MucCmd_Start(int argc, char **argv, void *env)
 {
     MUC_S *muc = muc_cmd_get_muc(env);
@@ -50,7 +50,7 @@ PLUG_API int MucCmd_Start(int argc, char **argv, void *env)
     return 0;
 }
 
-/* stop */
+
 PLUG_API int MucCmd_Stop(int argc, char **argv, void *env)
 {
     MUC_S *muc = muc_cmd_get_muc(env);
@@ -60,7 +60,7 @@ PLUG_API int MucCmd_Stop(int argc, char **argv, void *env)
     return 0;
 }
 
-/* enter */
+
 PLUG_API int MucCmd_Enter(int argc, char **argv, void *env)
 {
     MUC_S *muc = muc_cmd_get_muc(env);
@@ -68,7 +68,7 @@ PLUG_API int MucCmd_Enter(int argc, char **argv, void *env)
     return MucCore_EnterCmd(muc, env);
 }
 
-/* switchto muc %INT<1-4095> */
+
 PLUG_API int MucCmd_SwitchTo(int argc, char **argv, void *env)
 {
     int muc_id = TXT_Str2Ui(argv[2]);
@@ -82,7 +82,7 @@ PLUG_API int MucCmd_SwitchTo(int argc, char **argv, void *env)
     return MucCore_EnterCmd(muc, env);
 }
 
-/* show muc */
+
 PLUG_API int MucCmd_ShowMuc(int argc, char **argv, void *env)
 {
     int i;

@@ -10,26 +10,26 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID (*PF_HTTPGET_NOTIFY_FUNC)(IN CHAR *pszPath, IN CHAR *pszSaveAsFile, IN UINT ulFileSize, IN UINT ulDownLoadSize);
 
 
-/* BS_ALREADY_EXIST:不用更新; BS_OK:更新成功; 其他:失败 */
+
 BS_STATUS HTTPGET_GetFile
 (
     IN CHAR *pszServer,
-    IN USHORT usPort, /* 主机序 */
+    IN USHORT usPort, 
     IN CHAR *pszPath,
-    IN time_t ulOldFileTime, /* 原来文件的时间. 如果服务器上的文件时间和这个不同,则下载 */
-    IN CHAR *pszSaveAsFile  /* 如果为NULL, 则使用取到的文件名 */
+    IN time_t ulOldFileTime, 
+    IN CHAR *pszSaveAsFile  
 );
 
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__HTTP_GET_H_*/
+#endif 
 
 

@@ -15,7 +15,7 @@
 
 static PF_BACKTRACE_NOTIFY g_backtrace_notify_nodes[BACKTRACE_NOTIFY_NODES_MAX];
 
-static void _backtrace_print(int sig)
+static void _backtrace_print_info(int sig)
 {
     printf("sig=%d \r\n\r\n", sig);
     BackTrace_Print();
@@ -47,11 +47,11 @@ static void _backtrace_notify(int sig)
 
 static void _btrace_signal(int sig)
 {
-    _backtrace_print(sig);
+    _backtrace_print_info(sig);
     _backtrace_write_file(sig);
     _backtrace_notify(sig);
-    signal(sig, SIG_DFL); /* 恢复信号默认处理 */  
-    raise(sig);  /* 再次发送信号 */
+    signal(sig, SIG_DFL);   
+    raise(sig);  
 }
 
 #endif

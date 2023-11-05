@@ -36,23 +36,23 @@ typedef struct
 
 typedef struct
 {
-    /* 由使用者传入的数据 */
+    
     FSM_STATE_MAP_S *pstStateMap;
     UINT uiStateMapCount;
     FSM_EVENT_MAP_S *pstEventMap;
     UINT uiEventMapCount;
-    FSM_SWITCH_MAP_S *pstSwitchMap;   /* 字符串形式的状态切换表 */
+    FSM_SWITCH_MAP_S *pstSwitchMap;   
     UINT uiSwitchMapCount;
 
-    /* Mem Pool */
+    
     MEMPOOL_HANDLE hMemPool;
 
-    /* 生成的状态切换表 */
-    _FSM_SWITCH_LIST_S *pstSwitchList;  /* 运行时使用的状态切换表 */
+    
+    _FSM_SWITCH_LIST_S *pstSwitchList;  
     UINT uiSwitchTblCount;
 
-    /* 状态侦听列表 */
-    DLL_HEAD_S stStateListenerList;   /* 状态监听者链表 */
+    
+    DLL_HEAD_S stStateListenerList;   
 }_FSM_SWITCH_TBL_S;
 
 static UINT fsm_GetStateByName(IN _FSM_SWITCH_TBL_S *pstSwitchTbl, IN CHAR *pcStateName, IN UINT uiStateNameLen)
@@ -529,7 +529,7 @@ static BS_STATUS _fsm_EventHandle(IN FSM_S *pstFsm, IN UINT uiEvent)
     return eRet;
 }
 
-/* 将事件入队以延迟处理 */
+
 BS_STATUS FSM_PushEvent(IN FSM_S *pstFsm, IN UINT uiEvent)
 {
     BS_DBG_OUTPUT(pstFsm->uiDbgFlag, FSM_DBG_FLAG_EVENT,

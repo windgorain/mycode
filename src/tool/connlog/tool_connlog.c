@@ -19,7 +19,7 @@ INT WSAAPI _Tool_Connlog_WSAConnectHook
     LPQOS lpGQOS
 );
 
-/* 重定向函数表 */
+
 static HOOKAPI_ENTRY_TBL_S g_astToolConnLogEntryTbl[]  =
 {
     {"WS2_32.dll", "connect", 0, (UINT)_Tool_Connlog_ConnectHook},

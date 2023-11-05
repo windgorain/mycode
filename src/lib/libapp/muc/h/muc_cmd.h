@@ -16,4 +16,4 @@ void MucCmd_Init();
 #ifdef __cplusplus
 }
 #endif
-#endif //MUC_CMD_H_
+#endif 

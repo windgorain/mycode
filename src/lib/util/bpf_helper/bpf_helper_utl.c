@@ -13,22 +13,22 @@
 
 static void * g_bpf_user_helpers[BPF_USER_HELPER_COUNT];
 
-void * bpf_map_lookup_elem(void *map, const void *key)
+void * _bpf_map_lookup_elem(void *map, const void *key)
 {
     return UMAP_LookupElem(map, key);
 }
 
-long bpf_map_update_elem(void *map, const void *key, const void *value, u64 flags)
+long _bpf_map_update_elem(void *map, const void *key, const void *value, U64 flags)
 {
     return UMAP_UpdateElem(map, key, value, flags);
 }
 
-long bpf_map_delete_elem(void *map, const void *key)
+long _bpf_map_delete_elem(void *map, const void *key)
 {
     return UMAP_DeleteElem(map, key);
 }
 
-long bpf_probe_read(void *dst, U32 size, const void *unsafe_ptr)
+long _bpf_probe_read(void *dst, U32 size, const void *unsafe_ptr)
 {
     if ((! dst) || (! unsafe_ptr)) {
         return -1;
@@ -39,20 +39,20 @@ long bpf_probe_read(void *dst, U32 size, const void *unsafe_ptr)
     return 0;
 }
 
-u64 bpf_ktime_get_ns(void)
+U64 _bpf_ktime_get_ns(void)
 {
     return TM_NsFromInit();
 }
 
-/* macos-arm系统调用约定和arm标准不一致, 需要特殊处理 */
+
 #if ((defined IN_MAC) || (defined __ARM__))
-long bpf_trace_printk(const char *fmt, u32 fmt_size, void *p1, void *p2, void *p3)
+long _bpf_trace_printk(const char *fmt, U32 fmt_size, void *p1, void *p2, void *p3)
 {
     printf(fmt, p1, p2, p3);
     return 0;
 }
 #else
-long bpf_trace_printk(const char *fmt, u32 fmt_size, ...)
+long _bpf_trace_printk(const char *fmt, U32 fmt_size, ...)
 {
     va_list args;
 	int len;
@@ -65,12 +65,12 @@ long bpf_trace_printk(const char *fmt, u32 fmt_size, ...)
 }
 #endif
 
-u32 bpf_get_prandom_u32(void)
+U32 _bpf_get_prandom_u32(void)
 {
     return RAND_Get();
 }
 
-u32 bpf_get_smp_processor_id(void)
+U32 _bpf_get_smp_processor_id(void)
 {
 #ifdef IN_LINUX
     return sched_getcpu();
@@ -79,51 +79,51 @@ u32 bpf_get_smp_processor_id(void)
 #endif
 }
 
-long bpf_skb_store_bytes(void *skb, u32 offset, const void *from, u32 len, u64 flags)
+long _bpf_skb_store_bytes(void *skb, U32 offset, const void *from, U32 len, U64 flags)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-long bpf_l3_csum_replace(void *skb, u32 offset, u64 from, u64 to, u64 size)
+long _bpf_l3_csum_replace(void *skb, U32 offset, U64 from, U64 to, U64 size)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-long bpf_l4_csum_replace(void *skb, u32 offset, u64 from, u64 to, u64 flags)
+long _bpf_l4_csum_replace(void *skb, U32 offset, U64 from, U64 to, U64 flags)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-long bpf_tail_call(void *ctx, void *prog_array_map, u32 index)
+long _bpf_tail_call(void *ctx, void *prog_array_map, U32 index)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-long bpf_clone_redirect(void *skb, u32 ifindex, u64 flags)
+long _bpf_clone_redirect(void *skb, U32 ifindex, U64 flags)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-u64 bpf_get_current_pid_tgid(void)
+U64 _bpf_get_current_pid_tgid(void)
 {
     UINT64 tgid = PROCESS_GetPid();
     UINT64 tid = PROCESS_GetTid();
     return (tgid << 32) | tid;
 }
 
-u64 bpf_get_current_uid_gid(void)
+U64 _bpf_get_current_uid_gid(void)
 {
     UINT64 gid = getgid();
     UINT64 uid = getuid();
     return (gid << 32) | uid;
 }
 
-long bpf_get_current_comm(void *buf, u32 size_of_buf)
+long _bpf_get_current_comm(void *buf, U32 size_of_buf)
 {
     char *self_name = SYSINFO_GetSlefName();
     if (! self_name) {
@@ -135,43 +135,43 @@ long bpf_get_current_comm(void *buf, u32 size_of_buf)
     return 0;
 }
 
-u32 bpf_get_cgroup_classid(void *skb)
+U32 _bpf_get_cgroup_classid(void *skb)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-long bpf_skb_vlan_push(void *skb, u16 vlan_proto, u16 vlan_tci)
+long _bpf_skb_vlan_push(void *skb, U16 vlan_proto, U16 vlan_tci)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-long bpf_skb_vlan_pop(void *skb)
+long _bpf_skb_vlan_pop(void *skb)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-long bpf_skb_get_tunnel_key(void *skb, void *key, u32 size, u64 flags)
+long _bpf_skb_get_tunnel_key(void *skb, void *key, U32 size, U64 flags)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-long bpf_skb_set_tunnel_key(void *skb, void *key, u32 size, u64 flags)
+long _bpf_skb_set_tunnel_key(void *skb, void *key, U32 size, U64 flags)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-u64 bpf_perf_event_read(void *map, u64 flags)
+U64 _bpf_perf_event_read(void *map, U64 flags)
 {
     BS_WARNNING(("TODO"));
     return -1;
 }
 
-long bpf_strtol(const char *buf, size_t buf_len, u64 flags, long *res)
+long _bpf_strtol(const char *buf, size_t buf_len, U64 flags, long *res)
 {
     char *end;
     *res = strtol(buf, &end, flags);
@@ -183,26 +183,26 @@ static const void * g_bpf_base_helpers[BPF_BASE_HELPER_END] = {
     [1] = UMAP_LookupElem,
     [2] = UMAP_UpdateElem,
     [3] = UMAP_DeleteElem,
-    [4] = bpf_probe_read,
-    [5] = bpf_ktime_get_ns,
-    [6] = bpf_trace_printk,
-    [7] = bpf_get_prandom_u32,
-    [8] = bpf_get_smp_processor_id,
-    [9] = bpf_skb_store_bytes,
-    [10] = bpf_l3_csum_replace,
-    [11] = bpf_l4_csum_replace,
-    [12] = bpf_tail_call,
-    [13] = bpf_clone_redirect,
-    [14] = bpf_get_current_pid_tgid,
-    [15] = bpf_get_current_uid_gid,
-    [16] = bpf_get_current_comm,
-    [17] = bpf_get_cgroup_classid,
-    [18] = bpf_skb_vlan_push,
-    [19] = bpf_skb_vlan_pop,
-    [20] = bpf_skb_get_tunnel_key,
-    [21] = bpf_skb_set_tunnel_key,
-    [22] = bpf_perf_event_read,
-    [105] = bpf_strtol,
+    [4] = _bpf_probe_read,
+    [5] = _bpf_ktime_get_ns,
+    [6] = _bpf_trace_printk,
+    [7] = _bpf_get_prandom_u32,
+    [8] = _bpf_get_smp_processor_id,
+    [9] = _bpf_skb_store_bytes,
+    [10] = _bpf_l3_csum_replace,
+    [11] = _bpf_l4_csum_replace,
+    [12] = _bpf_tail_call,
+    [13] = _bpf_clone_redirect,
+    [14] = _bpf_get_current_pid_tgid,
+    [15] = _bpf_get_current_uid_gid,
+    [16] = _bpf_get_current_comm,
+    [17] = _bpf_get_cgroup_classid,
+    [18] = _bpf_skb_vlan_push,
+    [19] = _bpf_skb_vlan_pop,
+    [20] = _bpf_skb_get_tunnel_key,
+    [21] = _bpf_skb_set_tunnel_key,
+    [22] = _bpf_perf_event_read,
+    [105] = _bpf_strtol,
 };
 
 void * ulc_sys_malloc(int size)
@@ -240,7 +240,7 @@ static void ulc_err_code_set(int err_code, const char *file_name, const char *fu
     ErrCode_Set(err_code, NULL, file_name, func_name, line);
 }
 
-/* macos-arm系统调用约定和arm标准不一致, 需要特殊处理 */
+
 #if ((defined IN_MAC) || (defined __ARM__))
 static void ulc_err_info_set(const char *fmt, void *p1, void *p2, void *p3, void *p4)
 {
@@ -265,8 +265,13 @@ static void ulc_err_info_set(const char *fmt, ...)
 }
 #endif
 
+static int ulc_call_back(UINT_FUNC_4 func, U64 p1, U64 p2, U64 p3, U64 p4)
+{
+    return func((void*)(long)p1, (void*)(long)p2, (void*)(long)p3, (void*)(long)p4);
+}
+
 static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
-    [0] = ulc_sys_malloc, /* 10000 */
+    [0] = ulc_sys_malloc, 
     [1] = ulc_sys_calloc,
     [2] = ulc_sys_free,
     [3] = ulc_sys_strncmp,
@@ -274,6 +279,7 @@ static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
     [5] = ulc_sys_memset,
     [6] = ulc_err_code_set,
     [7] = ulc_err_info_set,
+    [8] = ulc_call_back,
 };
 
 const void ** BpfHelper_BaseHelper(void)
@@ -291,14 +297,15 @@ const void ** BpfHelper_UserHelper(void)
     return (const void **)g_bpf_user_helpers;
 }
 
-PF_BPF_HELPER_FUNC BpfHelper_GetFunc(UINT id)
+
+void * BpfHelper_GetFunc(unsigned int id)
 {
-    if ((id > 0) && (id < BPF_BASE_HELPER_END)) {
-        return g_bpf_base_helpers[id];
+    if (id < BPF_BASE_HELPER_END) {
+        return (void*)g_bpf_base_helpers[id];
     } else if ((id >= BPF_SYS_HELPER_START) && (id < BPF_SYS_HELPER_END)) {
-        return g_bpf_sys_helpers[id - BPF_SYS_HELPER_START];
+        return (void*)g_bpf_sys_helpers[id - BPF_SYS_HELPER_START];
     } else if ((id >= BPF_USER_HELPER_START) && (id < BPF_USER_HELPER_END)) {
-        return g_bpf_user_helpers[id - BPF_USER_HELPER_START];
+        return (void*)g_bpf_user_helpers[id - BPF_USER_HELPER_START];
     }
 
     return NULL;

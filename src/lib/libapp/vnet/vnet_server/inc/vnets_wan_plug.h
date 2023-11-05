@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef BS_STATUS (*PF_VNETS_WAN_PLUG_UDP_SERVICE_FUNC)(IN MBUF_S *pstMbuf, IN WAN_UDP_SERVICE_PARAM_S *pstParam);
 
@@ -28,8 +28,8 @@ BS_STATUS VNETS_WAN_PLUG_PktInput(IN MBUF_S *pstMbuf);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_WAN_PLUG_H_*/
+#endif 
 
 

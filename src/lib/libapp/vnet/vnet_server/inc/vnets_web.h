@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETS_Web_Init();
 BS_STATUS VNETS_WebKf_Init();
@@ -20,8 +20,8 @@ BS_STATUS VNETS_CmdWeb_Save(IN HANDLE hFile);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_WEB_H_*/
+#endif 
 
 

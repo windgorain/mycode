@@ -18,4 +18,4 @@ void LOGAGENT_ALERT_Save(HANDLE hFile);
 #ifdef __cplusplus
 }
 #endif
-#endif //LOG_AGENT_ALERT_H_
+#endif 

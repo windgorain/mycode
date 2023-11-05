@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef enum
 {
@@ -25,9 +25,9 @@ typedef struct
 {
     XML_TYPE_E eType;
     CHAR *pszStr1;
-    CHAR *pszStr2;  /* 只在XML_TYPE_MARK_KEYVALUE下生效 */
+    CHAR *pszStr2;  
     UINT uiStr1Len;
-    UINT uiStr2Len; /* 只在XML_TYPE_MARK_KEYVALUE下生效 */
+    UINT uiStr2Len; 
 }XML_PARSE_S;
 
 
@@ -38,8 +38,8 @@ BS_STATUS XML_Parse(IN CHAR *pszContent, IN PF_XML_PARSE_FUNC pfFunc, IN HANDLE 
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__XML_PARSE_H_*/
+#endif 
 
 

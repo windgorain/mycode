@@ -10,13 +10,13 @@ typedef struct
 {
     USHORT usVer;
     USHORT usReserved;
-    UINT uiIcpLocalIp;      /* 客户端IP地址, 网络序 */
+    UINT uiIcpLocalIp;      
 }VNET_ICP_REQUEST_HEAD_S;
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNET_ICP_DEF_H_*/
+#endif 
 
 

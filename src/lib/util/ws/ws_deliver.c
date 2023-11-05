@@ -307,7 +307,7 @@ BS_STATUS WS_Deliver_Reg
     IN UINT uiPriority,
     IN WS_DELIVER_TYPE_E enType,
     IN VOID *pKey,
-    IN PF_WS_Deliver_Func pfFunc,  /* 当为NULL时,表示匹配它的会被PASS,不进行Deliver */
+    IN PF_WS_Deliver_Func pfFunc,  
     IN UINT uiFlag
 )
 {

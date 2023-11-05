@@ -14,7 +14,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct
 {
@@ -41,8 +41,8 @@ VOID VNETS_MACTBL_Walk(IN UINT uiDomainID, IN PF_VNETS_MACTBL_WALK_FUNC pfFunc, 
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_MAC_TBL_H_*/
+#endif 
 
 

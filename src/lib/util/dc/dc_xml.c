@@ -119,7 +119,7 @@ static MKV_MARK_S * dc_xml_GetObjectUl
     return pstUl;
 }
 
-/* 设置一个对象的属性,如果对象不存在,则返回失败 */
+
 BS_STATUS DC_XML_SetFieldValueAsUint
 (
     IN HANDLE hHandle,
@@ -143,7 +143,7 @@ BS_STATUS DC_XML_SetFieldValueAsUint
     return XMLC_SetKeyValueInMark(pstUl, pcFieldName, szValue);
 }
 
-/* 设置一个对象的属性,如果对象不存在,则返回失败 */
+
 BS_STATUS DC_XML_SetFieldValueAsString
 (
     IN HANDLE hHandle,
@@ -340,12 +340,7 @@ VOID DC_XML_DelObject
     return;
 }
 
-static BS_WALK_RET_E dc_xml_WalkTableEach
-(
-    IN MKV_MARK_S *pstRoot,
-    IN MKV_MARK_S *pstMark,
-    IN HANDLE hUserHandle
-)
+static int dc_xml_WalkTableEach(MKV_MARK_S *pstRoot, MKV_MARK_S *pstMark, HANDLE hUserHandle)
 {
     PF_DC_WALK_TBL_CB_FUNC pfFunc;
     USER_HANDLE_S *pstUserHandle = hUserHandle;
@@ -355,12 +350,7 @@ static BS_WALK_RET_E dc_xml_WalkTableEach
     return pfFunc(pstMark->pucMarkName, pstUserHandle->ahUserHandle[1]);
 }
 
-static BS_WALK_RET_E dc_xml_WalkTableObjectEach
-(
-    IN MKV_MARK_S *pstRoot,
-    IN MKV_MARK_S *pstMark,
-    IN HANDLE hUserHandle
-)
+static int dc_xml_WalkTableObjectEach(MKV_MARK_S *pstRoot, MKV_MARK_S *pstMark, HANDLE hUserHandle)
 {
     PF_DC_WALK_OBJECT_CB_FUNC pfFunc;
     USER_HANDLE_S *pstUserHandle = hUserHandle;

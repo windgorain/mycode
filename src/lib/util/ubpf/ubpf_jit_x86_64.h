@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     http:
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-/*
- * Generic x86-64 code generation functions
- */
+
 
 #ifndef UBPF_JIT_X86_64_H
 #define UBPF_JIT_X86_64_H
@@ -43,17 +41,12 @@
 #define R14 14
 #define R15 15
 
-#define S8 SIZE_8
-#define S16 SIZE_16
-#define S32 SIZE_32
-#define S64 SIZE_64
-
 enum operand_size
 {
-    S8,
-    S16,
-    S32,
-    S64,
+    SIZE_8,
+    SIZE_16,
+    SIZE_32,
+    SIZE_64,
 };
 
 struct jump
@@ -160,10 +153,7 @@ emit_rex(struct jit_state* state, int w, int r, int x, int b)
     emit1(state, 0x40 | (w << 3) | (r << 2) | (x << 1) | b);
 }
 
-/*
- * Emits a REX prefix with the top bit of src and dst.
- * Skipped if no bits would be set.
- */
+
 static inline void
 emit_basic_rex(struct jit_state* state, int w, int src, int dst)
 {
@@ -186,9 +176,9 @@ emit_pop(struct jit_state* state, int r)
     emit1(state, 0x58 | (r & 7));
 }
 
-/* REX prefix and ModRM byte */
-/* We use the MR encoding when there is a choice */
-/* 'src' is often used as an opcode extension */
+
+
+
 static inline void
 emit_alu32(struct jit_state* state, int op, int src, int dst)
 {
@@ -197,7 +187,7 @@ emit_alu32(struct jit_state* state, int op, int src, int dst)
     emit_modrm_reg2reg(state, src, dst);
 }
 
-/* REX prefix, ModRM byte, and 32-bit immediate */
+
 static inline void
 emit_alu32_imm32(struct jit_state* state, int op, int src, int dst, int32_t imm)
 {
@@ -205,7 +195,7 @@ emit_alu32_imm32(struct jit_state* state, int op, int src, int dst, int32_t imm)
     emit4(state, imm);
 }
 
-/* REX prefix, ModRM byte, and 8-bit immediate */
+
 static inline void
 emit_alu32_imm8(struct jit_state* state, int op, int src, int dst, int8_t imm)
 {
@@ -213,9 +203,9 @@ emit_alu32_imm8(struct jit_state* state, int op, int src, int dst, int8_t imm)
     emit1(state, imm);
 }
 
-/* REX.W prefix and ModRM byte */
-/* We use the MR encoding when there is a choice */
-/* 'src' is often used as an opcode extension */
+
+
+
 static inline void
 emit_alu64(struct jit_state* state, int op, int src, int dst)
 {
@@ -224,7 +214,7 @@ emit_alu64(struct jit_state* state, int op, int src, int dst)
     emit_modrm_reg2reg(state, src, dst);
 }
 
-/* REX.W prefix, ModRM byte, and 32-bit immediate */
+
 static inline void
 emit_alu64_imm32(struct jit_state* state, int op, int src, int dst, int32_t imm)
 {
@@ -232,7 +222,7 @@ emit_alu64_imm32(struct jit_state* state, int op, int src, int dst, int32_t imm)
     emit4(state, imm);
 }
 
-/* REX.W prefix, ModRM byte, and 8-bit immediate */
+
 static inline void
 emit_alu64_imm8(struct jit_state* state, int op, int src, int dst, int8_t imm)
 {
@@ -240,7 +230,12 @@ emit_alu64_imm8(struct jit_state* state, int op, int src, int dst, int8_t imm)
     emit1(state, imm);
 }
 
-/* Register to register mov */
+static inline U32 _mybpf_jit_x86_get_state_offset(struct jit_state* state)
+{
+    return state->offset;
+}
+
+
 static inline void
 emit_mov(struct jit_state* state, int src, int dst)
 {
@@ -279,68 +274,68 @@ emit_jcc(struct jit_state* state, int code, int32_t target_pc)
     emit_jump_offset(state, target_pc);
 }
 
-/* Load [src + offset] into dst */
+
 static inline void
 emit_load(struct jit_state* state, enum operand_size size, int src, int dst, int32_t offset)
 {
-    emit_basic_rex(state, size == S64, dst, src);
+    emit_basic_rex(state, size == SIZE_64, dst, src);
 
-    if (size == S8 || size == S16) {
-        /* movzx */
+    if (size == SIZE_8 || size == SIZE_16) {
+        
         emit1(state, 0x0f);
-        emit1(state, size == S8 ? 0xb6 : 0xb7);
-    } else if (size == S32 || size == S64) {
-        /* mov */
+        emit1(state, size == SIZE_8 ? 0xb6 : 0xb7);
+    } else if (size == SIZE_32 || size == SIZE_64) {
+        
         emit1(state, 0x8b);
     }
 
     emit_modrm_and_displacement(state, dst, src, offset);
 }
 
-/* Load sign-extended immediate into register */
+
 static inline void
 emit_load_imm(struct jit_state* state, int dst, int64_t imm)
 {
     if (imm >= INT32_MIN && imm <= INT32_MAX) {
         emit_alu64_imm32(state, 0xc7, 0, dst, imm);
     } else {
-        /* movabs $imm,dst */
+        
         emit_basic_rex(state, 1, 0, dst);
         emit1(state, 0xb8 | (dst & 7));
         emit8(state, imm);
     }
 }
 
-/* Store register src to [dst + offset] */
+
 static inline void
 emit_store(struct jit_state* state, enum operand_size size, int src, int dst, int32_t offset)
 {
-    if (size == S16) {
-        emit1(state, 0x66); /* 16-bit override */
+    if (size == SIZE_16) {
+        emit1(state, 0x66); 
     }
-    int rexw = size == S64;
-    if (rexw || src & 8 || dst & 8 || size == S8) {
+    int rexw = size == SIZE_64;
+    if (rexw || src & 8 || dst & 8 || size == SIZE_8) {
         emit_rex(state, rexw, !!(src & 8), 0, !!(dst & 8));
     }
-    emit1(state, size == S8 ? 0x88 : 0x89);
+    emit1(state, size == SIZE_8 ? 0x88 : 0x89);
     emit_modrm_and_displacement(state, src, dst, offset);
 }
 
-/* Store immediate to [dst + offset] */
+
 static inline void
 emit_store_imm32(struct jit_state* state, enum operand_size size, int dst, int32_t offset, int32_t imm)
 {
-    if (size == S16) {
-        emit1(state, 0x66); /* 16-bit override */
+    if (size == SIZE_16) {
+        emit1(state, 0x66); 
     }
-    emit_basic_rex(state, size == S64, 0, dst);
-    emit1(state, size == S8 ? 0xc6 : 0xc7);
+    emit_basic_rex(state, size == SIZE_64, 0, dst);
+    emit1(state, size == SIZE_8 ? 0xc6 : 0xc7);
     emit_modrm_and_displacement(state, 0, dst, offset);
-    if (size == S32 || size == S64) {
+    if (size == SIZE_32 || size == SIZE_64) {
         emit4(state, imm);
-    } else if (size == S16) {
+    } else if (size == SIZE_16) {
         emit2(state, imm);
-    } else if (size == S8) {
+    } else if (size == SIZE_8) {
         emit1(state, imm);
     }
 }
@@ -349,22 +344,22 @@ static inline void
 emit_call(struct jit_state* state, void* target)
 {
 #if defined(_WIN32)
-    /* Windows x64 ABI spills 5th parameter to stack */
+    
     emit_push(state, map_register(5));
 
-    /* Windows x64 ABI requires home register space */
-    /* Allocate home register space - 4 registers */
+    
+    
     emit_alu64_imm32(state, 0x81, 5, RSP, 4 * sizeof(uint64_t));
 #endif
 
-    /* TODO use direct call when possible */
+    
     emit_load_imm(state, RAX, (uintptr_t)target);
-    /* callq *%rax */
+    
     emit1(state, 0xff);
     emit1(state, 0xd0);
 
 #if defined(_WIN32)
-    /* Deallocate home register space + spilled register - 5 registers */
+    
     emit_alu64_imm32(state, 0x81, 0, RSP, 5 * sizeof(uint64_t));
 #endif
 }

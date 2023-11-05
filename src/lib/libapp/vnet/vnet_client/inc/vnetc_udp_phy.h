@@ -11,8 +11,8 @@ UINT VNETC_UDP_PHY_GetIfIndex();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_UDP_PHY_H_*/
+#endif 
 
 

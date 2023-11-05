@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef BS_STATUS (*PF_SDC_SetProp)(IN SDC_HANDLE hSdc, IN CHAR *pcTag, IN CHAR *pcProp, IN CHAR *pcValue);
 typedef CHAR* (*PF_SDC_GetProp)(IN SDC_HANDLE hSdc, IN CHAR *pcTag, IN CHAR *pcProp);
@@ -41,8 +41,8 @@ typedef struct
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SDC_INNER_H_*/
+#endif 
 
 

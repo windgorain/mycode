@@ -13,7 +13,7 @@ static UINT databox_Index(void *hash, void *data)
 {
     LDATA_S *pstData = data;
 
-    return JHASH_GeneralBuffer(pstData->pucData, pstData->uiLen, 0);
+    return JHASH_GeneralBuffer(pstData->data, pstData->len, 0);
 }
 
 static int databox_Cmp(void *hash, void *data1, void *data2)
@@ -21,8 +21,8 @@ static int databox_Cmp(void *hash, void *data1, void *data2)
     LDATA_S *pstData1 = data1;
     LDATA_S *pstData2 = data2;
 
-    return MEM_Cmp(pstData1->pucData, pstData1->uiLen,
-            pstData2->pucData, pstData2->uiLen);
+    return MEM_Cmp(pstData1->data, pstData1->len,
+            pstData2->data, pstData2->len);
 }
 
 int DataBox_Init(BOX_S *box, CUCKOO_HASH_NODE_S *table,

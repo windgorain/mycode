@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_CFGUTL
 
 #include "bs.h"
@@ -13,7 +13,7 @@
 #include "utl/file_utl.h"
 #include "utl/cfgutl.h"
 
-#define _CFGUTL_MAX_KEY_NUM 255   /* 一行最大的单词数目 */
+#define _CFGUTL_MAX_KEY_NUM 255   
 
 VOID _CFGUTL_ParseLine(IN CHAR *pszLine, IN CFGUTL_REG_TBL_S *pstRegTbl, IN UINT ulTblSize)
 {

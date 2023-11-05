@@ -21,7 +21,7 @@ static int autoport_OpenInc(AUTOPORT_S *ap, PF_AUTOPORT_OPEN open_fn, void *ud)
     }
 
     int i;
-    for (i=low; i<high; i++) { /* 尝试100次 */
+    for (i=low; i<high; i++) { 
         if (i == open_fn(i, ud)) {
             ap->port = i;
             return i;
@@ -68,7 +68,7 @@ static int autoport_OpenAny(AUTOPORT_S *ap, PF_AUTOPORT_OPEN open_fn, void *ud)
     return ret;
 }
 
-/* 失败返回<0, 成功返回port */
+
 int AutoPort_Open(AUTOPORT_S *ap, PF_AUTOPORT_OPEN open_fn, void *ud)
 {
     switch (ap->port_type) {

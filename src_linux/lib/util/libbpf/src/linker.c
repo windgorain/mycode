@@ -25,24 +25,24 @@
 
 struct src_sec {
 	const char *sec_name;
-	/* positional (not necessarily ELF) index in an array of sections */
+	
 	int id;
-	/* positional (not necessarily ELF) index of a matching section in a final object file */
+	
 	int dst_id;
-	/* section data offset in a matching output section */
+	
 	int dst_off;
-	/* whether section is omitted from the final ELF file */
+	
 	bool skipped;
-	/* whether section is an ephemeral section, not mapped to an ELF section */
+	
 	bool ephemeral;
 
-	/* ELF info */
+	
 	size_t sec_idx;
 	Elf_Scn *scn;
 	Elf64_Shdr *shdr;
 	Elf_Data *data;
 
-	/* corresponding BTF DATASEC type ID */
+	
 	int sec_type_id;
 };
 
@@ -50,25 +50,25 @@ struct src_obj {
 	const char *filename;
 	int fd;
 	Elf *elf;
-	/* Section header strings section index */
+	
 	size_t shstrs_sec_idx;
-	/* SYMTAB section index */
+	
 	size_t symtab_sec_idx;
 
 	struct btf *btf;
 	struct btf_ext *btf_ext;
 
-	/* List of sections (including ephemeral). Slot zero is unused. */
+	
 	struct src_sec *secs;
 	int sec_cnt;
 
-	/* mapping of symbol indices from src to dst ELF */
+	
 	int *sym_map;
-	/* mapping from the src BTF type IDs to dst ones */
+	
 	int *btf_type_map;
 };
 
-/* single .BTF.ext data section */
+
 struct btf_ext_sec_data {
 	size_t rec_cnt;
 	__u32 rec_sz;
@@ -76,55 +76,52 @@ struct btf_ext_sec_data {
 };
 
 struct glob_sym {
-	/* ELF symbol index */
+	
 	int sym_idx;
-	/* associated section id for .ksyms, .kconfig, etc, but not .extern */
+	
 	int sec_id;
-	/* extern name offset in STRTAB */
+	
 	int name_off;
-	/* optional associated BTF type ID */
+	
 	int btf_id;
-	/* BTF type ID to which VAR/FUNC type is pointing to; used for
-	 * rewriting types when extern VAR/FUNC is resolved to a concrete
-	 * definition
-	 */
+	
 	int underlying_btf_id;
-	/* sec_var index in the corresponding dst_sec, if exists */
+	
 	int var_idx;
 
-	/* extern or resolved/global symbol */
+	
 	bool is_extern;
-	/* weak or strong symbol, never goes back from strong to weak */
+	
 	bool is_weak;
 };
 
 struct dst_sec {
 	char *sec_name;
-	/* positional (not necessarily ELF) index in an array of sections */
+	
 	int id;
 
 	bool ephemeral;
 
-	/* ELF info */
+	
 	size_t sec_idx;
 	Elf_Scn *scn;
 	Elf64_Shdr *shdr;
 	Elf_Data *data;
 
-	/* final output section size */
+	
 	int sec_sz;
-	/* final output contents of the section */
+	
 	void *raw_data;
 
-	/* corresponding STT_SECTION symbol index in SYMTAB */
+	
 	int sec_sym_idx;
 
-	/* section's DATASEC variable info, emitted on BTF finalization */
+	
 	bool has_btf;
 	int sec_var_cnt;
 	struct btf_var_secinfo *sec_vars;
 
-	/* section's .BTF.ext data */
+	
 	struct btf_ext_sec_data func_info;
 	struct btf_ext_sec_data line_info;
 	struct btf_ext_sec_data core_relo_info;
@@ -136,18 +133,18 @@ struct bpf_linker {
 	Elf *elf;
 	Elf64_Ehdr *elf_hdr;
 
-	/* Output sections metadata */
+	
 	struct dst_sec *secs;
 	int sec_cnt;
 
-	struct strset *strtab_strs; /* STRTAB unique strings */
-	size_t strtab_sec_idx; /* STRTAB section index */
-	size_t symtab_sec_idx; /* SYMTAB section index */
+	struct strset *strtab_strs; 
+	size_t strtab_sec_idx; 
+	size_t symtab_sec_idx; 
 
 	struct btf *btf;
 	struct btf_ext *btf_ext;
 
-	/* global (including extern) ELF symbols */
+	
 	int glob_sym_cnt;
 	struct glob_sym *glob_syms;
 };
@@ -253,7 +250,7 @@ static struct dst_sec *add_dst_sec(struct bpf_linker *linker, const char *sec_na
 	if (!secs)
 		return NULL;
 
-	/* zero out newly allocated memory */
+	
 	memset(secs + linker->sec_cnt, 0, (new_cnt - linker->sec_cnt) * sizeof(*secs));
 
 	linker->secs = secs;
@@ -315,7 +312,7 @@ static int init_output_elf(struct bpf_linker *linker, const char *file)
 		return -EINVAL;
 	}
 
-	/* ELF header */
+	
 	linker->elf_hdr = elf64_newehdr(linker->elf);
 	if (!linker->elf_hdr) {
 		pr_warn_elf("failed to create ELF header");
@@ -332,8 +329,8 @@ static int init_output_elf(struct bpf_linker *linker, const char *file)
 #error "Unknown __BYTE_ORDER__"
 #endif
 
-	/* STRTAB */
-	/* initialize strset with an empty string to conform to ELF */
+	
+	
 	linker->strtab_strs = strset__new(INT_MAX, "", sizeof(""));
 	if (libbpf_get_error(linker->strtab_strs))
 		return libbpf_get_error(linker->strtab_strs);
@@ -376,7 +373,7 @@ static int init_output_elf(struct bpf_linker *linker, const char *file)
 	sec->shdr->sh_size = sec->sec_sz = 0;
 	sec->shdr->sh_entsize = 0;
 
-	/* SYMTAB */
+	
 	sec = add_dst_sec(linker, ".symtab");
 	if (!sec)
 		return -ENOMEM;
@@ -409,20 +406,18 @@ static int init_output_elf(struct bpf_linker *linker, const char *file)
 	sec->shdr->sh_flags = 0;
 	sec->shdr->sh_offset = 0;
 	sec->shdr->sh_link = linker->strtab_sec_idx;
-	/* sh_info should be one greater than the index of the last local
-	 * symbol (i.e., binding is STB_LOCAL). But why and who cares?
-	 */
+	
 	sec->shdr->sh_info = 0;
 	sec->shdr->sh_addralign = 8;
 	sec->shdr->sh_entsize = sizeof(Elf64_Sym);
 
-	/* .BTF */
+	
 	linker->btf = btf__new_empty();
 	err = libbpf_get_error(linker->btf);
 	if (err)
 		return err;
 
-	/* add the special all-zero symbol */
+	
 	init_sym = add_new_sym(linker, NULL);
 	if (!init_sym)
 		return -EINVAL;
@@ -456,7 +451,7 @@ int bpf_linker__add_file(struct bpf_linker *linker, const char *filename,
 	err = err ?: linker_append_btf(linker, &obj);
 	err = err ?: linker_append_btf_ext(linker, &obj);
 
-	/* free up src_obj resources */
+	
 	free(obj.btf_type_map);
 	btf__free(obj.btf);
 	btf_ext__free(obj.btf_ext);
@@ -472,7 +467,7 @@ int bpf_linker__add_file(struct bpf_linker *linker, const char *filename,
 
 static bool is_dwarf_sec_name(const char *name)
 {
-	/* approximation, but the actual list is too long */
+	
 	return strncmp(name, ".debug_", sizeof(".debug_") - 1) == 0;
 }
 
@@ -481,30 +476,30 @@ static bool is_ignored_sec(struct src_sec *sec)
 	Elf64_Shdr *shdr = sec->shdr;
 	const char *name = sec->sec_name;
 
-	/* no special handling of .strtab */
+	
 	if (shdr->sh_type == SHT_STRTAB)
 		return true;
 
-	/* ignore .llvm_addrsig section as well */
+	
 	if (shdr->sh_type == SHT_LLVM_ADDRSIG)
 		return true;
 
-	/* no subprograms will lead to an empty .text section, ignore it */
+	
 	if (shdr->sh_type == SHT_PROGBITS && shdr->sh_size == 0 &&
 	    strcmp(sec->sec_name, ".text") == 0)
 		return true;
 
-	/* DWARF sections */
+	
 	if (is_dwarf_sec_name(sec->sec_name))
 		return true;
 
 	if (strncmp(name, ".rel", sizeof(".rel") - 1) == 0) {
 		name += sizeof(".rel") - 1;
-		/* DWARF section relocations */
+		
 		if (is_dwarf_sec_name(name))
 			return true;
 
-		/* .BTF and .BTF.ext don't need relocations */
+		
 		if (strcmp(name, BTF_ELF_SEC) == 0 ||
 		    strcmp(name, BTF_EXT_ELF_SEC) == 0)
 			return true;
@@ -522,7 +517,7 @@ static struct src_sec *add_src_sec(struct src_obj *obj, const char *sec_name)
 	if (!secs)
 		return NULL;
 
-	/* zero out newly allocated memory */
+	
 	memset(secs + obj->sec_cnt, 0, (new_cnt - obj->sec_cnt) * sizeof(*secs));
 
 	obj->secs = secs;
@@ -570,7 +565,7 @@ static int linker_load_obj_file(struct bpf_linker *linker, const char *filename,
 		return err;
 	}
 
-	/* Sanity check ELF file high-level properties */
+	
 	ehdr = elf64_getehdr(obj->elf);
 	if (!ehdr) {
 		err = -errno;
@@ -649,7 +644,7 @@ static int linker_load_obj_file(struct bpf_linker *linker, const char *filename,
 			obj->symtab_sec_idx = sec_idx;
 			break;
 		case SHT_STRTAB:
-			/* we'll construct our own string table */
+			
 			break;
 		case SHT_PROGBITS:
 			if (strcmp(sec_name, BTF_ELF_SEC) == 0) {
@@ -673,13 +668,13 @@ static int linker_load_obj_file(struct bpf_linker *linker, const char *filename,
 				continue;
 			}
 
-			/* data & code */
+			
 			break;
 		case SHT_NOBITS:
-			/* BSS */
+			
 			break;
 		case SHT_REL:
-			/* relocations */
+			
 			break;
 		default:
 			pr_warn("unrecognized section #%zu (%s) in %s\n",
@@ -695,11 +690,6 @@ static int linker_load_obj_file(struct bpf_linker *linker, const char *filename,
 	err = err ?: linker_fixup_btf(obj);
 
 	return err;
-}
-
-static bool is_pow_of_2(size_t x)
-{
-	return x && (x & (x - 1)) == 0;
 }
 
 static int linker_sanity_check_elf(struct src_obj *obj)
@@ -850,14 +840,14 @@ static int linker_sanity_check_elf_relos(struct src_obj *obj, struct src_sec *se
 	if (sec->shdr->sh_size % sec->shdr->sh_entsize != 0)
 		return -EINVAL;
 
-	/* SHT_REL's sh_link should point to SYMTAB */
+	
 	if (sec->shdr->sh_link != obj->symtab_sec_idx) {
 		pr_warn("ELF relo section #%zu points to invalid SYMTAB section #%zu in %s\n",
 			sec->sec_idx, (size_t)sec->shdr->sh_link, obj->filename);
 		return -EINVAL;
 	}
 
-	/* SHT_REL's sh_info points to relocated section */
+	
 	if (!sec->shdr->sh_info || sec->shdr->sh_info >= obj->sec_cnt) {
 		pr_warn("ELF relo section #%zu points to missing section #%zu in %s\n",
 			sec->sec_idx, (size_t)sec->shdr->sh_info, obj->filename);
@@ -865,7 +855,7 @@ static int linker_sanity_check_elf_relos(struct src_obj *obj, struct src_sec *se
 	}
 	link_sec = &obj->secs[sec->shdr->sh_info];
 
-	/* .rel<secname> -> <secname> pattern is followed */
+	
 	if (strncmp(sec->sec_name, ".rel", sizeof(".rel") - 1) != 0
 	    || strcmp(sec->sec_name + sizeof(".rel") - 1, link_sec->sec_name) != 0) {
 		pr_warn("ELF relo section #%zu name has invalid name in %s\n",
@@ -873,18 +863,18 @@ static int linker_sanity_check_elf_relos(struct src_obj *obj, struct src_sec *se
 		return -EINVAL;
 	}
 
-	/* don't further validate relocations for ignored sections */
+	
 	if (link_sec->skipped)
 		return 0;
 
-	/* relocatable section is data or instructions */
+	
 	if (link_sec->shdr->sh_type != SHT_PROGBITS && link_sec->shdr->sh_type != SHT_NOBITS) {
 		pr_warn("ELF relo section #%zu points to invalid section #%zu in %s\n",
 			sec->sec_idx, (size_t)sec->shdr->sh_info, obj->filename);
 		return -EINVAL;
 	}
 
-	/* check sanity of each relocation */
+	
 	n = sec->shdr->sh_size / sec->shdr->sh_entsize;
 	relo = sec->data->d_buf;
 	sym_sec = &obj->secs[obj->symtab_sec_idx];
@@ -968,7 +958,7 @@ static int linker_sanity_check_btf_ext(struct src_obj *obj)
 	if (!obj->btf_ext)
 		return 0;
 
-	/* can't use .BTF.ext without .BTF */
+	
 	if (!obj->btf)
 		return -EINVAL;
 
@@ -991,7 +981,7 @@ static int init_sec(struct bpf_linker *linker, struct dst_sec *dst_sec, struct s
 	dst_sec->sec_idx = 0;
 	dst_sec->ephemeral = src_sec->ephemeral;
 
-	/* ephemeral sections are just thin section shells lacking most parts */
+	
 	if (src_sec->ephemeral)
 		return 0;
 
@@ -1018,10 +1008,7 @@ static int init_sec(struct bpf_linker *linker, struct dst_sec *dst_sec, struct s
 	shdr->sh_type = src_sec->shdr->sh_type;
 	shdr->sh_flags = src_sec->shdr->sh_flags;
 	shdr->sh_size = 0;
-	/* sh_link and sh_info have different meaning for different types of
-	 * sections, so we leave it up to the caller code to fill them in, if
-	 * necessary
-	 */
+	
 	shdr->sh_link = 0;
 	shdr->sh_info = 0;
 	shdr->sh_addralign = src_sec->shdr->sh_addralign;
@@ -1088,18 +1075,11 @@ static int extend_sec(struct bpf_linker *linker, struct dst_sec *dst, struct src
 	size_t dst_align_sz, dst_final_sz;
 	int err;
 
-	/* Ephemeral source section doesn't contribute anything to ELF
-	 * section data.
-	 */
+	
 	if (src->ephemeral)
 		return 0;
 
-	/* Some sections (like .maps) can contain both externs (and thus be
-	 * ephemeral) and non-externs (map definitions). So it's possible that
-	 * it has to be "upgraded" from ephemeral to non-ephemeral when the
-	 * first non-ephemeral entity appears. In such case, we add ELF
-	 * section, data, etc.
-	 */
+	
 	if (dst->ephemeral) {
 		err = init_sec(linker, dst, src);
 		if (err)
@@ -1115,18 +1095,19 @@ static int extend_sec(struct bpf_linker *linker, struct dst_sec *dst, struct src
 
 	dst_align_sz = (dst->sec_sz + dst_align - 1) / dst_align * dst_align;
 
-	/* no need to re-align final size */
+	
 	dst_final_sz = dst_align_sz + src->shdr->sh_size;
 
 	if (src->shdr->sh_type != SHT_NOBITS) {
 		tmp = realloc(dst->raw_data, dst_final_sz);
-		if (!tmp)
+		
+		if (!tmp && dst_align_sz > 0)
 			return -ENOMEM;
 		dst->raw_data = tmp;
 
-		/* pad dst section, if it's alignment forced size increase */
+		
 		memset(dst->raw_data + dst->sec_sz, 0, dst_align_sz - dst->sec_sz);
-		/* now copy src data at a properly aligned offset */
+		
 		memcpy(dst->raw_data + dst_align_sz, src->data->d_buf, src->shdr->sh_size);
 	}
 
@@ -1146,7 +1127,7 @@ static bool is_data_sec(struct src_sec *sec)
 {
 	if (!sec || sec->skipped)
 		return false;
-	/* ephemeral sections are data sections, e.g., .kconfig, .ksyms */
+	
 	if (sec->ephemeral)
 		return true;
 	return sec->shdr->sh_type == SHT_PROGBITS || sec->shdr->sh_type == SHT_NOBITS;
@@ -1187,7 +1168,7 @@ static int linker_append_sec_data(struct bpf_linker *linker, struct src_obj *obj
 				return -1;
 			}
 
-			/* "license" and "version" sections are deduped */
+			
 			if (strcmp(src_sec->sec_name, "license") == 0
 			    || strcmp(src_sec->sec_name, "version") == 0) {
 				if (!sec_content_is_same(dst_sec, src_sec)) {
@@ -1200,7 +1181,7 @@ static int linker_append_sec_data(struct bpf_linker *linker, struct src_obj *obj
 			}
 		}
 
-		/* record mapped section index */
+		
 		src_sec->dst_id = dst_sec->id;
 
 		err = extend_sec(linker, dst_sec, src_sec);
@@ -1224,9 +1205,7 @@ static int linker_append_elf_syms(struct bpf_linker *linker, struct src_obj *obj
 		return -ENOMEM;
 
 	for (i = 0; i < n; i++, sym++) {
-		/* We already validated all-zero symbol #0 and we already
-		 * appended it preventively to the final SYMTAB, so skip it.
-		 */
+		
 		if (i == 0)
 			continue;
 
@@ -1302,7 +1281,7 @@ recur:
 	t1 = skip_mods_and_typedefs(btf1, id1, &id1);
 	t2 = skip_mods_and_typedefs(btf2, id2, &id2);
 
-	/* check if only one side is FWD, otherwise handle with common logic */
+	
 	if (!exact && btf_is_fwd(t1) != btf_is_fwd(t2)) {
 		n1 = btf__str_by_offset(btf1, t1->name_off);
 		n2 = btf__str_by_offset(btf2, t2->name_off);
@@ -1311,7 +1290,7 @@ recur:
 				sym_name, n1, n2);
 			return false;
 		}
-		/* validate if FWD kind matches concrete kind */
+		
 		if (btf_is_fwd(t1)) {
 			if (btf_kflag(t1) && btf_is_union(t2))
 				return true;
@@ -1340,6 +1319,7 @@ recur:
 	case BTF_KIND_STRUCT:
 	case BTF_KIND_UNION:
 	case BTF_KIND_ENUM:
+	case BTF_KIND_ENUM64:
 	case BTF_KIND_FWD:
 	case BTF_KIND_FUNC:
 	case BTF_KIND_VAR:
@@ -1356,13 +1336,14 @@ recur:
 	}
 
 	switch (btf_kind(t1)) {
-	case BTF_KIND_UNKN: /* void */
+	case BTF_KIND_UNKN: 
 	case BTF_KIND_FWD:
 		return true;
 	case BTF_KIND_INT:
 	case BTF_KIND_FLOAT:
 	case BTF_KIND_ENUM:
-		/* ignore encoding for int and enum values for enum */
+	case BTF_KIND_ENUM64:
+		
 		if (t1->size != t2->size) {
 			pr_warn("global '%s': incompatible %s '%s' size %u and %u\n",
 				sym_name, btf_kind_str(t1), n1, t1->size, t2->size);
@@ -1370,21 +1351,18 @@ recur:
 		}
 		return true;
 	case BTF_KIND_PTR:
-		/* just validate overall shape of the referenced type, so no
-		 * contents comparison for struct/union, and allowd fwd vs
-		 * struct/union
-		 */
+		
 		exact = false;
 		id1 = t1->type;
 		id2 = t2->type;
 		goto recur;
 	case BTF_KIND_ARRAY:
-		/* ignore index type and array size */
+		
 		id1 = btf_array(t1)->type;
 		id2 = btf_array(t2)->type;
 		goto recur;
 	case BTF_KIND_FUNC:
-		/* extern and global linkages are compatible */
+		
 		is_static1 = btf_func_linkage(t1) == BTF_FUNC_STATIC;
 		is_static2 = btf_func_linkage(t2) == BTF_FUNC_STATIC;
 		if (is_static1 != is_static2) {
@@ -1396,7 +1374,7 @@ recur:
 		id2 = t2->type;
 		goto recur;
 	case BTF_KIND_VAR:
-		/* extern and global linkages are compatible */
+		
 		is_static1 = btf_var(t1)->linkage == BTF_VAR_STATIC;
 		is_static2 = btf_var(t2)->linkage == BTF_VAR_STATIC;
 		if (is_static1 != is_static2) {
@@ -1455,23 +1433,23 @@ recur:
 		m1 = btf_params(t1);
 		m2 = btf_params(t2);
 		for (i = 0; i < n; i++, m1++, m2++) {
-			/* ignore func arg names */
+			
 			if (!glob_sym_btf_matches(sym_name, exact, btf1, m1->type, btf2, m2->type))
 				return false;
 		}
 
-		/* now check return type as well */
+		
 		id1 = t1->type;
 		id2 = t2->type;
 		goto recur;
 	}
 
-	/* skip_mods_and_typedefs() make this impossible */
+	
 	case BTF_KIND_TYPEDEF:
 	case BTF_KIND_VOLATILE:
 	case BTF_KIND_CONST:
 	case BTF_KIND_RESTRICT:
-	/* DATASECs are never compared with each other */
+	
 	case BTF_KIND_DATASEC:
 	default:
 		pr_warn("global '%s': unsupported BTF kind %s\n",
@@ -1495,7 +1473,7 @@ static bool map_defs_match(const char *sym_name,
 		goto mismatch;
 	}
 
-	/* check key type/size match */
+	
 	if (main_def->key_size != extra_def->key_size) {
 		reason = "key_size";
 		goto mismatch;
@@ -1505,14 +1483,14 @@ static bool map_defs_match(const char *sym_name,
 		goto mismatch;
 	}
 	if ((main_def->parts & MAP_DEF_KEY_TYPE)
-	     && !glob_sym_btf_matches(sym_name, true /*exact*/,
+	     && !glob_sym_btf_matches(sym_name, true ,
 				      main_btf, main_def->key_type_id,
 				      extra_btf, extra_def->key_type_id)) {
 		reason = "key type";
 		goto mismatch;
 	}
 
-	/* validate value type/size match */
+	
 	if (main_def->value_size != extra_def->value_size) {
 		reason = "value_size";
 		goto mismatch;
@@ -1522,7 +1500,7 @@ static bool map_defs_match(const char *sym_name,
 		goto mismatch;
 	}
 	if ((main_def->parts & MAP_DEF_VALUE_TYPE)
-	     && !glob_sym_btf_matches(sym_name, true /*exact*/,
+	     && !glob_sym_btf_matches(sym_name, true ,
 				      main_btf, main_def->value_type_id,
 				      extra_btf, extra_def->value_type_id)) {
 		reason = "key type";
@@ -1584,26 +1562,23 @@ static bool glob_map_defs_match(const char *sym_name,
 	}
 	t = skip_mods_and_typedefs(obj->btf, t->type, NULL);
 
-	err = parse_btf_map_def(sym_name, obj->btf, t, true /*strict*/, &src_def, &src_inner_def);
+	err = parse_btf_map_def(sym_name, obj->btf, t, true , &src_def, &src_inner_def);
 	if (err) {
 		pr_warn("global '%s': invalid map definition\n", sym_name);
 		return false;
 	}
 
-	/* re-parse existing map definition */
+	
 	t = btf__type_by_id(linker->btf, glob_sym->btf_id);
 	t = skip_mods_and_typedefs(linker->btf, t->type, NULL);
-	err = parse_btf_map_def(sym_name, linker->btf, t, true /*strict*/, &dst_def, &dst_inner_def);
+	err = parse_btf_map_def(sym_name, linker->btf, t, true , &dst_def, &dst_inner_def);
 	if (err) {
-		/* this should not happen, because we already validated it */
+		
 		pr_warn("global '%s': invalid dst map definition\n", sym_name);
 		return false;
 	}
 
-	/* Currently extern map definition has to be complete and match
-	 * concrete map definition exactly. This restriction might be lifted
-	 * in the future.
-	 */
+	
 	return map_defs_match(sym_name, linker->btf, &dst_def, &dst_inner_def,
 			      obj->btf, &src_def, &src_inner_def);
 }
@@ -1614,9 +1589,7 @@ static bool glob_syms_match(const char *sym_name,
 {
 	const struct btf_type *src_t;
 
-	/* if we are dealing with externs, BTF types describing both global
-	 * and extern VARs/FUNCs should be completely present in all files
-	 */
+	
 	if (!glob_sym->btf_id || !btf_id) {
 		pr_warn("BTF info is missing for global symbol '%s'\n", sym_name);
 		return false;
@@ -1629,11 +1602,11 @@ static bool glob_syms_match(const char *sym_name,
 		return false;
 	}
 
-	/* deal with .maps definitions specially */
+	
 	if (glob_sym->sec_id && strcmp(linker->secs[glob_sym->sec_id].sec_name, MAPS_ELF_SEC) == 0)
 		return glob_map_defs_match(sym_name, linker, glob_sym, obj, sym, btf_id);
 
-	if (!glob_sym_btf_matches(sym_name, true /*exact*/,
+	if (!glob_sym_btf_matches(sym_name, true ,
 				  linker->btf, glob_sym->btf_id, obj->btf, btf_id))
 		return false;
 
@@ -1663,15 +1636,13 @@ static int find_glob_sym_btf(struct src_obj *obj, Elf64_Sym *sym, const char *sy
 	for (i = 1; i < n; i++) {
 		t = btf__type_by_id(obj->btf, i);
 
-		/* some global and extern FUNCs and VARs might not be associated with any
-		 * DATASEC, so try to detect them in the same pass
-		 */
+		
 		if (btf_is_non_static(t)) {
 			name = btf__str_by_offset(obj->btf, t->name_off);
 			if (strcmp(name, sym_name) != 0)
 				continue;
 
-			/* remember and still try to find DATASEC */
+			
 			btf_id = i;
 			continue;
 		}
@@ -1704,7 +1675,7 @@ static int find_glob_sym_btf(struct src_obj *obj, Elf64_Sym *sym, const char *sy
 		}
 	}
 
-	/* free-floating extern or global FUNC */
+	
 	if (btf_id) {
 		*out_btf_sec_id = 0;
 		*out_btf_id = btf_id;
@@ -1739,9 +1710,7 @@ static int complete_extern_btf_info(struct btf *dst_btf, int dst_id,
 	const char *s;
 	int i, n, off;
 
-	/* We already made sure that source and destination types (FUNC or
-	 * VAR) match in terms of types and argument names.
-	 */
+	
 	if (btf_is_var(dst_t)) {
 		btf_var(dst_t)->linkage = BTF_VAR_GLOBAL_ALLOCATED;
 		return 0;
@@ -1749,28 +1718,18 @@ static int complete_extern_btf_info(struct btf *dst_btf, int dst_id,
 
 	dst_t->info = btf_type_info(BTF_KIND_FUNC, BTF_FUNC_GLOBAL, 0);
 
-	/* now onto FUNC_PROTO types */
+	
 	src_t = btf_type_by_id(src_btf, src_t->type);
 	dst_t = btf_type_by_id(dst_btf, dst_t->type);
 
-	/* Fill in all the argument names, which for extern FUNCs are missing.
-	 * We'll end up with two copies of FUNCs/VARs for externs, but that
-	 * will be taken care of by BTF dedup at the very end.
-	 * It might be that BTF types for extern in one file has less/more BTF
-	 * information (e.g., FWD instead of full STRUCT/UNION information),
-	 * but that should be (in most cases, subject to BTF dedup rules)
-	 * handled and resolved by BTF dedup algorithm as well, so we won't
-	 * worry about it. Our only job is to make sure that argument names
-	 * are populated on both sides, otherwise BTF dedup will pedantically
-	 * consider them different.
-	 */
+	
 	src_p = btf_params(src_t);
 	dst_p = btf_params(dst_t);
 	for (i = 0, n = btf_vlen(dst_t); i < n; i++, src_p++, dst_p++) {
 		if (!src_p->name_off)
 			continue;
 
-		/* src_btf has more complete info, so add name to dst_btf */
+		
 		s = btf__str_by_offset(src_btf, src_p->name_off);
 		off = btf__add_str(dst_btf, s);
 		if (off < 0)
@@ -1792,9 +1751,7 @@ static void sym_update_type(Elf64_Sym *sym, int sym_type)
 
 static void sym_update_visibility(Elf64_Sym *sym, int sym_vis)
 {
-	/* libelf doesn't provide setters for ST_VISIBILITY,
-	 * but it is stored in the lower 2 bits of st_other
-	 */
+	
 	sym->st_other &= ~0x03;
 	sym->st_other |= sym_vis;
 }
@@ -1827,7 +1784,7 @@ static int linker_append_elf_sym(struct bpf_linker *linker, struct src_obj *obj,
 			return 0;
 		dst_sec = &linker->secs[src_sec->dst_id];
 
-		/* allow only one STT_SECTION symbol per section */
+		
 		if (sym_type == STT_SECTION && dst_sec->sec_sym_idx) {
 			obj->sym_map[src_sym_idx] = dst_sec->sec_sym_idx;
 			return 0;
@@ -1837,7 +1794,7 @@ static int linker_append_elf_sym(struct bpf_linker *linker, struct src_obj *obj,
 	if (sym_bind == STB_LOCAL)
 		goto add_sym;
 
-	/* find matching BTF info */
+	
 	err = find_glob_sym_btf(obj, sym, sym_name, &btf_sec_id, &btf_id);
 	if (err)
 		return err;
@@ -1849,12 +1806,7 @@ static int linker_append_elf_sym(struct bpf_linker *linker, struct src_obj *obj,
 		t = btf__type_by_id(obj->btf, btf_sec_id);
 		sec_name = btf__str_by_offset(obj->btf, t->name_off);
 
-		/* Clang puts unannotated extern vars into
-		 * '.extern' BTF DATASEC. Treat them the same
-		 * as unannotated extern funcs (which are
-		 * currently not put into any DATASECs).
-		 * Those don't have associated src_sec/dst_sec.
-		 */
+		
 		if (strcmp(sec_name, BTF_EXTERN_SEC) != 0) {
 			src_sec = find_src_sec_by_name(obj, sec_name);
 			if (!src_sec) {
@@ -1867,16 +1819,10 @@ static int linker_append_elf_sym(struct bpf_linker *linker, struct src_obj *obj,
 
 	glob_sym = find_glob_sym(linker, sym_name);
 	if (glob_sym) {
-		/* Preventively resolve to existing symbol. This is
-		 * needed for further relocation symbol remapping in
-		 * the next step of linking.
-		 */
+		
 		obj->sym_map[src_sym_idx] = glob_sym->sym_idx;
 
-		/* If both symbols are non-externs, at least one of
-		 * them has to be STB_WEAK, otherwise they are in
-		 * a conflict with each other.
-		 */
+		
 		if (!sym_is_extern && !glob_sym->is_extern
 		    && !glob_sym->is_weak && sym_bind != STB_WEAK) {
 			pr_warn("conflicting non-weak symbol #%d (%s) definition in '%s'\n",
@@ -1889,54 +1835,32 @@ static int linker_append_elf_sym(struct bpf_linker *linker, struct src_obj *obj,
 
 		dst_sym = get_sym_by_idx(linker, glob_sym->sym_idx);
 
-		/* If new symbol is strong, then force dst_sym to be strong as
-		 * well; this way a mix of weak and non-weak extern
-		 * definitions will end up being strong.
-		 */
+		
 		if (sym_bind == STB_GLOBAL) {
-			/* We still need to preserve type (NOTYPE or
-			 * OBJECT/FUNC, depending on whether the symbol is
-			 * extern or not)
-			 */
+			
 			sym_update_bind(dst_sym, STB_GLOBAL);
 			glob_sym->is_weak = false;
 		}
 
-		/* Non-default visibility is "contaminating", with stricter
-		 * visibility overwriting more permissive ones, even if more
-		 * permissive visibility comes from just an extern definition.
-		 * Currently only STV_DEFAULT and STV_HIDDEN are allowed and
-		 * ensured by ELF symbol sanity checks above.
-		 */
+		
 		if (sym_vis > ELF64_ST_VISIBILITY(dst_sym->st_other))
 			sym_update_visibility(dst_sym, sym_vis);
 
-		/* If the new symbol is extern, then regardless if
-		 * existing symbol is extern or resolved global, just
-		 * keep the existing one untouched.
-		 */
+		
 		if (sym_is_extern)
 			return 0;
 
-		/* If existing symbol is a strong resolved symbol, bail out,
-		 * because we lost resolution battle have nothing to
-		 * contribute. We already checked abover that there is no
-		 * strong-strong conflict. We also already tightened binding
-		 * and visibility, so nothing else to contribute at that point.
-		 */
+		
 		if (!glob_sym->is_extern && sym_bind == STB_WEAK)
 			return 0;
 
-		/* At this point, new symbol is strong non-extern,
-		 * so overwrite glob_sym with new symbol information.
-		 * Preserve binding and visibility.
-		 */
+		
 		sym_update_type(dst_sym, sym_type);
 		dst_sym->st_shndx = dst_sec->sec_idx;
 		dst_sym->st_value = src_sec->dst_off + sym->st_value;
 		dst_sym->st_size = sym->st_size;
 
-		/* see comment below about dst_sec->id vs dst_sec->sec_idx */
+		
 		glob_sym->sec_id = dst_sec->id;
 		glob_sym->is_extern = false;
 
@@ -1944,7 +1868,7 @@ static int linker_append_elf_sym(struct bpf_linker *linker, struct src_obj *obj,
 					     obj->btf, btf_id))
 			return -EINVAL;
 
-		/* request updating VAR's/FUNC's underlying BTF type when appending BTF type */
+		
 		glob_sym->underlying_btf_id = 0;
 
 		obj->sym_map[src_sym_idx] = glob_sym->sym_idx;
@@ -1980,15 +1904,10 @@ add_sym:
 			return -ENOMEM;
 
 		glob_sym->sym_idx = dst_sym_idx;
-		/* we use dst_sec->id (and not dst_sec->sec_idx), because
-		 * ephemeral sections (.kconfig, .ksyms, etc) don't have
-		 * sec_idx (as they don't have corresponding ELF section), but
-		 * still have id. .extern doesn't have even ephemeral section
-		 * associated with it, so dst_sec->id == dst_sec->sec_idx == 0.
-		 */
+		
 		glob_sym->sec_id = dst_sec ? dst_sec->id : 0;
 		glob_sym->name_off = name_off;
-		/* we will fill btf_id in during BTF merging step */
+		
 		glob_sym->btf_id = 0;
 		glob_sym->is_extern = sym_is_extern;
 		glob_sym->is_weak = sym_bind == STB_WEAK;
@@ -2000,7 +1919,6 @@ add_sym:
 static int linker_append_elf_relos(struct bpf_linker *linker, struct src_obj *obj)
 {
 	struct src_sec *src_symtab = &obj->secs[obj->symtab_sec_idx];
-	struct dst_sec *dst_symtab;
 	int i, err;
 
 	for (i = 1; i < obj->sec_cnt; i++) {
@@ -2013,7 +1931,7 @@ static int linker_append_elf_relos(struct bpf_linker *linker, struct src_obj *ob
 		if (!is_relo_sec(src_sec))
 			continue;
 
-		/* shdr->sh_info points to relocatable section */
+		
 		src_linked_sec = &obj->secs[src_sec->shdr->sh_info];
 		if (src_linked_sec->skipped)
 			continue;
@@ -2033,13 +1951,10 @@ static int linker_append_elf_relos(struct bpf_linker *linker, struct src_obj *ob
 			return -1;
 		}
 
-		/* add_dst_sec() above could have invalidated linker->secs */
-		dst_symtab = &linker->secs[linker->symtab_sec_idx];
-
-		/* shdr->sh_link points to SYMTAB */
+		
 		dst_sec->shdr->sh_link = linker->symtab_sec_idx;
 
-		/* shdr->sh_info points to relocated section */
+		
 		dst_linked_sec = &linker->secs[src_linked_sec->dst_id];
 		dst_sec->shdr->sh_info = dst_linked_sec->sec_idx;
 
@@ -2052,16 +1967,13 @@ static int linker_append_elf_relos(struct bpf_linker *linker, struct src_obj *ob
 		dst_rel = dst_sec->raw_data + src_sec->dst_off;
 		n = src_sec->shdr->sh_size / src_sec->shdr->sh_entsize;
 		for (j = 0; j < n; j++, src_rel++, dst_rel++) {
-			size_t src_sym_idx = ELF64_R_SYM(src_rel->r_info);
-			size_t sym_type = ELF64_R_TYPE(src_rel->r_info);
-			Elf64_Sym *src_sym, *dst_sym;
-			size_t dst_sym_idx;
+			size_t src_sym_idx, dst_sym_idx, sym_type;
+			Elf64_Sym *src_sym;
 
 			src_sym_idx = ELF64_R_SYM(src_rel->r_info);
 			src_sym = src_symtab->data->d_buf + sizeof(*src_sym) * src_sym_idx;
 
 			dst_sym_idx = obj->sym_map[src_sym_idx];
-			dst_sym = dst_symtab->raw_data + sizeof(*dst_sym) * dst_sym_idx;
 			dst_rel->r_offset += src_linked_sec->dst_off;
 			sym_type = ELF64_R_TYPE(src_rel->r_info);
 			dst_rel->r_info = ELF64_R_INFO(dst_sym_idx, sym_type);
@@ -2071,15 +1983,7 @@ static int linker_append_elf_relos(struct bpf_linker *linker, struct src_obj *ob
 				struct bpf_insn *insn;
 
 				if (src_linked_sec->shdr->sh_flags & SHF_EXECINSTR) {
-					/* calls to the very first static function inside
-					 * .text section at offset 0 will
-					 * reference section symbol, not the
-					 * function symbol. Fix that up,
-					 * otherwise it won't be possible to
-					 * relocate calls to two different
-					 * static functions with the same name
-					 * (rom two different object files)
-					 */
+					
 					insn = dst_linked_sec->raw_data + dst_rel->r_offset;
 					if (insn->code == (BPF_JMP | BPF_CALL))
 						insn->imm += sec->dst_off / sizeof(struct bpf_insn);
@@ -2146,34 +2050,11 @@ static int linker_fixup_btf(struct src_obj *obj)
 		sec_name = btf__str_by_offset(obj->btf, t->name_off);
 		sec = find_src_sec_by_name(obj, sec_name);
 		if (sec) {
-			/* record actual section size, unless ephemeral */
+			
 			if (sec->shdr)
 				t->size = sec->shdr->sh_size;
 		} else {
-			/* BTF can have some sections that are not represented
-			 * in ELF, e.g., .kconfig, .ksyms, .extern, which are used
-			 * for special extern variables.
-			 *
-			 * For all but one such special (ephemeral)
-			 * sections, we pre-create "section shells" to be able
-			 * to keep track of extra per-section metadata later
-			 * (e.g., those BTF extern variables).
-			 *
-			 * .extern is even more special, though, because it
-			 * contains extern variables that need to be resolved
-			 * by static linker, not libbpf and kernel. When such
-			 * externs are resolved, we are going to remove them
-			 * from .extern BTF section and might end up not
-			 * needing it at all. Each resolved extern should have
-			 * matching non-extern VAR/FUNC in other sections.
-			 *
-			 * We do support leaving some of the externs
-			 * unresolved, though, to support cases of building
-			 * libraries, which will later be linked against final
-			 * BPF applications. So if at finalization we still
-			 * see unresolved externs, we'll create .extern
-			 * section on our own.
-			 */
+			
 			if (strcmp(sec_name, BTF_EXTERN_SEC) == 0)
 				continue;
 
@@ -2182,13 +2063,13 @@ static int linker_fixup_btf(struct src_obj *obj)
 				return -ENOMEM;
 
 			sec->ephemeral = true;
-			sec->sec_idx = 0; /* will match UNDEF shndx in ELF */
+			sec->sec_idx = 0; 
 		}
 
-		/* remember ELF section and its BTF type ID match */
+		
 		sec->sec_type_id = i;
 
-		/* fix up variable offsets */
+		
 		vi = btf_var_secinfos(t);
 		for (j = 0, m = btf_vlen(t); j < m; j++, vi++) {
 			const struct btf_type *vt = btf__type_by_id(obj->btf, vi->type);
@@ -2196,7 +2077,7 @@ static int linker_fixup_btf(struct src_obj *obj)
 			int var_linkage = btf_var(vt)->linkage;
 			Elf64_Sym *sym;
 
-			/* no need to patch up static or extern vars */
+			
 			if (var_linkage != BTF_VAR_GLOBAL_ALLOCATED)
 				continue;
 
@@ -2218,7 +2099,7 @@ static int remap_type_id(__u32 *type_id, void *ctx)
 	int *id_map = ctx;
 	int new_id = id_map[*type_id];
 
-	/* Error out if the type wasn't remapped. Ignore VOID which stays VOID. */
+	
 	if (new_id == 0 && *type_id != 0) {
 		pr_warn("failed to find new ID mapping for original BTF type ID %u\n", *type_id);
 		return -EINVAL;
@@ -2250,35 +2131,26 @@ static int linker_append_btf(struct bpf_linker *linker, struct src_obj *obj)
 
 		t = btf__type_by_id(obj->btf, i);
 
-		/* DATASECs are handled specially below */
+		
 		if (btf_kind(t) == BTF_KIND_DATASEC)
 			continue;
 
 		if (btf_is_non_static(t)) {
-			/* there should be glob_sym already */
+			
 			name = btf__str_by_offset(obj->btf, t->name_off);
 			glob_sym = find_glob_sym(linker, name);
 
-			/* VARs without corresponding glob_sym are those that
-			 * belong to skipped/deduplicated sections (i.e.,
-			 * license and version), so just skip them
-			 */
+			
 			if (!glob_sym)
 				continue;
 
-			/* linker_append_elf_sym() might have requested
-			 * updating underlying type ID, if extern was resolved
-			 * to strong symbol or weak got upgraded to non-weak
-			 */
+			
 			if (glob_sym->underlying_btf_id == 0)
 				glob_sym->underlying_btf_id = -t->type;
 
-			/* globals from previous object files that match our
-			 * VAR/FUNC already have a corresponding associated
-			 * BTF type, so just make sure to use it
-			 */
+			
 			if (glob_sym->btf_id) {
-				/* reuse existing BTF type for global var/func */
+				
 				obj->btf_type_map[i] = glob_sym->btf_id;
 				continue;
 			}
@@ -2292,14 +2164,14 @@ static int linker_append_btf(struct bpf_linker *linker, struct src_obj *obj)
 
 		obj->btf_type_map[i] = id;
 
-		/* record just appended BTF type for var/func */
+		
 		if (glob_sym) {
 			glob_sym->btf_id = id;
 			glob_sym->underlying_btf_id = -t->type;
 		}
 	}
 
-	/* remap all the types except DATASECs */
+	
 	n = btf__type_cnt(linker->btf);
 	for (i = start_id; i < n; i++) {
 		struct btf_type *dst_t = btf_type_by_id(linker->btf, i);
@@ -2308,9 +2180,7 @@ static int linker_append_btf(struct bpf_linker *linker, struct src_obj *obj)
 			return -EINVAL;
 	}
 
-	/* Rewrite VAR/FUNC underlying types (i.e., FUNC's FUNC_PROTO and VAR's
-	 * actual type), if necessary
-	 */
+	
 	for (i = 0; i < linker->glob_sym_cnt; i++) {
 		struct glob_sym *glob_sym = &linker->glob_syms[i];
 		struct btf_type *glob_t;
@@ -2324,7 +2194,7 @@ static int linker_append_btf(struct bpf_linker *linker, struct src_obj *obj)
 		glob_t->type = glob_sym->underlying_btf_id;
 	}
 
-	/* append DATASEC info */
+	
 	for (i = 1; i < obj->sec_cnt; i++) {
 		struct src_sec *src_sec;
 		struct dst_sec *dst_sec;
@@ -2336,14 +2206,7 @@ static int linker_append_btf(struct bpf_linker *linker, struct src_obj *obj)
 			continue;
 		dst_sec = &linker->secs[src_sec->dst_id];
 
-		/* Mark section as having BTF regardless of the presence of
-		 * variables. In some cases compiler might generate empty BTF
-		 * with no variables information. E.g., when promoting local
-		 * array/structure variable initial values and BPF object
-		 * file otherwise has no read-only static variables in
-		 * .rodata. We need to preserve such empty BTF and just set
-		 * correct section size.
-		 */
+		
 		dst_sec->has_btf = true;
 
 		t = btf__type_by_id(obj->btf, src_sec->sec_type_id);
@@ -2365,19 +2228,12 @@ static int linker_append_btf(struct bpf_linker *linker, struct src_obj *obj)
 				}
 			}
 
-			/* If there is already a member (VAR or FUNC) mapped
-			 * to the same type, don't add a duplicate entry.
-			 * This will happen when multiple object files define
-			 * the same extern VARs/FUNCs.
-			 */
+			
 			if (glob_sym && glob_sym->var_idx >= 0) {
 				__s64 sz;
 
 				dst_var = &dst_sec->sec_vars[glob_sym->var_idx];
-				/* Because underlying BTF type might have
-				 * changed, so might its size have changed, so
-				 * re-calculate and update it in sec_var.
-				 */
+				
 				sz = btf__resolve_size(linker->btf, glob_sym->underlying_btf_id);
 				if (sz < 0) {
 					pr_warn("global '%s': failed to resolve size of underlying type: %d\n",
@@ -2505,7 +2361,7 @@ static int linker_append_btf_ext(struct bpf_linker *linker, struct src_obj *obj)
 				return -ENOMEM;
 			dst_rec->line_off = str_off;
 
-			/* dst_rec->line_col is fine */
+			
 		}
 	}
 
@@ -2542,7 +2398,7 @@ static int linker_append_btf_ext(struct bpf_linker *linker, struct src_obj *obj)
 				return -ENOMEM;
 			dst_rec->access_str_off = str_off;
 
-			/* dst_rec->kind is fine */
+			
 		}
 	}
 
@@ -2563,7 +2419,7 @@ int bpf_linker__finalize(struct bpf_linker *linker)
 	if (err)
 		return libbpf_err(err);
 
-	/* Finalize strings */
+	
 	strs_sz = strset__data_size(linker->strtab_strs);
 	strs = strset__data(linker->strtab_strs);
 
@@ -2578,25 +2434,25 @@ int bpf_linker__finalize(struct bpf_linker *linker)
 	for (i = 1; i < linker->sec_cnt; i++) {
 		sec = &linker->secs[i];
 
-		/* STRTAB is handled specially above */
+		
 		if (sec->sec_idx == linker->strtab_sec_idx)
 			continue;
 
-		/* special ephemeral sections (.ksyms, .kconfig, etc) */
+		
 		if (!sec->scn)
 			continue;
 
 		sec->data->d_buf = sec->raw_data;
 	}
 
-	/* Finalize ELF layout */
+	
 	if (elf_update(linker->elf, ELF_C_NULL) < 0) {
 		err = -errno;
 		pr_warn_elf("failed to finalize ELF layout");
 		return libbpf_err(err);
 	}
 
-	/* Write out final ELF contents */
+	
 	if (elf_update(linker->elf, ELF_C_WRITE) < 0) {
 		err = -errno;
 		pr_warn_elf("failed to write ELF contents");
@@ -2660,7 +2516,7 @@ static int finalize_btf(struct bpf_linker *linker)
 	int i, j, id, err;
 	__u32 raw_sz;
 
-	/* bail out if no BTF data was produced */
+	
 	if (btf__type_cnt(linker->btf) == 1)
 		return 0;
 
@@ -2698,7 +2554,7 @@ static int finalize_btf(struct bpf_linker *linker)
 		return err;
 	}
 
-	/* Emit .BTF section */
+	
 	raw_data = btf__raw_data(linker->btf, &raw_sz);
 	if (!raw_data)
 		return -ENOMEM;
@@ -2709,7 +2565,7 @@ static int finalize_btf(struct bpf_linker *linker)
 		return err;
 	}
 
-	/* Emit .BTF.ext section */
+	
 	if (linker->btf_ext) {
 		raw_data = btf_ext__get_raw_data(linker->btf_ext, &raw_sz);
 		if (!raw_data)
@@ -2760,10 +2616,7 @@ static int finalize_btf_ext(struct bpf_linker *linker)
 	void *data, *cur;
 	int i, err, sz;
 
-	/* validate that all sections have the same .BTF.ext record sizes
-	 * and calculate total data size for each type of data (func info,
-	 * line info, core relos)
-	 */
+	
 	for (i = 1; i < linker->sec_cnt; i++) {
 		struct dst_sec *sec = &linker->secs[i];
 
@@ -2807,15 +2660,15 @@ static int finalize_btf_ext(struct bpf_linker *linker)
 
 	total_sz += sizeof(struct btf_ext_header);
 	if (funcs_sz) {
-		funcs_sz += sizeof(__u32); /* record size prefix */
+		funcs_sz += sizeof(__u32); 
 		total_sz += funcs_sz;
 	}
 	if (lines_sz) {
-		lines_sz += sizeof(__u32); /* record size prefix */
+		lines_sz += sizeof(__u32); 
 		total_sz += lines_sz;
 	}
 	if (core_relos_sz) {
-		core_relos_sz += sizeof(__u32); /* record size prefix */
+		core_relos_sz += sizeof(__u32); 
 		total_sz += core_relos_sz;
 	}
 
@@ -2830,7 +2683,7 @@ static int finalize_btf_ext(struct bpf_linker *linker)
 	hdr->hdr_len = sizeof(struct btf_ext_header);
 	cur += sizeof(struct btf_ext_header);
 
-	/* All offsets are in bytes relative to the end of this header */
+	
 	hdr->func_info_off = 0;
 	hdr->func_info_len = funcs_sz;
 	hdr->line_info_off = funcs_sz;

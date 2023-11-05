@@ -46,7 +46,7 @@ int MYBPF_RunFileExt(MYBPF_FILE_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3, UIN
     MYBPF_RUNTIME_S runtime;
     int ret;
 
-    if ((ret = MYBPF_RuntimeInit(&runtime, 128)) < 0) {
+    if ((ret = MYBPF_RuntimeInit(&runtime)) < 0) {
         return ret;
     }
 

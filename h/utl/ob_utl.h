@@ -12,7 +12,7 @@ extern "C"
 
 typedef struct {
     DLL_NODE_S link_node;
-    int pri; /* 数字越小优先级越高 */
+    int pri; 
     void *func;
 }OB_S;
 
@@ -42,4 +42,4 @@ void OB_Del(OB_LIST_S *head, OB_S *ob);
 #ifdef __cplusplus
 }
 #endif
-#endif //OB_UTL_H_
+#endif 

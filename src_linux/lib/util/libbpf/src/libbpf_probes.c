@@ -12,52 +12,84 @@
 #include <linux/btf.h>
 #include <linux/filter.h>
 #include <linux/kernel.h>
+#include <linux/version.h>
 
 #include "bpf.h"
 #include "libbpf.h"
 #include "libbpf_internal.h"
 
-static bool grep(const char *buffer, const char *pattern)
+
+static __u32 get_ubuntu_kernel_version(void)
 {
-	return !!strstr(buffer, pattern);
+	const char *ubuntu_kver_file = "/proc/version_signature";
+	__u32 major, minor, patch;
+	int ret;
+	FILE *f;
+
+	if (faccessat(AT_FDCWD, ubuntu_kver_file, R_OK, AT_EACCESS) != 0)
+		return 0;
+
+	f = fopen(ubuntu_kver_file, "r");
+	if (!f)
+		return 0;
+
+	ret = fscanf(f, "%*s %*s %u.%u.%u\n", &major, &minor, &patch);
+	fclose(f);
+	if (ret != 3)
+		return 0;
+
+	return KERNEL_VERSION(major, minor, patch);
 }
 
-static int get_vendor_id(int ifindex)
+
+static __u32 get_debian_kernel_version(struct utsname *info)
 {
-	char ifname[IF_NAMESIZE], path[64], buf[8];
-	ssize_t len;
-	int fd;
+	__u32 major, minor, patch;
+	char *p;
 
-	if (!if_indextoname(ifindex, ifname))
-		return -1;
+	p = strstr(info->version, "Debian ");
+	if (!p) {
+		
+		return 0;
+	}
 
-	snprintf(path, sizeof(path), "/sys/class/net/%s/device/vendor", ifname);
+	if (sscanf(p, "Debian %u.%u.%u", &major, &minor, &patch) != 3)
+		return 0;
 
-	fd = open(path, O_RDONLY | O_CLOEXEC);
-	if (fd < 0)
-		return -1;
+	return KERNEL_VERSION(major, minor, patch);
+}
 
-	len = read(fd, buf, sizeof(buf));
-	close(fd);
-	if (len < 0)
-		return -1;
-	if (len >= (ssize_t)sizeof(buf))
-		return -1;
-	buf[len] = '\0';
+__u32 get_kernel_version(void)
+{
+	__u32 major, minor, patch, version;
+	struct utsname info;
 
-	return strtol(buf, NULL, 0);
+	
+	version = get_ubuntu_kernel_version();
+	if (version != 0)
+		return version;
+
+	uname(&info);
+
+	
+	version = get_debian_kernel_version(&info);
+	if (version != 0)
+		return version;
+
+	if (sscanf(info.release, "%u.%u.%u", &major, &minor, &patch) != 3)
+		return 0;
+
+	return KERNEL_VERSION(major, minor, patch);
 }
 
 static int probe_prog_load(enum bpf_prog_type prog_type,
 			   const struct bpf_insn *insns, size_t insns_cnt,
-			   char *log_buf, size_t log_buf_sz,
-			   __u32 ifindex)
+			   char *log_buf, size_t log_buf_sz)
 {
 	LIBBPF_OPTS(bpf_prog_load_opts, opts,
 		.log_buf = log_buf,
 		.log_size = log_buf_sz,
 		.log_level = log_buf ? 1 : 0,
-		.prog_ifindex = ifindex,
 	);
 	int fd, err, exp_err = 0;
 	const char *exp_msg = NULL;
@@ -106,7 +138,7 @@ static int probe_prog_load(enum bpf_prog_type prog_type,
 		opts.prog_flags = BPF_F_SLEEPABLE;
 		break;
 	case BPF_PROG_TYPE_STRUCT_OPS:
-		exp_err = -524; /* -ENOTSUPP */
+		exp_err = -524; 
 		break;
 	case BPF_PROG_TYPE_UNSPEC:
 	case BPF_PROG_TYPE_SOCKET_FILTER:
@@ -161,29 +193,8 @@ int libbpf_probe_bpf_prog_type(enum bpf_prog_type prog_type, const void *opts)
 	if (opts)
 		return libbpf_err(-EINVAL);
 
-	ret = probe_prog_load(prog_type, insns, insn_cnt, NULL, 0, 0);
+	ret = probe_prog_load(prog_type, insns, insn_cnt, NULL, 0);
 	return libbpf_err(ret);
-}
-
-bool bpf_probe_prog_type(enum bpf_prog_type prog_type, __u32 ifindex)
-{
-	struct bpf_insn insns[2] = {
-		BPF_MOV64_IMM(BPF_REG_0, 0),
-		BPF_EXIT_INSN()
-	};
-
-	/* prefer libbpf_probe_bpf_prog_type() unless offload is requested */
-	if (ifindex == 0)
-		return libbpf_probe_bpf_prog_type(prog_type, NULL) == 1;
-
-	if (ifindex && prog_type == BPF_PROG_TYPE_SCHED_CLS)
-		/* nfp returns -EINVAL on exit(0) with TC offload */
-		insns[0].imm = 2;
-
-	errno = 0;
-	probe_prog_load(prog_type, insns, ARRAY_SIZE(insns), NULL, 0, ifindex);
-
-	return errno != EINVAL && errno != EOPNOTSUPP;
 }
 
 int libbpf__load_raw_btf(const char *raw_types, size_t types_len,
@@ -218,38 +229,29 @@ int libbpf__load_raw_btf(const char *raw_types, size_t types_len,
 static int load_local_storage_btf(void)
 {
 	const char strs[] = "\0bpf_spin_lock\0val\0cnt\0l";
-	/* struct bpf_spin_lock {
-	 *   int val;
-	 * };
-	 * struct val {
-	 *   int cnt;
-	 *   struct bpf_spin_lock l;
-	 * };
-	 */
+	
 	__u32 types[] = {
-		/* int */
-		BTF_TYPE_INT_ENC(0, BTF_INT_SIGNED, 0, 32, 4),  /* [1] */
-		/* struct bpf_spin_lock */                      /* [2] */
+		
+		BTF_TYPE_INT_ENC(0, BTF_INT_SIGNED, 0, 32, 4),  
+		                      
 		BTF_TYPE_ENC(1, BTF_INFO_ENC(BTF_KIND_STRUCT, 0, 1), 4),
-		BTF_MEMBER_ENC(15, 1, 0), /* int val; */
-		/* struct val */                                /* [3] */
+		BTF_MEMBER_ENC(15, 1, 0), 
+		                                
 		BTF_TYPE_ENC(15, BTF_INFO_ENC(BTF_KIND_STRUCT, 0, 2), 8),
-		BTF_MEMBER_ENC(19, 1, 0), /* int cnt; */
-		BTF_MEMBER_ENC(23, 2, 32),/* struct bpf_spin_lock l; */
+		BTF_MEMBER_ENC(19, 1, 0), 
+		BTF_MEMBER_ENC(23, 2, 32),
 	};
 
 	return libbpf__load_raw_btf((char *)types, sizeof(types),
 				     strs, sizeof(strs));
 }
 
-static int probe_map_create(enum bpf_map_type map_type, __u32 ifindex)
+static int probe_map_create(enum bpf_map_type map_type)
 {
 	LIBBPF_OPTS(bpf_map_create_opts, opts);
 	int key_size, value_size, max_entries;
 	__u32 btf_key_type_id = 0, btf_value_type_id = 0;
-	int fd = -1, btf_fd = -1, fd_inner = -1, exp_err = 0, err;
-
-	opts.map_ifindex = ifindex;
+	int fd = -1, btf_fd = -1, fd_inner = -1, exp_err = 0, err = 0;
 
 	key_size	= sizeof(__u32);
 	value_size	= sizeof(__u32);
@@ -277,6 +279,7 @@ static int probe_map_create(enum bpf_map_type map_type, __u32 ifindex)
 	case BPF_MAP_TYPE_SK_STORAGE:
 	case BPF_MAP_TYPE_INODE_STORAGE:
 	case BPF_MAP_TYPE_TASK_STORAGE:
+	case BPF_MAP_TYPE_CGRP_STORAGE:
 		btf_key_type_id = 1;
 		btf_value_type_id = 3;
 		value_size = 8;
@@ -287,14 +290,15 @@ static int probe_map_create(enum bpf_map_type map_type, __u32 ifindex)
 			return btf_fd;
 		break;
 	case BPF_MAP_TYPE_RINGBUF:
+	case BPF_MAP_TYPE_USER_RINGBUF:
 		key_size = 0;
 		value_size = 0;
-		max_entries = 4096;
+		max_entries = sysconf(_SC_PAGE_SIZE);
 		break;
 	case BPF_MAP_TYPE_STRUCT_OPS:
-		/* we'll get -ENOTSUPP for invalid BTF type ID for struct_ops */
+		
 		opts.btf_vmlinux_value_type_id = 1;
-		exp_err = -524; /* -ENOTSUPP */
+		exp_err = -524; 
 		break;
 	case BPF_MAP_TYPE_BLOOM_FILTER:
 		key_size = 0;
@@ -326,12 +330,6 @@ static int probe_map_create(enum bpf_map_type map_type, __u32 ifindex)
 
 	if (map_type == BPF_MAP_TYPE_ARRAY_OF_MAPS ||
 	    map_type == BPF_MAP_TYPE_HASH_OF_MAPS) {
-		/* TODO: probe for device, once libbpf has a function to create
-		 * map-in-map for offload
-		 */
-		if (ifindex)
-			goto cleanup;
-
 		fd_inner = bpf_map_create(BPF_MAP_TYPE_HASH, NULL,
 					  sizeof(__u32), sizeof(__u32), 1, NULL);
 		if (fd_inner < 0)
@@ -370,13 +368,8 @@ int libbpf_probe_bpf_map_type(enum bpf_map_type map_type, const void *opts)
 	if (opts)
 		return libbpf_err(-EINVAL);
 
-	ret = probe_map_create(map_type, 0);
+	ret = probe_map_create(map_type);
 	return libbpf_err(ret);
-}
-
-bool bpf_probe_map_type(enum bpf_map_type map_type, __u32 ifindex)
-{
-	return probe_map_create(map_type, ifindex) == 1;
 }
 
 int libbpf_probe_bpf_helper(enum bpf_prog_type prog_type, enum bpf_func_id helper_id,
@@ -393,9 +386,7 @@ int libbpf_probe_bpf_helper(enum bpf_prog_type prog_type, enum bpf_func_id helpe
 	if (opts)
 		return libbpf_err(-EINVAL);
 
-	/* we can't successfully load all prog types to check for BPF helper
-	 * support, so bail out with -EOPNOTSUPP error
-	 */
+	
 	switch (prog_type) {
 	case BPF_PROG_TYPE_TRACING:
 	case BPF_PROG_TYPE_EXT:
@@ -407,71 +398,12 @@ int libbpf_probe_bpf_helper(enum bpf_prog_type prog_type, enum bpf_func_id helpe
 	}
 
 	buf[0] = '\0';
-	ret = probe_prog_load(prog_type, insns, insn_cnt, buf, sizeof(buf), 0);
+	ret = probe_prog_load(prog_type, insns, insn_cnt, buf, sizeof(buf));
 	if (ret < 0)
 		return libbpf_err(ret);
 
-	/* If BPF verifier doesn't recognize BPF helper ID (enum bpf_func_id)
-	 * at all, it will emit something like "invalid func unknown#181".
-	 * If BPF verifier recognizes BPF helper but it's not supported for
-	 * given BPF program type, it will emit "unknown func bpf_sys_bpf#166".
-	 * In both cases, provided combination of BPF program type and BPF
-	 * helper is not supported by the kernel.
-	 * In all other cases, probe_prog_load() above will either succeed (e.g.,
-	 * because BPF helper happens to accept no input arguments or it
-	 * accepts one input argument and initial PTR_TO_CTX is fine for
-	 * that), or we'll get some more specific BPF verifier error about
-	 * some unsatisfied conditions.
-	 */
+	
 	if (ret == 0 && (strstr(buf, "invalid func ") || strstr(buf, "unknown func ")))
 		return 0;
-	return 1; /* assume supported */
-}
-
-bool bpf_probe_helper(enum bpf_func_id id, enum bpf_prog_type prog_type,
-		      __u32 ifindex)
-{
-	struct bpf_insn insns[2] = {
-		BPF_EMIT_CALL(id),
-		BPF_EXIT_INSN()
-	};
-	char buf[4096] = {};
-	bool res;
-
-	probe_prog_load(prog_type, insns, ARRAY_SIZE(insns), buf, sizeof(buf), ifindex);
-	res = !grep(buf, "invalid func ") && !grep(buf, "unknown func ");
-
-	if (ifindex) {
-		switch (get_vendor_id(ifindex)) {
-		case 0x19ee: /* Netronome specific */
-			res = res && !grep(buf, "not supported by FW") &&
-				!grep(buf, "unsupported function id");
-			break;
-		default:
-			break;
-		}
-	}
-
-	return res;
-}
-
-/*
- * Probe for availability of kernel commit (5.3):
- *
- * c04c0d2b968a ("bpf: increase complexity limit and maximum program size")
- */
-bool bpf_probe_large_insn_limit(__u32 ifindex)
-{
-	struct bpf_insn insns[BPF_MAXINSNS + 1];
-	int i;
-
-	for (i = 0; i < BPF_MAXINSNS; i++)
-		insns[i] = BPF_MOV64_IMM(BPF_REG_0, 1);
-	insns[BPF_MAXINSNS] = BPF_EXIT_INSN();
-
-	errno = 0;
-	probe_prog_load(BPF_PROG_TYPE_SCHED_CLS, insns, ARRAY_SIZE(insns), NULL, 0,
-			ifindex);
-
-	return errno != E2BIG && errno != EINVAL;
+	return 1; 
 }

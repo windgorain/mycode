@@ -12,31 +12,31 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #pragma pack(1)
 
 typedef struct
 {
-    USHORT usType;      /* 类型, 必须为BM */
-    UINT  uiSize;      /* 图片文件大小, 字节为单位 */
+    USHORT usType;      
+    UINT  uiSize;      
     USHORT usReserved1;
     USHORT usReserved2;
-    UINT  uiOffBits;   /* 位图数据的起始位置 */
+    UINT  uiOffBits;   
 }VLDBMP_HEADER_S;
 
 typedef struct
 {
-    UINT  uiSize;         /* 本结构大小 */
-    UINT  uiWidth;        /* 位图宽度, 像素为单位 */
-    UINT  uiHeight;       /* 位图高度, 像素为单位 */
-    USHORT usPlanes;       /* 目标设备级别, 必须为1 */
-    USHORT usBitCount;     /*1,4,8,24. 24表示真彩色 */
-    UINT  uiCompression;  /* 是否压缩. 0表示不压缩 */
-    UINT  uiSizeImage;    /* 位图大小 */
-    UINT uiXPelsPerMeter; /* 水平分辨率 */
-    UINT uiYPelsPerMeter; /* 垂直分辨率 */
-    UINT uiClrUsed;       /* 使用的颜色数 */
+    UINT  uiSize;         
+    UINT  uiWidth;        
+    UINT  uiHeight;       
+    USHORT usPlanes;       
+    USHORT usBitCount;     
+    UINT  uiCompression;  
+    UINT  uiSizeImage;    
+    UINT uiXPelsPerMeter; 
+    UINT uiYPelsPerMeter; 
+    UINT uiClrUsed;       
     UINT uiClrImportant;
 }VLDBMP_INFO_S;
 
@@ -56,20 +56,20 @@ typedef struct
 
 #pragma pack()
 
-#define VLDBMP_FLAG_YWAP        0x1 /* 噪点 */
-#define VLDBMP_FLAG_DRIFT       0x2 /* 漂移 */
-#define VLDBMP_FLAG_RAND_COLOR  0x4 /* 随机字体颜色 */
+#define VLDBMP_FLAG_YWAP        0x1 
+#define VLDBMP_FLAG_DRIFT       0x2 
+#define VLDBMP_FLAG_RAND_COLOR  0x4 
 
 
 typedef struct
 {
-    UINT uiLineRadii; /* 线条宽度半径 */
+    UINT uiLineRadii; 
     UINT uiFlag;
-    UCHAR ucXCompressMin; /* X方向上的最小压缩率 */
-    UCHAR ucXCompressMax; /* X方向上的最大压缩率 */
-    UCHAR ucYCompressMin; /* Y方向上的最小压缩率 */
-    UCHAR ucYCompressMax; /* Y方向上的最大压缩率 */
-    UCHAR ucMaxRotate;    /* 最大旋转角度 */
+    UCHAR ucXCompressMin; 
+    UCHAR ucXCompressMax; 
+    UCHAR ucYCompressMin; 
+    UCHAR ucYCompressMax; 
+    UCHAR ucMaxRotate;    
 }VLDBMP_OPT_S;
 
 #define VLDBMP_SET_RADII(_pstOpt,_uiRadii) ((_pstOpt)->uiLineRadii = (_uiRadii))
@@ -96,28 +96,28 @@ static inline VOID VLDBMP_SetYCompress(IN VLDBMP_OPT_S *pstOpt, IN UCHAR ucMin, 
 
 #define VLDBMP_SIZE(pstBmp) (Litter2Host32(pstBmp->stBmpHead.uiSize))
 
-VOID VLDBMP_GenCode(IN UINT ulCount/* 产生随机字符数目 */, OUT CHAR *pszCode);
+VOID VLDBMP_GenCode(IN UINT ulCount, OUT CHAR *pszCode);
 VLDBMP_S * VLDBMP_CreateBmp
 (
     IN const CHAR *pszVldCode,
-    IN UINT uiWidth/* 每个字符的宽度 */,
-    IN UINT uiHeight/* 每个字符的高度 */,
-    IN const VLDBMP_OPT_S *pstOpt /* VLDBMP_FLAG_COMPRESS等 */
+    IN UINT uiWidth,
+    IN UINT uiHeight,
+    IN const VLDBMP_OPT_S *pstOpt 
 );
-/* 创建所有字符图片的总表图片 */
+
 VLDBMP_S * VLDBMP_CreateListBmp
 (
-    IN UINT uiWidth/* 每个字符的宽度 */,
-    IN UINT uiHeight/* 每个字符的高度 */,
-    IN VLDBMP_OPT_S *pstOpt  /* VLDBMP_FLAG_COMPRESS等 */
+    IN UINT uiWidth,
+    IN UINT uiHeight,
+    IN VLDBMP_OPT_S *pstOpt  
 );
 VOID VLDBMP_Destory(IN const VLDBMP_S *pstBmp);
 BS_STATUS VLDBMP_SaveToFile(IN VLDBMP_S *pstBmp, IN CHAR *pszPath);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VLDBMP_UTL_H_*/
+#endif 
 
 

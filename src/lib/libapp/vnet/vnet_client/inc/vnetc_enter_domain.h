@@ -3,14 +3,14 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETC_EnterDomain_Init();
 BS_STATUS VNETC_EnterDomain_Start();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_ENTER_DOMAIN_H_*/
+#endif 
 

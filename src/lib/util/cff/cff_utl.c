@@ -85,7 +85,7 @@ _CFF_S * _cff_Open(IN CHAR *pcFileName, IN UINT uiFlag)
 
     pstCff->pcFileContent = (CHAR*)pstCff->pstFileMemMap->pucFileData;
 
-    /* 检测是否有UTF8的BOM */
+    
     if (pstCff->pstFileMemMap->uiFileLen >= 3)
     {
         if ((pstCff->pcFileContent[0] == (CHAR)0xef)
@@ -581,7 +581,7 @@ BS_STATUS CFF_GetPropAsInt(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag, IN CHAR *pc
     return CFF_X_GetPropAsInt(hCffHandle, &stTreParam, pcProp, piValue);
 }
 
-/* 如果获取失败,则返回dft */
+
 UINT CFF_GetPropAsUintDft(CFF_HANDLE hCffHandle, char *pcTag, char *pcProp, UINT dft)
 {
     UINT val;
@@ -606,7 +606,7 @@ char * CFF_GetPropAsStringDft(CFF_HANDLE hCffHandle, char *pcTag, char *pcProp, 
     return CFF_GetPropAsString(hCffHandle, pcTag, pcProp, &val) == 0 ? val : dft;
 }
 
-/* 返回Tag的个数 */
+
 UINT CFF_GetTagNum(IN CFF_HANDLE hCffHandle)
 {
     MKV_X_PARA_S stTreParam;
@@ -616,14 +616,14 @@ UINT CFF_GetTagNum(IN CFF_HANDLE hCffHandle)
     return CFF_X_GetTagNum(hCffHandle, &stTreParam);
 }
 
-static BS_WALK_RET_E cff_WalkTagFunc(IN MKV_MARK_S *pstMarkRoot, IN MKV_MARK_S *pstMark, IN USER_HANDLE_S *pstUserHandle)
+static int cff_WalkTagFunc(IN MKV_MARK_S *pstMarkRoot, IN MKV_MARK_S *pstMark, IN USER_HANDLE_S *pstUserHandle)
 {
     PF_CFF_TAG_WALK_FUNC pfFunc;
     
     pfFunc = (PF_CFF_TAG_WALK_FUNC) (pstUserHandle->ahUserHandle[1]);
     pfFunc(pstUserHandle->ahUserHandle[0], pstMark->pucMarkName, pstUserHandle->ahUserHandle[2]);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 VOID CFF_WalkTag(IN CFF_HANDLE hCffHandle, IN PF_CFF_TAG_WALK_FUNC pfFunc, IN HANDLE hUsrHandle)
@@ -638,14 +638,14 @@ VOID CFF_WalkTag(IN CFF_HANDLE hCffHandle, IN PF_CFF_TAG_WALK_FUNC pfFunc, IN HA
     MKV_WalkMarkInMark(&pstCff->stCfgRoot, (PF_MKV_MARK_WALK_FUNC)cff_WalkTagFunc, &stUserHandle);
 }
 
-static BS_WALK_RET_E cff_WalkPropFunc(IN MKV_MARK_S *pstMarkRoot, IN MKV_KEY_S *pstProp, IN USER_HANDLE_S *pstUserHandle)
+static int cff_WalkPropFunc(IN MKV_MARK_S *pstMarkRoot, IN MKV_KEY_S *pstProp, IN USER_HANDLE_S *pstUserHandle)
 {
     PF_CFF_PROP_WALK_FUNC pfFunc;
     
     pfFunc = (PF_CFF_PROP_WALK_FUNC) (pstUserHandle->ahUserHandle[1]);
     pfFunc(pstUserHandle->ahUserHandle[0], pstMarkRoot->pucMarkName, pstProp->pucKeyName, pstUserHandle->ahUserHandle[2]);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 VOID CFF_WalkProp(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag, IN PF_CFF_PROP_WALK_FUNC pfFunc, IN HANDLE hUsrHandle)
@@ -670,7 +670,7 @@ VOID CFF_WalkProp(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag, IN PF_CFF_PROP_WALK_
     MKV_WalkKeyInMark(pstMarkRoot, (PF_MKV_KEY_WALK_FUNC)cff_WalkPropFunc, &stUserHandle);
 }
 
-/* 返回section中属性的个数 */
+
 UINT CFF_GetPorpNumOfTag(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag)
 {
     MKV_MARK_S *pstMarkRoot;

@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS SVPN_IpTunNode_Init();
 BS_STATUS SVPN_IpTunnel_Init();
@@ -21,8 +21,8 @@ IF_INDEX SVPN_IpTunnel_GetInterface();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_IPTUNNEL_H_*/
+#endif 
 
 

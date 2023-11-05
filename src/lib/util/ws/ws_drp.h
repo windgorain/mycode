@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS _WS_DRP_Init();
 DRP_HANDLE _WS_Drp_GetDrp();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WS_DRP_H_*/
+#endif 
 
 

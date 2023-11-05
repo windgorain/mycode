@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 BS_STATUS SVPN_ACL_Init();
@@ -28,8 +28,8 @@ BS_STATUS SVPN_ACL_Match
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_ACL_H_*/
+#endif 
 
 

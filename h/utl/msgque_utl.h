@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define MSGQUE_EVENT_READ    0x1
 #define MSGQUE_EVENT_WRITE   0x2
@@ -25,7 +25,7 @@ typedef VOID (*PF_QUE_EVENT_FUNC)(IN MSGQUE_HANDLE hQueId, IN UINT ulEvent, IN U
 
 typedef struct
 {
-    HANDLE ahMsg[4];  /* 消息内容 */
+    HANDLE ahMsg[4];  
 }MSGQUE_MSG_S;
 
 typedef struct{
@@ -47,8 +47,8 @@ int MSGQUE_Empty(MSGQUE_S *q);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__MSGQUE_H_*/
+#endif 
 
 

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #include "utl/mbuf_utl.h"
 
@@ -19,7 +19,7 @@
 typedef struct
 {
     USHORT usVer;
-    USHORT usProto;    /* 承载的上层协议 */
+    USHORT usProto;    
     USHORT usPktLen;
     USHORT usReserved;
 }VNET_VPN_LINK_HEAD_S;
@@ -28,8 +28,8 @@ BS_STATUS VNET_VpnLink_Encrypt(IN MBUF_S *pstMbuf, IN BOOL_T bIsEnc);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNET_VPN_LINK_H_*/
+#endif 
 
 

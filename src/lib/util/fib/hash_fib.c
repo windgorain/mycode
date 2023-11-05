@@ -10,7 +10,7 @@
 #define HASHFIB_HASH_BUCKET_NUM 1024
 
 typedef struct {
-    UINT ip; /*net order*/
+    UINT ip; 
     UINT nexthop:24;
     UINT depth:8;
 }FIB_ENTRY_S;
@@ -26,7 +26,7 @@ typedef struct
     HASH_HANDLE hHash;
 }HASH_FIB_S;
 
-typedef BS_WALK_RET_E (*PF_HASH_FIB_WALK_FUNC)(IN FIB_ENTRY_S *pstFibEntry, IN HANDLE hUserHandle);
+typedef int (*PF_HASH_FIB_WALK_FUNC)(IN FIB_ENTRY_S *pstFibEntry, IN HANDLE hUserHandle);
 
 static UINT hashfib_HashIndex(IN VOID *pstHashNode)
 {
@@ -57,7 +57,7 @@ static INT hashfib_HashCmp(IN VOID *pstHashNode, IN VOID *pstNodeToFind)
     return 0;
 }
 
-static FIB_ENTRY_S * hashfib_PrefixMatch(IN HASH_FIB_S *hashfib, IN UINT uiDstIp /* 网络序 */)
+static FIB_ENTRY_S * hashfib_PrefixMatch(IN HASH_FIB_S *hashfib, IN UINT uiDstIp )
 {
     HASH_FIB_NODE_S *pstFound = NULL;
     HASH_FIB_NODE_S stFibToFind;
@@ -126,7 +126,7 @@ static VOID  hashfib_FreeHashNode(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN V
     MEM_Free(pstFibHashNode);
 }
 
-static BS_WALK_RET_E hashfib_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
+static int hashfib_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
 {
     HASH_FIB_NODE_S *pstFibHashNode = (void*)pstNode;
     USER_HANDLE_S *pstUserHandle = pUserHandle;
@@ -188,7 +188,7 @@ VOID HashFib_DelAll(IN HASH_FIB_S *hashfib)
     HASH_DelAll(hashfib->hHash, hashfib_FreeHashNode, NULL);
 }
 
-FIB_ENTRY_S * HashFib_Match(IN HASH_FIB_S *hashfib, IN UINT uiDstIp /*net order*/)
+FIB_ENTRY_S * HashFib_Match(IN HASH_FIB_S *hashfib, IN UINT uiDstIp )
 {
     return hashfib_PrefixMatch(hashfib, uiDstIp);
 }
@@ -232,7 +232,7 @@ static INT hashfib_GetNextCmp(IN FIB_ENTRY_S *pstNode1, IN FIB_ENTRY_S *pstNode2
     return iCmpRet;
 }
 
-static BS_WALK_RET_E hashfib_GetNextEach(IN FIB_ENTRY_S *pstFibNode, IN HANDLE hUserHandle)
+static int hashfib_GetNextEach(IN FIB_ENTRY_S *pstFibNode, IN HANDLE hUserHandle)
 {
     USER_HANDLE_S *pstUserHandle = hUserHandle;
     FIB_ENTRY_S *pstFibCurrent = pstUserHandle->ahUserHandle[0];
@@ -241,25 +241,25 @@ static BS_WALK_RET_E hashfib_GetNextEach(IN FIB_ENTRY_S *pstFibNode, IN HANDLE h
 
     if (pstFibCurrent != NULL) {
         if (hashfib_GetNextCmp(pstFibNode, pstFibCurrent) >= 0) {
-            return BS_WALK_CONTINUE;
+            return 0;
         }
     }
 
     if (hashfib_GetNextCmp(pstFibNode, pstFibNext) <= 0) {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     *pstFibNext = *pstFibNode;
     *pbFound = TRUE;
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-/* 字典序方式访问下一个 */
+
 BS_STATUS HashFib_GetNext
 (
     IN HASH_FIB_S *hashfib,
-    IN FIB_ENTRY_S *pstFibCurrent/* 如果为NULL表示获取第一个 */,
+    IN FIB_ENTRY_S *pstFibCurrent,
     OUT FIB_ENTRY_S *pstFibNext
 )
 {

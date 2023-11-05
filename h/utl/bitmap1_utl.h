@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 #define BITMAP1_ISSET(pstBitMap,uiIndexFrom1) BITMAP_ISSET(pstBitMap, (uiIndexFrom1)-1)
@@ -33,27 +33,27 @@
     
 #define BITMAP1_SCAN_END() BITMAP_SCAN_END()}}while(0)
 
-/* 获取一个setted位的IndexFrom1 */
+
 extern UINT BITMAP1_GetASettedBitIndex(IN BITMAP_S * pstBitMap);
 
-/* 获取某个指定位置之后的setted位的IndexFrom1 */
+
 extern UINT BITMAP1_GetBusyFrom(BITMAP_S *pstBitMap, UINT from);
 
-/* 获取一个unsetted位的IndexFrom1 */
+
 extern UINT BITMAP1_GetAUnsettedBitIndex(IN BITMAP_S * pstBitMap);
 
-/* 环绕形式的获取一个unsetted位的IndexFrom1 */
+
 extern UINT BITMAP1_GetFreeCycle(IN BITMAP_S *pstBitMap);
 
-/* 从两个bitmap中获取都未被设置的位的IndexFrom1 */
+
 extern UINT BITMAP1_2GetFree(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2);
 
-/* 从两个bitmap中获取都被设置的位的IndexFrom1 */
+
 UINT BITMAP1_2GetBusy(IN BITMAP_S * pstBitMap1, IN BITMAP_S * pstBitMap2);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
 #endif
 

@@ -22,7 +22,7 @@ typedef struct
 typedef struct
 {
     DLL_HEAD_S stFuncsList;
-    _CALLER_NODE_S *pstCurNode; /* 当前调用到了哪个Node. 应该执行下一个了 */
+    _CALLER_NODE_S *pstCurNode; 
     UINT uiDbgFlag;
 }_CALLER_CTRL_S;
 
@@ -105,8 +105,8 @@ VOID Caller_Destory(IN HANDLE hCaller)
 BS_STATUS Caller_Add
 (
     IN HANDLE hCaller,
-    IN CHAR *pcName, /* 名字 */
-    IN UINT uiPRI/* 越小优先级越高 */,
+    IN CHAR *pcName, 
+    IN UINT uiPRI,
     IN PF_CALLER_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle
 )
@@ -161,7 +161,7 @@ CALLER_RET_E Caller_Call(IN HANDLE hCaller)
     return caller_Call(pstCtrl);
 }
 
-/* 一个节点异步执行完后,调用此接口通知完成 */
+
 CALLER_RET_E Caller_Finished(IN HANDLE hCaller)
 {
     _CALLER_CTRL_S *pstCtrl = hCaller;
@@ -171,7 +171,7 @@ CALLER_RET_E Caller_Finished(IN HANDLE hCaller)
     return caller_Call(pstCtrl);
 }
 
-/* 将调用阶段设置到指定Name的位置 */
+
 BS_STATUS Caller_SetByName(IN HANDLE hCaller, IN CHAR *pcName)
 {
     _CALLER_CTRL_S *pstCtrl = hCaller;
@@ -188,7 +188,7 @@ BS_STATUS Caller_SetByName(IN HANDLE hCaller, IN CHAR *pcName)
     return BS_OK;
 }
 
-/* 将调用阶段设置到开始位置 */
+
 VOID Caller_Reset(IN HANDLE hCaller)
 {
     _CALLER_CTRL_S *pstCtrl = hCaller;

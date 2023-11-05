@@ -11,7 +11,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef struct { volatile int counter; } atomic_t;
 typedef struct { volatile long long counter; } atomic64_t;
@@ -79,8 +79,8 @@ static inline int atomic_sub_return(int i, atomic_t *v)
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__ASM_UTL_H_*/
+#endif 
 
 

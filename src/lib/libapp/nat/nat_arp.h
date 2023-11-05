@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS NAT_ARP_Init();
 BS_STATUS NAT_ARP_PacketInput(IN MBUF_S *pstArpPacket);
-/* 根据IP得到MAC，如果得不到,则发送ARP请求，并返回BS_AGAIN. */
+
 BS_STATUS NAT_ARP_GetMacByIp
 (
     IN UINT uiIfIndex,
-    IN UINT ulIpToResolve /* 网络序 */,
+    IN UINT ulIpToResolve ,
     IN MBUF_S *pstMbuf,
     OUT MAC_ADDR_S *pstMacAddr
 );
@@ -26,8 +26,8 @@ VOID NAT_ARP_Save(IN HANDLE hFile);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__NAT_ARP_H_*/
+#endif 
 
 

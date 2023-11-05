@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef void (*PF_BUFFER_OUT_FUNC)(void *data, UINT len, USER_HANDLE_S *ud);
 
@@ -50,9 +50,9 @@ static inline UINT BUFFER_GetDataLen(BUFFER_S *pstBuffer)
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__BUFFER_UTL_H_*/
+#endif 
 
 
 

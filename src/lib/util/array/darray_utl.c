@@ -13,8 +13,8 @@
 
 typedef struct
 {
-    UINT uiSize;  /* 数组大小 */
-    USHORT step_num;  /* 每次内存不够后,扩张的步伐 */
+    UINT uiSize;  
+    USHORT step_num;  
     USHORT reserved;
     HANDLE * phArray;
 }_DARRAY_CTRL_S;
@@ -67,7 +67,7 @@ static UINT darray_AddToSpace(_DARRAY_CTRL_S *pstCtrl, IN HANDLE hData)
     return DARRAY_INVALID_INDEX;
 }
 
-/* 返回将数据添加到的Index. */
+
 static UINT darray_ExpandAndAdd(IN _DARRAY_CTRL_S *pstCtrl, IN HANDLE hData)
 {
     UINT uiIndex;
@@ -86,7 +86,7 @@ static UINT darray_ExpandAndAdd(IN _DARRAY_CTRL_S *pstCtrl, IN HANDLE hData)
     return uiIndex;
 }
 
-DARRAY_HANDLE DARRAY_Create(UINT init_num/* 初始分配的个数 */, USHORT step_num)
+DARRAY_HANDLE DARRAY_Create(UINT init_num, USHORT step_num)
 {
     _DARRAY_CTRL_S *pstCtrl;
 
@@ -130,8 +130,7 @@ VOID DARRAY_Destory(IN DARRAY_HANDLE hDArray)
     }
 }
 
-/* 返回将数据添加到的Index
- 它认为NULL为未被占用的位置, 故对于NULL为有效值的情况, 不要使用Add函数,而应使用Set函数 */
+
 UINT DARRAY_Add(IN DARRAY_HANDLE hDArray, IN HANDLE hData)
 {
     UINT uiIndex;
@@ -191,7 +190,7 @@ UINT DARRAY_FindIntData(IN DARRAY_HANDLE hDArray, IN HANDLE hData)
     return DARRAY_INVALID_INDEX;
 }
 
-/* 将对应的节点设置为NULL，并返回原来的值 */
+
 HANDLE DARRAY_Clear(IN DARRAY_HANDLE hDArray, IN UINT uiIndex)
 {
     _DARRAY_CTRL_S *pstCtrl = hDArray;
@@ -208,7 +207,7 @@ HANDLE DARRAY_Clear(IN DARRAY_HANDLE hDArray, IN UINT uiIndex)
     return hData;
 }
 
-/* 得到现在动态数组的大小 */
+
 UINT DARRAY_GetSize(IN DARRAY_HANDLE hDArray)
 {
     _DARRAY_CTRL_S *pstCtrl = hDArray;

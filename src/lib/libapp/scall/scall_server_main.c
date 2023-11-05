@@ -31,7 +31,7 @@
 *       type如果为void, 表示不是输出参数，只是占位用
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_PLUG_BASE
     
 #include "bs.h"
@@ -46,9 +46,9 @@
 #include "utl/mbuf_utl.h"
 
 #define _SCALL_DFT_INI_FILE    "scall_config.ini"
-#define _SCALL_DFT_SERVER_PORT 65351  /* 默认服务端口 */
+#define _SCALL_DFT_SERVER_PORT 65351  
 
-#define _SCALL_MAX_PARAM_NUM    10  /* 最多支持的参数个数 */
+#define _SCALL_MAX_PARAM_NUM    10  
 
 #define _SCALL_LINE_END_CHAR '\n'
 #define _SCALL_SPLIT_CHAR ';'
@@ -58,7 +58,7 @@
 #define _SCALL_MSG_TYPE_SSLTCP   1
 #define _SCALL_MSG_TYPE_TIMEOUT  2
 
-/* debug 宏 */
+
 #define _SCALL_DBG_FLAG_PROCESS 1
 
 #define _SCALL_DBG_PRINT(uiFlag,x) \
@@ -69,7 +69,7 @@
         }   \
     }while (0)
 
-/* 解析recvMsg中的参数._pucPararms为recvMsg中第一个参数行的起始位置 */
+
 #define _SCALL_SCAN_PARAM_LINE_BEGIN(_pucParams,_eType,_ulParamLen,_pucParamdata)  \
     do {    \
         CHAR *_pcSplit; \
@@ -102,8 +102,8 @@ typedef enum
 
 typedef struct
 {
-    _SCALL_PARAM_TYPE_E eType;  /* 参数类型 */
-    CHAR *pszType;              /* 参数类型的名字 */
+    _SCALL_PARAM_TYPE_E eType;  
+    CHAR *pszType;              
 }_SCALL_PARAM_TYPE_MAP_S;
 
 typedef struct
@@ -124,7 +124,7 @@ typedef struct
 {
     UINT ulSsltcpId;
     MBUF_S *pstReadMbuf;
-    UINT  ulTotalReadLen; /* 0表示长度未知. 非0表示整个接收消息的总长度 */
+    UINT  ulTotalReadLen; 
     MBUF_S *pstWriteMbuf;
 }_SCALL_STATE_S;
 
@@ -210,7 +210,7 @@ static BOOL_T _SCALL_IsReadMsgFinish(IN _SCALL_STATE_S *pstState)
     INT iOffset;
     CHAR szTotalLenString[32];
     
-    /* 取TotalLength判断是否接收完成 */
+    
     if (pstState->ulTotalReadLen == 0)
     {
         iOffset = MBUF_FindByte(pstState->pstReadMbuf, 0, _SCALL_LINE_END_CHAR);
@@ -228,7 +228,7 @@ static BOOL_T _SCALL_IsReadMsgFinish(IN _SCALL_STATE_S *pstState)
         szTotalLenString[iOffset] = '\0';
 
         TXT_Atoui(szTotalLenString, &pstState->ulTotalReadLen);
-        pstState->ulTotalReadLen += (iOffset + 1);    /* 总长度: 加上第一行的长度, 包含换行符 */
+        pstState->ulTotalReadLen += (iOffset + 1);    
     }
 
     if (pstState->ulTotalReadLen <= MBUF_TOTAL_DATA_LEN(pstState->pstReadMbuf))
@@ -249,11 +249,11 @@ static BS_STATUS _SCALL_ParseMsg(IN UCHAR *pucRecvMsg, OUT _SCALL_MSG_S *pstMsg)
     CHAR *pszParamData;
     UINT i;
 
-    /* 取第二行指针 */
+    
     pcStart = strchr(pucRecvMsg, _SCALL_LINE_END_CHAR);
     pcStart++;
     
-    /* 解析函数名  */
+    
     pcSplit = strchr(pcStart, _SCALL_LINE_END_CHAR);
     if (NULL == pcSplit)
     {
@@ -265,7 +265,7 @@ static BS_STATUS _SCALL_ParseMsg(IN UCHAR *pucRecvMsg, OUT _SCALL_MSG_S *pstMsg)
     pcStart = pcSplit + 1;
 
     
-    /* 解析每个参数 */
+    
     i = 0;
     _SCALL_SCAN_PARAM_LINE_BEGIN(pcStart, eType, ulLen, pszParamData)
     {
@@ -302,7 +302,7 @@ static MBUF_S * _SCALL_FormSendData
     UINT *pulParam;
     UINT uiLen;
 
-    /* 设置为SCALL调用成功 */
+    
     pstMbuf = MBUF_CreateByCopyBuf(10, "0;0;\n", strlen("0;0;\n"), MBUF_DATA_DATA);
     if (NULL == pstMbuf)
     {
@@ -348,7 +348,7 @@ static MBUF_S * _SCALL_FormSendData
                     "\n", STR_LEN("\n"));
                 break;
             }
-            /* else  go on */
+            
 
         case FUNCTBL_RET_SEQUENCE:
             if (NULL == ret)
@@ -375,7 +375,7 @@ static MBUF_S * _SCALL_FormSendData
     {
         switch (pszParamFmt[i])
         {
-            /* 输出integer  */
+            
             case 'p':
             {
                 pulParam = (UINT *)(params[i]);
@@ -390,7 +390,7 @@ static MBUF_S * _SCALL_FormSendData
                     szTmp, strlen(szTmp));
                 break;
             }
-            /* 输出string  */
+            
             case 'o':
             {
                 sprintf(szLength, "%lu;", STRING_GetLength(params[i]));
@@ -404,7 +404,7 @@ static MBUF_S * _SCALL_FormSendData
                     "\n", STR_LEN("\n"));
                 break;
             }
-            /* 不是输出参数 */
+            
             default:
             {
                 MBUF_CopyFromBufToMbuf(pstMbuf, MBUF_TOTAL_DATA_LEN(pstMbuf),
@@ -501,7 +501,7 @@ static BS_STATUS _SCALL_ProcReadMsg(IN _SCALL_STATE_S *pstState, IN UCHAR *pucRe
         return eRet;
     }
 
-    /* 得到函数指针和参数描述 */
+    
     pfFunc = FUNCTBL_GetFunc(stMsg.pszFuncName, &ulRetType, szFuncFmt);
     if (NULL == pfFunc)
     {
@@ -553,7 +553,7 @@ static BS_STATUS _SCALL_ProcReadMsg(IN _SCALL_STATE_S *pstState, IN UCHAR *pucRe
         }
     }
 
-    /* 调用pfFunc函数 */
+    
     ret = pfFunc (params[0], params[1], params[2], params[3], params[4],
                     params[5], params[6], param[7], params[8], params[9]);
 
@@ -693,7 +693,7 @@ static BS_STATUS _SCALL_ProcEvent(IN UINT ulSsltcpId, IN UINT ulEvent)
             }
         }
 
-        /* 检测是否接收结束 */
+        
         if (TRUE == _SCALL_IsReadMsgFinish(pstState))
         {
             if (BS_OK != (eRet = _SCALL_ProcReadData(pstState)))
@@ -759,7 +759,7 @@ static BS_STATUS _SCALL_ProcessSsltcpEvent(IN UINT ulSslTcpId, IN UINT ulEvent, 
 
     if (BS_OK != MSGQUE_WriteMsg(g_hSCallQueId, &stMsg))
     {
-        /* 消息队列满了, 服务器处理不了了,关闭连接 */
+        
         SEM_P(g_hSCallSem, BS_WAIT, BS_WAIT_FOREVER);
         _SCALL_CloseConnection(ulSslTcpId);
         SEM_V(g_hSCallSem);
@@ -890,7 +890,7 @@ static BS_STATUS _SCALL_Thread(IN USER_HANDLE_S *pstUserHandle)
         CFF_Close(hCff);
     }
 
-    /* 打开服务 */
+    
     ulSslTcpId = SSLTCP_Create("tcp", AF_INET, NULL);
     if (0 == ulSslTcpId)
     {
@@ -913,7 +913,7 @@ static BS_STATUS _SCALL_Thread(IN USER_HANDLE_S *pstUserHandle)
 
 BS_STATUS SCALL_Start()
 {
-    /* 启动一个线程开始进行服务 */
+    
     g_ulSCallServerTid = THREAD_Create("SCallServer", NULL, _SCALL_Thread, NULL);
     if (THREAD_ID_INVALID == g_ulSCallServerTid) {
         RETURN(BS_ERR);

@@ -32,4 +32,4 @@ void DataQue_Pop(DATA_QUE_S *ctrl, DATA_QUE_DATA_S *node);
 #ifdef __cplusplus
 }
 #endif
-#endif //DATA_QUE_H_
+#endif 

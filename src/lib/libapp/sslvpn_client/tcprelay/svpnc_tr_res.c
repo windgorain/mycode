@@ -87,7 +87,7 @@ VOID SVPNC_TR_Write2File()
         {
             fwrite(&uiStartIp, 1, 4, fp);
             fwrite(&uiStopIp, 1, 4, fp);
-            fwrite(&usStartPort, 1, 2, fp);  /* 暂时不支持port写入,故仅仅写入1-65535 */
+            fwrite(&usStartPort, 1, 2, fp);  
             fwrite(&usStopPort, 1, 2, fp);
         }IPLIST_SCAN_END();
     }
@@ -97,7 +97,7 @@ VOID SVPNC_TR_Write2File()
     return;
 }
 
-BOOL_T SVPNC_TR_IsPermit(IN UINT uiIp/* 主机序 */, IN USHORT usPort/* 主机序 */)
+BOOL_T SVPNC_TR_IsPermit(IN UINT uiIp, IN USHORT usPort)
 {
     _SVPNC_TR_RES_NODE_S *pstNode;
 

@@ -17,4 +17,4 @@ int PIDFile_ReadPID(char *filename);
 #ifdef __cplusplus
 }
 #endif
-#endif //PIDFILE_UTL_H_
+#endif 

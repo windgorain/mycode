@@ -56,7 +56,7 @@ THUNK_IN_FN_2(m, i, i,i)
 
 VOID_FUNC setup_thunk_in(uint32_t fidx)
 {
-    WASM_MODULE_S *m = _wa_current_module_; // TODO: global state, clean up somehow
+    WASM_MODULE_S *m = _wa_current_module_; 
     WASM_BLOCK_S *func = &m->functions[fidx];
     WASM_TYPE_S *type = func->type;
 

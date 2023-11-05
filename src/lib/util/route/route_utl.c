@@ -16,7 +16,7 @@ static UINT _os_route_GetDefaultGw()
     return My_IP_Helper_GetDftGateway();
 }
 
-static int _os_routecmd_Add(unsigned int dst/*net order*/, unsigned int prefix_len, unsigned int nexthop/*net order*/, int isStatic)
+static int _os_routecmd_Add(unsigned int dst, unsigned int prefix_len, unsigned int nexthop, int isStatic)
 {
     char cmd[256];
     unsigned char *dst_char = (void*)&dst;
@@ -41,7 +41,7 @@ static int _os_routecmd_Add(unsigned int dst/*net order*/, unsigned int prefix_l
     return BS_OK;
 }
 
-static int _os_routecmd_Del(unsigned int dst/*net order*/, unsigned int prefix_len)
+static int _os_routecmd_Del(unsigned int dst, unsigned int prefix_len)
 {
     char cmd[256];
     unsigned char *dst_char = (void*)&dst;
@@ -74,7 +74,7 @@ int readNlSock(int sockFd, char *bufPtr, int seqNum, int pId)
 
     do
     {
-        //收到内核的应答
+        
         if((readLen = recv(sockFd, bufPtr, BUFSIZE - msgLen, 0)) < 0)
         {
             perror("SOCK READ: ");
@@ -83,7 +83,7 @@ int readNlSock(int sockFd, char *bufPtr, int seqNum, int pId)
 
         nlHdr = (struct nlmsghdr *)bufPtr;
 
-        //检查header是否有效
+        
         if((NLMSG_OK(nlHdr, readLen) == 0) || (nlHdr->nlmsg_type == NLMSG_ERROR))
         {
             perror("Error in recieved packet");
@@ -110,7 +110,7 @@ int readNlSock(int sockFd, char *bufPtr, int seqNum, int pId)
     return msgLen;
 }
 
-//分析返回的路由信息
+
 static unsigned int parseRoutes(struct nlmsghdr *nlHdr, struct route_info *rtInfo)
 {
     struct rtmsg *rtMsg;
@@ -119,8 +119,8 @@ static unsigned int parseRoutes(struct nlmsghdr *nlHdr, struct route_info *rtInf
     struct in_addr dst;
     rtMsg = (struct rtmsg *)NLMSG_DATA(nlHdr);
 
-    // If the route is not for AF_INET or does not belong to main routing table
-    //then return.
+    
+    
     if((rtMsg->rtm_family != AF_INET) || (rtMsg->rtm_table != RT_TABLE_MAIN)) {
         return 0;
     }
@@ -167,11 +167,11 @@ static UINT _os_route_GetDefaultGw()
 
     memset(msgBuf, 0, BUFSIZE);
     nlMsg = (struct nlmsghdr *)msgBuf;
-    nlMsg->nlmsg_len = NLMSG_LENGTH(sizeof(struct rtmsg)); // Length of message.
-    nlMsg->nlmsg_type = RTM_GETROUTE; // Get the routes from kernel routing table .
-    nlMsg->nlmsg_flags = NLM_F_DUMP | NLM_F_REQUEST; // The message is a request for dump.
-    nlMsg->nlmsg_seq = msgSeq++; // Sequence of the message packet.
-    nlMsg->nlmsg_pid = getpid(); // PID of process sending the request.
+    nlMsg->nlmsg_len = NLMSG_LENGTH(sizeof(struct rtmsg)); 
+    nlMsg->nlmsg_type = RTM_GETROUTE; 
+    nlMsg->nlmsg_flags = NLM_F_DUMP | NLM_F_REQUEST; 
+    nlMsg->nlmsg_seq = msgSeq++; 
+    nlMsg->nlmsg_pid = getpid(); 
 
     if(send(sock, nlMsg, nlMsg->nlmsg_len, 0) < 0) {
         close(sock);
@@ -200,7 +200,7 @@ static UINT _os_route_GetDefaultGw()
     return gw;
 }
 
-static int _os_routecmd_Add(unsigned int dst/*net order*/, unsigned int prefix_len, unsigned int nexthop/*net order*/, int isStatic)
+static int _os_routecmd_Add(unsigned int dst, unsigned int prefix_len, unsigned int nexthop, int isStatic)
 {
     char cmd[256];
     unsigned char *dst_char = (void*)&dst;
@@ -217,7 +217,7 @@ static int _os_routecmd_Add(unsigned int dst/*net order*/, unsigned int prefix_l
 }
 
 
-static int _os_routecmd_Del(unsigned int dst/*net order*/, unsigned int prefix_len)
+static int _os_routecmd_Del(unsigned int dst, unsigned int prefix_len)
 {
     char cmd[256];
     unsigned char *dst_char = (void*)&dst;
@@ -249,15 +249,10 @@ static int _os_routecmd_Del(unsigned int dst/*net order*/, unsigned int prefix_l
 
 #define	SA	struct sockaddr
 
-/*
- * Round up 'a' to next multiple of 'size', which must be a power of 2
- */
+
 #define ROUNDUP(a, size) (((a) & ((size)-1)) ? (1 + ((a) | ((size)-1))) : (a))
 
-/*
- * Step to next socket address structure;
- * if sa_len is 0, assume it is sizeof(u_long).
- */
+
 #define NEXT_SA(ap)	ap = (SA *) \
 	((caddr_t) ap + (ap->sa_len ? ROUNDUP(ap->sa_len, sizeof (u_long)) : \
 									sizeof(u_long)))
@@ -382,7 +377,7 @@ static UINT _os_route_GetDefaultGw()
     return uiGw;
 }
 
-static int _os_routecmd_Add(unsigned int dst/*net order*/, unsigned int prefix_len, unsigned int nexthop/*net order*/, int isStatic)
+static int _os_routecmd_Add(unsigned int dst, unsigned int prefix_len, unsigned int nexthop, int isStatic)
 {
     char cmd[256];
     unsigned char *dst_char = (void*)&dst;
@@ -404,7 +399,7 @@ static int _os_routecmd_Add(unsigned int dst/*net order*/, unsigned int prefix_l
     return BS_OK;
 }
 
-static int _os_routecmd_Del(unsigned int dst/*net order*/, unsigned int prefix_len)
+static int _os_routecmd_Del(unsigned int dst, unsigned int prefix_len)
 {
     char cmd[256];
     unsigned char *dst_char = (void*)&dst;
@@ -424,17 +419,17 @@ UINT Route_GetDefaultGw()
     return _os_route_GetDefaultGw();
 }
 
-int RouteCmd_AddStatic(unsigned int dst/*net order*/, unsigned int prefix_len, unsigned int nexthop/*net order*/)
+int RouteCmd_AddStatic(unsigned int dst, unsigned int prefix_len, unsigned int nexthop)
 {
     return _os_routecmd_Add(dst, prefix_len, nexthop, 1);
 }
 
-int RouteCmd_Add(unsigned int dst/*net order*/, unsigned int prefix_len, unsigned int nexthop/*net order*/)
+int RouteCmd_Add(unsigned int dst, unsigned int prefix_len, unsigned int nexthop)
 {
     return _os_routecmd_Add(dst, prefix_len, nexthop, 0);
 }
 
-int RouteCmd_Del(unsigned int dst/*net order*/, unsigned int prefix_len)
+int RouteCmd_Del(unsigned int dst, unsigned int prefix_len)
 {
     return _os_routecmd_Del(dst, prefix_len);
 }

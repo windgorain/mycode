@@ -10,19 +10,19 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #ifdef IN_WINDOWS
 
-/* 得到进程信息 */
+
 typedef struct proc_basic_info
 {
-    UINT32 ExitStatus; //退出状态
-    UINT32 PebBaseAddress; //PEB地址
-    UINT32 AffinityMask; //访问权限
-    UINT32 BasePriority; //权限类
-    UINT32 UniqueProcessId; //进程ID
-    UINT32 InheritedFromUniqueProcessId; //父进程ID
+    UINT32 ExitStatus; 
+    UINT32 PebBaseAddress; 
+    UINT32 AffinityMask; 
+    UINT32 BasePriority; 
+    UINT32 UniqueProcessId; 
+    UINT32 InheritedFromUniqueProcessId; 
 }PROCESS_BASIC_INFORAMTION;
 
 UINT32 ZwQueryInformationProcess
@@ -31,18 +31,18 @@ UINT32 ZwQueryInformationProcess
     IN UINT32 ulClass,
     OUT PROCESS_BASIC_INFORAMTION *pstInfo,
     IN UINT32 ulInfoSize,
-    OUT UINT32 *pulCopySize  /* 可以输入NULL */
+    OUT UINT32 *pulCopySize  
 );
 
-/* 得到线程信息 */
+
 typedef struct thread_basic_info
 {
-    UINT32 ExitStatus; //退出状态
-    UINT32 TebBaseAddress; //TEB地址
-    UINT32 ClientId; //进&线程ID
-    UINT32 AffinityMask; //访问权限
-    UINT32 BasePriority; //权限类
-    UINT32 Priority; //权限类
+    UINT32 ExitStatus; 
+    UINT32 TebBaseAddress; 
+    UINT32 ClientId; 
+    UINT32 AffinityMask; 
+    UINT32 BasePriority; 
+    UINT32 Priority; 
 }THREAD_BASIC_INFORMATION;
 
 UINT32 ZwQueryInformationThread
@@ -51,11 +51,11 @@ UINT32 ZwQueryInformationThread
     IN UINT32 ulClass,
     OUT THREAD_BASIC_INFORMATION *pstInfo,
     IN UINT32 ulInfoSize,
-    OUT UINT32 *pulCopySize  /* 可以输入NULL */
+    OUT UINT32 *pulCopySize  
 );
 
 
-/* 得到TEB */
+
 typedef struct
 {
     NT_TIB Tib;
@@ -63,7 +63,7 @@ typedef struct
     UINT32 Cid;
     PVOID ActiveRpcInfo;
     PVOID ThreadLocalStoragePointer;
-    VOID  *Peb; /* PPEB */
+    VOID  *Peb; 
     UINT32 LastErrorValue;
     UINT32 CountOfOwnedCriticalSections;
     PVOID CsrClientThread;
@@ -122,8 +122,8 @@ typedef struct
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WIN_NATIVE_API_H_*/
+#endif 
 
 

@@ -15,4 +15,4 @@ int fakecert_license_verify();
 #ifdef __cplusplus
 }
 #endif
-#endif //FAKECERT_LICENSE_H_
+#endif 

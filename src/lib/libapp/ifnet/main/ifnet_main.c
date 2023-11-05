@@ -43,12 +43,12 @@ PLUG_API IF_INDEX IFNET_GetIfIndexByCmdEnv(IN VOID *pEnv)
 }
 
 
-/* cmd */
-/* 命令行格式: interface (interface-type) (index) */
-/* 此接口会根据接口类型和Index创建接口或者进入已存在接口*/
-/* Index可以是数字,也可以是字符串*/
-/* 接口名就是接口类型加Index, 比如wan-pcap-0, 同时接口名也会作为模式名 */
-/* 此接口类型名称必须作为视图名 */
+
+
+
+
+
+
 static BS_STATUS _ifnet_cmd_EnterInterface
 (
     IN UINT ulArgc,
@@ -109,7 +109,7 @@ static BS_STATUS _ifnet_cmd_EnterInterface
     return BS_OK;
 }
 
-static BS_STATUS _ifnet_blackhole_LinkOutput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType/* 主机序 */)
+static BS_STATUS _ifnet_blackhole_LinkOutput (IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType)
 {
     MBUF_Free(pstMbuf);
     return BS_OK;
@@ -246,12 +246,12 @@ PLUG_API BS_STATUS IFNET_LinkInput(IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf)
     return SIF_LinkInput(ifIndex, pstMbuf);
 }
 
-PLUG_API BS_STATUS IFNET_LinkOutput (IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType/* 网络序 */)
+PLUG_API BS_STATUS IFNET_LinkOutput (IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType)
 {
     return SIF_LinkOutput(ifIndex, pstMbuf, usProtoType);
 }
 
-PLUG_API BS_STATUS IFNET_ProtoInput(IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType/* 网络序 */)
+PLUG_API BS_STATUS IFNET_ProtoInput(IN IF_INDEX ifIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType)
 {
     return SIF_ProtoInput(ifIndex, pstMbuf, usProtoType);
 }
@@ -271,7 +271,7 @@ PLUG_API BS_STATUS IFNET_GetUserData(IN IF_INDEX ifIndex, IN UINT uiIndex, void 
     return SIF_GetUserData(ifIndex, uiIndex, data);
 }
 
-PLUG_API IF_INDEX IFNET_GetNext(IN IF_INDEX ifIndexCurrent/* 0表示从头开始 */)
+PLUG_API IF_INDEX IFNET_GetNext(IN IF_INDEX ifIndexCurrent)
 {
     return SIF_GetNext(ifIndexCurrent);
 }
@@ -434,11 +434,11 @@ static BS_STATUS _ifnet_kf_List(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, IN 
 
 static BS_STATUS _ifnet_KfInit()
 {
-//    KFAPP_RegFunc("Interface.IsExist", _localuser_kf_IsExist, NULL);
-//    KFAPP_RegFunc("Interface.Add", _localuser_kf_Add, NULL);
+
+
     KFAPP_RegFunc("Interface.Modify", _ifnet_kf_Modify, NULL);
     KFAPP_RegFunc("Interface.Get", _ifnet_kf_Get, NULL);
-//    KFAPP_RegFunc("Interface.Delete", _localuser_kf_Del, NULL);
+
     KFAPP_RegFunc("Interface.List", _ifnet_kf_List, NULL);
 
     return BS_OK;
@@ -513,7 +513,7 @@ static VOID _ifnet_SaveIf(IF_INDEX ifIndex, IN HANDLE hFile)
         if (bShutdown) {
             CMD_EXP_OutputCmd(hFile, "shutdown");
         }
-        /* 通知其他模块进行接口下命令的save */
+        
         _ifnet_NotifySave(ifIndex, hFile);
         CMD_EXP_OutputModeQuit(hFile);
     }

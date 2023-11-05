@@ -26,7 +26,7 @@ static MSGQUE_HANDLE g_hLdapAppMsgQue = NULL;
 static MYPOLL_HANDLE g_hLdapAppPoller = NULL;
 static NAP_HANDLE g_hLdapAppAuthNap = NULL;
 
-static BS_WALK_RET_E _ldapapp_task_EvNotify(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
+static int _ldapapp_task_EvNotify(IN INT iSocketId, IN UINT uiEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     LDAPAPP_AUTH_NODE_S *pstNode = pstUserHandle->ahUserHandle[0];
     BS_STATUS eRet;
@@ -35,7 +35,7 @@ static BS_WALK_RET_E _ldapapp_task_EvNotify(IN INT iSocketId, IN UINT uiEvent, I
     {
         MyPoll_Del(g_hLdapAppPoller, iSocketId);
         pstNode->pfNotify(LDAPAPP_EVENT_AUTH_FAILED, (UINT)NAP_GetIDByNode(g_hLdapAppAuthNap, pstNode));
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     eRet = LDAPUTL_Run(pstNode->hLdap);
@@ -48,10 +48,10 @@ static BS_WALK_RET_E _ldapapp_task_EvNotify(IN INT iSocketId, IN UINT uiEvent, I
     {
         MyPoll_Del(g_hLdapAppPoller, iSocketId);
         pstNode->pfNotify(LDAPAPP_EVENT_AUTH_FAILED, (UINT)NAP_GetIDByNode(g_hLdapAppAuthNap, pstNode));
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static BS_STATUS _ldapapp_task_StartAuth(IN LDAPAPP_AUTH_NODE_S *pstNode)
@@ -89,14 +89,14 @@ static VOID _ldapapp_task_ProcessAuthMsgQue()
     }
 }
 
-static BS_WALK_RET_E _ldapapp_task_UserEvent(IN UINT uiTriggerEvent, IN USER_HANDLE_S *pstUserHandle)
+static int _ldapapp_task_UserEvent(IN UINT uiTriggerEvent, IN USER_HANDLE_S *pstUserHandle)
 {
     if (uiTriggerEvent & LDAPAPP_EVENT_AUTH_MSG)
     {
         _ldapapp_task_ProcessAuthMsgQue();
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static void _ldapapp_task_main(IN USER_HANDLE_S *pstUserHandle)

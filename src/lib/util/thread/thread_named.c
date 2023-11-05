@@ -190,7 +190,7 @@ void ThreadNamed_UnregOb(THREAD_NAMED_OB_S *ob)
     MUTEX_V(&g_named_thread_lock);
 }
 
-/* param/user_data: 可以为NULL */
+
 THREAD_ID ThreadNamed_Create(char *name, THREAD_CREATE_PARAM_S *param, PF_THREAD_NAMED_FUNC func, USER_HANDLE_S *user_data)
 {
     THREAD_ID thread_id;

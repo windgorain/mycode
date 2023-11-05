@@ -20,4 +20,4 @@ void * CHASH_GetNode(CHASH_HDL hCtrl, UINT hash);
 #ifdef __cplusplus
 }
 #endif
-#endif //CHASH_UTL_H_
+#endif 

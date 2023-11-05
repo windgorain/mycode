@@ -18,4 +18,4 @@ extern int SYSLOG(int level, char *type, const char *fmt, ...);
 #ifdef __cplusplus
 }
 #endif
-#endif //SYSLOG_UTL_H_
+#endif 

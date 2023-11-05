@@ -18,7 +18,7 @@ typedef struct
 
 typedef struct
 {
-    DLL_HEAD_S stServiceList;   /* _FCGIM_SERVICE_NODE_S */
+    DLL_HEAD_S stServiceList;   
 }_FCGIM_INSTANCE_S;
 
 static VOID _FCGIM_FreeServiceNode(IN _FCGIM_SERVICE_NODE_S *pstNode)

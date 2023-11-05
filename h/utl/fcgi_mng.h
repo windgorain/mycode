@@ -10,18 +10,18 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 typedef struct
 {
-    CHAR *pszUrlPattern;   /* URL 匹配模式. 例如"/php/", ".php" */
+    CHAR *pszUrlPattern;   
 
-    CHAR *pszFcgiAppFilePath; /* FCGI APP 文件路径 */
+    CHAR *pszFcgiAppFilePath; 
     UINT uiSpwanNum;
     
-    CHAR *pszFcgiAppAddress;  /* FCGI APP 地址 */
-    USHORT usFcgiAppPort;     /* FCGI APP 端口 */
+    CHAR *pszFcgiAppAddress;  
+    USHORT usFcgiAppPort;     
 }FCGIM_SERVICE_S;
 
 HANDLE FCGIM_CreateInstance();
@@ -34,8 +34,8 @@ VOID FCGIM_Display(IN HANDLE hFcgiInstance);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__FCGI_MNG_H_*/
+#endif 
 
 

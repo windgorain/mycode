@@ -72,7 +72,7 @@ BOOL_T PRecverPlug_CfgIsExist(char *plug_name)
     return bIsExist;
 }
 
-char * PRecverPlug_CfgGetNext(char *curr/* NULL表示获取第一个 */)
+char * PRecverPlug_CfgGetNext(char *curr)
 {
     CFF_HANDLE hCff;
     static char tmp[128];

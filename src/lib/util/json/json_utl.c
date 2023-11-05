@@ -153,11 +153,7 @@ BS_STATUS JSON_NO_ListWithCallBack
     return BS_OK;
 }
 
-/*
-成功: BS_OK
-已经存在: BS_ALREADY_EXIST
-其他错误: ...
-*/
+
 BS_STATUS JSON_NO_Add
 (
     IN NO_HANDLE hNo,

@@ -10,7 +10,7 @@
 typedef struct {
     UINT fmt:3;
     UINT type:5;
-    UINT type_ign:5; /* 忽略type的哪些位 */
+    UINT type_ign:5; 
     UINT reserved:3;
     UINT tlp_type: 8;
 }PCIE_TLP_TYPE_MAP_S;
@@ -150,13 +150,13 @@ static int _pcie_check_tlp_hdr(void *tlp, int tlp_len)
     return 0;
 }
 
-/* 检查tlp common头的合法性(不在乎字节序), 非法返回<0 */
+
 int PCIE_CheckTlpCommonHdr(void *tlp, int tlp_len)
 {
     return _pcie_check_tlp_hdr(tlp, tlp_len);
 }
 
-/* 检查tlp的合法性(要求主机序),比PCIE_CheckTlpCommonHdr检查的更多, 非法返回<0 */
+
 int PCIE_CheckTlp(void *tlp, int tlp_len)
 {
     int data_len;
@@ -179,7 +179,7 @@ int PCIE_CheckTlp(void *tlp, int tlp_len)
     }
 
     fmt = PCIE_TLP_FMT(tlp_hdr);
-    if (fmt & 0b010) { /* 带数据,校验长度 */
+    if (fmt & 0b010) { 
         length = _pcie_get_tlp_length(tlp);
         if (length > data_len) {
             RETURN(BS_TOO_SMALL);
@@ -189,7 +189,7 @@ int PCIE_CheckTlp(void *tlp, int tlp_len)
     return 0;
 }
 
-/* 进行合法性检查并转换字节序 */
+
 int PCIE_TlpCheckAndChangeOrder(void *msg, int len)
 {
     int ret;
@@ -209,7 +209,7 @@ int PCIE_TlpCheckAndChangeOrder(void *msg, int len)
     return 0;
 }
 
-/* 构造pcie config tlp */
+
 void PCIE_BuildCfgTLP(UCHAR fmt, UCHAR type, USHORT bdf, UINT addr, int size, OUT PCIE_TLP_CFG_S *tlp)
 {
     UINT v = 0;
@@ -232,8 +232,8 @@ void PCIE_BuildCfgTLP(UCHAR fmt, UCHAR type, USHORT bdf, UINT addr, int size, OU
     PCIE_SET_TLP_CFG_FIRST_BE(tlp, v);
 }
 
-/* 构造pcie config read tlp */
-/* 调用者负责清零 */
+
+
 void PCIE_BuildCfgReadTLP(int is_ep, USHORT bdf, UINT addr, int size, OUT PCIE_TLP_CFG_S *tlp)
 {
     if (is_ep) {
@@ -243,7 +243,7 @@ void PCIE_BuildCfgReadTLP(int is_ep, USHORT bdf, UINT addr, int size, OUT PCIE_T
     }
 }
 
-/* 构造pcie config write tlp */
+
 void PCIE_BuildCfgWriteTLP(int is_ep, USHORT bdf, UINT addr, int size, UINT val, OUT PCIE_TLP_CFG_S *tlp)
 {
     if (is_ep) {
@@ -255,7 +255,7 @@ void PCIE_BuildCfgWriteTLP(int is_ep, USHORT bdf, UINT addr, int size, UINT val,
     PCIE_WriteTlpData(&val, 4, 0, (void*)tlp);
 }
 
-/* 构造pcie mem tlp */
+
 void PCIE_BuildMemTLP(UCHAR fmt, UCHAR type, USHORT bdf, UINT64 addr, BOOL_T is64, int size, OUT PCIE_TLP_MEM_S *tlp)
 {
     int i;
@@ -300,7 +300,7 @@ void PCIE_BuildMemTLP(UCHAR fmt, UCHAR type, USHORT bdf, UINT64 addr, BOOL_T is6
     }
 }
 
-/* 构造pcie ep mem read tlp */
+
 void PCIE_BuildEpMemReadTLP(USHORT bdf, UINT64 addr, BOOL_T is64, int size, OUT PCIE_TLP_MEM_S *tlp)
 {
     if (is64) {
@@ -310,7 +310,7 @@ void PCIE_BuildEpMemReadTLP(USHORT bdf, UINT64 addr, BOOL_T is64, int size, OUT 
     }
 }
 
-/* 构造pcie ep mem write tlp */
+
 void PCIE_BuildEpMemWriteTLP(USHORT bdf, UINT64 addr, BOOL_T is64, int size, void *data, OUT PCIE_TLP_MEM_S *tlp)
 {
     if (is64) {
@@ -344,7 +344,7 @@ void PCIE_BuildCplTLP(USHORT comp_id, USHORT req_id, OUT PCIE_TLP_COMPLETE_S *tl
     tlp->request_id = req_id;
 }
 
-/* 获取Mem TLP中的address */
+
 UINT64 PCIE_GetMemTlpAddr(PCIE_TLP_MEM_S *tlp)
 {
     UINT64 addr;
@@ -366,7 +366,7 @@ void * PCIE_GetTlpDataPtr(void *tlp)
     return _pcie_get_data_ptr(tlp, _pcie_tlp_is_4dw(tlp));
 }
 
-/* 获取TLP中的 Length*4 */
+
 UINT PCIE_GetTlpDataLength(PCIE_TLP_HEADER_S *tlp)
 {
     return _pcie_get_tlp_length(tlp);
@@ -378,7 +378,7 @@ void PCIE_WriteTlpData(void *data, int data_len, BOOL_T is4dw, OUT PCIE_TLP_S *t
     memcpy(d, data, data_len);
 }
 
-/* 返回read了多长 */
+
 int PCIE_ReadTlpData(UINT64 addr, OUT void *data, int data_size, BOOL_T is4dw, PCIE_TLP_S *tlp)
 {
     char *d;
@@ -411,7 +411,7 @@ int PCIE_ReadTlpData(UINT64 addr, OUT void *data, int data_size, BOOL_T is4dw, P
     return len;
 }
 
-/* TLP字节序转换 */
+
 void PCIE_ChangeTlpOrder(INOUT void *tlp)
 {
     UCHAR type;

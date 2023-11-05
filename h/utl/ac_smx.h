@@ -15,7 +15,7 @@ extern "C"
 #define ACSM_FAIL_STATE   -1
 #define ACSM_INIT_STATE   0
 
-/* 返回>0表示中断匹配, <=0表示继续匹配 */
+
 typedef int (*PF_AC_Match)(void *mlist, int offset, void *user_data);
 
 typedef void (*PF_AC_USER_FREE)(void *id);
@@ -30,7 +30,7 @@ typedef struct _acsm_pattern {
 
     struct  _acsm_pattern *next;
     unsigned char         *patrn;
-    int      n;         /* pattern长度 */
+    int      n;         
     ACSMX_USERDATA_S *udata;
 }ACSMX_PATTERN_S;
 
@@ -61,4 +61,4 @@ void ACSMX_Free(ACSMX_S * acsm, PF_AC_USER_FREE userfree);
 #ifdef __cplusplus
 }
 #endif
-#endif //AC_SMX_H_
+#endif 

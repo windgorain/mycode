@@ -4,7 +4,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETC_Proto_Init();
 BS_STATUS VNETC_Proto_Stop();
@@ -12,8 +12,8 @@ BS_STATUS VNETC_Proto_ReStart();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_PROTO_START_H_*/
+#endif 
 
 

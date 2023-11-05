@@ -45,6 +45,10 @@ static inline _MEM_DESC_S * _mem_get_desc(int level, int line)
 {
     int high_line = (line / _MEM_LINE_LOW_MAX) & (_MEM_LINE_HIGH_MAX -1);
 
+    if (level >= _MEM_MAX_LEVEL) {
+        return NULL;
+    }
+
     _MEM_LINES_LOW_S *low_ctrl = g_mem_count_level_ctrl[level].low_ctrl[high_line];
     if (! low_ctrl) {
         return NULL;
@@ -106,6 +110,12 @@ static void _mem_show_mem_stat_level(int level, char *file)
 
     BS_DBGASSERT(level < _MEM_MAX_LEVEL);
 
+    if (level < (_MEM_MAX_LEVEL - 1)) {
+        EXEC_OutInfo(" Memory Size: %u \r\n", _mem_get_size_by_level(level));
+    } else {
+        EXEC_OutInfo(" Memory Size: >%u \r\n", _mem_get_size_by_level(level - 1));
+    }
+
     EXEC_OutString(" Count   Filename(line) \r\n"
         "--------------------------------------------------------------------------\r\n");
 
@@ -126,7 +136,7 @@ static void _mem_show_mem_stat_level(int level, char *file)
             continue;
         }
 
-        EXEC_OutInfo(" %-7d %s(%d) \r\n", count, filename, i);
+        EXEC_OutInfo(" %-7u %s(%d) \r\n", count, filename, i);
     }
 }
 
@@ -135,12 +145,10 @@ static void _mem_show_mem_stat_all(char *file)
     int i;
 
     for (i=0; i<_MEM_MAX_LEVEL - 1; i++) {
-        EXEC_OutInfo(" Size: %u \r\n", _MEM_GET_SPLIT_MEM_USRSIZE(i));
         _mem_show_mem_stat_level(i, file);
         EXEC_OutString("\r\n");
     }
 
-    EXEC_OutInfo(" Size: >%u \r\n", _MEM_GET_SPLIT_MEM_USRSIZE(i-1));
     _mem_show_mem_stat_level(i, file);
 }
 
@@ -164,8 +172,10 @@ PLUG_API void * MEM_MallocMem(ULONG size, const char *pszFileName, UINT ulLine)
     BS_DBGASSERT(NULL != pszFileName);
     BS_DBGASSERT(level < _MEM_MAX_LEVEL);
 
-    if (_mem_prepare_descs(level, ulLine) != 0) {
-        return NULL;
+    if (level < _MEM_MAX_LEVEL) {
+        if (_mem_prepare_descs(level, ulLine) != 0) {
+            return NULL;
+        }
     }
 
     head = malloc(size + sizeof(_MEM_HEAD_S) + sizeof(_MEM_TAIL_S));
@@ -185,8 +195,10 @@ PLUG_API void * MEM_MallocMem(ULONG size, const char *pszFileName, UINT ulLine)
     tail->uiTailCheck = _MEM_DFT_CHECK_VALUE;
 
     _MEM_DESC_S *desc = _mem_get_desc(level, ulLine);
-    desc->filename = pszFileName;
-    ATOM_INC_FETCH(&desc->count);
+    if (desc) {
+        desc->filename = pszFileName;
+        ATOM_INC_FETCH(&desc->count);
+    }
 
 #ifdef IN_DEBUG
     _MEM_AddToDebugList(head);
@@ -215,8 +227,7 @@ PLUG_API void MEM_FreeMem(IN VOID *pMem, const char *pszFileName, IN UINT ulLine
     BS_DBGASSERT(head->usLine < _MEM_LINE_MAX);
 
     if ((head->uiHeadCheck != _MEM_DFT_CHECK_VALUE)
-            || (tail->uiTailCheck != _MEM_DFT_CHECK_VALUE)
-            || (head->level >= _MEM_MAX_LEVEL)) {
+            || (tail->uiTailCheck != _MEM_DFT_CHECK_VALUE)) {
         printf(" Mem Err: %s(%d),size:%d,level=%d,headcheck:0x%08x,tailcheck:0x%08x,caller:%s(%d)\r\n",
             head->pszFileName, head->usLine, head->size, head->level,
             head->uiHeadCheck, tail->uiTailCheck, pszFileName, ulLine);
@@ -225,24 +236,23 @@ PLUG_API void MEM_FreeMem(IN VOID *pMem, const char *pszFileName, IN UINT ulLine
     }
 
     _MEM_DESC_S *desc = _mem_get_desc(head->level, head->usLine);
-    BS_DBGASSERT(desc != NULL);
     if (desc) {
         BS_DBGASSERT(desc->count > 0);
         ATOM_DEC_FETCH(&desc->count);
     }
 
-    head->busy = 0;
-    head->uiHeadCheck = 0;
-    tail->uiTailCheck = 0;
-
 #ifdef IN_DEBUG
     _MEM_RmFromList(head);
 #endif
 
+    head->busy = 0;
+    head->uiHeadCheck = 0;
+    tail->uiTailCheck = 0;
+
     free(head);
 }
 
-/* 计算从pMem有没有越界 */
+
 BOOL_T MEM_IsOverFlow(void *pMem)
 {
     _MEM_HEAD_S *head = _mem_get_head(pMem);
@@ -261,27 +271,27 @@ BOOL_T MEM_IsOverFlow(void *pMem)
     return FALSE;
 }
 
-/* show memory */
+
 BS_STATUS MEM_ShowStat(IN UINT ulArgc, IN CHAR **argv)
 {
     UINT i;
     UINT count;
 
-    EXEC_OutString(" MemSize  BusyCount \r\n"
+    EXEC_OutString(" Size         Count \r\n"
         "--------------------------------------------------------------------------\r\n");
 
     for (i=0; i<_MEM_MAX_LEVEL-1; i++) {
         count = _mem_get_level_count(i);
-        EXEC_OutInfo(" %-7d  %-9d \r\n", _MEM_GET_SPLIT_MEM_USRSIZE(i), count);
+        EXEC_OutInfo(" %-11u  %-9u \r\n", _mem_get_size_by_level(i), count);
     }
 
     count = _mem_get_level_count(i);
-    EXEC_OutInfo(" >%-6d  %-9d \r\n", _MEM_GET_SPLIT_MEM_USRSIZE(i-1), count);
+    EXEC_OutInfo(" >%-10u  %-9u \r\n", _mem_get_size_by_level(i-1), count);
 
     return BS_OK;
 }
 
-/* show memory size {32|64...4096|large|all} [file %STRING] */
+
 BS_STATUS MEM_ShowSizeOfMemStat(int argc, char **argv)
 {
     int level;

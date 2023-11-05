@@ -22,7 +22,7 @@
 #include "../inc/vnetc_protocol.h"
 #include "../inc/vnetc_master.h"
 
-#define _VNETC_TP_TIME_OUT_TIME   1000    /* 1s */
+#define _VNETC_TP_TIME_OUT_TIME   1000    
 #define _VNETC_TP_KEEP_ALIVE_IDLE   600
 #define _VNETC_TP_KEEP_ALIVE_INTVAL 10
 #define _VNETC_TP_KEEP_ALIVE_MAX_COUNT 6
@@ -277,7 +277,7 @@ static VOID vnetc_tp_Show(IN TP_HANDLE hTpHandle, IN TP_ID uiTpId, IN HANDLE hUs
         );
 }
 
-/* show tp */
+
 PLUG_API BS_STATUS VNETC_TP_Show(IN UINT ulArgc, IN CHAR ** argv)
 {
     EXEC_OutString(" Type  LID      FID      Status\r\n"

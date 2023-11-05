@@ -45,13 +45,13 @@ CONSTRUCTOR(init) {
     rcu_engine_constructor();
 }
 
-/* 获取用于RcuEngine的Memcap */
+
 void * RcuEngine_GetMemcap()
 {
     return &g_rcu_engine_memcap;
 }
 
-/* 延迟调用rcu_func函数释放资源 */
+
 void RcuEngine_Call(RCU_NODE_S *rcu_node, PF_RCU_FREE_FUNC rcu_func)
 {
     rcu_engine_timer_init();
@@ -71,12 +71,7 @@ void RcuEngine_Sync()
     RcuDelay_Sync(&g_rcu_engine);
 }
 
-/*
-Usage:
-  state = RcuEngine_Lock();
-  do somthing;
-  RcuEneing_Unlock(state);
- */
+
 int RcuEngine_Lock()
 {
     return RcuDelay_Lock(&g_rcu_engine);

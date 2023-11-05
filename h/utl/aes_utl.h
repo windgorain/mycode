@@ -13,7 +13,7 @@ extern "C"
 
 #define AES_IV_SIZE 16
 
-/* 根据明文长度计算aes加密后的密文长度 */
+
 #define AES_CIPHER_LEN(clear_len) NUM_UP_ALIGN(clear_len, 16)
 #define AES_CIPHER_PAD_LEN(clear_len) NUM_ALIGN_DIFF(clear_len, 16)
 
@@ -25,4 +25,4 @@ int AES_Cipher256(UCHAR *key, UCHAR *iv, UCHAR *in, int in_size, UCHAR *out, int
 #ifdef __cplusplus
 }
 #endif
-#endif //AES_UTL_H_
+#endif 

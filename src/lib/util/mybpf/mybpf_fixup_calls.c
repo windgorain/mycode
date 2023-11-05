@@ -14,7 +14,7 @@
 #include "mybpf_osbase.h"
 #include "mybpf_def_inner.h"
 
-/* 获取helper函数的offset */
+
 static int _mybpf_prog_get_helper_offset(int imm, void *ud)
 {
     PF_BPF_HELPER_FUNC helper_func = BpfHelper_GetFunc(imm);
@@ -27,8 +27,7 @@ static int _mybpf_prog_get_helper_offset(int imm, void *ud)
 }
 
 
-/* fixup extern calls
- * len: 字节数 */
+
 int MYBPF_PROG_FixupExtCalls(void *insts, int len)
 {
     return MYBPF_INSN_FixupExtCalls(insts, len, _mybpf_prog_get_helper_offset, NULL);

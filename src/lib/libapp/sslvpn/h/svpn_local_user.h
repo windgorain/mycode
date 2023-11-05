@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS SVPN_LocalUser_Init();
 
@@ -42,8 +42,8 @@ BS_STATUS SVPN_LocalAdmin_GetNext
  
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_LOCAL_USER_H_*/
+#endif 
 
 

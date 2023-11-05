@@ -19,17 +19,17 @@
 
 #define VNETC_NID_BUCKET_NUM 1024
 
-#define _VNETC_NID_OLD_TIME (1000 * 3600) /* 1 h. 要保证比MAC晚老化 */
+#define _VNETC_NID_OLD_TIME (1000 * 3600) 
 
 enum
 {
-    VNETC_NID_PRI_SET = 0,  /* 优先级数字越小,优先级越高 */
+    VNETC_NID_PRI_SET = 0,  
     VNETC_NID_PRI_DIRETECT,
     VNETC_NID_PRI_LEARN
 };
 
 static HASH_HANDLE g_hVnetcNidHandle;
-static MUTEX_S g_stVnetcNodeMutex;    /* 由于命令行显示和其他操作可能并行,故加锁. 非命令行操作都是不并行的. */
+static MUTEX_S g_stVnetcNodeMutex;    
 
 static UINT vnetc_node_HashIndex(IN VOID *pstHashNode)
 {
@@ -159,7 +159,7 @@ static VOID vnetc_node_LearnSesID(VNETC_NID_S *pstNid, IN UINT uiSesID)
         return;
     }
 
-    /* 原来记录了一个SesID, 学习哪个,需要判断发起者的NodeID优先级, 小的优先 */
+    
     uiNewPri = VNETC_NODE_Self();
     uiOldPri = uiNewPri;
 
@@ -178,11 +178,11 @@ static VOID vnetc_node_LearnSesID(VNETC_NID_S *pstNid, IN UINT uiSesID)
         uiOldSes = pstNid->uiSesID;
         vnetc_node_SetSesID(pstNid, uiSesID);
         VNETC_SES_SetProperty(uiOldSes, VNETC_SES_PROPERTY_NODE_ID, NULL);
-        VNETC_SES_Close(uiOldSes);  /* 删除低优先级的那个SES,它没用了 */
+        VNETC_SES_Close(uiOldSes);  
     }
     else
     {
-        VNETC_SES_Close(uiSesID);  /* 删除低优先级的那个SES,它没用了 */
+        VNETC_SES_Close(uiSesID);  
     }
 
     return;
@@ -356,7 +356,7 @@ BS_STATUS VNETC_NODE_Learn
     return eRet;
 }
 
-/* 直连失败 */
+
 static VOID vnetc_node_SesClosed(IN UINT uiNID, IN UINT uiSesID)
 {
     VNETC_NID_S *pstNode;
@@ -407,7 +407,7 @@ static VOID vnetc_node_DirectDetectFailed(IN UINT uiNID)
         return;
     }
 
-    if (pstNode->uiSesID != 0)  /* 已经学到了对端发起的直连会话 */
+    if (pstNode->uiSesID != 0)  
     {
         return;
     }
@@ -452,7 +452,7 @@ VNETC_NID_S * VNETC_NODE_GetNode(IN UINT uiNID)
     return vnetc_node_Find(uiNID);
 }
 
-static BS_WALK_RET_E vnetc_node_ShowEach(IN HASH_HANDLE hHashId, IN VOID *pNode, IN VOID * pUserHandle)
+static int vnetc_node_ShowEach(IN HASH_HANDLE hHashId, IN VOID *pNode, IN VOID * pUserHandle)
 {
     VNETC_NID_S *pstNode = pNode;
     CHAR szIfName[IF_MAX_NAME_LEN + 1];
@@ -464,10 +464,10 @@ static BS_WALK_RET_E vnetc_node_ShowEach(IN HASH_HANDLE hHashId, IN VOID *pNode,
             vnetc_node_GetDirectString(pstNode->ucDirectStatus),
             IFNET_GetIfName(pstNode->uiIfIndex, szIfName));
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-/* show node */
+
 PLUG_API BS_STATUS VNETC_NODE_Show(IN UINT uiArgc, IN CHAR ** argv)
 {
     EXEC_OutString(" NodeID SessionID DirectStatus IfName \r\n"

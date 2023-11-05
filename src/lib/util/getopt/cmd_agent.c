@@ -115,7 +115,7 @@ int CmdAgent_Init(CMD_AGENT_S *cmd_agent)
     DLL_INIT(&cmd_agent->ob_list);
     cmd_agent->print_func = cmd_agent_default_print;
 
-    /* cmd agent的内置管理命令 */
+    
     cmd_agent_add_cmd(cmd_agent, "show", "Show OB list", cmd_agent_cmd_show);
     cmd_agent_add_cmd(cmd_agent, "enable", "Enable OB", cmd_agent_cmd_enable);
     cmd_agent_add_cmd(cmd_agent, "disable", "DisableOB", cmd_agent_cmd_disable);
@@ -128,19 +128,19 @@ void CmdAgent_SetPrintFunc(CMD_AGENT_S *cmd_agent, PF_CMD_AGENT_PRINT print_func
     cmd_agent->print_func = print_func;
 }
 
-/* action/help 不能是临时内存 */
+
 int CmdAgent_RegCmd(CMD_AGENT_S *cmd_agent, char *action, char *help)
 {
     return cmd_agent_add_cmd(cmd_agent, action, help, cmd_agent_ob_action);
 }
 
-/* action/help 不能是临时内存 */
+
 int CmdAgent_RegCmdExt(CMD_AGENT_S *cmd_agent, char *action, char *help, PF_CMD_AGENT_SUBCMD func)
 {
     return cmd_agent_add_cmd(cmd_agent, action, help, func);
 }
 
-/* ob不能是临时内存 */
+
 void CmdAgent_RegOB(CMD_AGENT_S *cmd_agent, CMD_AGENT_OB_S *ob)
 {
     if (DLL_IN_LIST(&ob->link_node)) {
@@ -150,8 +150,8 @@ void CmdAgent_RegOB(CMD_AGENT_S *cmd_agent, CMD_AGENT_OB_S *ob)
     DLL_ADD(&cmd_agent->ob_list, &ob->link_node);
 }
 
-/* 注册多个ob, 每个ob不能是临时内存 */
-void CmdAgent_RegOBs(CMD_AGENT_S *cmd_agent, CMD_AGENT_OB_S *obs/*多个ob,以{0}结束*/)
+
+void CmdAgent_RegOBs(CMD_AGENT_S *cmd_agent, CMD_AGENT_OB_S *obs)
 {
     CMD_AGENT_OB_S *ob;
 
@@ -172,7 +172,7 @@ int CmdAgent_Cmd(CMD_AGENT_S *cmd_agent, int argc, char **argv, void *ud)
     return SUBCMD_Do(cmd_agent->sub_cmds, argc, argv);
 }
 
-CMD_AGENT_OB_S * CmdAgent_GetNext(CMD_AGENT_S *cmd_agent, CMD_AGENT_OB_S *curr/* NULL获取第一个 */)
+CMD_AGENT_OB_S * CmdAgent_GetNext(CMD_AGENT_S *cmd_agent, CMD_AGENT_OB_S *curr)
 {
     if (! curr) {
         return DLL_FIRST(&cmd_agent->ob_list);

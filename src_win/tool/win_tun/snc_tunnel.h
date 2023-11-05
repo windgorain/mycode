@@ -11,9 +11,9 @@ extern "C"
 {
 #endif
 
-int SNC_TUN_Run(VNIC_HANDLE tun_fd, int net_fd, char *dst_ip, unsigned short dst_port/*net order*/);
+int SNC_TUN_Run(VNIC_HANDLE tun_fd, int net_fd, char *dst_ip, unsigned short dst_port);
 
 #ifdef __cplusplus
 }
 #endif
-#endif //SN_TUNNEL_H_
+#endif 

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETC_SesC2S_Init();
 BS_STATUS VNETC_SesC2S_Connect();
@@ -20,8 +20,8 @@ VOID VNETC_SesC2S_SetPhyContext(IN VNETC_PHY_CONTEXT_S *pstPhyContext);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_SES_C2S_H_*/
+#endif 
 
 

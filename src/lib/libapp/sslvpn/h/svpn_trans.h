@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define SVPN_ONLINE_USER_LEVEL_USER  1
 #define SVPN_ONLINE_USER_LEVEL_ADMIN 2
@@ -29,8 +29,8 @@ VOID SVPN_Trans_Destory(IN WS_TRANS_HANDLE hWsTrans);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_TRANS_H_*/
+#endif 
 
 

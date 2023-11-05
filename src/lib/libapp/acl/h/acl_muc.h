@@ -34,4 +34,4 @@ ACL_MUC_S * AclMuc_Get(int muc_id);
 #ifdef __cplusplus
 }
 #endif
-#endif //ACL_MUC_H_
+#endif 

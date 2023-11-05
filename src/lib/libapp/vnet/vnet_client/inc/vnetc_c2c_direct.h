@@ -10,19 +10,19 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETC_C2C_Direct_StartDetect
 (
     IN UINT uiPeerNodeID,
-    IN UINT uiPeerIP,    /* 利大會 */
-    IN USHORT usPeerPort /* 利大會 */
+    IN UINT uiPeerIP,    
+    IN USHORT usPeerPort 
 );
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_C2C_DIRECT_H_*/
+#endif 
 
 

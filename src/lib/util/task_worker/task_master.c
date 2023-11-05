@@ -13,18 +13,18 @@
 #include "utl/task_master.h"
 
 
-#define TASK_MASTER_GET_TICK_BY_TIME(uiTime/* ms */, uiTimeOfTick) (((uiTime) + (uiTimeOfTick) - 1) / (uiTimeOfTick))
+#define TASK_MASTER_GET_TICK_BY_TIME(uiTime, uiTimeOfTick) (((uiTime) + (uiTimeOfTick) - 1) / (uiTimeOfTick))
 
-/* 事件 */
+
 #define _TASK_MASTER_EVENT_DATA  0x80000000
 #define _TASK_MASTER_EVENT_CLOCK 0x40000000
 #define _TASK_MASTER_EVENT_QUIT  0x20000000
 
 
-/* 消息类型 */
+
 #define _TASK_MASTER_MSG_DATA   1
 
-/* 用户自定义事件 */
+
 #define _TASK_MASTER_MAX_USER_EVENT 16
 #define _TASK_MASTER_USER_EVENT_BITS 0x0000ffff
 
@@ -150,7 +150,7 @@ static VOID task_master_TimeOut(IN HANDLE hTimerId, IN USER_HANDLE_S *pstUserHan
     Event_Write(pstCtrl->hEvent, _TASK_MASTER_EVENT_CLOCK);
 }
 
-TASK_MASTER_HANDLE TASK_Master_Create(IN UINT uiTime/* ms. 如果为0表示不创建定时器 */)
+TASK_MASTER_HANDLE TASK_Master_Create(IN UINT uiTime)
 {
     _TASK_MASTER_S *pstCtrl;
     EVENT_HANDLE hEvent;
@@ -235,7 +235,7 @@ TASK_MASTER_HANDLE TASK_Master_Create(IN UINT uiTime/* ms. 如果为0表示不�
 BS_STATUS TASK_Master_SetEvent
 (
     IN TASK_MASTER_HANDLE hTaskMaster,
-    IN UINT uiEventOffset, /* 0-15 */
+    IN UINT uiEventOffset, 
     IN PF_TASK_MASTER_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle
 )
@@ -259,7 +259,7 @@ BS_STATUS TASK_Master_SetEvent
 BS_STATUS TASK_Master_EventInput
 (
     IN TASK_MASTER_HANDLE hTaskMaster,
-    IN UINT uiEventOffset /* 0-15 */
+    IN UINT uiEventOffset 
 )
 {
     _TASK_MASTER_S *pstCtrl = hTaskMaster;
@@ -297,7 +297,7 @@ BS_STATUS TASK_Master_MsgInput(TASK_MASTER_HANDLE hTaskMaster,
 VCLOCK_HANDLE TASK_Master_AddTimer
 (
     IN TASK_MASTER_HANDLE hTaskMaster,
-    IN UINT uiTime,    /* 多少个ms之后触发. */
+    IN UINT uiTime,    
     IN UINT flag,
     IN PF_TIME_OUT_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle

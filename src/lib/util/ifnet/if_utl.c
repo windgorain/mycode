@@ -15,7 +15,7 @@
 typedef struct
 {
     DLL_NODE_S stLinkNode;
-    UINT uiPri; /* 优先级,数字越小优先级越高 */
+    UINT uiPri; 
     PF_IF_PKT_PORCESSER_FUNC pfPktFunc;
 }_IF_PKT_PROCESSER_NODE_S;
 
@@ -28,13 +28,13 @@ typedef struct
 
 typedef struct
 {
-    DLL_HEAD_S stListnerList;   /* _IF_EVENT_CALL_NODE_S 事件监听链表 */
-    NO_HANDLE hNetTypeNo;       /* 网络层类型命名对象集合 */
-    NO_HANDLE hLinkTypeNo;      /* 链路层类型命名对象集合 */
-    NO_HANDLE hPhyTypeNo;       /* 物理层类型命名对象集合 */
-    NO_HANDLE hIfTypeNo;        /* IF Type命名对象集合 */
-    NO_HANDLE hIfNo;            /* IF命名对象集合 */
-    UINT      uiNextUserDataIndex; /* 下一个要分配的UserIndexID */
+    DLL_HEAD_S stListnerList;   
+    NO_HANDLE hNetTypeNo;       
+    NO_HANDLE hLinkTypeNo;      
+    NO_HANDLE hPhyTypeNo;       
+    NO_HANDLE hIfTypeNo;        
+    NO_HANDLE hIfNo;            
+    UINT      uiNextUserDataIndex; 
 }IF_CONTAINER_S;
 
 typedef struct
@@ -55,17 +55,17 @@ typedef struct
     IF_PHY_OUTPUT_FUNC pfPhyOutput;
     IF_TYPE_S *pstType;
     MAC_ADDR_S stMacAddr;
-    UINT uiIndex;   /* 在此类型的接口中的Index */
-    UINT uiVrf;     /* 此接口所属于的vrf */
+    UINT uiIndex;   
+    UINT uiVrf;     
     UINT bitPhyStatus:1;
     UINT bitLinkStatus:1;
     UINT bitProtoStatus:1;
     UINT bitShutdown:1;
-    UINT bitL3; /* 是L2还是L3接口 */
-    DLL_HEAD_S stLinkInputPktProcesser;  /* LinkInput报文业务点 */
-    DLL_HEAD_S stLinkOutputPktProcesser;  /* LinkOutput报文业务点 */
-    DLL_HEAD_S stProtoInputPktProcesser;  /* ProtoInput报文业务点 */
-    DLL_HEAD_S stPhyOutputPktProcesser;  /* PhyOutput报文业务点 */   
+    UINT bitL3; 
+    DLL_HEAD_S stLinkInputPktProcesser;  
+    DLL_HEAD_S stLinkOutputPktProcesser;  
+    DLL_HEAD_S stProtoInputPktProcesser;  
+    DLL_HEAD_S stPhyOutputPktProcesser;     
 }IF_NODE_S;
 
 static VOID _if_EventNotify(IN IF_CONTAINER_S *pstContainer, IN UINT ifIndex, IN UINT uiEvent)
@@ -89,7 +89,7 @@ static INT _if_ProcesserCmp(IN DLL_NODE_S *pstNode1, IN DLL_NODE_S *pstNode2, IN
 static BS_STATUS _if_RegProcesser
 (
     IN DLL_HEAD_S *pstList,
-    IN UINT uiPri,  /* 优先级,数字越小优先级越高 */
+    IN UINT uiPri,  
     IN PF_IF_PKT_PORCESSER_FUNC pfFunc
 )
 {
@@ -231,7 +231,7 @@ VOID IF_DestroyContainer(IN IF_CONTAINER hContainer)
     return;
 }
 
-/* 申请一个User Data Index */
+
 UINT IF_AllocUserDataIndex(IN IF_CONTAINER hContainer)
 {
     IF_CONTAINER_S *pstContainer = hContainer;
@@ -261,7 +261,7 @@ BS_STATUS IF_RegEvent(IN IF_CONTAINER hContainer, IN PF_IF_EVENT_FUNC pfEventFun
     return BS_OK;
 }
 
-/* 设置网络层参数 */
+
 BS_STATUS IF_SetProtoType(IN IF_CONTAINER hContainer, IN CHAR *pcProtoType, IN IF_PROTO_PARAM_S *pstParam)
 {
     IF_CONTAINER_S *pstContainer = hContainer;
@@ -289,7 +289,7 @@ IF_PROTO_PARAM_S * IF_GetProtoType(IN IF_CONTAINER hContainer, IN CHAR *pcProtoT
     return NO_GetObjectByName(pstContainer->hNetTypeNo, pcProtoType);
 }
 
-/* 设置链路层参数 */
+
 BS_STATUS IF_SetLinkType(IN IF_CONTAINER hContainer, IN CHAR *pcLinkType, IN IF_LINK_PARAM_S *pstParam)
 {
     IF_CONTAINER_S *pstContainer = hContainer;
@@ -317,7 +317,7 @@ IF_LINK_PARAM_S * IF_GetLinkType(IN IF_CONTAINER hContainer, IN CHAR *pcLinkType
     return NO_GetObjectByName(pstContainer->hLinkTypeNo, pcLinkType);
 }
 
-/* 设置物理层参数 */
+
 BS_STATUS IF_SetPhyType(IN IF_CONTAINER hContainer, IN CHAR *pcPhyType, IN IF_PHY_PARAM_S *pstParam)
 {
     IF_CONTAINER_S *pstContainer = hContainer;
@@ -798,7 +798,7 @@ BS_STATUS IF_GetUserData(IN IF_CONTAINER hContainer, IN IF_INDEX ifIndex, IN UIN
     return NO_GetPropertyByID(pstContainer->hIfNo, ifIndex,  uiUserIndex, phData);
 }
 
-IF_INDEX IF_GetNext(IN IF_CONTAINER hContainer, IN IF_INDEX ifIndexCurrent/* 0表示从头开始 */)
+IF_INDEX IF_GetNext(IN IF_CONTAINER hContainer, IN IF_INDEX ifIndexCurrent)
 {
     IF_CONTAINER_S *pstContainer = hContainer;
 
@@ -810,7 +810,7 @@ BS_STATUS IF_RegPktProcesser
     IN IF_CONTAINER hContainer,
     IN IF_INDEX ifIndex,
     IN IF_PKT_PROCESSER_TYPE_E enType,
-    IN UINT uiPri,  /* 优先级,数字越小优先级越高 */
+    IN UINT uiPri,  
     IN PF_IF_PKT_PORCESSER_FUNC pfFunc
 )
 {

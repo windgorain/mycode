@@ -10,12 +10,12 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* 注射DLL */
+
 BS_STATUS INJDLL_InjectDll(IN UINT ulProcessId, IN CHAR *pszDllPath);
 
-/* 取消DLL */
+
 BS_STATUS INJDLL_EjectDll(IN UINT ulProcessId, IN CHAR *pszDllPath);
 
 BS_STATUS INJDLL_CreateProcessAndInjectDll(IN CHAR *pszFileName, IN CHAR *pszDllPath);
@@ -23,8 +23,8 @@ BS_STATUS INJDLL_CreateProcessAndInjectDll(IN CHAR *pszFileName, IN CHAR *pszDll
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__INJECTDLL_H_*/
+#endif 
 
 

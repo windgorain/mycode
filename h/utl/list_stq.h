@@ -10,45 +10,18 @@ extern "C"
 {
 #endif
 
-/*
- * Singly-linked Tail queue
- *
- * A singly-linked tail queue is headed by a pair of pointers, one to the
- * head of the list and the other to the tail of the list. The elements are
- * singly linked for minimum space and pointer manipulation overhead at the
- * expense of O(n) removal for arbitrary elements. New elements can be added
- * to the list after an existing element, at the head of the list, or at the
- * end of the list. Elements being removed from the head of the tail queue
- * should use the explicit macro for this purpose for optimum efficiency.
- * A singly-linked tail queue may only be traversed in the forward direction.
- * Singly-linked tail queues are ideal for applications with large datasets
- * and few or no removals or for implementing a FIFO queue.
-                      +---------------+      +---------------+
-                      |user structure |      |user structure |
-                      +---------------+      +---------------+
-                      |   ......      |      |   ......      |
-                      +---------------+      +---------------+
- +-------------+  +-->|+-------------+|  +-->|+-------------+|<-------+
- | STQ_HEAD_S  |  |   || STQ_NODE_S  ||  |   || STQ_NODE_S  ||        |
- +-------------+  |   |+-------------+|  |   |+-------------+|        |
- | pstFirst    |--+   || pstNext     ||--+   || pstNext     ||----+   |
- +-------------+      |+-------------+|      |+-------------+|   -+-  |
- | pstLast     |--+   +---------------+      +---------------+        |
- +-------------+  |   |   ......      |      |   ......      |        |
-                  |   +---------------+      +---------------+        |
-                  +---------------------------------------------------+
- */
+
 typedef struct tagSTQ_NODE
 {
-    struct tagSTQ_NODE* pstNext; /* the next element */
+    struct tagSTQ_NODE* pstNext; 
 } STQ_NODE_S;
 
 #define STQ_ENTRY(ptr, type, member)    (container_of(ptr, type, member))
 
 typedef struct tagSTQ_HEAD
 {
-    STQ_NODE_S *pstFirst;  /* the first element */
-    STQ_NODE_S *pstLast;   /* the last element  */
+    STQ_NODE_S *pstFirst;  
+    STQ_NODE_S *pstLast;   
 } STQ_HEAD_S;
 
 
@@ -101,10 +74,7 @@ static inline VOID STQ_AddHead(IN STQ_HEAD_S* pstList, IN STQ_NODE_S* pstNode)
     return;
 }
 
-/*****************************************************************************
-      Caution: This function only delete the element from the list, and does
-               NOT free the memory of the element.
-*****************************************************************************/
+
 static inline STQ_NODE_S* STQ_DelHead(STQ_HEAD_S* pstList)
 {
     STQ_NODE_S* pstNode = pstList->pstFirst;
@@ -157,10 +127,7 @@ static inline VOID STQ_AddAfter(IN STQ_HEAD_S* pstList,
     return;
 }
 
-/*****************************************************************************
-      Caution: This function only delete the element from the list, and does
-               NOT free the memory of the element.
-*****************************************************************************/
+
 static inline STQ_NODE_S* STQ_DelAfter(IN STQ_HEAD_S* pstList,
                                        IN STQ_NODE_S* pstPrev)
 {
@@ -186,7 +153,7 @@ static inline STQ_NODE_S* STQ_DelAfter(IN STQ_HEAD_S* pstList,
     return pstNode;
 }
 
-/* macro for walk the singly-linked tail queue */
+
 #define STQ_FOREACH(pstList, pstNode) \
     for((pstNode) = STQ_First(pstList); \
         NULL != (pstNode); \
@@ -231,13 +198,7 @@ static inline STQ_NODE_S* STQ_DelAfter(IN STQ_HEAD_S* pstList,
           (VOID)({(pstPrevEntry) = (pstEntry); \
                    (pstEntry) = STQ_ENTRY_NEXT(pstEntry, member);}))
 
-/*****************************************************************************
-      Caution: It takes the expense of O(n). If you have got a pointer to the
-               previous element, you'd better use STQ_DelAfter whitch takes
-               the expense of O(1).
-               This function only delete the element from the list, and does
-               NOT free the memory of the element.
-*****************************************************************************/
+
 static inline VOID STQ_Del(IN STQ_HEAD_S* pstList, IN const STQ_NODE_S* pstNode)
 {
     STQ_NODE_S *pstPrev, *pstCur;
@@ -279,7 +240,7 @@ static inline VOID STQ_FreeAll(IN STQ_HEAD_S *pstList, IN VOID (*pfFree)(VOID *)
     STQ_NODE_S *pstCurNode;
     STQ_NODE_S *pstNextNode;
 
-    /* Free all node from list */
+    
     STQ_FOREACH_SAFE(pstList, pstCurNode, pstNextNode)
     {
         pfFree(pstCurNode);
@@ -292,4 +253,4 @@ static inline VOID STQ_FreeAll(IN STQ_HEAD_S *pstList, IN VOID (*pfFree)(VOID *)
 #ifdef __cplusplus
 }
 #endif
-#endif //LIST_STQ_H_
+#endif 

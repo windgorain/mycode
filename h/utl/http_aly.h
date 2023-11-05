@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #include "utl/http_protocol.h"
 #include "utl/mbuf_utl.h"
@@ -23,56 +23,56 @@
 #define HTTP_ALY_MAX_SERVER_NAME_LEN 128
 
 
-/* status code */
-#define HTTP_ALY_STATUS_CODE_CONTINUE           100  /* Continue */
-#define HTTP_ALY_STATUS_CODE_SWITCH_PROTOCOLS   101  /* Switching Protocols */
-#define HTTP_ALY_STATUS_CODE_OK                 200  /* OK */
-#define HTTP_ALY_STATUS_CODE_CREATED            201  /* Created */
-#define HTTP_ALY_STATUS_CODE_ACCEPTED           202  /* Accepted */
-#define HTTP_ALY_STATUS_CODE_NON_AUTH           203  /* Non-Authoritative Information */
-#define HTTP_ALY_STATUS_CODE_NO_CONTENT         204  /* No Content */
-#define HTTP_ALY_STATUS_CODE_RESET_CONTENT      205  /* Reset Content */
-#define HTTP_ALY_STATUS_CODE_PARTIAL_CONTENT    206  /* Partial Content */
-#define HTTP_ALY_STATUS_CODE_MULTIPLE_CHOICES   300  /* Multiple Choices */
-#define HTTP_ALY_STATUS_CODE_MOVED_PMT          301  /* Moved Permanently */
-#define HTTP_ALY_STATUS_CODE_FOUND              302  /* Found */
-#define HTTP_ALY_STATUS_CODE_SEE_OTHER          303  /* See Other */
-#define HTTP_ALY_STATUS_CODE_NOT_MODIFIED       304  /* Not Modified */
-#define HTTP_ALY_STATUS_CODE_USE_PROXY          305  /* Use Proxy */
-#define HTTP_ALY_STATUS_CODE_TMP_REDIRECT       307  /* Temporary Redirect */
-#define HTTP_ALY_STATUS_CODE_BAD_REQUEST        400  /* Bad Request */
-#define HTTP_ALY_STATUS_CODE_UNAUTHORIZED       401  /* Unauthorized */
-#define HTTP_ALY_STATUS_CODE_PAYMENT_REQUIRED   402  /* Payment Required */
-#define HTTP_ALY_STATUS_CODE_FORBIDDEN          403  /* Forbidden */
-#define HTTP_ALY_STATUS_CODE_NOT_FOUND          404  /* Not Found */
-#define HTTP_ALY_STATUS_CODE_METHOD_NOT_ALLOWED 405  /* Method Not Allowed */
-#define HTTP_ALY_STATUS_CODE_NOT_ACCEPTABLE     406  /* Not Acceptable */
-#define HTTP_ALY_STATUS_CODE_PXY_AUTH_REQUIRED  407  /* Proxy Authentication Required */
-#define HTTP_ALY_STATUS_CODE_REQUEST_TIME_OUT   408  /* Request Time-out */
-#define HTTP_ALY_STATUS_CODE_CONFLICT           409  /* Conflict */
-#define HTTP_ALY_STATUS_CODE_GONE               410  /* Gone */
-#define HTTP_ALY_STATUS_CODE_LEN_REQUIRED       411  /* Length Required */
-#define HTTP_ALY_STATUS_CODE_PRECOND_FAILED     412  /* Precondition Failed */
-#define HTTP_ALY_STATUS_CODE_ENTIRY_TOO_LARGE   413  /* Request Entity Too Large */
-#define HTTP_ALY_STATUS_CODE_URI_TOO_LARGE      414  /* Request-URI Too Large */
-#define HTTP_ALY_STATUS_CODE_UNSUPPORT_MEDIA    415  /* Unsupported Media Type */
-#define HTTP_ALY_STATUS_CODE_RANGE_NOT_STAISF   416  /* Requested range not satisfiable */
-#define HTTP_ALY_STATUS_CODE_EXPECTATION_FAILED 417  /* Expectation Failed */
-#define HTTP_ALY_STATUS_CODE_INNER_SERVER_ERR   500  /* Internal Server Error */
-#define HTTP_ALY_STATUS_CODE_NOT_IMP            501  /* Not Implemented */
-#define HTTP_ALY_STATUS_CODE_BAD_GATEWAY        502  /* Bad Gateway */
-#define HTTP_ALY_STATUS_CODE_SERVICE_UNAVAI     503  /* Service Unavailable */
-#define HTTP_ALY_STATUS_CODE_GATEWAY_TIME_OUT   504  /* Gateway Time-out */
-#define HTTP_ALY_STATUS_CODE_VER_NOT_SUPPORT    505  /* HTTP Version not supported */
+
+#define HTTP_ALY_STATUS_CODE_CONTINUE           100  
+#define HTTP_ALY_STATUS_CODE_SWITCH_PROTOCOLS   101  
+#define HTTP_ALY_STATUS_CODE_OK                 200  
+#define HTTP_ALY_STATUS_CODE_CREATED            201  
+#define HTTP_ALY_STATUS_CODE_ACCEPTED           202  
+#define HTTP_ALY_STATUS_CODE_NON_AUTH           203  
+#define HTTP_ALY_STATUS_CODE_NO_CONTENT         204  
+#define HTTP_ALY_STATUS_CODE_RESET_CONTENT      205  
+#define HTTP_ALY_STATUS_CODE_PARTIAL_CONTENT    206  
+#define HTTP_ALY_STATUS_CODE_MULTIPLE_CHOICES   300  
+#define HTTP_ALY_STATUS_CODE_MOVED_PMT          301  
+#define HTTP_ALY_STATUS_CODE_FOUND              302  
+#define HTTP_ALY_STATUS_CODE_SEE_OTHER          303  
+#define HTTP_ALY_STATUS_CODE_NOT_MODIFIED       304  
+#define HTTP_ALY_STATUS_CODE_USE_PROXY          305  
+#define HTTP_ALY_STATUS_CODE_TMP_REDIRECT       307  
+#define HTTP_ALY_STATUS_CODE_BAD_REQUEST        400  
+#define HTTP_ALY_STATUS_CODE_UNAUTHORIZED       401  
+#define HTTP_ALY_STATUS_CODE_PAYMENT_REQUIRED   402  
+#define HTTP_ALY_STATUS_CODE_FORBIDDEN          403  
+#define HTTP_ALY_STATUS_CODE_NOT_FOUND          404  
+#define HTTP_ALY_STATUS_CODE_METHOD_NOT_ALLOWED 405  
+#define HTTP_ALY_STATUS_CODE_NOT_ACCEPTABLE     406  
+#define HTTP_ALY_STATUS_CODE_PXY_AUTH_REQUIRED  407  
+#define HTTP_ALY_STATUS_CODE_REQUEST_TIME_OUT   408  
+#define HTTP_ALY_STATUS_CODE_CONFLICT           409  
+#define HTTP_ALY_STATUS_CODE_GONE               410  
+#define HTTP_ALY_STATUS_CODE_LEN_REQUIRED       411  
+#define HTTP_ALY_STATUS_CODE_PRECOND_FAILED     412  
+#define HTTP_ALY_STATUS_CODE_ENTIRY_TOO_LARGE   413  
+#define HTTP_ALY_STATUS_CODE_URI_TOO_LARGE      414  
+#define HTTP_ALY_STATUS_CODE_UNSUPPORT_MEDIA    415  
+#define HTTP_ALY_STATUS_CODE_RANGE_NOT_STAISF   416  
+#define HTTP_ALY_STATUS_CODE_EXPECTATION_FAILED 417  
+#define HTTP_ALY_STATUS_CODE_INNER_SERVER_ERR   500  
+#define HTTP_ALY_STATUS_CODE_NOT_IMP            501  
+#define HTTP_ALY_STATUS_CODE_BAD_GATEWAY        502  
+#define HTTP_ALY_STATUS_CODE_SERVICE_UNAVAI     503  
+#define HTTP_ALY_STATUS_CODE_GATEWAY_TIME_OUT   504  
+#define HTTP_ALY_STATUS_CODE_VER_NOT_SUPPORT    505  
 
 
-/* response mode */
+
 #define HTTP_ALY_RESPONSE_MODE_CLOSED  1
 #define HTTP_ALY_RESPONSE_MODE_LENGTH  2
 #define HTTP_ALY_RESPONSE_MODE_CHUNKED 3
 
 
-/* ---typedef--- */
+
 
 typedef enum
 {
@@ -103,7 +103,7 @@ typedef enum{
 
 typedef HTTP_ALY_READ_RET_E (*PF_HTTP_ALY_READ)(IN UINT ulFd, OUT UCHAR *pucBuf, IN UINT ulBufLen, OUT UINT *pulReadLen);
 
-/* ---funcs--- */
+
 extern HANDLE HTTP_ALY_Create();
 extern BS_STATUS HTTP_ALY_Reset(IN HANDLE hHandle);
 extern BS_STATUS HTTP_ALY_Delete(IN HANDLE hHandle);
@@ -116,22 +116,18 @@ extern BS_STATUS HTTP_ALY_GetData(IN HANDLE hHandle, OUT MBUF_S **ppstMbuf);
 extern BS_STATUS HTTP_ALY_TryHead (IN HANDLE hHandle);
 extern BS_STATUS HTTP_ALY_ReadHead (IN HANDLE hHandle, OUT MBUF_S **ppMbuf);
 BOOL_T HTTP_ALY_IsRecvBodyOK(IN HANDLE hHandle);
-/*
-return BS_OK; BS_ERR;BS_NOT_COMPLETE
-*/
+
 extern BS_STATUS HTTP_ALY_TryBody(IN HANDLE hHandle);
 extern BS_STATUS HTTP_ALY_ParseKeyValue(IN HANDLE hHandle);
 extern BS_STATUS HTTP_ALY_SetBaseRspHttpHeader(IN HANDLE hHandle, IN UCHAR *pucBuf);
 
-/*
-*成功: return BS_OK; BS_NOT_COMPLETE
-*/
+
 extern BS_STATUS HTTP_ALY_SendByChunk(IN HANDLE hHandle, IN UCHAR *pucBuf, IN UINT ulLen, IN BOOL_T bWaitForComplete, OUT UINT *pulSendLen);
 
 extern CHAR * HTTP_ALY_GetField(IN HANDLE hHandle, IN CHAR *pcFieldName);
-/* 得到Value在Head中的offset, 返回0表示没有找到 */
+
 extern UINT HTTP_ALY_GetFieldValueOffset(IN HANDLE hHandle, IN CHAR *pcFieldName);
-/* 返回0表示没有找到 */
+
 extern UINT HTTP_ALY_GetFieldKeyOffset(IN HANDLE hHandle, IN CHAR *pcFieldName);
 extern CHAR * HTTP_ALY_GetKeyValue(IN HANDLE hHandle, IN CHAR *pcKey);
 extern UINT HTTP_ALY_GetResponseStatusCode(IN HANDLE hHandle);
@@ -156,12 +152,12 @@ extern UINT HTTP_ALY_GetAvailableDataSize(IN HANDLE hHandle);
 extern HTTP_ALY_BODY_LEN_TYPE_E HTTP_ALY_GetBodyLenType(IN HANDLE hHandle);
 extern VOID HTTP_ALY_SetRemoveChunkFlag(IN HANDLE hHandle);
 
-#if 1/* 重新构造接收到的HTTP头类接口 */
+#if 1
 extern BS_STATUS HTTP_ALY_AddRequestHeadField(IN HANDLE hHandle, IN CHAR *pszFieldName, IN CHAR *pszFieldValue);
 extern MBUF_S * HTTP_ALY_BuildRequestHead(IN HANDLE hHandle);
 #endif
 
-#if 1/* 应答Key Value 设置类接口 */
+#if 1
 extern BS_STATUS HTTP_ALY_SetResponseHeadField(IN HANDLE hHttpHandle, IN CHAR *pszKey, IN CHAR *pszValue);
 extern BS_STATUS HTTP_ALY_SetResponseHeadFieldByBuf(IN HANDLE hHttpHandle, IN CHAR *pszString);
 extern CHAR * HTTP_ALY_GetResponseKeyValue(IN HANDLE hHttpHandle, IN CHAR *pszKey);
@@ -178,11 +174,11 @@ extern BS_STATUS HTTP_ALY_NotBuildHeadField(IN HANDLE hHttpHandle, IN CHAR *pszF
 extern BS_STATUS HTTP_ALY_BuildHeadField(IN HANDLE hHttpHandle, IN CHAR *pszFieldName);
 #endif
 
-/* 得到应答模式 */
+
 UCHAR HTTP_ALY_GetResponseMode(IN HANDLE hHttpHandle);
-/* pucData可以为NULL，这时uiDataLen必须为0. 这种情况下只发送缓冲区中的数据 */
+
 BS_STATUS HTTP_ALY_Send(IN HANDLE hHttpHandle, IN UCHAR *pucData, IN UINT uiDataLen, OUT UINT *pulSendLen);
-/* 数据发送完成.但是这种情况下缓冲区中可能还有数据 */
+
 BS_STATUS HTTP_ALY_Finish(IN HANDLE hHttpHandle);
 BS_STATUS HTTP_ALY_BuildResponseHead(IN HANDLE hHttpHandle);
 extern UINT HTTP_ALY_GetSendDataSize(IN HANDLE hHttpHandle);
@@ -191,8 +187,8 @@ BS_STATUS HTTP_ALY_Flush(IN HANDLE hHttpHandle);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__HTTP_ALY_H_*/
+#endif 
 
 

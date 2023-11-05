@@ -4,7 +4,7 @@
 * Description: 向远程进程插入DLL
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_INJECTDLL
     
 #include "bs.h"
@@ -29,7 +29,7 @@ static BS_STATUS _OS_INJDLL_EjectDll(IN UINT ulProcessId, IN CHAR *pszDllPath)
         return BS_OK;
     }
 
-    /* Get the HMODULE of the desired library */
+    
     fMoreMods = Module32First(hthSnapshot, &me);
     for (; fMoreMods; fMoreMods = Module32Next(hthSnapshot, &me)) {
        fFound = (stricmp((CHAR*)me.szModule,  pszDllPath) == 0) || 
@@ -51,17 +51,17 @@ static BS_STATUS _OS_INJDLL_EjectDll(IN UINT ulProcessId, IN CHAR *pszDllPath)
     }
 
     ulProcessHandle = OpenProcess(
-           PROCESS_QUERY_INFORMATION |   // Required by Alpha
-           PROCESS_CREATE_THREAD     |   // For CreateRemoteThread
-           PROCESS_VM_OPERATION      |   // For VirtualAllocEx/VirtualFreeEx
-           PROCESS_VM_WRITE,             // For WriteProcessMemory
+           PROCESS_QUERY_INFORMATION |   
+           PROCESS_CREATE_THREAD     |   
+           PROCESS_VM_OPERATION      |   
+           PROCESS_VM_WRITE,             
            FALSE, ulProcessId);
     if (ulProcessHandle == NULL)
     {
         RETURN(BS_CAN_NOT_OPEN);
     }
 
-    /* 第一步: 申请远程进程内存 */
+    
     pszRemoteDllPath = VirtualAllocEx(ulProcessHandle, NULL, ulDllPathLen, MEM_COMMIT, PAGE_READWRITE);
     if (NULL == pszRemoteDllPath)
     {
@@ -84,7 +84,7 @@ static BS_STATUS _OS_INJDLL_EjectDll(IN UINT ulProcessId, IN CHAR *pszDllPath)
         RETURN(BS_ERR);
     }
 
-    /* Wait for the remote thread to terminate */
+    
     WaitForSingleObject(ulThreadHandle, INFINITE);
 
     VirtualFreeEx(ulProcessHandle, pszRemoteDllPath, 0, MEM_RELEASE);
@@ -108,17 +108,17 @@ static BS_STATUS _OS_INJDLL_InjectDll(IN UINT ulProcessId, IN CHAR *pszDllPath)
     }
 
     ulProcessHandle = OpenProcess(
-           PROCESS_QUERY_INFORMATION |   // Required by Alpha
-           PROCESS_CREATE_THREAD     |   // For CreateRemoteThread
-           PROCESS_VM_OPERATION      |   // For VirtualAllocEx/VirtualFreeEx
-           PROCESS_VM_WRITE,             // For WriteProcessMemory
+           PROCESS_QUERY_INFORMATION |   
+           PROCESS_CREATE_THREAD     |   
+           PROCESS_VM_OPERATION      |   
+           PROCESS_VM_WRITE,             
            FALSE, ulProcessId);
     if (ulProcessHandle == NULL)
     {
         RETURN(BS_CAN_NOT_OPEN);
     }
 
-    /* 第一步: 申请远程进程内存 */
+    
     pszRemoteDllPath = VirtualAllocEx(ulProcessHandle, NULL, ulDllPathLen, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     if (NULL == pszRemoteDllPath)
     {
@@ -141,7 +141,7 @@ static BS_STATUS _OS_INJDLL_InjectDll(IN UINT ulProcessId, IN CHAR *pszDllPath)
         RETURN(BS_ERR);
     }
 
-    /* Wait for the remote thread to terminate */
+    
     WaitForSingleObject(ulThreadHandle, INFINITE);
 
     VirtualFreeEx(ulProcessHandle, pszRemoteDllPath, 0, MEM_RELEASE);
@@ -163,13 +163,13 @@ static BS_STATUS _OS_INJDLL_EjectDll(IN UINT ulProcessId, IN CHAR *pszDllPath)
 }
 #endif
 
-/* 注射DLL */
+
 BS_STATUS INJDLL_InjectDll(IN UINT ulProcessId, IN CHAR *pszDllPath)
 {
     return _OS_INJDLL_InjectDll(ulProcessId, pszDllPath);
 }
 
-/* 取消DLL */
+
 BS_STATUS INJDLL_EjectDll(IN UINT ulProcessId, IN CHAR *pszDllPath)
 {
     return _OS_INJDLL_EjectDll(ulProcessId, pszDllPath);

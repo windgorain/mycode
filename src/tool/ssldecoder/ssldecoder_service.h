@@ -17,4 +17,4 @@ void ssldecoder_service_run();
 #ifdef __cplusplus
 }
 #endif
-#endif //SSLDECODER_SERVICE_H_
+#endif 

@@ -48,7 +48,7 @@ DRIVER_DISPATCH vndis_dev_DeviceHook;
 NTSTATUS vndis_dev_DeviceHook (IN PDEVICE_OBJECT pstDeviceObject, IN PIRP pstIRP);
 
 
-/* 根据Adapter的名字获取Dev的SubName, 比如\device\_INF_{XXX}的SubName就是{XXX} */
+
 static CHAR * vndis_dev_GetDevSubNameByAdapterName
 (
     IN CHAR *pcAdapterName
@@ -69,7 +69,7 @@ static CHAR * vndis_dev_GetDevSubNameByAdapterName
     return pcDevName;
 }
 
-/* 获取DEV的UNICODE名字 */
+
 static NDIS_STATUS vndis_dev_GetDevName
 (
     IN VNDIS_DEV_S *pstDev,
@@ -268,12 +268,12 @@ static BOOLEAN vndis_dev_FlushQue(IN VNDIS_DEV_S *pstDev)
     return bHaveIrp;
 }
 
-/* 释放DEV的资源 */
+
 static VOID vndis_dev_FreeDev(IN VNDIS_DEV_S *pstDev)
 {
     if (vndis_dev_FlushQue(pstDev) == TRUE)
     {
-        NdisMSleep (500000);  /* 等待用户态处理完IRP */
+        NdisMSleep (500000);  
     }
 
     if (pstDev->bDevLinkNameCreated == TRUE)
@@ -491,7 +491,7 @@ static NTSTATUS vndis_dev_DealCreateRequest
 
     DEBUG_IN_FUNC();
     DEBUG_OUT_FUNC(0);
-    /* TODO : */
+    
 
     return STATUS_SUCCESS;
 }
@@ -620,7 +620,7 @@ static NTSTATUS vndis_dev_DealReadRequest
     return enNtStatus;
 }
 
-/* 获取以太链路层头的长度, 返回0xffff表示出错 */
+
 static USHORT vndis_dev_GetLinkHeadLen(IN UCHAR *pucData, IN UINT uiDataLen)
 {
     USHORT usOffSet;
@@ -643,7 +643,7 @@ static USHORT vndis_dev_GetLinkHeadLen(IN UCHAR *pucData, IN UINT uiDataLen)
     {
         if(ETHERTYPE_ISIS2 == usPktLenOrType)
         {
-            /* ISIS2类型 */
+            
             usOffSet += ETH_LLC_LEN;
         }
     }
@@ -653,26 +653,26 @@ static USHORT vndis_dev_GetLinkHeadLen(IN UCHAR *pucData, IN UINT uiDataLen)
 
         if (usPktLenOrType > uiDataLen - usOffSet)
         {
-            return 0xffff;  /* 非法帧长度，丢弃 */
+            return 0xffff;  
         }
 
-        /* Ethernet_SNAP格式 */
+        
         if ((0xaa == pstSnapHdr->ucDSAP ) && (0xaa == pstSnapHdr->ucSSAP))
         {
             usOffSet += (ETH_LLC_LEN + ETH_SNAP_LEN);
         }
-        /*raw 封装*/
+        
         else if ((0xff == pstSnapHdr->ucDSAP) && (0xff == pstSnapHdr->ucSSAP))
         {
         }
-        /* ISIS */
+        
         else if ((0xfe == pstSnapHdr->ucDSAP) &&
                  (0xfe == pstSnapHdr->ucSSAP) &&
                  (0x03 == pstSnapHdr->ucCtrl))
         {
             usOffSet += ETH_LLC_LEN;
         }
-        /*llc(纯802.3封装)*/
+        
         else
         {
             usOffSet += ETH_LLC_LEN;
@@ -680,7 +680,7 @@ static USHORT vndis_dev_GetLinkHeadLen(IN UCHAR *pucData, IN UINT uiDataLen)
     }
     else
     {
-        /* 保留字段未使用 */
+        
         return 0xffff;
     }
 
@@ -860,7 +860,7 @@ NTSTATUS vndis_dev_DeviceHook (IN PDEVICE_OBJECT pstDeviceObject, IN PIRP pstIRP
     return enNtStatus;
 }
 
-/* 注册一个Device */
+
 static NDIS_STATUS vndis_dev_RegDev
 (
     IN VNDIS_DEV_S *pstDev,

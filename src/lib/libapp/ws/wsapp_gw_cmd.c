@@ -18,7 +18,7 @@
 #include "wsapp_gw.h"
 #include "wsapp_cfglock.h"
 
-/* gateway %STRING */
+
 PLUG_API BS_STATUS WSAPP_GwCmd_EnterView(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;
@@ -45,7 +45,7 @@ PLUG_API BS_STATUS WSAPP_GwCmd_EnterView(IN UINT ulArgc, IN CHAR **argv, IN VOID
     return BS_OK;
 }
 
-/* [no] webcenter {hide|readonly} */
+
 PLUG_API BS_STATUS WSAPP_GwCmd_WebCenterOpt(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;
@@ -72,7 +72,7 @@ PLUG_API BS_STATUS WSAPP_GwCmd_WebCenterOpt(IN UINT ulArgc, IN CHAR **argv, IN V
     return BS_OK;
 }
 
-/* description %STRING */
+
 PLUG_API BS_STATUS WSAPP_GwCmd_Description(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;
@@ -89,7 +89,7 @@ PLUG_API BS_STATUS WSAPP_GwCmd_Description(IN UINT ulArgc, IN CHAR **argv, IN VO
     return BS_OK;
 }
 
-/* type tcp */
+
 PLUG_API BS_STATUS WSAPP_GwCmd_TypeTcp(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;
@@ -106,7 +106,7 @@ PLUG_API BS_STATUS WSAPP_GwCmd_TypeTcp(IN UINT ulArgc, IN CHAR **argv, IN VOID *
     return BS_OK;
 }
 
-/* type ssl [ ca %STRING local %STRING key %STRING ] */
+
 PLUG_API BS_STATUS WSAPP_GwCmd_TypeSsl(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;
@@ -134,7 +134,7 @@ PLUG_API BS_STATUS WSAPP_GwCmd_TypeSsl(IN UINT ulArgc, IN CHAR **argv, IN VOID *
     return BS_OK;
 }
 
-/* ip address %IP */
+
 PLUG_API BS_STATUS WSAPP_GwCmd_ConfigIPAddress(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;
@@ -153,7 +153,7 @@ PLUG_API BS_STATUS WSAPP_GwCmd_ConfigIPAddress(IN UINT ulArgc, IN CHAR **argv, I
     return BS_OK;
 }
 
-/* port %INT<1-65535> */
+
 PLUG_API BS_STATUS WSAPP_GwCmd_ConfigPort(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;
@@ -170,7 +170,7 @@ PLUG_API BS_STATUS WSAPP_GwCmd_ConfigPort(IN UINT ulArgc, IN CHAR **argv, IN VOI
     return BS_OK;
 }
 
-/* filter ip-acl %STRING */
+
 PLUG_API BS_STATUS WSAPP_GwCmd_RefIpAcl(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;
@@ -187,7 +187,7 @@ PLUG_API BS_STATUS WSAPP_GwCmd_RefIpAcl(IN UINT ulArgc, IN CHAR **argv, IN VOID 
     return BS_OK;
 }
 
-/* no filter ip-acl */
+
 PLUG_API BS_STATUS WSAPP_GwCmd_NoRefIpAcl(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;
@@ -201,7 +201,7 @@ PLUG_API BS_STATUS WSAPP_GwCmd_NoRefIpAcl(IN UINT ulArgc, IN CHAR **argv, IN VOI
     return BS_OK;
 }
 
-/* service enable */
+
 PLUG_API BS_STATUS WSAPP_GwCmd_Enable(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;
@@ -218,7 +218,7 @@ PLUG_API BS_STATUS WSAPP_GwCmd_Enable(IN UINT ulArgc, IN CHAR **argv, IN VOID *p
     return BS_OK;
 }
 
-/* no service enable */
+
 PLUG_API BS_STATUS WSAPP_GwCmd_NoEnable(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;
@@ -311,7 +311,7 @@ BS_STATUS WSAPP_GwCmd_Save(IN HANDLE hFile)
     return BS_OK;
 }
 
-/* debug ws {packet|event|process|err|all} */
+
 PLUG_API BS_STATUS WSAPP_GwCmd_DebugWs(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;
@@ -325,7 +325,7 @@ PLUG_API BS_STATUS WSAPP_GwCmd_DebugWs(IN UINT ulArgc, IN CHAR **argv, IN VOID *
     return BS_OK;
 }
 
-/* no debug ws {packet|event|process|err|all} */
+
 PLUG_API BS_STATUS WSAPP_GwCmd_NoDebugWs(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR *pcGwName;

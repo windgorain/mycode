@@ -13,11 +13,11 @@ typedef struct
 {
     BOOL_T bIsDynamic;
     UINT uiStackSize;
-    UINT uiNextIndex;    /* 栈顶.等待插入新元素的位置 */
+    UINT uiNextIndex;    
     HANDLE *pHandleStack;
 }_HSTACK_CTRL_S;
 
-HANDLE HSTACK_Create(IN UINT uiStackSize/* 为0表示动态增长 */)
+HANDLE HSTACK_Create(IN UINT uiStackSize)
 {
     UINT uiStackSizeTmp = uiStackSize;
     _HSTACK_CTRL_S *pstCtrl;
@@ -112,12 +112,12 @@ STATIC BS_STATUS hstack_Expand(IN _HSTACK_CTRL_S *pstCtrl, IN UINT uiNewSize)
     return BS_OK;
 }
 
-/* return OK/FULL */
+
 BS_STATUS HSTACK_Push(IN HANDLE hHandle, IN HANDLE hUserHandle)
 {
     _HSTACK_CTRL_S *pstCtrl = hHandle;
     
-    if (pstCtrl->uiNextIndex >= pstCtrl->uiStackSize)    /* 达到栈顶 */
+    if (pstCtrl->uiNextIndex >= pstCtrl->uiStackSize)    
     {
         if (BS_OK != hstack_Expand(pstCtrl, pstCtrl->uiStackSize + _HSTACK_DFT_STEP_SIZE))
         {
@@ -131,7 +131,7 @@ BS_STATUS HSTACK_Push(IN HANDLE hHandle, IN HANDLE hUserHandle)
     return BS_OK;
 }
 
-/* return:OK/EMPTY */
+
 BS_STATUS HSTACK_Pop(IN HANDLE hHandle, OUT HANDLE *phUserHandle)
 {
     _HSTACK_CTRL_S *pstCtrl = hHandle;
@@ -156,7 +156,7 @@ BS_STATUS HSTACK_Pop(IN HANDLE hHandle, OUT HANDLE *phUserHandle)
     return BS_OK;
 }
 
-/* Index从0开始计算*/
+
 HANDLE HSTACK_GetValueByIndex(IN HANDLE hHandle, IN UINT uiIndex)
 {
     _HSTACK_CTRL_S *pstCtrl = hHandle;
@@ -170,12 +170,12 @@ HANDLE HSTACK_GetValueByIndex(IN HANDLE hHandle, IN UINT uiIndex)
     return pstCtrl->pHandleStack[uiIndex];
 }
 
-/* Index从0开始计算*/
+
 BS_STATUS HSTACK_SetValueByIndex(IN HANDLE hHandle, IN UINT uiIndex, IN HANDLE hValue)
 {
     _HSTACK_CTRL_S *pstCtrl = hHandle;
 
-    if (uiIndex >= pstCtrl->uiStackSize)    /* 达到栈顶 */
+    if (uiIndex >= pstCtrl->uiStackSize)    
     {
         return BS_OUT_OF_RANGE;
     }
@@ -186,7 +186,7 @@ BS_STATUS HSTACK_SetValueByIndex(IN HANDLE hHandle, IN UINT uiIndex, IN HANDLE h
 }
 
 
-/* return:OK/EMPTY */
+
 BS_STATUS HSTACK_GetTop(IN HANDLE hHandle, OUT HANDLE *phUserHandle)
 {
     UINT uiCurrentSize = HSTACK_GetCount(hHandle);

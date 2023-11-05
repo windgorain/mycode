@@ -84,10 +84,10 @@ static inline CHAR *pkctap_GetStr(IN CHAR *pcStr)
 }
 
 
-/* 打印网卡信息  */
+
 static VOID _pktcap_GetNdisInfoString(IN pcap_if_t* pNdis, IN UINT uiSize, OUT CHAR *pcString)
 {
-    pcap_addr_t *pAddr = NULL;          // 网卡地址
+    pcap_addr_t *pAddr = NULL;          
     struct sockaddr_in *pstSinIp;
     struct sockaddr_in *pstSinMask;
     INT iLen;
@@ -112,7 +112,7 @@ static VOID _pktcap_GetNdisInfoString(IN pcap_if_t* pNdis, IN UINT uiSize, OUT C
     {
         iLen = 0;
 
-        /* 一张网卡可能有多个地址 */
+        
         switch(pAddr->addr->sa_family)
         {
             case AF_INET:
@@ -143,7 +143,7 @@ static VOID _pktcap_GetNdisInfoString(IN pcap_if_t* pNdis, IN UINT uiSize, OUT C
     return;
 }
 
-/* 打印网卡信息  */
+
 static VOID _pktcap_PrintNdis(pcap_if_t* pNdis)
 {
     CHAR szInfo[512];
@@ -155,7 +155,7 @@ static VOID _pktcap_PrintNdis(pcap_if_t* pNdis)
     return;
 }
 
-/* 打印网卡信息 */
+
 static VOID _pktcap_PrintfNdisInfo(IN PKTCAP_NIDS_INFO_HANDLE hNdisInfo)
 {
     pcap_if_t *pNdis = hNdisInfo;
@@ -173,7 +173,7 @@ static VOID _pktcap_PrintfNdisInfo(IN PKTCAP_NIDS_INFO_HANDLE hNdisInfo)
     }
 }
 
-/* 根据Index获取Index */
+
 static UINT _pktcap_GetNdisIndexByName(IN PKTCAP_NIDS_INFO_HANDLE hNdisInfo, IN CHAR *pcNdisName)
 {
     pcap_if_t *pNdis = hNdisInfo;
@@ -202,7 +202,7 @@ static UINT _pktcap_GetNdisIndexByName(IN PKTCAP_NIDS_INFO_HANDLE hNdisInfo, IN 
     return uiIndex;
 }
 
-/* 根据Index获取网卡名 */
+
 static CHAR * _pktcap_GetNdisNameByIndex(IN PKTCAP_NIDS_INFO_HANDLE hNdisInfo, IN UINT uiIndex)
 {
     UINT i;
@@ -326,18 +326,18 @@ static VOID _pktcap_PacketIn(UCHAR *param, const struct pcap_pkthdr *pstHeader, 
 }
 
 
-/*  获取网卡信息 */
+
 static PKTCAP_NIDS_INFO_HANDLE _pktcap_GetNdisInfo()
 {
-    pcap_if_t *pNdis = NULL;  // 网卡信息保存链表
-    CHAR errbuf[PCAP_ERRBUF_SIZE];  // 错误信息
+    pcap_if_t *pNdis = NULL;  
+    CHAR errbuf[PCAP_ERRBUF_SIZE];  
 
 	if (BS_OK != _os_pktcap_Init())
 	{
 		return NULL;
 	}
 
-    /* 1. 获取网卡链表 */
+    
     if(-1 == g_stPktcapFuncTbl.pfFindAllDevs(&pNdis, errbuf))
     {
         return NULL;
@@ -346,7 +346,7 @@ static PKTCAP_NIDS_INFO_HANDLE _pktcap_GetNdisInfo()
     return pNdis;
 }
 
-/* 释放网卡信息 */
+
 static VOID _pktcap_FreeNdisInfo(IN PKTCAP_NIDS_INFO_HANDLE hNdisInfo)
 {
     pcap_if_t *pNdis = hNdisInfo;
@@ -357,16 +357,16 @@ static VOID _pktcap_FreeNdisInfo(IN PKTCAP_NIDS_INFO_HANDLE hNdisInfo)
         return;
     }
 
-    /* 释放网卡链表 */
+    
     g_stPktcapFuncTbl.pfFreeAllDevs(pNdis);
 }
 
-/* 打开网卡 */
+
 static PKTCAP_NDIS_HANDLE _pktcap_OpenNdis
 (
     IN CHAR *pcNdisName,
     IN UINT uiFlag,
-    IN UINT uiTimeOutTime/* ms, 0表示永不超时 */
+    IN UINT uiTimeOutTime
 )
 {
     pcap_t *fp;
@@ -383,11 +383,11 @@ static PKTCAP_NDIS_HANDLE _pktcap_OpenNdis
 		return NULL;
 	}
 
-    /* 1. Open网卡 */
-    fp = g_stPktcapFuncTbl.pfOpenLive(pcNdisName, // 网卡信息中的name
-                        65536,      // 报文捕获时，返回整个报文的内容
+    
+    fp = g_stPktcapFuncTbl.pfOpenLive(pcNdisName, 
+                        65536,      
                         uiFlag,
-                        uiTimeOutTime,       // 超时时间
+                        uiTimeOutTime,       
                         errBuf);
 
     if(NULL == fp)
@@ -405,7 +405,7 @@ static PKTCAP_NDIS_HANDLE _pktcap_OpenNdis
 }
 
 
-/* 关闭网卡 */
+
 static VOID _pktcap_CloseNdis(IN PKTCAP_NDIS_HANDLE hNdisHandle)
 {
     pcap_t *fp = hNdisHandle;
@@ -416,7 +416,7 @@ static VOID _pktcap_CloseNdis(IN PKTCAP_NDIS_HANDLE hNdisHandle)
     }
 }
 
-/* 报文发送 */
+
 static BOOL_T _pktcap_SendPacket
 (
     IN PKTCAP_NDIS_HANDLE hNdisHandle,
@@ -440,10 +440,10 @@ static BOOL_T _pktcap_SendPacket
     return TRUE;
 }
 
-/* 过滤规则设置 */
+
 static BOOL_T _pktcap_SetFilter(IN PKTCAP_NDIS_HANDLE hNdisHandle, IN CHAR* pcFilter)
 {
-    struct bpf_program fcode;   /* 过滤器 */
+    struct bpf_program fcode;   
     pcap_t *fp = hNdisHandle;
 
     if ((NULL == fp) || (NULL == pcFilter))
@@ -452,17 +452,17 @@ static BOOL_T _pktcap_SetFilter(IN PKTCAP_NDIS_HANDLE hNdisHandle, IN CHAR* pcFi
         return FALSE;
     }
 
-    /*1.  编译过滤器（将过滤文本编译成底层驱动识别的数据格式） */
-    if(-1 == g_stPktcapFuncTbl.pfCompile(fp,       /* 网卡 */
-                          &fcode,   /* 过滤器 */
-                          pcFilter,    /* 过滤文本 */
-                          1,        /* 优化 */
-                          0))     /* 不设置子网过滤 */
+    
+    if(-1 == g_stPktcapFuncTbl.pfCompile(fp,       
+                          &fcode,   
+                          pcFilter,    
+                          1,        
+                          0))     
     {
         return FALSE;
     }
 
-    /* 2. 将过滤器绑定在网卡上 */
+    
     if(g_stPktcapFuncTbl.pfSetFilter(fp, &fcode)<0)
     {
         return FALSE;
@@ -471,7 +471,7 @@ static BOOL_T _pktcap_SetFilter(IN PKTCAP_NDIS_HANDLE hNdisHandle, IN CHAR* pcFi
     return TRUE;
 }
 
-/* 支持超时方式的抓包 */
+
 static INT _pktcap_Dispatch
 (
     IN PKTCAP_NDIS_HANDLE hNdisHandle,
@@ -491,7 +491,7 @@ static INT _pktcap_Dispatch
     stUserHandle.ahUserHandle[0] = pfFunc;
     stUserHandle.ahUserHandle[1] = hUserHandle;
     
-    /* 开始捕获报文*/
+    
 	return g_stPktcapFuncTbl.pfDispatch(fp, 0, _pktcap_PacketIn, (UCHAR*)&stUserHandle);
 }
 
@@ -514,7 +514,7 @@ static INT _pktcap_Loop
     stUserHandle.ahUserHandle[0] = pfFunc;
     stUserHandle.ahUserHandle[1] = hUserHandle;
     
-    /* 开始捕获报文*/
+    
 	return g_stPktcapFuncTbl.pfLoop(fp, 0, _pktcap_PacketIn, (UCHAR*)&stUserHandle);
 }
 
@@ -533,7 +533,7 @@ static VOID _pktcap_BreakLoop(IN PKTCAP_NDIS_HANDLE hNdisHandle)
     return;
 }
 
-/*  获取网卡信息 */
+
 PKTCAP_NIDS_INFO_HANDLE PKTCAP_GetNdisInfoList()
 {
     return _pktcap_GetNdisInfo();
@@ -609,19 +609,19 @@ VOID PKTCAP_GetNdisInfoString(IN PKTCAP_NIDS_INFO_HANDLE hNdisInfo, IN UINT uiSi
     _pktcap_GetNdisInfoString(hNdisInfo, uiSize, pcString);
 }
 
-/* 打印网卡信息 */
+
 VOID PKTCAP_PrintfNdisInfo(IN PKTCAP_NIDS_INFO_HANDLE hNdisInfo)
 {
     _pktcap_PrintfNdisInfo(hNdisInfo);
 }
 
-/* 根据Name获取Index */
+
 UINT PKTCAP_GetNdisIndexByName(IN PKTCAP_NIDS_INFO_HANDLE hNdisInfo, IN CHAR *pcNdisName)
 {
     return _pktcap_GetNdisIndexByName(hNdisInfo, pcNdisName);
 }
 
-/* 根据Index获取网卡名 */
+
 CHAR * PKTCAP_GetNdisNameByIndex(IN PKTCAP_NIDS_INFO_HANDLE hNdisInfo, IN UINT uiIndex)
 {
     return _pktcap_GetNdisNameByIndex(hNdisInfo, uiIndex);
@@ -660,7 +660,7 @@ BS_STATUS PKTCAP_GetNdisInfoByName
 }
 
 
-/* 释放网卡信息 */
+
 VOID PKTCAP_FreeNdisInfoList(IN PKTCAP_NIDS_INFO_HANDLE hNdisInfo)
 {
     _pktcap_FreeNdisInfo(hNdisInfo);
@@ -672,11 +672,11 @@ INT PKTCAP_GetDataLinkTypeByName(IN CHAR *pcDevName)
     char errBuf[PCAP_ERRBUF_SIZE];
     INT iType;
     
-    /* 1. Open网卡 */
-    fp = g_stPktcapFuncTbl.pfOpenLive(pcDevName, // 网卡信息中的name
-                        65536,      // 报文捕获时，返回整个报文的内容
+    
+    fp = g_stPktcapFuncTbl.pfOpenLive(pcDevName, 
+                        65536,      
                         0,
-                        1000,       // 超时时间
+                        1000,       
                         errBuf);
 
     if(NULL == fp)
@@ -701,8 +701,8 @@ BOOL_T PKTCAP_IsEthDataLink(IN INT iDataLink)
     return FALSE;
 }
 
-/* 打开网卡 */
-PKTCAP_NDIS_HANDLE PKTCAP_OpenNdis(IN CHAR *pcNdisName, IN UINT uiFlag/* PKTCAP_FLAG_X */, IN UINT uiTimeOutTime/* ms, 0表示永不超时 */)
+
+PKTCAP_NDIS_HANDLE PKTCAP_OpenNdis(IN CHAR *pcNdisName, IN UINT uiFlag, IN UINT uiTimeOutTime)
 {
     return _pktcap_OpenNdis(pcNdisName, uiFlag, uiTimeOutTime);
 }
@@ -712,13 +712,13 @@ INT PKTCAP_GetDataLinkType(IN PKTCAP_NDIS_HANDLE hNdisHandle)
     return g_stPktcapFuncTbl.pfDataLink(hNdisHandle);
 }
 
-/* 关闭网卡 */
+
 VOID PKTCAP_CloseNdis(IN PKTCAP_NDIS_HANDLE hNdisHandle)
 {
     _pktcap_CloseNdis(hNdisHandle);
 }
 
-/* 报文发送 */
+
 BOOL_T PKTCAP_SendPacket
 (
     IN PKTCAP_NDIS_HANDLE hNdisHandle,
@@ -729,13 +729,13 @@ BOOL_T PKTCAP_SendPacket
     return _pktcap_SendPacket(hNdisHandle, pucPkt, uiPktLen);
 }
 
-/* 过滤规则设置 */
+
 BOOL_T PKTCAP_SetFilter(IN PKTCAP_NDIS_HANDLE hNdisHandle, IN CHAR* pcFilter)
 {
     return _pktcap_SetFilter(hNdisHandle, pcFilter);
 }
 
-/* 支持超时方式的抓包 */
+
 INT PKTCAP_Dispatch
 (
     IN PKTCAP_NDIS_HANDLE hNdisHandle,

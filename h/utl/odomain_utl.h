@@ -16,7 +16,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef enum
 {
@@ -67,7 +67,7 @@ CHAR * ODOMAIN_GetDomainNameById(IN HANDLE hODomainInstanceId, IN UINT ulDomainI
 UINT ODOMAIN_AddUser
 (
     IN HANDLE hODomainInstanceId,
-    IN UINT ulDomainId,    /* 对于SuperAdmin,没有Domain,这个值为0 */
+    IN UINT ulDomainId,    
     IN CHAR *pszUserName,
     IN DOMAIN_USER_TYPE_E eUserType
 );
@@ -125,8 +125,8 @@ UINT ODOMAIN_GetUserIdByName
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__ODOMAIN_UTL_H_*/
+#endif 
 
 

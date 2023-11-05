@@ -182,6 +182,7 @@ void ELF_Close(ELF_S *elf)
     }
 }
 
+
 void * ELF_GetNextSection(ELF_S *elf, void *iter, OUT ELF_SECTION_S *sec)
 {
 	Elf_Scn *scn = iter;
@@ -197,8 +198,10 @@ void * ELF_GetNextSection(ELF_S *elf, void *iter, OUT ELF_SECTION_S *sec)
 
 int ELF_SecCount(ELF_S *elf)
 {
+    
     return elf->ehdr.e_shnum - 1;
 }
+
 
 int ELF_GetSecByID(ELF_S *elf, int sec_id, OUT ELF_SECTION_S *sec)
 {
@@ -218,6 +221,7 @@ int ELF_GetSecByName(ELF_S *elf, char *sec_name, OUT ELF_SECTION_S *sec)
     return -1;
 }
 
+
 int ELF_GetSecIDByName(ELF_S *elf, char *sec_name)
 {
     ELF_SECTION_S sec;
@@ -228,6 +232,7 @@ int ELF_GetSecIDByName(ELF_S *elf, char *sec_name)
 
     return sec.sec_id;
 }
+
 
 int ELF_SecSymbolCount(ELF_S *elf, int sec_id, int type)
 {
@@ -261,12 +266,14 @@ int ELF_SecSymbolCount(ELF_S *elf, int sec_id, int type)
     return count;
 }
 
+
 Elf64_Sym * ELF_GetSymbol(ELF_S *elf, int id)
 {
 	Elf_Data *symbols = elf->symbols;
 
     return elf_sym_by_id(symbols, id);
 }
+
 
 Elf64_Sym * ELF_GetSecSymbol(ELF_S *elf, int sec_id, int type, int index)
 {
@@ -313,6 +320,7 @@ char * ELF_GetSymbolName(ELF_S *elf, Elf64_Sym * sym)
 {
     return elf_sym_str(elf, sym->st_name);
 }
+
 
 GElf_Rel * ELF_GetRel(Elf_Data *relo_data, int id, OUT GElf_Rel *rel)
 {
@@ -370,6 +378,7 @@ BOOL_T ELF_IsBssSection(ELF_SECTION_S *sec)
     return FALSE;
 }
 
+
 int ELF_GetGlobalData(ELF_S *elf, OUT ELF_GLOBAL_DATA_S *global_data)
 {
     void *iter = NULL;
@@ -417,6 +426,7 @@ int ELF_GetProgsCount(ELF_S *elf)
     return count;
 }
 
+
 int ELF_GetProgsSize(ELF_S *elf)
 {
     void *iter = NULL;
@@ -432,6 +442,7 @@ int ELF_GetProgsSize(ELF_S *elf)
 
     return size;
 }
+
 
 int ELF_CopyProgs(ELF_S *elf, OUT void *mem, int mem_size)
 {
@@ -458,6 +469,7 @@ int ELF_CopyProgs(ELF_S *elf, OUT void *mem, int mem_size)
     return offset;
 }
 
+
 void * ELF_DupProgs(ELF_S *elf)
 {
     int size = ELF_GetProgsSize(elf);
@@ -476,17 +488,17 @@ void * ELF_DupProgs(ELF_S *elf)
     return mem;
 }
 
-static int _elf_prog_info_cmp(void *n1, void *n2, void *ud)
+static int _elf_prog_info_cmp(const void *n1, const void *n2)
 {
-    ELF_PROG_INFO_S *p1 = n1;
-    ELF_PROG_INFO_S *p2 = n2;
+    const ELF_PROG_INFO_S *p1 = n1;
+    const ELF_PROG_INFO_S *p2 = n2;
 
     return (int)p1->prog_offset - (int)p2->prog_offset;
 }
 
 static void _elf_sort_progs_info(ELF_PROG_INFO_S *progs, int prog_count)
 {
-    QSORT_Do(progs, prog_count, sizeof(ELF_PROG_INFO_S), _elf_prog_info_cmp, NULL);
+    QSORT_Do(progs, prog_count, sizeof(ELF_PROG_INFO_S), _elf_prog_info_cmp);
 }
 
 static int _elf_get_progs_info(ELF_S *elf, OUT ELF_PROG_INFO_S *progs, int max_prog_count)
@@ -535,8 +547,8 @@ int ELF_GetProgsInfo(ELF_S *elf, OUT ELF_PROG_INFO_S *progs, int max_prog_count)
 void ELF_ClearProgsInfo(ELF_PROG_INFO_S *progs, int prog_count)
 {
     for (int i=0; i<prog_count; i++) {
-        MEM_ExistFree(progs[i].func_name);
-        MEM_ExistFree(progs[i].sec_name);
+        MEM_SafeFree(progs[i].func_name);
+        MEM_SafeFree(progs[i].sec_name);
     }
 }
 

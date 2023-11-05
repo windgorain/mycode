@@ -14,7 +14,7 @@
 #include <arpa/inet.h>
 #include <net/route.h>
 
-/* Darwin doesn't define this for some very odd reason */
+
 #ifndef SA_SIZE
 # define SA_SIZE(sa)                        \
     (  (!(sa) || ((struct sockaddr *)(sa))->sa_len == 0) ?  \

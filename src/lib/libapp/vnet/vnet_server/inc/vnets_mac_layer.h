@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 VOID VNETS_MacLayer_NoDebugAll();
 BS_STATUS VNETS_MacLayer_Input (IN MBUF_S *pstMbuf);
@@ -18,8 +18,8 @@ BS_STATUS VNETS_MacLayer_Output(IN UINT uiDomainID, IN MBUF_S *pstMbuf);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_MAC_LAYER_H_*/
+#endif 
 
 

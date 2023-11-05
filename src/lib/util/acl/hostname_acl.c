@@ -34,7 +34,7 @@ static void hostnameacl_ProcessLine(HOSTNAME_ACL_S *hostname_acl, char *line)
         action = HOSTNAME_ACL_PERMIT;
     }
 
-    //DnsNameTrie_Insert(&hostname_acl->trie, acl_str.pattern, UINT_HANDLE(action));
+    
     Trie_Insert(hostname_acl->trie, (UCHAR *)acl_str.pattern, strlen(acl_str.pattern), 
             TRIE_NODE_FLAG_WILDCARD, UINT_HANDLE(action));
 
@@ -64,7 +64,7 @@ int HostnameACL_Init(HOSTNAME_ACL_S *hostname_acl, char *config_file)
 
 void HostnameACL_Fini(IN HOSTNAME_ACL_S *hostname_acl)
 {
-    // DnsNameTrie_Fini(&hostname_acl->trie, NULL);
+    
     Trie_Destroy(hostname_acl->trie, NULL);
 }
 

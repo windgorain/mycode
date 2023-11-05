@@ -18,7 +18,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define    ACCEPT_LOCK()          UIPC_Socket_AcceptLock()
 #define    ACCEPT_UNLOCK()        UIPC_Socket_AcceptUnLock()
@@ -37,9 +37,7 @@
     } \
 } while (0)
 
-/*
- * Do we need to notify the other side when I/O is possible?
- */
+
 #define    sb_notify(sb)    ((0 != SEM_CountPending(((sb)->sb_wait))) || \
     (((sb)->sb_flags & (SB_WAIT | SB_SEL | SB_ASYNC | SB_UPCALL | SB_AIO | SB_KNOTE)) != 0)) 
 
@@ -82,47 +80,32 @@ struct accept_filter {
     SLIST_ENTRY(accept_filter) accf_next;
 };
 
-/*
- * Socket state bits.
- *
- * Historically, this bits were all kept in the so_state field.  For
- * locking reasons, they are now in multiple fields, as they are
- * locked differently.  so_state maintains basic socket state protected
- * by the socket lock.  so_qstate holds information about the socket
- * accept queues.  Each socket buffer also has a state field holding
- * information relevant to that socket buffer (can't send, rcv).  Many
- * fields will be read without locks to improve performance and avoid
- * lock order issues.  However, this approach must be used with caution.
- */
-#define SS_NOFDREF         0x0001    /* no file table ref any more */
-#define SS_ISCONNECTED     0x0002    /* socket connected to a peer */
-#define SS_ISCONNECTING    0x0004    /* in process of connecting to peer */
-#define SS_ISDISCONNECTING 0x0008    /* in process of disconnecting */
-#define SS_NBIO            0x0100    /* non-blocking ops(in Leopard,this won't be used) */
-#define SS_ISCONFIRMING    0x0400    /* deciding to accept connection req */
-#define SS_CANBIND         0x1000    /* can bind */
-#define SS_ISDISCONNECTED  0x2000    /* socket disconnected from peer */
-#define SS_PROTOREF        0x4000    /* strong protocol reference */
 
-/*
- * Socket state bits stored in so_qstate.
- */
-#define    SQ_INCOMP        0x0800    /* unaccepted, incomplete connection */
-#define    SQ_COMP            0x1000    /* unaccepted, complete connection */
+#define SS_NOFDREF         0x0001    
+#define SS_ISCONNECTED     0x0002    
+#define SS_ISCONNECTING    0x0004    
+#define SS_ISDISCONNECTING 0x0008    
+#define SS_NBIO            0x0100    
+#define SS_ISCONFIRMING    0x0400    
+#define SS_CANBIND         0x1000    
+#define SS_ISDISCONNECTED  0x2000    
+#define SS_PROTOREF        0x4000    
 
 
-/*
- * Socket Level Options
- */
-#define SO_DEBUG         0x0001        /* turn on debugging info recording */
-#define SO_ACCEPTCONN    0x0002        /* socket has had listen() */
-#define SO_REUSEADDR     0x0004        /* allow local address reuse */
-#define SO_KEEPALIVE     0x0008        /* keep connections alive */
-#define SO_DONTROUTE     0x0010        /* just use interface addresses */
-#define SO_BROADCAST     0x0020        /* permit sending of broadcast msgs */
-#define SO_TIMESTAMP     0x0400        /* timestamp received dgram traffic */
-#define SO_ACCEPTFILTER  0x1000        /* there is an accept filter */
-#define SO_TIMESTAMPNS   0x2000      /* timestamp received dgram traffic(ns) */
+#define    SQ_INCOMP        0x0800    
+#define    SQ_COMP            0x1000    
+
+
+
+#define SO_DEBUG         0x0001        
+#define SO_ACCEPTCONN    0x0002        
+#define SO_REUSEADDR     0x0004        
+#define SO_KEEPALIVE     0x0008        
+#define SO_DONTROUTE     0x0010        
+#define SO_BROADCAST     0x0020        
+#define SO_TIMESTAMP     0x0400        
+#define SO_ACCEPTFILTER  0x1000        
+#define SO_TIMESTAMPNS   0x2000      
 
 
 #define    SOCK_SEM(_so) SOCKBUF_MTX(&(_so)->so_rcv)
@@ -130,12 +113,10 @@ struct accept_filter {
 #define    SOCK_UNLOCK(_so) SOCKBUF_UNLOCK(&(_so)->so_rcv)
 
 
-/*
- * Socket state bits now stored in the socket buffer state field.
- */
-#define    SBS_CANTSENDMORE    0x0010    /* can't send more data to peer */
-#define    SBS_CANTRCVMORE        0x0020    /* can't receive more data from peer */
-#define    SBS_RCVATMARK        0x0040    /* at mark on input */
+
+#define    SBS_CANTSENDMORE    0x0010    
+#define    SBS_CANTRCVMORE        0x0020    
+#define    SBS_RCVATMARK        0x0040    
 
 typedef struct socket
 {
@@ -144,21 +125,21 @@ typedef struct socket
     INT iFd;
     USHORT so_type;
     USHORT so_state;
-    SHORT  so_linger;     /* time to linger while closing */
-    UINT   so_qstate;     /* (e) internal state flags SQ_* */
-    void    *so_pcb;      /* protocol control block */
-    UINT so_count;              /* 引用计数 */
+    SHORT  so_linger;     
+    UINT   so_qstate;     
+    void    *so_pcb;      
+    UINT so_count;              
     PROTOSW_S *so_proto;
-    TAILQ_HEAD(, socket) so_incomp;    /* queue of partial unaccepted connections */
-    TAILQ_HEAD(, socket) so_comp;      /* queue of complete unaccepted connections */
+    TAILQ_HEAD(, socket) so_incomp;    
+    TAILQ_HEAD(, socket) so_comp;      
     TAILQ_ENTRY(socket) so_list;
-    USHORT    so_qlen;             /* (e) number of unaccepted connections */
-    USHORT    so_incqlen;          /* (e) number of unaccepted incomplete connections */
-    USHORT    so_qlimit;           /* (e) max number queued connections */
+    USHORT    so_qlen;             
+    USHORT    so_incqlen;          
+    USHORT    so_qlimit;           
     SOCKBUF_S so_rcv;
     SOCKBUF_S so_snd;
     INT so_options;
-    USHORT  so_error;           /* error affecting connection */
+    USHORT  so_error;           
     SEM_HANDLE so_wait;
 
     void (*so_upcall)(struct socket *, void *, int);
@@ -166,8 +147,8 @@ typedef struct socket
 
     struct so_accf {
         struct    accept_filter *so_accept_filter;
-        void    *so_accept_filter_arg;    /* saved filter args */
-        char    *so_accept_filter_str;    /* saved user args */
+        void    *so_accept_filter_arg;    
+        char    *so_accept_filter_str;    
     } *so_accf;
 }SOCKET_S;
 
@@ -177,8 +158,8 @@ SEM_HANDLE UIPC_Socket_GetSem();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__UIPC_SOCKET_H_*/
+#endif 
 
 

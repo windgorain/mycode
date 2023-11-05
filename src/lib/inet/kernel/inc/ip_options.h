@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 VOID IP_SaveSrcOption (IN MBUF_S *pstMBuf, OUT UCHAR *ucOldIPHeader);
 VOID IP_StrIpOptions ( INOUT MBUF_S *pstMBuf );
@@ -18,8 +18,8 @@ VOID IP_StrIpOptions ( INOUT MBUF_S *pstMBuf );
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__IP_OPTIONS_H_*/
+#endif 
 
 

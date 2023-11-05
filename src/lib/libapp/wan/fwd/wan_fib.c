@@ -140,9 +140,9 @@ static BS_STATUS wan_fib_VFEvent(IN UINT uiEvent, IN UINT uiVrfID, IN USER_HANDL
 static BS_STATUS _wanfib_AddRouteStatic
 (
     IN UINT uiVrf,
-    IN UINT uiIP,   /* 网络序 */
-    IN UINT uiMask, /* 网络序 */
-    IN UINT uiNexthop, /* 网络序 */
+    IN UINT uiIP,   
+    IN UINT uiMask, 
+    IN UINT uiNexthop, 
     IN VRF_INDEX ifIndex
 )
 {
@@ -166,9 +166,9 @@ static BS_STATUS _wanfib_AddRouteStatic
 static BS_STATUS _wanfib_ParseIpMaskNethopString
 (
     IN CHAR *pcString,
-    OUT UINT *puiDstIp,     /* 网络序 */
-    OUT UINT *puiMask,      /* 网络序 */
-    OUT UINT *puiNexthop    /* 网络序 */
+    OUT UINT *puiDstIp,     
+    OUT UINT *puiMask,      
+    OUT UINT *puiNexthop    
 )
 {
     LSTR_S stIP;
@@ -322,7 +322,7 @@ static BS_STATUS _wanfib_kf_List(IN MIME_HANDLE hMime, IN HANDLE hUserHandle, IN
     return BS_OK;
 }
 
-static BS_WALK_RET_E _wanfib_SaveEach(IN FIB_NODE_S *pstFibNode, IN HANDLE hUserHandle)
+static int _wanfib_SaveEach(IN FIB_NODE_S *pstFibNode, IN HANDLE hUserHandle)
 {
     UINT uiPrefix;
     UINT uiMask;
@@ -330,7 +330,7 @@ static BS_WALK_RET_E _wanfib_SaveEach(IN FIB_NODE_S *pstFibNode, IN HANDLE hUser
 
     if ((pstFibNode->uiFlag & FIB_FLAG_STATIC) == 0)
     {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     uiMask = pstFibNode->stFibKey.uiMaskOrEndIp;
@@ -350,10 +350,10 @@ static BS_WALK_RET_E _wanfib_SaveEach(IN FIB_NODE_S *pstFibNode, IN HANDLE hUser
             &pstFibNode->stFibKey.uiDstOrStartIp, uiPrefix, &pstFibNode->uiNextHop, szIfName);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-BS_STATUS WanFib_PrefixMatch(IN UINT uiVrfID, IN UINT uiDstIp /* 网络序 */, OUT FIB_NODE_S *pstFibNode)
+BS_STATUS WanFib_PrefixMatch(IN UINT uiVrfID, IN UINT uiDstIp , OUT FIB_NODE_S *pstFibNode)
 {
     BS_STATUS eRet = BS_ERR;
     UINT uiPhase;
@@ -476,10 +476,7 @@ BS_STATUS WanFib_KfInit()
 	return BS_OK;
 }
 
-/*
-VF视图下:
-show fib
-*/
+
 PLUG_API BS_STATUS WAN_FIB_ShowFib
 (
     IN UINT ulArgc,
@@ -516,10 +513,7 @@ VOID WAN_FIB_Save(IN HANDLE hFile)
     WanFib_Walk(0, _wanfib_SaveEach, hFile);
 }
 
-/*
-VF视图下:
-route static %IP %INT(prefix) %IP [interface %STRING]
-*/
+
 PLUG_API BS_STATUS WAN_FIB_RouteStatic
 (
     IN UINT ulArgc,
@@ -550,7 +544,7 @@ PLUG_API BS_STATUS WAN_FIB_RouteStatic
     return _wanfib_AddRouteStatic(uiVrfID, Socket_NameToIpNet(argv[2]), htonl(uiMask), Socket_NameToIpNet(argv[4]), ifIndex);
 }
 
-/* no route static %IP(destnation ip address) %INT<0-32>(prefix) %IP(nexthop) */
+
 PLUG_API BS_STATUS WAN_FIB_NoRouteStatic
 (
     IN UINT ulArgc,

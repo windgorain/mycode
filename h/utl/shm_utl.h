@@ -15,4 +15,4 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-#endif //SHM_UTL_H_
+#endif 

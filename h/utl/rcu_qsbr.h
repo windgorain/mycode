@@ -25,4 +25,4 @@ void RcuQsbr_SetReaderNum(RCU_QSBR_S *ctrl, int reader_num);
 #ifdef __cplusplus
 }
 #endif
-#endif //RCU_QSBR_H_
+#endif 

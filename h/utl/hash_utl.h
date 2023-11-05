@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE HASH_HANDLE;
 
@@ -20,9 +20,9 @@ typedef struct
     UINT hash_factor;
 }HASH_NODE_S;
 
-typedef UINT (*PF_HASH_INDEX_FUNC)(IN VOID *pstHashNode); /* 对数据计算hash值 */
+typedef UINT (*PF_HASH_INDEX_FUNC)(IN VOID *pstHashNode); 
 typedef INT  (*PF_HASH_CMP_FUNC)(IN VOID * pstHashNode, IN VOID * pstNodeToFind);
-typedef BS_WALK_RET_E (*PF_HASH_WALK_FUNC)(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle);
+typedef int (*PF_HASH_WALK_FUNC)(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle);
 typedef VOID  (*PF_HASH_FREE_FUNC)(IN HASH_HANDLE hHashId, IN VOID *pstHashNode, IN VOID * pUserHandle);
 
 HASH_HANDLE HASH_CreateInstance(void *memcap, IN UINT ulHashBucketNum, IN PF_HASH_INDEX_FUNC pfFunc);
@@ -36,15 +36,15 @@ VOID * HASH_FindWithFactor(IN HASH_HANDLE hHashId, UINT hash_factor, IN PF_HASH_
 VOID * HASH_Find(IN HASH_HANDLE hHashId, IN PF_HASH_CMP_FUNC pfCmpFunc, IN VOID *pstNodeToFind);
 UINT HASH_Count(IN HASH_HANDLE hHashId);
 VOID HASH_Walk(IN HASH_HANDLE hHashId, IN PF_HASH_WALK_FUNC pfWalkFunc, IN VOID * pUserHandle);
-/* 最快速度的getnext, 需要两次get期间不能删除curr_node */
-HASH_NODE_S * HASH_GetNext(HASH_HANDLE hHash, HASH_NODE_S *curr_node /* NULL表示获取第一个 */);
-/* 慢速的getnext, 全局字典序getnext, 所以每次getnext都会遍历所有表项 */
-HASH_NODE_S * HASH_GetNextDict(HASH_HANDLE hHash, PF_HASH_CMP_FUNC pfCmpFunc, HASH_NODE_S *curr_node /* NULL表示获取第一个 */);
+
+HASH_NODE_S * HASH_GetNext(HASH_HANDLE hHash, HASH_NODE_S *curr_node );
+
+HASH_NODE_S * HASH_GetNextDict(HASH_HANDLE hHash, PF_HASH_CMP_FUNC pfCmpFunc, HASH_NODE_S *curr_node );
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__HASH_UTL_H_*/
+#endif 
 
 

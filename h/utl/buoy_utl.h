@@ -18,11 +18,11 @@ typedef unsigned int (*PF_BUOY_GET_BEST_ANCHOR_POINT)(void *user_data);
 typedef struct {
     BITMAP_S bitmap;
     int buoys_num;
-    int buoy_size; /* 指明buoy节点的大小, 1/2/4 bytes */
+    int buoy_size; 
     void *buoys;
 }BUOY_CTRL_S;
 
 #ifdef __cplusplus
 }
 #endif
-#endif //BUOY_UTL_H_
+#endif 

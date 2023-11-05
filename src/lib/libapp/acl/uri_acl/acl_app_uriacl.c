@@ -37,7 +37,7 @@ static BS_STATUS _aclappuri_GetListIDByName(IN ACL_NAME_ID_S *pstNameID)
     return BS_OK;
 }
 
-/* 增加List引用计数 */
+
 static BS_STATUS _aclappuri_AddListRef(IN CHAR *pcListName)
 {
     BS_STATUS eRet;
@@ -183,9 +183,9 @@ BS_STATUS AclAppURI_Init()
 }
 
 
-/* CMD */
 
-/* uri-acl %STRING */
+
+
 PLUG_API BS_STATUS AclAppURI_EnterListView(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS eRet;
@@ -203,7 +203,7 @@ PLUG_API BS_STATUS AclAppURI_EnterListView(IN UINT uiArgc, IN CHAR **ppcArgv, IN
     return BS_OK;
 }
 
-/* no uri-acl %STRING */
+
 PLUG_API BS_STATUS AclAppURI_CmdNoList(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS eRet;
@@ -220,7 +220,7 @@ PLUG_API BS_STATUS AclAppURI_CmdNoList(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOI
     return eRet;
 }
 
-/* move rule %INT to %INT */
+
 PLUG_API BS_STATUS AclAppURI_CmdMoveRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName;
@@ -250,8 +250,8 @@ PLUG_API BS_STATUS AclAppURI_CmdMoveRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN V
     return eRet;
 }
 
-/* rule %INT<1-1000> uri %STRING<1-255> action {permit | deny} */
-/* [no] rule %IN%<1-1000> */
+
+
 PLUG_API BS_STATUS AclAppURI_CmdCfgRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName;
@@ -285,7 +285,7 @@ PLUG_API BS_ACTION_E ACLURI_Match(IN UINT ulListID, IN URI_ACL_MATCH_INFO_S *pst
     return enAction;
 }
 
-/*match %STRING<1-255>*/
+
 PLUG_API BS_STATUS ACLURI_Match_Test(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName;

@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_DCUTL
 
 #include "bs.h"
@@ -25,7 +25,7 @@ typedef struct
 static BS_STATUS dc_NotSupport();
 static BOOL_T dc_NotSupportBool();
 
-/* 变量定义 */
+
 static DC_PROTO_TBL_S g_stDcXmlProtoTbl = 
 {
     DC_XML_OpenInstance,
@@ -81,7 +81,7 @@ static BOOL_T dc_NotSupportBool()
     return FALSE;
 }
 
-static BS_WALK_RET_E dc_WalkObjectCb(IN DC_DATA_S *pstKey, IN HANDLE hUserHandle)
+static int dc_WalkObjectCb(IN DC_DATA_S *pstKey, IN HANDLE hUserHandle)
 {
     USER_HANDLE_S *pstUserHandle = (USER_HANDLE_S *)hUserHandle;
     PF_DC_WALK_OBJECT_CB_FUNC pfFunc = (PF_DC_WALK_OBJECT_CB_FUNC)pstUserHandle->ahUserHandle[0];
@@ -89,7 +89,7 @@ static BS_WALK_RET_E dc_WalkObjectCb(IN DC_DATA_S *pstKey, IN HANDLE hUserHandle
     return pfFunc(pstKey, pstUserHandle->ahUserHandle[1]);
 }
 
-static BS_WALK_RET_E dc_WalkTableCb(IN CHAR *pcTable, IN HANDLE hUserHandle)
+static int dc_WalkTableCb(IN CHAR *pcTable, IN HANDLE hUserHandle)
 {
     USER_HANDLE_S *pstUserHandle = (USER_HANDLE_S *)hUserHandle;
     PF_DC_WALK_TBL_CB_FUNC pfFunc = (PF_DC_WALK_TBL_CB_FUNC)pstUserHandle->ahUserHandle[0];

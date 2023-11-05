@@ -29,7 +29,7 @@ BS_STATUS WSAPP_Init()
     return BS_OK;
 }
 
-/* save */
+
 PLUG_API BS_STATUS WSAPP_Save(IN HANDLE hFile)
 {
     WSAPP_CfgLock_RLock();

@@ -36,4 +36,4 @@ void TcpFinger_DefaultFinger(char *finger);
 #ifdef __cplusplus
 }
 #endif
-#endif //TCP_FINGER_H_
+#endif 

@@ -13,7 +13,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS SVPN_ULM_Init();
 UINT SVPN_ULM_AddUser(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN CHAR *pcUserName, IN UINT uiUserType);
@@ -42,8 +42,8 @@ BOOL_T SVPN_ULM_CheckWebProxyPermit(IN SVPN_CONTEXT_HANDLE hSvpnContext, IN UINT
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_ULM_H_*/
+#endif 
 
 

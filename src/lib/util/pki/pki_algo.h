@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 const EVP_MD *PKI_ALGO_GetDigestMethodByHashAlgoId(IN PKI_HASH_ALGMETHOD_E enHash);
 VOID PKI_ALGO_add_all_algorithms(VOID);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__PKI_ALGO_H_*/
+#endif 
 
 

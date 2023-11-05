@@ -25,7 +25,7 @@
 #include "vnets_web_vldcode.h"
 #include "vnets_web_ulm.h"
 
-/* 定义用户类型, 占用Flag的低8位 */
+
 #define VNETS_WEB_USER_TYPE_ANONYMOUS  0x1
 #define VNETS_WEB_USER_TYPE_USER       0x2
 #define VNETS_WEB_USER_TYPE_ALL        0xff
@@ -584,29 +584,29 @@ static BS_STATUS vnets_webkf_SysRebootDomain(IN MIME_HANDLE hMime, IN VNETS_WEB_
 static _VNETS_KF_MAP_S g_astVnetsWebKfMap[] =
 {
     {VNETS_WEB_USER_TYPE_ALL,
-        "vldimg",   vnets_webkf_VldImg}, /* 图片验证码 */
+        "vldimg",   vnets_webkf_VldImg}, 
     {VNETS_WEB_USER_TYPE_ALL,
-        "User.Reg", vnets_webkf_UserReg}, /* 注册用户 */
+        "User.Reg", vnets_webkf_UserReg}, 
     {VNETS_WEB_USER_TYPE_ALL,
-        "User.ChangePassword", vnets_webkf_UserChangePassword}, /* 注册用户 */
+        "User.ChangePassword", vnets_webkf_UserChangePassword}, 
     {VNETS_WEB_USER_TYPE_ALL,
-        "User.IsExist", vnets_webkf_UserIsExist}, /* 判断用户是否存在 */
+        "User.IsExist", vnets_webkf_UserIsExist}, 
     {VNETS_WEB_USER_TYPE_ALL,
-        "User.Login", vnets_webkf_UserLogin}, /* 用户登录 */
+        "User.Login", vnets_webkf_UserLogin}, 
     {VNETS_WEB_USER_TYPE_USER,
-        "User.Info", vnets_webkf_UserInfo},  /* 用户信息 */
+        "User.Info", vnets_webkf_UserInfo},  
     {VNETS_WEB_USER_TYPE_USER,
-        "User.Logout", vnets_webkf_UserLogout},  /* 用户信息 */
+        "User.Logout", vnets_webkf_UserLogout},  
     {VNETS_WEB_USER_TYPE_USER,
-        "OnlineUser.List", vnets_webkf_OlUserList},  /* 用户信息 */
+        "OnlineUser.List", vnets_webkf_OlUserList},  
     {VNETS_WEB_USER_TYPE_USER,
-        "OnlineUser.Delete", vnets_webkf_OlUserDelete},  /* 用户信息 */
+        "OnlineUser.Delete", vnets_webkf_OlUserDelete},  
     {VNETS_WEB_USER_TYPE_USER,
-        "Dhcp.IpConfig", vnets_webkf_DhcpConfigIP},  /* 用户信息 */
+        "Dhcp.IpConfig", vnets_webkf_DhcpConfigIP},  
     {VNETS_WEB_USER_TYPE_USER,
-        "Dhcp.GetIpConfig", vnets_webkf_GetDhcpConfigIP},  /* 用户信息 */
+        "Dhcp.GetIpConfig", vnets_webkf_GetDhcpConfigIP},  
     {VNETS_WEB_USER_TYPE_USER,
-        "Sys.RebootDomain", vnets_webkf_SysRebootDomain},  /* 用户信息 */
+        "Sys.RebootDomain", vnets_webkf_SysRebootDomain},  
 };
 
 

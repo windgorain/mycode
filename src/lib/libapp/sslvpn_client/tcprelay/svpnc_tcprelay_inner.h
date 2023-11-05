@@ -15,18 +15,18 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
 typedef struct
 {
     FSM_S stFsm;
-    UINT uiServerIP;        /* 内网服务IP, 主机序 */
-    USHORT usServerPort;    /* 内网服务端口, 主机序 */
+    UINT uiServerIP;        
+    USHORT usServerPort;    
     CONN_HANDLE hDownConn;
     CONN_HANDLE hUpConn;
-    VBUF_S stDownVBuf;   /* 缓冲从down方向收到的数据 */
-    VBUF_S stUpVBuf;     /* 缓冲从up方向收到的数据 */
+    VBUF_S stDownVBuf;   
+    VBUF_S stUpVBuf;     
     HTTP_HEAD_PARSER hHttpHeadParser;
 }SVPNC_TCPRELAY_NODE_S;
 
@@ -41,8 +41,8 @@ MYPOLL_HANDLE SVPNC_TR_GetMyPoller();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPNC_TCPRELAY_INNER_H_*/
+#endif 
 
 

@@ -8,23 +8,23 @@
 	#error "在包含此文件之前包含“stdafx.h”以生成 PCH 文件"
 #endif
 
-#include "resource.h"		// 主符号
+#include "resource.h"		
 
 
-// CupdateApp:
-// 有关此类的实现，请参阅 update.cpp
-//
+
+
+
 
 class CupdateApp : public CWinApp
 {
 public:
 	CupdateApp();
 
-// 重写
+
 public:
 	virtual BOOL InitInstance();
 
-// 实现
+
 
 	DECLARE_MESSAGE_MAP()
 };

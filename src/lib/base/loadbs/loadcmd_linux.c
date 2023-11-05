@@ -20,21 +20,21 @@
 
 
 static BOOL_T g_bLoadCmdIsCursesInit = FALSE;
-static UINT g_uiLoadcmdIsRunningCmd = 0;     /* 是否正在运行命令行 */
-static UINT g_uiLoadcmdShouldRunningCmd; /* 是否应该运行命令行 */
+static UINT g_uiLoadcmdIsRunningCmd = 0;     
+static UINT g_uiLoadcmdShouldRunningCmd; 
 
 
-/* 下面三个函数主要用户Linux下的立即输出 */
+
 static BS_STATUS loadcmd_lnx_curses_Init()
 {
     if (g_bLoadCmdIsCursesInit == FALSE)
     {
-        initscr(); /*   对curses包进行初始化，每个程序中只能调用一次   */
+        initscr(); 
     }
 
-    cbreak(); /*   禁用行缓冲, 打开立即输入模式   */  
-    nonl(); /*   回车键不产生'\n'   */  
-    noecho(); /*   关闭回显模式，默认情况是打开的。   */ 
+    cbreak();   
+    nonl();   
+    noecho();  
 
     g_bLoadCmdIsCursesInit = TRUE;
 
@@ -109,7 +109,7 @@ static UCHAR loadcmd_lnx_Getch(HANDLE hExec)
     return getch();
 }
 
-VOID Load_Cmd(IN UINT uiRunCmd/* 0 - 只准备好但不加载命令行. 1 - 加载命令行*/)
+VOID Load_Cmd(IN UINT uiRunCmd)
 {
     UCHAR ucCmdChar;
     HANDLE hHandle;

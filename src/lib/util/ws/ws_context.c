@@ -66,7 +66,7 @@ WS_CONTEXT_HANDLE _WS_Context_Match(IN WS_VHOST_HANDLE hVHost, IN CHAR *pcContex
 {
     _WS_VHOST_S *pstVHost = hVHost;
 
-    /* 除了Dft context外只有一个Context, 则可以直接跳过选择过程 */
+    
     if (DLL_COUNT(&pstVHost->stContexts.stContextList) == 1)
     {
         return DLL_FIRST(&pstVHost->stContexts.stContextList);
@@ -97,7 +97,7 @@ WS_CONTEXT_HANDLE WS_Context_Add
     pstContext = ws_context_Find(pstVHost, pcDomain);
     if (NULL != pstContext)
     {
-        return NULL;  /* 冲突了 */
+        return NULL;  
     }
 
     return ws_context_Add(pstVHost, pcDomain);

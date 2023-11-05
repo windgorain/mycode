@@ -26,7 +26,7 @@ typedef struct {
 }LUA_FM_S;
 
 typedef struct {
-    int type;  /* LUA_FM_PARAM_TYPE_E */
+    int type;  
     char *name;
     void *value;
 }LUA_PARAM_S;
@@ -50,11 +50,11 @@ void luaFM_Del(LUA_FM_S *lfm, LUA_FILE_S *luaf);
 LUA_FILE_S * LuaFM_Find(LUA_FM_S *lfm, char *file);
 int LuaFM_MallocAndAdd(LUA_FM_S *lfm, char *file);
 int LuaFM_DelAndFree(LUA_FM_S *lfm, char *file);
-LUA_FILE_S * LuaFM_Next(LUA_FM_S *lfm, LUA_FILE_S *curr/*NULL表示获取第一个*/);
+LUA_FILE_S * LuaFM_Next(LUA_FM_S *lfm, LUA_FILE_S *curr);
 int LuaFM_EnvAddParam(LUA_ENV_S *env, int type, char *name, void *value);
 int LuaFM_Call(LUA_FM_S *lfm, LUA_ENV_S *env);
 
 #ifdef __cplusplus
 }
 #endif
-#endif //LUA_FILE_MGR_H_
+#endif 

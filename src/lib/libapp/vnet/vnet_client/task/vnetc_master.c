@@ -10,7 +10,7 @@
 #include "../inc/vnetc_master.h"
 
 
-#define VNETC_MASTER_CLOCK_TIME_OF_TICK 1000 /* 1 tick 包含多少毫秒 */
+#define VNETC_MASTER_CLOCK_TIME_OF_TICK 1000 
 
 
 static TASK_MASTER_HANDLE g_hVnetcTaskMaster = NULL;
@@ -28,7 +28,7 @@ BS_STATUS VNETC_Master_Init()
 
 BS_STATUS VNETC_Master_SetEvent
 (
-    IN UINT uiEventOffset, /* 0-15 */
+    IN UINT uiEventOffset, 
     IN PF_TASK_MASTER_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle
 )
@@ -48,7 +48,7 @@ BS_STATUS VNETC_Master_MsgInput ( PF_TASK_MASTER_FUNC pfFunc, void *ud)
 
 VCLOCK_HANDLE VNETC_Master_AddTimer
 (
-    IN UINT uiTime,  /* ms */
+    IN UINT uiTime,  
     IN UINT flag,
     IN PF_TIME_OUT_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle

@@ -25,4 +25,4 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-#endif //STUB_BS_H_
+#endif 

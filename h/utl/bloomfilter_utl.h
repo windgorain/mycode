@@ -13,7 +13,7 @@ extern "C"
 typedef struct {
     BITMAP_S stBitMap;
     UINT uiFlag;
-    UINT uiStepCount; /*每次Step清空多少Bits, 0表示一次性清空所有*/
+    UINT uiStepCount; 
     UINT uiStepNow;
     UINT uiSettdSteps;
     UINT64 uiOldTs;
@@ -26,7 +26,7 @@ void BloomFilter_SetStepsToClearAll(BLOOM_FILTER_S *pstBloomFilter, UINT uiSteps
 void BloomFilter_SetAutoStep(BLOOM_FILTER_S *pstBloomFilter, int enable);
 UINT BloomFilter_IsSet(IN BLOOM_FILTER_S *pstBloomFilter, IN VOID *pData, IN UINT uiDataLen);
 void BloomFilter_Set(BLOOM_FILTER_S *pstBloomFilter, void *pData, UINT uiDataLen);
-/* 成功返回0,失败返回-1 */
+
 int BloomFilter_TrySet(IN BLOOM_FILTER_S *pstBloomFilter, IN VOID *pData, IN UINT uiDataLen);
 void BloomFilter_Copy(BLOOM_FILTER_S *src, BLOOM_FILTER_S *dst);
 void BloomFilter_Or(BLOOM_FILTER_S *src1, BLOOM_FILTER_S *src2, BLOOM_FILTER_S *dst);
@@ -35,4 +35,4 @@ void BloomFilter_Step(IN BLOOM_FILTER_S *pstBloomFilter);
 #ifdef __cplusplus
 }
 #endif
-#endif //BLOOMFILTER_UTL_H_
+#endif 

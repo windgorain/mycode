@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 struct tag_KA;
 
@@ -21,9 +21,9 @@ typedef VOID (*PF_KA_FAILED)(IN struct tag_KA *pstKa);
 
 typedef struct
 {
-    USHORT usIdle;   /* 空闲Tick数目,这么多tick之后开始触发探测,0表示永不触发*/
-    USHORT usIntval; /* 探测间隔Tick */
-    USHORT usMaxProbeCount; /* 最大探测次数 */
+    USHORT usIdle;   
+    USHORT usIntval; 
+    USHORT usMaxProbeCount; 
     PF_KA_SEND_KEEP_ALIVE pfSendKeepAlive;
     PF_KA_FAILED pfKeepAliveFailed;
 }KA_SET_S;
@@ -31,15 +31,15 @@ typedef struct
 typedef struct
 {
     VCLOCK_INSTANCE_HANDLE hVClockInstance;
-    USHORT usProbeCount; /* 已经探测过几次连续失败了 */
+    USHORT usProbeCount; 
     VCLOCK_NODE_S vclock;
 }_KA_INNER_VAR_S;
 
 typedef struct tag_KA
 {
-    KA_SET_S stSet; /* 需要使用者填写 */
+    KA_SET_S stSet; 
     USER_HANDLE_S stUserHandle;
-    _KA_INNER_VAR_S stInnerVar; /* KA内部使用的变量,使用者不需要关心 */
+    _KA_INNER_VAR_S stInnerVar; 
 }KA_S;
 
 
@@ -54,8 +54,8 @@ VOID KA_Reset(IN KA_S *pstKaConfig);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__KA_UTL_H_*/
+#endif 
 
 

@@ -4,7 +4,7 @@
 * Description:  makr_key_value 树管理
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_MKV
     
 #include "bs.h"
@@ -76,7 +76,7 @@ MKV_MARK_S * MKV_GetLastMarkOfLevel(MKV_MARK_S *pstRoot, IN UINT ulLevel)
     return pstMark;    
 }
 
-/* 新添加一个Mark，不覆盖已有Mark */
+
 MKV_MARK_S * MKV_AddMark2Mark(IN MKV_MARK_S *pstRoot, IN CHAR *pszMarkName, IN BOOL_T bCopy)
 {
     MKV_MARK_S *pstMark;
@@ -408,7 +408,7 @@ BS_STATUS MKV_DelMark(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks)
     return BS_OK;
 }
 
-/* 覆盖已经重复的Mark */
+
 BS_STATUS MKV_AddMark(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks, IN BOOL_T bSort)
 {
     MKV_MARK_S *pstMark;
@@ -492,7 +492,7 @@ CHAR * MKV_GetNextMarkInMark(IN MKV_MARK_S *pstRoot, IN CHAR *pcCurMarkName)
     return NULL;
 }
 
-CHAR * MKV_GetMarkByIndexInMark(IN MKV_MARK_S *pstRoot, IN UINT uiIndex/* 从0开始计算 */)
+CHAR * MKV_GetMarkByIndexInMark(IN MKV_MARK_S *pstRoot, IN UINT uiIndex)
 {
     MKV_MARK_S *pstMark;
     UINT i = 0;
@@ -523,7 +523,7 @@ CHAR * MKV_GetNextMark(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks, IN CHA
     return MKV_GetNextMarkInMark(pstMarkRoot, pcCurMarkName);
 }
 
-CHAR * MKV_GetMarkByIndex(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks, IN UINT uiIndex/* 从0开始计算 */)
+CHAR * MKV_GetMarkByIndex(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks, IN UINT uiIndex)
 {
     MKV_MARK_S *pstMarkRoot;
 
@@ -797,7 +797,7 @@ BOOL_T MKV_IsKeyExist(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks, IN CHAR
     return TRUE;
 }
 
-/* 返回Mark的个数 */
+
 UINT MKV_GetMarkNumInMark(IN MKV_MARK_S *pstMark)
 {
     if (NULL == pstMark)
@@ -821,7 +821,7 @@ UINT MKV_GetSectionNum(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks)
     return MKV_GetMarkNumInMark(pstMark);
 }
 
-/* 获取重复的mark名 */
+
 char * MKV_GetMarkDuplicate(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks)
 {
     MKV_MARK_S *pstMark;
@@ -844,7 +844,7 @@ char * MKV_GetMarkDuplicate(IN MKV_MARK_S *pstRoot, IN MKV_X_PARA_S *pstMarks)
     return NULL;
 }
 
-/* 返回Mark中属性的个数 */
+
 UINT MKV_GetKeyNumOfMark(IN MKV_MARK_S *pstMark)
 {
     if (NULL == pstMark)
@@ -859,10 +859,8 @@ VOID MKV_WalkMarkInMark(IN MKV_MARK_S *pstRoot, IN PF_MKV_MARK_WALK_FUNC pfFunc,
 {
     MKV_MARK_S *pstNode, *pstNodeTmp;
     
-    DLL_SAFE_SCAN(&pstRoot->stSectionDllHead, pstNode, pstNodeTmp)
-    {
-        if (BS_WALK_STOP == pfFunc(pstRoot, pstNode, hUserHandle))
-        {
+    DLL_SAFE_SCAN(&pstRoot->stSectionDllHead, pstNode, pstNodeTmp) {
+        if (pfFunc(pstRoot, pstNode, hUserHandle) < 0) {
             break;
         }
     }
@@ -872,10 +870,8 @@ VOID MKV_WalkKeyInMark(IN MKV_MARK_S *pstRoot, IN PF_MKV_KEY_WALK_FUNC pfFunc, I
 {
     MKV_KEY_S *pstKey, *pstKeyTmp;
     
-    DLL_SAFE_SCAN(&pstRoot->stKeyValueDllHead, pstKey, pstKeyTmp)
-    {
-        if (BS_WALK_STOP == pfFunc(pstRoot, pstKey, hUserHandle))
-        {
+    DLL_SAFE_SCAN(&pstRoot->stKeyValueDllHead, pstKey, pstKeyTmp) {
+        if (pfFunc(pstRoot, pstKey, hUserHandle) < 0) {
             break;
         }
     }

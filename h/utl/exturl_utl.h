@@ -18,13 +18,9 @@ typedef struct
 	USHORT usPort;
 }EXTURL_S;
 
-/* 
- 扩展的URL地址解析.
-   通常的地址是 http://xxx.com:port;  https://xxx.com:port
-   扩展一下可以为: yyy://xxx.com:port
-*/
 
-/* 解析地址,将地址解析为协议/地址/端口 */
+
+
 BS_STATUS EXTURL_Parse
 (
 	IN CHAR *pcExtUrl,
@@ -33,7 +29,7 @@ BS_STATUS EXTURL_Parse
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /* __UTL_EXTURL_H_ */
+#endif 
 

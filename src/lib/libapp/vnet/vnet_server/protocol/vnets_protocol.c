@@ -16,7 +16,7 @@
 
 #define VNETS_PROTOCOL_NEED_AUTHED 0x1
 
-/* Debug 选项 */
+
 #define _VNETS_PROTOCOL_DBG_PACKET 0x1
 #define _VNETS_PROTOCOL_DBG_ERROR  0x2
 
@@ -136,13 +136,13 @@ BS_STATUS VNETS_Protocol_Init()
 }
 
 
-/* debug protocol packet */
+
 PLUG_API VOID VNETS_Protocol_DebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetsProtocolDebugFlag |= _VNETS_PROTOCOL_DBG_PACKET;
 }
 
-/* no debug protocol packet */
+
 PLUG_API VOID VNETS_Protocol_NoDebugPacket(IN UINT ulArgc, IN CHAR **argv)
 {
     g_ulVnetsProtocolDebugFlag &= ~_VNETS_PROTOCOL_DBG_PACKET;

@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID (*PF_NAP_DESTORY)(IN NAP_HANDLE hNAPHandle);
 typedef VOID* (*PF_NAP_Alloc)(IN HANDLE hNapHandle, IN UINT uiIndex);
@@ -24,8 +24,8 @@ typedef struct
     BOOL_T bEnable;
     UINT   ulSeqMask;
     UCHAR  ucSeqStartIndex;
-    USHORT *seq_array;  /* 序列数数组 */
-    UINT   uiSeqArrayCount;  /* 序列数数组的长度 */
+    USHORT *seq_array;  
+    UINT   uiSeqArrayCount;  
 }_NAP_SEQ_OPT_S;
 
 typedef struct
@@ -42,7 +42,7 @@ typedef struct
     PF_NAP_GetNodeByIndex pfGetNodeByIndex;
 }_NAP_FUNC_TBL_S;
 
-/* 所有类型NAP头的公共头,必须放在NAP头的开始 */
+
 typedef struct
 {
     _NAP_FUNC_TBL_S *pstFuncTbl;
@@ -50,7 +50,7 @@ typedef struct
     UINT uiNodeSize;
     UINT uiFlag;
     UINT uiCount;
-    UINT ulIndexMask; /* Index Mask */
+    UINT ulIndexMask; 
     LBITMAP_HANDLE hLBitmap;
     _NAP_SEQ_OPT_S stSeqOpt;
     void *memcap;
@@ -63,8 +63,8 @@ _NAP_HEAD_COMMON_S * _NAP_AvlCreate(NAP_PARAM_S *p);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__NAP_INNER_H_*/
+#endif 
 
 

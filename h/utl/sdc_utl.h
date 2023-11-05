@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID* SDC_HANDLE;
 
@@ -26,8 +26,8 @@ SDC_HANDLE SDC_INI_Create(IN CHAR *pcIniFileName);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SDC_UTL_H_*/
+#endif 
 
 

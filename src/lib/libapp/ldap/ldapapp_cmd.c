@@ -10,7 +10,7 @@
 
 #include "ldapapp_inner.h"
 
-/* ldap-schema xxx */
+
 PLUG_API BS_STATUS LDAPAPP_CmdEnterSchemaView(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS eRet = BS_OK;
@@ -31,7 +31,7 @@ PLUG_API BS_STATUS LDAPAPP_CmdEnterSchemaView(IN UINT uiArgc, IN CHAR **ppcArgv,
     return eRet;
 }
 
-/* no ldap-schema xxx */
+
 PLUG_API BS_STATUS LDAPAPP_CmdNoSchemaView(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     LDAPAPP_Lock();
@@ -41,7 +41,7 @@ PLUG_API BS_STATUS LDAPAPP_CmdNoSchemaView(IN UINT uiArgc, IN CHAR **ppcArgv, IN
     return BS_OK;
 }
 
-/* description xxx */
+
 PLUG_API BS_STATUS LDAPAPP_CmdDescription(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcName;
@@ -62,7 +62,7 @@ PLUG_API BS_STATUS LDAPAPP_CmdDescription(IN UINT uiArgc, IN CHAR **ppcArgv, IN 
     return BS_OK;
 }
 
-/* server-address xxx [port xxx] */
+
 PLUG_API BS_STATUS LDAPAPP_CmdServerAddress(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcName;

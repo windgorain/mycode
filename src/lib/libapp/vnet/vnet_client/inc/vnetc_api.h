@@ -53,9 +53,9 @@ BS_STATUS VNETC_API_Init();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_API_H_*/
+#endif 
 
 
 

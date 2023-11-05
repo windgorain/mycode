@@ -13,7 +13,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define VNETS_WEB_FLAG_EMPTY_JSON 0x1
 
@@ -42,8 +42,8 @@ BS_STATUS VNETS_WebKf_Run(IN VNETS_WEB_S *pstDweb);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETS_WEB_INNER_H_*/
+#endif 
 
 

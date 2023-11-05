@@ -32,7 +32,7 @@ static inline void my_read_trace_pipe(void)
 		sz = read(trace_fd, buf, sizeof(buf));
 		if (sz > 0) {
 			buf[sz] = 0;
-			puts(buf);
+			printf("%s", buf);
 		}
 	}
 }

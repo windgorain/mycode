@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 CHAR * VNETC_RMT_GetDomainName();
 CHAR * VNETC_RMT_GetUserName();
@@ -19,8 +19,8 @@ int VNETC_RMT_SetUserConfig(U64 p1, U64 p2, U64 p3);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_RMT_H_*/
+#endif 
 
 

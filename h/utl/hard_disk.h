@@ -16,4 +16,4 @@ int HD_GetDiskSN(OUT char *sn, IN int size);
 #ifdef __cplusplus
 }
 #endif
-#endif //HARD_DISK_H_
+#endif 

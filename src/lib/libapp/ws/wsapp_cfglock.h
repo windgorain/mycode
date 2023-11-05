@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 VOID WSAPP_CfgLock_Init();
 VOID WSAPP_CfgLock_RLock();
@@ -20,8 +20,8 @@ VOID WSAPP_CfgLock_WUnLock();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WSAPP_CFGLOCK_H_*/
+#endif 
 
 

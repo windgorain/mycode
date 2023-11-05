@@ -13,9 +13,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define SVPN_IPTUN_NODE_FLAG_FREED 0x1 /* 已经释放标记 */
+#define SVPN_IPTUN_NODE_FLAG_FREED 0x1 
 
 typedef struct
 {
@@ -43,8 +43,8 @@ SVPN_IPTUN_NODE_S * SVPN_IpTunNode_Find(IN UINT uiVirtualIP);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_IPTUN_NODE_H_*/
+#endif 
 
 

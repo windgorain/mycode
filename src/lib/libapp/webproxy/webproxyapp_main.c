@@ -14,7 +14,7 @@
 
 #include "webproxyapp_main.h"
 
-#define WEB_PROXY_APP_CTX_WORKER_NUM 4  /* 必须是2的指数方次, 下面的mask才有意义 */
+#define WEB_PROXY_APP_CTX_WORKER_NUM 4  
 #define WEB_PROXY_APP_SSL_CTX_WORKER_MASK (WEB_PROXY_APP_CTX_WORKER_NUM - 1)
 
 static WEB_PROXY_HANDLE g_hWebProxyApp = NULL;
@@ -113,28 +113,28 @@ WS_DELIVER_RET_E WebProxyApp_Main_AuthIn(IN WS_TRANS_HANDLE hTrans, IN UINT uiEv
     return WS_DELIVER_RET_OK;
 }
 
-/* debug web-proxy packet */
+
 PLUG_API BS_STATUS WebProxyApp_Main_DebugPacket(IN UINT ulArgc, IN UCHAR **argv, IN VOID *pEnv)
 {
     WEB_Proxy_SetDgbFlag(g_hWebProxyApp, WEB_PROXY_DBG_FLAG_PACKET);
     return BS_OK;
 }
 
-/* no debug web-proxy packet */
+
 PLUG_API BS_STATUS WebProxyApp_Main_NoDebugPacket(IN UINT ulArgc, IN UCHAR **argv, IN VOID *pEnv)
 {
     WEB_Proxy_ClrDgbFlag(g_hWebProxyApp, WEB_PROXY_DBG_FLAG_PACKET);
     return BS_OK;
 }
 
-/* debug web-proxy fsm */
+
 PLUG_API BS_STATUS WebProxyApp_Main_DebugFsm(IN UINT ulArgc, IN UCHAR **argv, IN VOID *pEnv)
 {
     WEB_Proxy_SetDgbFlag(g_hWebProxyApp, WEB_PROXY_DBG_FLAG_FSM);
     return BS_OK;
 }
 
-/* no debug web-proxy fsm */
+
 PLUG_API BS_STATUS WebProxyApp_Main_NoDebugFsm(IN UINT ulArgc, IN UCHAR **argv, IN VOID *pEnv)
 {
     WEB_Proxy_ClrDgbFlag(g_hWebProxyApp, WEB_PROXY_DBG_FLAG_FSM);

@@ -4,14 +4,14 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETC_PeerInfo_StartPeerInfoRequest(IN UINT uiNodeID);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_PEER_INFO_H_*/
+#endif 
 
 

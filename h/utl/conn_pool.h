@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 extern BS_STATUS CONN_POOL_Create(IN UINT ulMaxNodeNum, OUT HANDLE *phHandle);
 extern BS_STATUS CONN_POOL_Delete(IN HANDLE hHandle);
@@ -20,8 +20,8 @@ extern BS_STATUS CONN_POOL_DelByConnHandle(IN HANDLE hHandle, IN UINT ulConnHand
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__CONN_POOL_H_*/
+#endif 
 
 

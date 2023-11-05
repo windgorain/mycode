@@ -21,4 +21,4 @@ int CIOCTL_SERVER_Enable();
 #ifdef __cplusplus
 }
 #endif
-#endif //CIOCTL_SERVER_H_
+#endif 

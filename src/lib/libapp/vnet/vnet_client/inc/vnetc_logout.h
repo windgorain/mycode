@@ -10,7 +10,7 @@ BS_STATUS VNETC_Logout_SendLogoutMsg();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_LOGOUT_H_*/
+#endif 
 

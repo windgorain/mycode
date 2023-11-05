@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNET_TP_H_*/
+#endif 
 

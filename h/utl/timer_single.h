@@ -10,7 +10,7 @@ extern "C"
 {
 #endif
 
-HANDLE TimerSingle_Create(UINT time/*ms*/, UINT flag, PF_TIME_OUT_FUNC func, USER_HANDLE_S *user_data);
+HANDLE TimerSingle_Create(UINT time, UINT flag, PF_TIME_OUT_FUNC func, USER_HANDLE_S *user_data);
 BS_STATUS TimerSingle_Delete(HANDLE timer);
 BS_STATUS TimerSingle_GetInfo(HANDLE timer, OUT TIMER_INFO_S *info);
 BS_STATUS TimerSingle_Pause(HANDLE timer);
@@ -20,4 +20,4 @@ BS_STATUS TimerSingle_ReSetTime(HANDLE timer, UINT ulTime);
 #ifdef __cplusplus
 }
 #endif
-#endif //TIMER_SINGLE_H_
+#endif 

@@ -16,7 +16,7 @@
 #include "utl/http_lib.h"
 #include "utl/http_auth.h"
 
-#define HTTP_AUTH_BASIC_TITLE_LEN  6             /* "Basic "的长度 */
+#define HTTP_AUTH_BASIC_TITLE_LEN  6             
 
 #define _HTTP_AUTH_DIGEST_REALM_MAX_LEN 127
 #define _HTTP_AUTH_DIGEST_NONCE_MAX_LEN 127
@@ -30,11 +30,11 @@
 
 typedef struct
 {
-    CHAR szRealm[_HTTP_AUTH_DIGEST_REALM_MAX_LEN + 1];     /* 必选，直接copy */
-    CHAR szNonce[_HTTP_AUTH_DIGEST_NONCE_MAX_LEN + 1];      /* 必选，直接copy */
-    CHAR szOpaque[_HTTP_AUTH_DIGEST_OPAQUE_MAX_LEN + 1];     /* 可选，直接copy */
-    CHAR szAlgorithm[_HTTP_AUTH_DIGEST_ALGORITHM_MAX_LEN + 1];  /* 可选，直接copy */
-    CHAR szQop[_HTTP_AUTH_DIGEST_QOP_MAX_LEN + 1];        /* 可选，判断支持不支持认证 */
+    CHAR szRealm[_HTTP_AUTH_DIGEST_REALM_MAX_LEN + 1];     
+    CHAR szNonce[_HTTP_AUTH_DIGEST_NONCE_MAX_LEN + 1];      
+    CHAR szOpaque[_HTTP_AUTH_DIGEST_OPAQUE_MAX_LEN + 1];     
+    CHAR szAlgorithm[_HTTP_AUTH_DIGEST_ALGORITHM_MAX_LEN + 1];  
+    CHAR szQop[_HTTP_AUTH_DIGEST_QOP_MAX_LEN + 1];        
     CHAR szCNonce[_HTTP_AUTH_DIGEST_CNONCE_MAX_LEN + 1];
 
     volatile int nc;
@@ -43,16 +43,14 @@ typedef struct
 }_HTTP_AUTH_DIGEST_S;
 
 
-/* 存储认证信息 */
+
 typedef struct
 {
     UINT uiNc;
     CHAR szResponse[2*MD5_LEN+1];
 }HTTP_AUTH_RET_S;
 
-/*****************************************************************************
-判断认证信息中的qop域是否包含关键字auth(全字匹配)
-******************************************************************************/
+
 static BOOL_T http_auth_IsQopAuth(IN CHAR *pcQop)
 {
     ULONG ulTokenLen = 0;
@@ -73,7 +71,7 @@ static BOOL_T http_auth_IsQopAuth(IN CHAR *pcQop)
         pcTmp = pcQop+ulOffset;
         pcFind = TXT_Strnchr(pcTmp, ',', strlen(pcTmp));
         ulTokenLen = pcFind - pcTmp;
-        /* 没有"," */
+        
         if (NULL == pcFind)
         {
             if (0 == (LONG)stricmp("auth", pcQop+ulOffset))
@@ -84,7 +82,7 @@ static BOOL_T http_auth_IsQopAuth(IN CHAR *pcQop)
         }
         else
         {
-            /* 找到了但长度不相同 */
+            
             if (ulTokenLen != (ULONG)strlen("auth"))
             {
                 ulOffset += (ulTokenLen + 1);
@@ -106,21 +104,17 @@ static BOOL_T http_auth_IsQopAuth(IN CHAR *pcQop)
 }
 
 
-/*****************************************************************************
-  生成认证中的cnonce码
-******************************************************************************/
+
 VOID http_auth_GenerateCnonce(IN CHAR *pcCnonce)
 {
-    ULONG ulRetTimeInSec = 0;  /* 获取1970/1/1-00:00:00以来的秒数 */
+    ULONG ulRetTimeInSec = 0;  
 
-    /* 获取系统绝对时间 */
+    
     ulRetTimeInSec = (ULONG) TM_NowInSec();
     sprintf(pcCnonce, "%lx", ulRetTimeInSec);
 }
 
-/*****************************************************************************
-计算认证码, 当前只支持md5加密算法,所以所有的加密都是以md5形式实现
-******************************************************************************/
+
 static BS_STATUS http_auth_CalcAuthCode
 (
     IN _HTTP_AUTH_DIGEST_S *pstCtrl,
@@ -132,11 +126,11 @@ static BS_STATUS http_auth_CalcAuthCode
     UCHAR ucQopFlag = FALSE;
     CHAR *pcPassword;
     MD5_CTX stContext;
-    UCHAR szDigest[MD5_LEN];/* 计算出的认证码 */
-    CHAR szHexDigestFinal[2*MD5_LEN + 1];/* 最终的认证码 */
-    CHAR szHexDigestA1[2*MD5_LEN + 1];/* 存储A1字符串形式的认证码 */
-    CHAR szHexDigestA2[2*MD5_LEN + 1];/* 存储A2字符串形式的认证码 */
-    CHAR szNcValue[_HTTP_AUTH_NC_LEN + 1];/* 转化为字符串的nc-value */
+    UCHAR szDigest[MD5_LEN];
+    CHAR szHexDigestFinal[2*MD5_LEN + 1];
+    CHAR szHexDigestA1[2*MD5_LEN + 1];
+    CHAR szHexDigestA2[2*MD5_LEN + 1];
+    CHAR szNcValue[_HTTP_AUTH_NC_LEN + 1];
 
     if (NULL == pstCtrl)
     {
@@ -151,7 +145,7 @@ static BS_STATUS http_auth_CalcAuthCode
         pstAuthRet->uiNc = ATOM_INC_FETCH(&pstCtrl->nc);
         (VOID)snprintf(szNcValue, sizeof(szNcValue), "%08x", pstAuthRet->uiNc);
     }
-    /* 不支持模式(auth-int),或无法识别 */
+    
     else if (pstCtrl->szQop[0] != '\0')
     {
         return BS_ERR;
@@ -163,7 +157,7 @@ static BS_STATUS http_auth_CalcAuthCode
         pcPassword = "";
     }
 
-    /* 计算A1的加密摘要 */
+    
     (VOID)Mem_Zero(&stContext, sizeof (MD5_CTX));
     MD5UTL_Init(&stContext);
     Mem_Zero(szDigest, MD5_LEN);
@@ -188,10 +182,10 @@ static BS_STATUS http_auth_CalcAuthCode
     }
 
 
-    /* 计算A2的加密摘要 */
+    
     Mem_Zero(&stContext, sizeof (MD5_CTX));
     Mem_Zero(szDigest, MD5_LEN);
-    /* 注意:由于当前不支持entity-body,所以qop也不支持auth-int */
+    
     MD5UTL_Init(&stContext);
     MD5UTL_Update(&stContext, (UCHAR *)pcMethod, strlen(pcMethod));
     MD5UTL_Update(&stContext, (UCHAR *)":", 1);
@@ -200,13 +194,13 @@ static BS_STATUS http_auth_CalcAuthCode
     DH_Data2HexString(szDigest, MD5_LEN, szHexDigestA2);
 
 
-    /* 计算最后的认证码 */
+    
     (VOID)Mem_Zero(&stContext, sizeof (MD5_CTX));
     (VOID)Mem_Zero(szDigest, MD5_LEN);
     MD5UTL_Init(&stContext);
     MD5UTL_Update(&stContext, (UCHAR *)szHexDigestA1, 2*MD5_LEN);
     MD5UTL_Update(&stContext, (UCHAR *)":", 1);
-    /* 加入HD */
+    
     MD5UTL_Update(&stContext, (UCHAR *)pstCtrl->szNonce, (ULONG)strlen(pstCtrl->szNonce));
     if (TRUE == ucQopFlag)
     {
@@ -257,7 +251,7 @@ BS_STATUS HTTP_AUTH_BasicBuild
     UINT uiPassWordLen;
     UINT uiClearAuthCodeLen;
 
-    /* 参数检测 */
+    
     if ((NULL == pcUserName) || (NULL == pcPassWord))
     {
         return BS_BAD_PARA;
@@ -267,10 +261,10 @@ BS_STATUS HTTP_AUTH_BasicBuild
     uiPassWordLen = strlen(pcPassWord);
     uiClearAuthCodeLen = uiUserNameLen + uiPassWordLen + 1;
 
-    /* 计算BASE64的长度 */
+    
     ulHeaderLen = HTTP_AUTH_BASIC_TITLE_LEN;
-    ulHeaderLen += uiClearAuthCodeLen * 4/3 + 1; /* BASE64算法结果的长度 */
-    ulHeaderLen ++;  /* \0 */
+    ulHeaderLen += uiClearAuthCodeLen * 4/3 + 1; 
+    ulHeaderLen ++;  
 
     if (ulHeaderLen > HTTP_AUTH_DIGEST_LEN)
     {
@@ -280,7 +274,7 @@ BS_STATUS HTTP_AUTH_BasicBuild
 
     (VOID)snprintf(szTmp, HTTP_AUTH_DIGEST_LEN, "%s:%s", pcUserName, pcPassWord);
 
-    /* 填写认证信息 */
+    
     ulCurrLen += (ULONG)snprintf(szResult + ulCurrLen, ulHeaderLen - ulCurrLen, "Basic ");
     BASE64_Encode((UCHAR*)szTmp, uiClearAuthCodeLen, szResult + ulCurrLen);
 
@@ -314,7 +308,7 @@ HTTP_AUTH_HANDLE HTTP_Auth_ClientCreate()
 BS_STATUS HTTP_Auth_ClientSetAuthContext
 (
     IN HTTP_AUTH_HANDLE hAuthHandle,
-    IN CHAR *pcWwwAuthenticate /* http应答中的WWW-Authenticate */
+    IN CHAR *pcWwwAuthenticate 
 )
 {
     _HTTP_AUTH_DIGEST_S *pstCtrl = hAuthHandle;
@@ -338,7 +332,7 @@ BS_STATUS HTTP_Auth_ClientSetAuthContext
         return BS_NOT_SUPPORT;
     }
 
-    pcAuthInfo += 6;   /* 去掉前面的"Digest " */
+    pcAuthInfo += 6;   
 
     hKv = KV_Create(NULL);
     if (NULL == hKv)
@@ -368,7 +362,7 @@ BS_STATUS HTTP_Auth_ClientSetAuthContext
     pcQop = KV_GetKeyValue(hKv, "qop");
     pcQop = TXT_StrimString(pcQop, "\"");
 
-    /* 获取系统绝对时间 */
+    
     ulRetTimeInSec = (ULONG) TM_NowInSec();
     sprintf(pstCtrl->szCNonce, "%08lx", ulRetTimeInSec);
 
@@ -462,7 +456,7 @@ BS_STATUS HTTP_AUTH_ClientDigestBuild
     CHAR *pcTmp = NULL;
     HTTP_AUTH_RET_S stAuthRet;
 
-    /* 参数检测 */
+    
     if ((NULL == pstCtrl) || (NULL == pcMethod) || (NULL == pcUri))
     {
         return BS_NULL_PARA;
@@ -483,20 +477,20 @@ BS_STATUS HTTP_AUTH_ClientDigestBuild
     pcTmp = szDigest;
     ulHeaderLen = HTTP_AUTH_DIGEST_LEN + 1;
 
-    /* 填写认证信息 */
+    
     ulCurrStrLen += (ULONG)snprintf(pcTmp + ulCurrStrLen, ulHeaderLen - ulCurrStrLen, "%s", "Digest ");
     ulCurrStrLen += (ULONG)snprintf(pcTmp + ulCurrStrLen, ulHeaderLen - ulCurrStrLen,
                           "username=\"%s\",realm=\"%s\",nonce=\"%s\",uri=\"%s\"",
                           pstCtrl->pcUserName, pstCtrl->szRealm, pstCtrl->szNonce, pcUri);
 
-    /* 如果有加密算法信息 */
+    
     if (pstCtrl->szAlgorithm[0] != '\0')
     {
         ulCurrStrLen += (ULONG)snprintf(pcTmp + ulCurrStrLen,
             ulHeaderLen - ulCurrStrLen, ",algorithm=%s", pstCtrl->szAlgorithm);
     }
 
-    /* 如果有qop信息 */
+    
     if (pstCtrl->szQop[0] != '\0')
     {
         ulCurrStrLen += (ULONG)snprintf(pcTmp + ulCurrStrLen, ulHeaderLen - ulCurrStrLen, 
@@ -507,7 +501,7 @@ BS_STATUS HTTP_AUTH_ClientDigestBuild
                                           ",cnonce=\"%s\"", pstCtrl->szCNonce);
     }
 
-    /* 添加密码 */
+    
     ulCurrStrLen += (ULONG)snprintf(pcTmp + ulCurrStrLen, ulHeaderLen - ulCurrStrLen, 
                                         ",response=\"%s\"", stAuthRet.szResponse);
 

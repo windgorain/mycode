@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef VOID* LBITMAP_HANDLE;
 
@@ -21,7 +21,7 @@ typedef struct {
 LBITMAP_HANDLE LBitMap_Create(LBITMAP_PARAM_S *p);
 VOID LBitMap_Destory(IN LBITMAP_HANDLE hLBitMap);
 void LBitMap_Reset(LBITMAP_HANDLE hLBitMap);
-/* 从指定区间分配一个位 */
+
 BS_STATUS LBitMap_AllocByRange
 (
     IN LBITMAP_HANDLE hLBitMap,
@@ -29,7 +29,7 @@ BS_STATUS LBitMap_AllocByRange
     IN UINT uiRangeMax,
     OUT UINT *puiBitIndex
 );
-/* 从指定区间找到一个空闲位, 但不设置上它 */
+
 BS_STATUS LBitMap_TryByRange
 (
     IN LBITMAP_HANDLE hLBitMap,
@@ -45,8 +45,8 @@ BS_STATUS LBitMap_GetNextBusyBit(IN LBITMAP_HANDLE hLBitMap, IN UINT uiCurrentBi
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__BITLEVEL_UTL_H_*/
+#endif 
 
 

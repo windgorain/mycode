@@ -19,7 +19,7 @@ static int precver_cmd_GetWorker(void *env)
     return index;
 }
 
-/* worker %INT<0-31> */
+
 PLUG_API int PRecver_Cmd_EnterWorker(int argc, char **argv, void *env)
 {
     UINT index;
@@ -32,7 +32,7 @@ PLUG_API int PRecver_Cmd_EnterWorker(int argc, char **argv, void *env)
     return BS_OK;
 }
 
-/* no worker %INT<0-31> */
+
 PLUG_API int PRecver_Cmd_NoWorker(int argc, char **argv, void *env)
 {
     UINT index;
@@ -41,7 +41,7 @@ PLUG_API int PRecver_Cmd_NoWorker(int argc, char **argv, void *env)
     return BS_OK;
 }
 
-/* sample packet rate %INT<0-255> */
+
 PLUG_API int PRecver_Cmd_SetWorkersPktSample(int argc, char **argv, void *env)
 {
     UINT rate = 0;
@@ -51,7 +51,7 @@ PLUG_API int PRecver_Cmd_SetWorkersPktSample(int argc, char **argv, void *env)
     return PRecver_Worker_Sample(0, rate, 2);
 }
 
-/* no sample */
+
 PLUG_API int PRecver_Cmd_NoSetWorkersPktSample(int argc, char **argv, void *env)
 {
     UINT rate;
@@ -59,7 +59,7 @@ PLUG_API int PRecver_Cmd_NoSetWorkersPktSample(int argc, char **argv, void *env)
     return PRecver_Worker_NoSample(0, rate, 2);
 }
 
-/* sample %INT */
+
 PLUG_API int PRecver_Cmd_SetWorkerPktSample(int argc, char **argv, void *env)
 {
     UINT rate;
@@ -70,7 +70,7 @@ PLUG_API int PRecver_Cmd_SetWorkerPktSample(int argc, char **argv, void *env)
     return PRecver_Worker_Sample(index, rate, 2);
 }
 
-/* no sample */
+
 PLUG_API int PRecver_Cmd_NoSetWorkerPktSample(int argc, char **argv, void *env)
 {
     UINT rate;
@@ -80,21 +80,21 @@ PLUG_API int PRecver_Cmd_NoSetWorkerPktSample(int argc, char **argv, void *env)
     return PRecver_Worker_NoSample(index, rate, 2);
 }
 
-/* source %STRING */
+
 PLUG_API int PRecver_Cmd_SetWorkerSource(int argc, char **argv, void *env)
 {
     int index = precver_cmd_GetWorker(env);
     return PRecver_Worker_SetSource(index, argv[1]);
 }
 
-/* param %STRING */
+
 PLUG_API int PRecver_Cmd_SetWorkerParam(int argc, char **argv, void *env)
 {
     int index = precver_cmd_GetWorker(env);
     return PRecver_Worker_SetParam(index, argv[1]);
 }
 
-/* affinity %INT */
+
 PLUG_API int PRecver_Cmd_SetWorkerAffinity(int argc, char **argv, void *env)
 {
     int index = precver_cmd_GetWorker(env);
@@ -103,21 +103,21 @@ PLUG_API int PRecver_Cmd_SetWorkerAffinity(int argc, char **argv, void *env)
     return PRecver_Worker_SetAffinity(index, cpu_index);
 }
 
-/* no affinity */
+
 PLUG_API int PRecver_Cmd_ClrWorkerAffinity(int argc, char **argv, void *env)
 {
     int index = precver_cmd_GetWorker(env);
     return PRecver_Worker_ClrAffinity(index);
 }
 
-/* start */
+
 PLUG_API int PRecver_Cmd_WorkerStart(int argc, char **argv, void *env)
 {
     int index = precver_cmd_GetWorker(env);
     return PRecver_Worker_Start(index);
 }
 
-/* no start */
+
 PLUG_API int PRecver_Cmd_WorkerStop(int argc, char **argv, void *env)
 {
     int index = precver_cmd_GetWorker(env);
@@ -164,7 +164,7 @@ static void precer_cmd_save(void *worker, void *ud)
         return;
     }
 
-    /* 0是运行配置, 只显示不保存 */
+    
     if (wrk->index == 0) {
         if (CmdExp_IsShowing(ud)) {
             if (0 == CMD_EXP_OutputMode(ud, "worker %d", wrk->index)) {

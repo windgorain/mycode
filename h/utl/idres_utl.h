@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE IDRES_HANDLE;
 
@@ -23,8 +23,8 @@ HANDLE IDRES_Get(IN IDRES_HANDLE hIdRes, IN UINT uiId);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__IDRES_UTL_H_*/
+#endif 
 
 

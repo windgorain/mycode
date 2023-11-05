@@ -13,37 +13,37 @@
 #include "utl/bitmap1_utl.h"
 #include "utl/mbuf_utl.h"
 
-/* ---define--- */
+
 #define _DEF_SSLTCP_MAX_NAME_LEN_2_RECORD 64
 #define _DEF_SSLTCP_MAX_PROTO_NUM         64
 #define _DEF_SSLTCP_INC_NUM_MASK          0xffff0000
 #define _DEF_SSLTCP_INVALID_INDEX         0xffffffff
 
 
-/* ---structs--- */
+
 typedef struct
 {
     UINT  ulSslTcpId;
     UINT  ulFamily;
     UINT  ulRemoteIp;
     UINT  ulHostIp;
-    USHORT usIncNum;    /* 自增数 */
+    USHORT usIncNum;    
     USHORT usRemotePort;
     USHORT usHostPort;
-    USHORT usType;  /*_SSLTCP_TCP_TYPE, _SSLTCP_SSL_TYPE*/
+    USHORT usType;  
     BOOL_T bIsAsyn;
     BOOL_T bIsListen;
-    HANDLE  hFileHandle;    /* Socket Id 或SSL HANDLE */
-    MBUF_S *pstSendMbuf;    /* 用于存放没有发送完成的数据 */
-    MBUF_S *pstRecvMbuf;    /* 用于存放没有接收完整的数据 */
+    HANDLE  hFileHandle;    
+    MBUF_S *pstSendMbuf;    
+    MBUF_S *pstRecvMbuf;    
     SSLTCP_PROTO_S *pstProto;
 
     PF_SSLTCP_ASYN_FUNC pfAsynCBFunc;
     USER_HANDLE_S     stUserHandle;
-    HANDLE hAsynHandle;     /* 本SSLTCP属于的AsynHandle */
+    HANDLE hAsynHandle;     
 }_SSLTCP_CTRL_S;
 
-/* --- vars ---*/
+
 static BITMAP_S       stSslTcpBitMap;
 static _SSLTCP_CTRL_S g_stSslTcpCtrl[SSLTCP_MAX_SSLTCP_NUM];
 static SSLTCP_PROTO_S g_astSslTcpProtoTbl[_DEF_SSLTCP_MAX_PROTO_NUM];
@@ -55,7 +55,7 @@ CONSTRUCTOR(init) {
     ssltcp_Init();
 }
 
-/* ---funcs--- */
+
 static BS_STATUS ssltcp_Init()
 {
     g_hSsltcpSem = SEM_CCreate("ssltcp", 1);
@@ -207,7 +207,7 @@ BOOL_T SSLTCP_IsValid (IN UINT ulSslTcpId)
     return TRUE;
 }
 
-/* IP/Port:主机序 */
+
 BS_STATUS SSLTCP_Listen(IN UINT uiSslTcpId, IN UINT uiIp, IN USHORT usPort, IN UINT uiBackLog)
 {
     BS_STATUS eRet;
@@ -220,14 +220,6 @@ BS_STATUS SSLTCP_Listen(IN UINT uiSslTcpId, IN UINT uiIp, IN USHORT usPort, IN U
     return eRet;
 }
 
-/***************************************************
- Description  : 填充连接的一些常用信息
- Input        : uiSsltcpId: SSLTCP ID
- Output       : None
- Return       : 成功: BS_OK
-                失败: 错误码
- Caution      : 
-****************************************************/
 static BS_STATUS ssltcp_FillConnInfo(IN UINT ulSslTcpId)
 {
     UINT ulIndex = _SSLTCP_GetIndexFromSslTcpId(ulSslTcpId);
@@ -240,9 +232,6 @@ static BS_STATUS ssltcp_FillConnInfo(IN UINT ulSslTcpId)
 
     return BS_OK;
 }
-
-/* BS_OK:成功, BS_AGAIN:本次Accept失败但listen的fd是好的; 其他:listen的fd出错了 */
-/* 不继承Listen Socket的异步属性 */
 BS_STATUS SSLTCP_Accept(IN UINT hListenSslTcpId, OUT UINT *puiAcceptSslTcpId)
 {
     UINT          ulRet;
@@ -291,7 +280,7 @@ BS_STATUS SSLTCP_Accept(IN UINT hListenSslTcpId, OUT UINT *puiAcceptSslTcpId)
     return BS_OK;
 }
 
-/* ip/port:主机序 */
+
 BS_STATUS SSLTCP_Connect(IN UINT ulSslTcpId, IN UINT ulIp, IN USHORT usPort)
 {
     UINT ulIndex = _SSLTCP_GetIndexFromSslTcpId(ulSslTcpId);
@@ -321,7 +310,7 @@ BS_STATUS SSLTCP_Write(IN UINT ulSslTcpId, IN UCHAR * pucBuf, IN UINT ulSize, OU
     return BS_OK;
 }
 
-/* 只能是阻塞式SSLTCP 才能调这个函数 */
+
 BS_STATUS SSLTCP_WriteUntilFinish(IN UINT ulSslTcpId, IN UCHAR * pucBuf, IN UINT ulSize)
 {
     UINT ulWriteLenTotle;
@@ -484,20 +473,6 @@ static HANDLE _SSLTCP_CreateDftAsynInstance(IN SSLTCP_PROTO_S *pstProto)
     return pstProto->hDftAsynInstance;
 }
 
-/***************************************************
- Description  : 设置异步属性
- Input        : hAsynInstance: 异步实例. 如果为NULL则表示使用对应协议的默认异步实例
-                uiSsltcpId: SSLTCP ID
-                ulEvent: 关心的事件,可以设置为SSLTCP_EVENT_READ/SSLTCP_EVENT_WRITE. 
-                         SSLTCP_EVENT_EXECPT, 不管是否设置, 会一直等待该事件
-                         SSLTCP_EVENT_TRIGGER, 不管是否设置, 会一直等待该事件
-                pfFunc: 回调函数
-                pstUserHandle: 用户回传参数
- Output       : None
- Return       : 成功: FCGI Channel句柄
-                失败: NULL
- Caution      : 要求SsltcpId的模式和eMode必须匹配
-****************************************************/
 BS_STATUS SSLTCP_SetAsyn
 (
     IN HANDLE hAsynInstance,
@@ -667,8 +642,6 @@ UINT SSLTCP_GetHostIP(IN UINT ulSslTcpId)
 
     return g_stSslTcpCtrl[ulIndex].ulHostIp;
 }
-
-/* 返回主机序IP地址 */
 UINT SSLTCP_GetPeerIP(IN UINT ulSslTcpId)
 {
     UINT ulIndex = _SSLTCP_GetIndexFromSslTcpId(ulSslTcpId);
@@ -676,7 +649,7 @@ UINT SSLTCP_GetPeerIP(IN UINT ulSslTcpId)
     return g_stSslTcpCtrl[ulIndex].ulRemoteIp;
 }
 
-/* 返回主机序Port */
+
 USHORT SSLTCP_GetPeerPort(IN UINT ulSslTcpId)
 {
     UINT ulIndex = _SSLTCP_GetIndexFromSslTcpId(ulSslTcpId);

@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef enum
 {
@@ -24,15 +24,15 @@ typedef enum
 
 HANDLE VLDCODE_CreateInstance(IN UINT ulMaxVldNum);
 VOID VLDCODE_DelInstance(IN HANDLE hVldCodeInstance);
-/* 产生一个随机的ClientID. 返回0表示失败 */
+
 UINT VLDCODE_RandClientId(IN HANDLE hVldCodeInstance);
-VLDBMP_S * VLDCODE_GenVldBmp(IN HANDLE hVldCodeInstance, INOUT UINT *puiClientId/* 当clientID为0时,表示要自动产生一个 */);
+VLDBMP_S * VLDCODE_GenVldBmp(IN HANDLE hVldCodeInstance, INOUT UINT *puiClientId);
 VLDCODE_RET_E VLDCODE_Check(IN HANDLE hVldCodeInstance, IN UINT ulClientId, IN CHAR *pszCode);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VLDCODE_UTL_H_*/
+#endif 
 
 

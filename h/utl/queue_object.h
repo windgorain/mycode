@@ -32,4 +32,4 @@ static inline void delete_queue_object(queue_object qo)
 }
 #endif
 
-#endif /* QUEUE_OBJECT_H_ */
+#endif 

@@ -5,6 +5,8 @@
 *************************************************/
 #include "klc/klc_base.h"
 #include "drivers/dirver_netdev.h"
+#include "klc/klc_def.h"
+#include "klc/klc_syshelper.h"
 #include <net/netns/generic.h>
 #include <net/fib_notifier.h>
 
@@ -70,7 +72,7 @@ struct netdevsim {
 #if IS_ENABLED(CONFIG_NET_DEVLINK)
 	struct devlink *devlink;
 #endif
-	//struct nsim_ipsec ipsec;
+	
 };
 
 struct nsim_fib_entry {
@@ -89,7 +91,9 @@ struct nsim_fib_data {
 };
 
 #define KLC_MODULE_NAME "drivers/ns"
-KLC_DEF_MODULE_EXT(KLC_MODULE_NAME, sizeof(NETDEVSIM_S));
+KLC_DEF_MODULE("1.0");
+
+NETDEVSIM_S g_netdev_data;
 
 static inline struct netdevsim *to_nsim(struct device *ptr)
 {
@@ -106,7 +110,7 @@ int nsim_num_vf(struct device *dev)
 SEC("klc/namefunc/nsim_fib_netns_init")
 int nsim_fib_netns_init(struct net *net)
 {
-    NETDEVSIM_S *ctrl = KLCHLP_GetSelfModuleData(sizeof(NETDEVSIM_S));
+    NETDEVSIM_S *ctrl = &g_netdev_data;
 	struct nsim_fib_data *data = net_generic(net, ctrl->nsim_fib_net_id);
 
 	data->ipv4.fib.max = (u64)-1;
@@ -199,12 +203,12 @@ int nsim_fib_event_nb(struct notifier_block *nb, unsigned long event, void *ptr)
 	int err = 0;
 
 	switch (event) {
-	case FIB_EVENT_RULE_ADD: /* fall through */
+	case FIB_EVENT_RULE_ADD: 
 	case FIB_EVENT_RULE_DEL:
 		err = nsim_fib_rule_event(info, event == FIB_EVENT_RULE_ADD);
 		break;
 
-	case FIB_EVENT_ENTRY_ADD:  /* fall through */
+	case FIB_EVENT_ENTRY_ADD:  
 	case FIB_EVENT_ENTRY_DEL:
 		err = nsim_fib_event(info, event == FIB_EVENT_ENTRY_ADD);
 		break;
@@ -221,7 +225,7 @@ void nsim_fib1(struct notifier_block *nb)
 	struct nsim_fib_data *data;
 	struct net *net;
 
-	//TODO rcu_read_lock();
+	
 	for_each_net_rcu(net) {
 		data = net_generic(net, ctrl->nsim_fib_net_id);
 
@@ -231,7 +235,7 @@ void nsim_fib1(struct notifier_block *nb)
 		data->ipv6.fib.num = 0ULL;
 		data->ipv6.rules.num = 0ULL;
 	}
-	//TODO rcu_read_unlock();
+	
 }
 
 SEC("klc/namefunc/nsim2")
@@ -251,7 +255,7 @@ void nsim_free(struct net_device *dev)
 	struct netdevsim *ns = netdev_priv(dev);
 
 	DriverKlc_device_unregister(&ns->dev);
-	/* netdev and vf state will be freed out of device_release() */
+	
 }
 
 SEC("klc/namefunc/nsim_setup")
@@ -335,11 +339,6 @@ static inline int _mod_data_init(NETDEVSIM_S *ctrl)
         return -1;
     }
 
-    if (! KLCHLP_IsFuncJitted(func)) {
-        BPF_Print("Function not jitted");
-        return -1;
-    }
-
     ctrl->nsim_bus.name = ctrl->dev_name;
     ctrl->nsim_bus.dev_name = ctrl->dev_name;
     ctrl->nsim_bus.num_vf = KLCHLP_GetFuncEntry(KLCHLP_GetLocalNameFunc("nsim_num_vf"));
@@ -384,7 +383,7 @@ static inline int nsim_fib_init(NETDEVSIM_S *ctrl)
 
     void *fn = KLCHLP_GetFuncEntry(KLCHLP_GetLocalNameFunc("nsim_fib1"));
 
-	err = KLCHLP_SysCall("register_fib_notifier", (long)&ctrl->nsim_fib_nb, (long)fn, 0);
+	err = klc_sys_call(-1, register_fib_notifier, &ctrl->nsim_fib_nb, fn);
 	if (err < 0) {
 		BPF_Print("Failed to register fib notifier\n");
 		goto err_out;
@@ -397,7 +396,7 @@ err_out:
 static inline void nsim_fib_exit(NETDEVSIM_S *ctrl)
 {
     DriverKlc_unregister_pernet_subsys(&ctrl->nsim_fib_net_ops);
-	KLCHLP_SysCall("unregister_fib_notifier", (long)&ctrl->nsim_fib_nb, 0, 0);
+	klc_sys_call(0, unregister_fib_notifier, &ctrl->nsim_fib_nb);
 }
 
 static inline int nsim_devlink_init(NETDEVSIM_S *ctrl)
@@ -418,11 +417,14 @@ err_out:
 	return err;
 }
 
-SEC("klc/namefunc/nsim_init")
-int nsim_module_init()
+static int nsim_module_init(int rcu_locked)
 {
 	int err;
     NETDEVSIM_S *ctrl = KLCHLP_GetSelfModuleData(sizeof(NETDEVSIM_S));
+
+    if (rcu_locked) {
+        return 0;
+    }
 
     if (! ctrl) {
 		return -ENOMEM;
@@ -470,7 +472,7 @@ int nsim_module_init()
 	return 0;
 
 err_dl_fini:
-    KLCHLP_SysCall("nsim_devlink_exit", 0, 0, 0);
+    klc_sys_call(0, nsim_devlink_exit);
 err_unreg_bus:
     DriverKlc_bus_unregister(&ctrl->nsim_bus);
 err_sdir_destroy:
@@ -481,7 +483,16 @@ err_debugfs_destroy:
 	return err;
 }
 
-/* 定义init段, 指定初始化调用函数 */
-KLC_FUNC_INIT_S _init[] SEC("klc/init") = {
-    {.func = "nsim_init"}
-};
+SEC_MOD_EV_FUNC("nsim_init")
+static int _nsim_module_init(void *mod, int event, int rcu_locked)
+{
+    switch (event) {
+        case KLC_MOD_EVENT_INIT:
+            return nsim_module_init(rcu_locked);
+        default:
+            break;
+    }
+
+    return 0;
+}
+

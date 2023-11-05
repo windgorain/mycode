@@ -42,7 +42,7 @@ typedef struct {
 
 typedef struct {
     PCIE_DEV_CFG_S cfg;
-    PCIE_DEV_CFG_S writable_bits; /* 用来描述config哪些位是可写的 */
+    PCIE_DEV_CFG_S writable_bits; 
     UINT bar0[16];
     UINT bar1[16];
     UINT bar2[16];
@@ -59,4 +59,4 @@ int PCIE_DEV_WriteBar(PCIE_DEV_S *dev, int bar, UINT addr, UINT val, UCHAR first
 #ifdef __cplusplus
 }
 #endif
-#endif //PCI_DEV_H_
+#endif 

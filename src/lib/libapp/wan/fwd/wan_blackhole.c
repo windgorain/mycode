@@ -23,7 +23,7 @@ static UINT g_uiWanBlackHoleIfIndex = 0;
 
 BS_STATUS WAN_BlackHole_Init()
 {
-    /* 如果已经创建，则返回OK */ 
+     
     if (g_uiWanBlackHoleIfIndex != 0)
     {
         return BS_OK;

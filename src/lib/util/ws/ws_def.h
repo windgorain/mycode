@@ -13,9 +13,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#if 1  /* WS */
+#if 1  
 
 #define _WS_DEBUG_SWICH_TEST(_pstWs, _X) ((_pstWs)->uiDbgFlag & (_X))
 
@@ -45,7 +45,7 @@ typedef enum
 
 #endif
 
-#if 1 /* Context */
+#if 1 
 
 typedef struct
 {
@@ -54,7 +54,7 @@ typedef struct
     CHAR szDomain[WS_DOMAIN_MAX_LEN + 1];
     UINT uiDomainLen;
     CHAR szRootPath[FILE_MAX_PATH_LEN + 1];
-    CHAR szSecondRootPath[FILE_MAX_PATH_LEN + 1];  /* 当在root path中找不到对应文件时，到SecondRootPath中再找一次. */
+    CHAR szSecondRootPath[FILE_MAX_PATH_LEN + 1];  
     CHAR szIndex[WS_CONTEXT_MAX_INDEX_LEN + 1];
     VOID *pVHost;
     WS_DELIVER_TBL_HANDLE hDeliverTbl;
@@ -69,7 +69,7 @@ typedef struct
 
 #endif
 
-#if 1 /* VHost */
+#if 1 
 
 typedef struct
 {
@@ -87,8 +87,8 @@ typedef struct
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WS_DEF_H_*/
+#endif 
 
 

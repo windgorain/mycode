@@ -15,7 +15,7 @@ extern "C"
 typedef struct {
     UINT used:1;
     UINT start:1;
-    UINT restored:1; /* muc是否已经配置恢复 */
+    UINT restored:1; 
     int id;
     char description[MUC_DESC_LEN + 1];
     void *user_data[MUC_UD_MAX];
@@ -32,4 +32,4 @@ int MucCore_EnterCmd(MUC_S *muc, void *env);
 #ifdef __cplusplus
 }
 #endif
-#endif //MUC_CORE_H_
+#endif 

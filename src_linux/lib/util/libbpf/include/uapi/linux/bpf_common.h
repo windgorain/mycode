@@ -2,7 +2,7 @@
 #ifndef _UAPI__LINUX_BPF_COMMON_H__
 #define _UAPI__LINUX_BPF_COMMON_H__
 
-/* Instruction classes */
+
 #define BPF_CLASS(code) ((code) & 0x07)
 #define		BPF_LD		0x00
 #define		BPF_LDX		0x01
@@ -13,12 +13,12 @@
 #define		BPF_RET		0x06
 #define		BPF_MISC        0x07
 
-/* ld/ldx fields */
+
 #define BPF_SIZE(code)  ((code) & 0x18)
-#define		BPF_W		0x00 /* 32-bit */
-#define		BPF_H		0x08 /* 16-bit */
-#define		BPF_B		0x10 /*  8-bit */
-/* eBPF		BPF_DW		0x18    64-bit */
+#define		BPF_W		0x00 
+#define		BPF_H		0x08 
+#define		BPF_B		0x10 
+
 #define BPF_MODE(code)  ((code) & 0xe0)
 #define		BPF_IMM		0x00
 #define		BPF_ABS		0x20
@@ -27,7 +27,7 @@
 #define		BPF_LEN		0x80
 #define		BPF_MSH		0xa0
 
-/* alu/jmp fields */
+
 #define BPF_OP(code)    ((code) & 0xf0)
 #define		BPF_ADD		0x00
 #define		BPF_SUB		0x10
@@ -54,4 +54,4 @@
 #define BPF_MAXINSNS 4096
 #endif
 
-#endif /* _UAPI__LINUX_BPF_COMMON_H__ */
+#endif 

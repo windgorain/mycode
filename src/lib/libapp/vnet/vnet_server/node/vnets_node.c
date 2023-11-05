@@ -25,7 +25,7 @@
 #define VNETS_NODE_MAX_NUM (1024 * 10)
 
 static HANDLE g_hVnetsNodeHandle = NULL;
-static UINT g_uiVnetsNodeSelf = VNET_NID_SERVER;  /* Server本身的NodeID */
+static UINT g_uiVnetsNodeSelf = VNET_NID_SERVER;  
 static MUTEX_S g_stVnetsNodeMutex;
 
 static UINT vnets_node_AddNode(IN UINT uiSesID)
@@ -256,7 +256,7 @@ BS_STATUS VNETS_NODE_GetCookieString(IN UINT uiNodeID, OUT CHAR szCookieString[V
     return BS_OK;
 }
 
-/* CookieString构成格式为: Cookie-NodeID */
+
 UINT VNETS_NODE_GetNodeIdByCookieString(IN CHAR *pcCookieString)
 {
     LSTR_S stStrCookie;
@@ -353,7 +353,7 @@ VOID VNETS_NODE_Walk(IN PF_VNETS_NODE_WALK_EACH pfFunc, IN HANDLE hUserHandle)
     while (NAP_INVALID_INDEX !=
             (index = NAP_GetNextIndex(g_hVnetsNodeHandle, index))) {
         id = NAP_GetIDByIndex(g_hVnetsNodeHandle, index);
-        if (BS_WALK_STOP == pfFunc(id, hUserHandle)) {
+        if (pfFunc(id, hUserHandle) < 0) {
             break;
         }
     }

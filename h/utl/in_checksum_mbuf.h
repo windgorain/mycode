@@ -35,4 +35,4 @@ static inline USHORT IN_Cksum(IN MBUF_S *pstMBuf, IN UINT uiLen )
 #ifdef __cplusplus
 }
 #endif
-#endif //IN_CHECKSUM_MBUF_H_
+#endif 

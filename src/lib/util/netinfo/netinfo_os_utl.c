@@ -67,7 +67,7 @@ NETINFO_S * _NETINFO_GetNetInfo()
     
     ulOutBufLen = sizeof(IP_ADAPTER_INFO);
 
-    // 第一次调用GetAdapterInfo获取ulOutBufLen大小
+    
     if (GetAdaptersInfo( pstAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW)
     {
         MEM_Free(pstAdapterInfo);

@@ -14,7 +14,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS PCAP_Main_Init();
 BS_STATUS PCAP_InitPcapList();
@@ -33,8 +33,8 @@ VOID PCAP_Main_UnregService
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__PCAP_MAIN_H_*/
+#endif 
 
 

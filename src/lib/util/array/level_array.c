@@ -78,12 +78,12 @@ static int levelarray_GetOffset(IN int level, IN UINT index)
 {
     int i;
 
-    /* 取当前级别的比数 */
+    
     for (i=0; i<level; i++) {
         index /= LEVEL_ARRAY_NODE_CAPACITY;
     }
 
-    /* 再取余数 */
+    
     return index % LEVEL_ARRAY_NODE_CAPACITY;
 }
 

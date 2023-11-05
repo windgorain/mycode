@@ -18,4 +18,4 @@ void * MAPS_Get(void *maps, int id, void *key, int key_len);
 #ifdef __cplusplus
 }
 #endif
-#endif //MAP_S_H_
+#endif 

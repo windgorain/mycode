@@ -11,7 +11,7 @@
 
 #include "drp_def.h"
 
-DRP_HANDLE DRP_Create(IN CHAR *pcStartTag/* 标签开始标记 */, IN CHAR *pcEndTag/* 标签结束标记 */)
+DRP_HANDLE DRP_Create(IN CHAR *pcStartTag, IN CHAR *pcEndTag)
 {
     DRP_CTRL_S *pstCtrl;
 

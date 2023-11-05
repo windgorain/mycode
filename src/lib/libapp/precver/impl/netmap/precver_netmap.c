@@ -65,8 +65,8 @@ PLUG_API int PRecverImpl_Init(PRECVER_RUNNER_S *runner, int argc, char **argv)
     static UINT port;
     static char *interface = NULL;
     static GETOPT2_NODE_S opts[] = {
-        {'o', 'h', "help", 0, NULL, NULL, 0},
-        {'o', 'i', "interface", 's', &interface, "netmap device", 0},
+        {'o', 'h', "help", GETOPT2_V_NONE, NULL, NULL, 0},
+        {'o', 'i', "interface", GETOPT2_V_STRING, &interface, "netmap device", 0},
         {0}
     };
     struct netmap_if *nifp;
@@ -84,9 +84,9 @@ PLUG_API int PRecverImpl_Init(PRECVER_RUNNER_S *runner, int argc, char **argv)
         RETURN(BS_ERR);
     }
 
-    int fd = open("/dev/netmap", 0);  // 打开字符设备
+    int fd = open("/dev/netmap", 0);  
     strcpy(req.nr_name, interface);
-    ioctl(fd, NIOCREG, &req);  // 注册网卡
+    ioctl(fd, NIOCREG, &req);  
     mem = mmap(NULL, req.nr_memsize, PROT_READ|PROT_WRITE, 0, fd, 0);
     nifp = NETMAP_IF(mem, req.nr_offset)
 

@@ -12,7 +12,7 @@
 #endif
 
 
-/* Swap bytes in 16 bit value.  */
+
 #define __bswap_constant_16(x) \
      ((unsigned short int) ((((x) >> 8) & 0xff) | (((x) & 0xff) << 8)))
 
@@ -30,7 +30,7 @@
 		    : "cc");						      \
 	 __v; }))
 #else
-/* This is better than nothing.  */
+
 # define __bswap_16(x) \
      (__extension__							      \
       ({ register unsigned short int __x = (unsigned short int) (x);          \
@@ -38,7 +38,7 @@
 #endif
 
 
-/* Swap bytes in 32 bit value.  */
+
 #define __bswap_constant_32(x) \
      ((((x) & 0xff000000) >> 24) | (((x) & 0x00ff0000) >>  8) |		      \
       (((x) & 0x0000ff00) <<  8) | (((x) & 0x000000ff) << 24))
@@ -50,8 +50,7 @@
 			  || defined __k6__ || defined __nocona__	      \
 			  || defined __core2__ || defined __geode__	      \
 			  || defined __amdfam10__)
-/* To swap the bytes in a word the i486 processors and up provide the
-   `bswap' opcode.  On i386 we have to use three instructions.  */
+
 #  define __bswap_32(x) \
      (__extension__							      \
       ({ register unsigned int __v, __x = (x);				      \
@@ -83,7 +82,7 @@
 
 
 #if defined __GNUC__ && __GNUC__ >= 2
-/* Swap bytes in 64 bit value.  */
+
 # define __bswap_constant_64(x) \
      ((((x) & 0xff00000000000000ull) >> 56)				      \
       | (((x) & 0x00ff000000000000ull) >> 40)				      \
@@ -153,4 +152,4 @@
 #  define le64toh(x) __bswap_64 (x)
 # endif
 
-#endif /* _BITS_BYTESWAP_H */
+#endif 

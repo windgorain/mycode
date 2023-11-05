@@ -16,7 +16,7 @@ static BOOL_T scm_ConsoleCtrlHander(IN INT lEvent)
     
     switch (lEvent)
      {
-        // Handle the CTRL+C signal.
+        
         case CTRL_C_EVENT:
         case CTRL_SHUTDOWN_EVENT:
         case CTRL_CLOSE_EVENT:
@@ -29,7 +29,7 @@ static BOOL_T scm_ConsoleCtrlHander(IN INT lEvent)
             break;
         }
 
-        // Pass other signals to the next handler.
+        
         case CTRL_LOGOFF_EVENT:
         case CTRL_BREAK_EVENT:
         default:

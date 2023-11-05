@@ -15,9 +15,9 @@ int PRecverPlug_LoadPlug(char *plug_name);
 PLUG_HDL PRecverPlug_GetPlug(char *plug_name);
 
 BOOL_T PRecverPlug_CfgIsExist(char *plug_name);
-char * PRecverPlug_CfgGetNext(char *curr/* NULL表示获取第一个 */);
+char * PRecverPlug_CfgGetNext(char *curr);
 
 #ifdef __cplusplus
 }
 #endif
-#endif //PRECVER_PLUG_H_
+#endif 

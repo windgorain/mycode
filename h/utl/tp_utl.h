@@ -17,39 +17,39 @@ typedef struct
 
 typedef enum
 {
-    TP_TYPE_PROTOCOL,   /* 协议TP */
-    TP_TYPE_CONN,       /* 连接TP */
+    TP_TYPE_PROTOCOL,   
+    TP_TYPE_CONN,       
 
     TP_TYPE_MAX
 }TP_TYPE_E;
 
 typedef enum
 {
-    TP_OPT_NBIO = 0, /* 非阻塞模式. UINT, 0为阻塞, 1为非阻塞. 默认为阻塞模式 */
-    TP_OPT_KEEPALIVE_TIME, /* KeepAlive时间. TP_OPT_KEEP_ALIVE_S. */
+    TP_OPT_NBIO = 0, 
+    TP_OPT_KEEPALIVE_TIME, 
 
     TP_OPT_MAX
 }TP_OPT_E;
 
 typedef struct
 {
-    USHORT usIdle;           /* 触发开始KeepAlive的空闲Tick数. 0表示不触发. */
-    USHORT usIntval;         /* KeepAlive的间隔Tick */
-    USHORT usMaxProbeCount;  /* 最大的重试次数 */
+    USHORT usIdle;           
+    USHORT usIntval;         
+    USHORT usMaxProbeCount;  
 }TP_OPT_KEEP_ALIVE_S;
 
 typedef struct
 {
     TP_TYPE_E eType;
     UINT uiFlag;
-    UINT uiProtocolId;   /* 主机序 */
-    TP_ID uiLocalTpId;   /* 本地TP_ID, 主机序 */
-    TP_ID uiPeerTpId;    /* 对方的TP_ID,主机序 */
-    UINT uiStatus;       /* 状态 */
-    INT iSn;             /* 主机序, Next Pkt Sn */
-    INT iAckSn;          /* 主机序, Next Need Pkt Sn */
-    UINT uiSendBufCount;    /* 发送缓冲区中有多少报文 */
-    UINT uiRecvBufCount;    /* 接收缓冲区中有多少报文 */
+    UINT uiProtocolId;   
+    TP_ID uiLocalTpId;   
+    TP_ID uiPeerTpId;    
+    UINT uiStatus;       
+    INT iSn;             
+    INT iAckSn;          
+    UINT uiSendBufCount;    
+    UINT uiRecvBufCount;    
     TP_CHANNEL_S stChannel;
 }TP_STATE_S;
 
@@ -71,7 +71,7 @@ TP_HANDLE TP_Create
     IN PF_TP_SEND_FUNC pfSendFunc,
     IN PF_TP_EVENT_FUNC pfEventFunc,
     IN USER_HANDLE_S *pstUserHandle,
-    IN UINT uiMaxPropertys /* 支持多少个属性 */
+    IN UINT uiMaxPropertys 
 );
 
 BS_STATUS TP_SetDftKeepAlive
@@ -131,7 +131,7 @@ BS_STATUS TP_Bind
 (
     IN TP_HANDLE hTpHandle,
     IN TP_ID uiTpId,
-    IN UINT uiProtocolId /* 主机序 */
+    IN UINT uiProtocolId 
 );
 
 BS_STATUS TP_Listen
@@ -226,8 +226,8 @@ VOID TP_TiggerKeepAlive(IN TP_HANDLE hTpHandle, IN TP_ID uiTpId);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /* __TP_UTL_H_ */
+#endif 
 
 

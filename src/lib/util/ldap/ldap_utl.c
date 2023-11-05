@@ -27,7 +27,7 @@ typedef enum
 typedef struct
 {
     CHAR *pcServerAddress;
-    USHORT usServerPort;   /* 主机序 */
+    USHORT usServerPort;   
     CHAR *pcUserName;
     CHAR *pcPassword;
 
@@ -37,7 +37,7 @@ typedef struct
     LONG lMsgID;
 }LDAP_NODE_S;
 
-/* 将dc=hit,dc=com转换为"hit.com" */
+
 static BS_STATUS _ldaputl_DomainDn2Domain(IN CHAR *pcDomainDN, OUT CHAR *pcDomain)
 {
     KV_HANDLE hKv;
@@ -94,7 +94,7 @@ static BS_STATUS _ldaputl_ProcessBindNull(IN LDAP_NODE_S *pstNode)
         return BS_ERR;
     }
 
-    /* 0表示还在查询 */
+    
     if (lRet == 0)
     {
         return BS_CONTINUE;
@@ -127,7 +127,7 @@ static BS_STATUS _ldaputl_ProcessSearchDomain(IN LDAP_NODE_S *pstNode)
         return BS_ERR;
     }
 
-    /* 0表示还在查询 */
+    
     if (lRet == 0)
     {
         return BS_CONTINUE;
@@ -176,7 +176,7 @@ static BS_STATUS _ldaputl_ProcessBindUser(IN LDAP_NODE_S *pstNode)
         return BS_ERR;
     }
 
-    /* 0表示还在查询 */
+    
     if (lRet == 0)
     {
         return BS_CONTINUE;
@@ -184,12 +184,12 @@ static BS_STATUS _ldaputl_ProcessBindUser(IN LDAP_NODE_S *pstNode)
 
     pstNode->lMsgID = -1;
 
-    pstNode->lMsgID = ldap_search(pstNode->pstLdapSession,     // session handle  
-                    pstNode->pcDomainDn,   // locaation to start search, NULL specifies top level  
-                    LDAP_SCOPE_SUBTREE,    // search only the root entry (rootDSE)  
-                    "(&(sAMAccountName=user1)(objectCategory=person))",   // search for all objects (only one for the rootDSE)  
-                    apcAttrs,   // no attributes specified, return all attributes  
-                    FALSE);  // return attributes types and values  
+    pstNode->lMsgID = ldap_search(pstNode->pstLdapSession,     
+                    pstNode->pcDomainDn,   
+                    LDAP_SCOPE_SUBTREE,    
+                    "(&(sAMAccountName=user1)(objectCategory=person))",   
+                    apcAttrs,   
+                    FALSE);  
     if (pstNode->lMsgID < 0)
 	{
 		return BS_ERR;
@@ -211,7 +211,7 @@ static BS_STATUS _ldaputl_ProcessSearchSubtree(IN LDAP_NODE_S *pstNode)
         return BS_ERR;
     }
 
-    /* 0表示还在查询 */
+    
     if (lRet == 0)
     {
         return BS_CONTINUE;
@@ -319,7 +319,7 @@ BS_STATUS LDAPUTL_StartAuth(IN LDAPUTL_HANDLE hLdapNode)
     }
 #endif
 
-    /* 第一次绑定,匿名连接 */
+    
 	pstLdapNode->lMsgID = ldap_simple_bind(pstLdapNode->pstLdapSession, NULL, NULL);
     if (pstLdapNode->lMsgID < 0)
 	{
@@ -359,9 +359,7 @@ INT LDAPUTL_GetSocketID(IN LDAPUTL_HANDLE hLdapNode)
     return iSocketID;
 }
 
-/*
-   返回值: BS_OK:成功. BS_CONTINUE:还没完成,需要继续. 其他:出错
-*/
+
 BS_STATUS LDAPUTL_Run(IN LDAPUTL_HANDLE hLdapNode)
 {
     LDAP_NODE_S *pstLdapNode = hLdapNode;

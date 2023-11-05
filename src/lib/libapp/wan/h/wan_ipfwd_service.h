@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WAN_IpFwdService_Init();
 
@@ -21,9 +21,7 @@ IPFWD_SERVICE_RET_E WAN_IpFwdService_Process
     IN MBUF_S *pstMbuf
 );
 
-/* 所有的注册必须要在系统正式运行前注册完成.
- 如果某个系统不需要处理,到自己里面去判断,
- 以免在注册过程中同时报文处理导致死机 */
+
 BS_STATUS WAN_IpFwdService_Reg
 (
     IN IPFWD_SERVICE_PHASE_E ePhase,
@@ -36,8 +34,8 @@ BS_STATUS WAN_IpFwdService_Reg
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_IPFWD_SERVICE_H_*/
+#endif 
 
 

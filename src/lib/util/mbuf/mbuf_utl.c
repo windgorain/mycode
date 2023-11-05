@@ -5,7 +5,7 @@
 * History:     
 ******************************************************************************/
 
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_UTL
 
 #include "bs.h"
@@ -178,7 +178,7 @@ VOID MBUF_Free (IN MBUF_S *pstMbuf)
     return;
 }
 
-/* 将MBUF 压缩到尽量少的Block中 */
+
 BS_STATUS _MBUF_Compress (IN MBUF_S *pstMbuf)
 {
     MBUF_MBLK_S *pstMblk, *pstMblkNext, *pstMblkNextTmp;
@@ -206,7 +206,7 @@ BS_STATUS _MBUF_Compress (IN MBUF_S *pstMbuf)
         else
         {
             pstCluster = pstMblk->pstCluster;
-            /* 压缩当前块 */
+            
             if (pstMblk->pucData != pstCluster->pucData)
             {
                 memmove(pstCluster->pucData, pstMblk->pucData, pstMblk->ulLen);
@@ -214,7 +214,7 @@ BS_STATUS _MBUF_Compress (IN MBUF_S *pstMbuf)
             }
         }
 
-        /* 尽量将下一块数据拷贝到当前块. */
+        
         ulLen = MIN(pstMblk->pstCluster->ulSize - pstMblk->ulLen, pstMblkNext->ulLen);
         MEM_Copy(pstMblk->pucData + pstMblk->ulLen, pstMblkNext->pucData, ulLen);
         pstMblk->ulLen += ulLen;
@@ -470,8 +470,7 @@ VOID MBUF_Neat (IN MBUF_S *pstMbuf)
             break;
         }
 
-        /* 如果当前节点小于合并临界值, 并且下一个节点有足够的空闲头空间, 
-                则合并到下一个节点 */
+        
         if (MBUF_DATABLOCK_LEN (pstMblk) < _MBUF_NEAT_LEN)
         {
             if ((MBUF_DATABLOCK_LEN (pstMblk) < MBUF_DATABLOCK_LEN (pstMblkNext)) 
@@ -487,8 +486,7 @@ VOID MBUF_Neat (IN MBUF_S *pstMbuf)
             }
         }
 
-        /* 如果下一个节点小于合并临界值, 并且当前节点有足够的空闲尾空间,
-                则合并到当前节点 */
+        
         if ((MBUF_DATABLOCK_LEN (pstMblkNext) < _MBUF_NEAT_LEN)
             && (MBUF_DATABLOCK_TAIL_FREE_LEN(pstMblk) >= MBUF_DATABLOCK_LEN (pstMblkNext)))
         {
@@ -567,7 +565,7 @@ BS_STATUS _MBUF_MakeContinue (IN MBUF_S * pstMbuf, IN UINT ulLen)
         RETURN(BS_NOT_SUPPORT);
     }
 
-    /* 如果第一个块的尾空间不够, 则移动数据，知道尾空间足够 */
+    
     if (MBUF_DATABLOCK_TAIL_FREE_LEN (pstMblk) < ulLen - MBUF_DATABLOCK_LEN (pstMblk))
     {
         pucData = pstMblk->pucData;
@@ -577,7 +575,7 @@ BS_STATUS _MBUF_MakeContinue (IN MBUF_S * pstMbuf, IN UINT ulLen)
 
     ulLenShouldContinue = ulLen - MBUF_DATABLOCK_LEN(pstMblk);
 
-    /* 将后面块的内容拷贝到第一块的尾空间，直到第一块达到ulLen长度数据 */
+    
     while (NULL != (pstMblkNext = DLL_NEXT(&pstMbuf->stMblkHead, pstMblk)))
     {
         ulLenMove = MIN (ulLenShouldContinue, MBUF_DATABLOCK_LEN (pstMblkNext));
@@ -611,7 +609,7 @@ MBUF_S * MBUF_CreateByCopyBuf
     IN UINT ulReserveHeadSpace,
     IN void *pucBuf,
     IN UINT ulLen,
-    IN UCHAR ucType /* MBUF_DATA_XXX */
+    IN UCHAR ucType 
 )
 {
     MBUF_S *pstMbuf;
@@ -621,7 +619,7 @@ MBUF_S * MBUF_CreateByCopyBuf
     UINT ulCopyLen;
     UCHAR *pucBufCopy = pucBuf;
     
-    /* 如果保留空间超过Cluster大小, 则无需保留, 当用到的时候, 再另外申请Block 即可 */
+    
     if (ulReserveHeadSpace >= _MBUF_POOL_DFT_CLUSTER_SIZE)
     {
         ulReserveHeadSpace = 0;
@@ -662,7 +660,7 @@ MBUF_S * MBUF_CreateByCopyBuf
 
         DLL_ADD ((DLL_HEAD_S*)&pstMbuf->stMblkHead, pstMblk);
         
-        ulReserveHeadSpace = 0; /* 只有第一个块需要保留头部空间, 其他的可以不用 */
+        ulReserveHeadSpace = 0; 
     }
 
     MBUF_TOTAL_DATA_LEN (pstMbuf) = ulLen;
@@ -768,8 +766,7 @@ MBUF_MBLK_S * MBUF_MblkFragment (IN MBUF_MBLK_S *pstMblk, IN UINT ulLen)
         return NULL;
     }
 
-    /* 之所以申请Cluster指向的内存池的Cluster, 
-                是为了避免申请其他内存池可能较小, 放不下指定内存 */
+    
     pstCluster = MBUF_CreateCluster();
     if (NULL == pstCluster)
     {
@@ -777,7 +774,7 @@ MBUF_MBLK_S * MBUF_MblkFragment (IN MBUF_MBLK_S *pstMblk, IN UINT ulLen)
         return NULL;
     }
     
-    /* 拷贝到cluster 的最后位置 */
+    
     pstMblkTmp->pstCluster = pstCluster;
     pstMblkTmp->pucData = pstCluster->pucData + pstCluster->ulSize - ulLen;
     pstMblkTmp->ulLen   = ulLen;
@@ -788,7 +785,7 @@ MBUF_MBLK_S * MBUF_MblkFragment (IN MBUF_MBLK_S *pstMblk, IN UINT ulLen)
     return pstMblkTmp;
 }
 
-/* 尽最大可能根据buf创建一个mblk. 如果空间不够, 则只拷贝mblk支持的最多的数据 */
+
 MBUF_MBLK_S * MBUF_CreateMblkByCopyBuf (IN void *buf, IN UINT ulLen, IN UINT ulReservrdHeadSpace)
 {
     UINT ulLenCopy;
@@ -877,7 +874,7 @@ BS_STATUS MBUF_CopyFromBufToMbuf
 
         ulOffsetRev = 0;
 
-        /* 最后一个MBLK，可以填充到尾部的空闲空间 */
+        
         if ((ulLenRev > 0) && (DLL_NEXT(&pstMbuf->stMblkHead, pstMblk) == NULL))
         {
             ulCopyLen = MIN(ulLenRev, MBUF_DATABLOCK_TAIL_FREE_LEN(pstMblk));
@@ -891,7 +888,7 @@ BS_STATUS MBUF_CopyFromBufToMbuf
 
     if (ulLenRev > 0)
     {
-        /* 插入新的Cluster */
+        
         while (ulLenRev > 0)
         {
             pstMblkTmp = MBUF_CreateMblkByCopyBuf(pucBufToCopy, ulLenRev, 0);
@@ -957,7 +954,7 @@ BS_STATUS MBUF_InsertBuf(IN MBUF_S *pstMbuf, IN UINT ulOffset, IN void *buf, IN 
         }
         else
         {
-            /* 插入新的Cluster */
+            
             ulLenRev = ulLen;
             pucBufToCopy = buf;
             while (ulLenRev > 0)
@@ -1123,7 +1120,7 @@ MBUF_S * MBUF_RawCopy (IN MBUF_S *pstMbuf, IN UINT ulOffset, IN UINT ulLen, IN U
     return pstMbufDst;
 }
 
-/* 将MBUF分为两部分，返回值为前半部分 */
+
 MBUF_S * MBUF_Fragment (IN MBUF_S *pstMbuf, IN UINT ulLen)
 {
     MBUF_S *pstMbufDst;
@@ -1195,7 +1192,7 @@ BS_STATUS MBUF_AddCluster (IN MBUF_S *pstMbufDst, IN MBUF_CLUSTER_S *pstCluster,
     return BS_OK;
 }
 
-/* 在[ulStartOffset, ulStartOffset + N)之间查找.  如果找到,返回偏移,否则,返回负值.  */
+
 INT MBUF_NFind (IN MBUF_S *pstMbuf, IN UINT ulStartOffset, IN UINT ulLen, IN UCHAR *pMemToFind, IN UINT ulMemLen)
 {
     UCHAR *pucData;
@@ -1233,7 +1230,7 @@ INT MBUF_NFind (IN MBUF_S *pstMbuf, IN UINT ulStartOffset, IN UINT ulLen, IN UCH
             pucData = MBUF_GetNextChar (pstMbuf, &stItorTmp);
         }
 
-        if (i == ulMemLen)  /* 找到了 */
+        if (i == ulMemLen)  
         {
             return (INT)ulOffset;
         }
@@ -1245,7 +1242,7 @@ INT MBUF_NFind (IN MBUF_S *pstMbuf, IN UINT ulStartOffset, IN UINT ulLen, IN UCH
     return -1;
 }
 
-/*如果找到,返回偏移(注意不是从ulStartOffset开始算的偏移),否则,返回负值*/
+
 INT MBUF_Find (IN MBUF_S *pstMbuf, IN UINT ulStartOffset, IN UCHAR *pMemToFind, IN UINT ulMemLen)
 {
     return MBUF_NFind(pstMbuf, ulStartOffset, MBUF_TOTAL_DATA_LEN(pstMbuf) - ulStartOffset, pMemToFind, ulMemLen);
@@ -1281,9 +1278,7 @@ BS_STATUS MBUF_Set(IN MBUF_S *pstMbuf, IN UCHAR ucToSet, IN UINT ulOffset, IN UI
     return BS_OK;    
 }
 
-/*
-* 得到连续的buf，如果能够continue就continue，否则申请内存copy
-*/
+
 UCHAR * MBUF_GetContinueMem
 (
     IN MBUF_S *pstMbuf,
@@ -1302,7 +1297,7 @@ UCHAR * MBUF_GetContinueMem
         return NULL;
     }
     
-    /* 优先使用Mbuf Continue的方式,如果不成功,则执行拷贝. */
+    
     if (BS_OK == MBUF_MakeContinue(pstMbuf, ulOffset + ulLen))
     {
         pucMem =  MBUF_MTOD(pstMbuf);
@@ -1312,9 +1307,7 @@ UCHAR * MBUF_GetContinueMem
     return MBUF_GetContinueMemRaw(pstMbuf, ulOffset, ulLen, phMemHandle);
 }
 
-/*
-* 申请内存copy
-*/
+
 void* MBUF_GetContinueMemRaw
 (
     IN MBUF_S *pstMbuf,
@@ -1367,7 +1360,7 @@ UCHAR * MBUF_GetNextChar (IN MBUF_S *pstMbuf, INOUT MBUF_ITOR_S *pstItor)
 }
 
 
-/* 删除index两边的空白字符 */
+
 UINT MBUF_DelBlankSideByIndex(IN MBUF_S *pstMbuf, IN UINT ulStartOffset, INOUT UINT *pulOffset)
 {
     MBUF_ITOR_S stItor;
@@ -1423,7 +1416,7 @@ UINT MBUF_DelBlankSideByIndex(IN MBUF_S *pstMbuf, IN UINT ulStartOffset, INOUT U
     return ulCutLen;
 }
 
-/* 向MBUF尾部添加空间 */
+
 BS_STATUS MBUF_Append(IN MBUF_S *pstMbuf, IN UINT ulLen)
 {
     MBUF_MBLK_S *pstMblk;
@@ -1451,14 +1444,14 @@ BS_STATUS MBUF_Append(IN MBUF_S *pstMbuf, IN UINT ulLen)
     return BS_OK;
 }
 
-/* 向MBUF 尾部追加数据 */
+
 BS_STATUS MBUF_AppendData(IN MBUF_S *pstMbuf, IN UCHAR *pucData, IN UINT uiDataLen)
 {
     return MBUF_CopyFromBufToMbuf(pstMbuf, MBUF_TOTAL_DATA_LEN(pstMbuf), pucData, uiDataLen);
 }
 
 
-/* 向MBUF头部添加空间 */
+
 BS_STATUS MBUF_Prepend (IN MBUF_S *pstMbuf, IN UINT ulLen)
 {
     MBUF_MBLK_S *pstMblk;
@@ -1483,7 +1476,7 @@ BS_STATUS MBUF_Prepend (IN MBUF_S *pstMbuf, IN UINT ulLen)
     return BS_OK;
 }
 
-/* 向MBUF头部添加数据 */
+
 BS_STATUS MBUF_PrependData(IN MBUF_S *pstMbuf, IN UCHAR *pucData, IN UINT uiDataLen)
 {
     BS_STATUS eRet;

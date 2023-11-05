@@ -19,7 +19,7 @@
 typedef struct
 {
   unsigned char  opaque[16];
-  UNICODE_STRING MiniportName;       // how mini-port refers to us
+  UNICODE_STRING MiniportName;       
 }VNDIS_ADAPTER_WIN2K_NDIS_MINIPORT_BLOCK_S;
  
 static NDIS_OID g_auiVndisAdapterNICSupportedOids[] =
@@ -280,7 +280,7 @@ NDIS_STATUS vndis_adapter_BuildAdapterName
     return NDIS_STATUS_SUCCESS;
 }
 
-/* 获取MTU */
+
 VOID vndis_adapter_GetMTU
 (
     IN VNDIS_ADAPTER_S *pstAdapter,
@@ -314,7 +314,7 @@ VOID vndis_adapter_GetMTU
     return;
 }
 
-/* 获取连接状态 */
+
 VOID vndis_adapter_GetIfAllowNonAdmin
 (
     IN VNDIS_ADAPTER_S *pstAdapter,
@@ -340,7 +340,7 @@ VOID vndis_adapter_GetIfAllowNonAdmin
     return;
 }
 
-/* 获取连接状态 */
+
 VOID vndis_adapter_BuildMac
 (
     IN VNDIS_ADAPTER_S *pstAdapter,
@@ -421,7 +421,7 @@ static VOID vndis_adapter_SetAttributes
     IN NDIS_HANDLE hMiniportAdapterHandle
 )
 {
-    /* 设置属性 */
+    
     NdisMSetAttributesEx(hMiniportAdapterHandle,
         (NDIS_HANDLE)pstAdapter,
         0,

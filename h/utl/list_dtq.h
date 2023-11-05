@@ -10,64 +10,21 @@ extern "C"
 {
 #endif
 
-/*
- * Doubly-linked Tail queue
- *
- * A doubly-linked tail queue is headed by a pair of pointers, one to the head
- * of the list and the other to the tail of the list. The elements are doubly
- * linked so that an arbitrary element can be removed without a need to
- * traverse the list. New elements can be added to the list before or after
- * an existing element, at the head of the list, or at the end of the list.
- * A doubly-linked tail queue may be traversed in either direction.
- +-------------------------------------------------------------------------+
- |                             +---------------+        +---------------+  |
- |                             |user structure |        |user structure |  |
- |    +---------------+        +---------------+        +---------------+  |
- |    |  DTQ_HEAD_S   |        |   ......      |        |   ......      |  |
- |    +---------------+        +---------------+        +---------------+  |
- | +->|+-------------+|<-+  +->|+-------------+|<-+  +->|+-------------+|<-+
- | |  || DTQ_NODE_S  ||  |  |  || DTQ_NODE_S  ||  |  |  || DTQ_NODE_S  ||
- | |  |+-------------+|  |  |  |+-------------+|  |  |  |+-------------+|
- +-C--|| pstPrev     ||  +--C--|| pstPrev     ||  +--C--|| pstPrev     ||
-   |  |+-------------+|     |  |+-------------+|     |  |+-------------+|
-   |  || pstNext     ||-----+  || pstNext     ||-----+  || pstNext     ||--+
-   |  |+-------------+|        |+-------------+|        |+-------------+|  |
-   |  +---------------+        +---------------+        +---------------+  |
-   |                           |   ......      |        |   ......      |  |
-   |                           +---------------+        +---------------+  |
-   |-----------------------------------------------------------------------+
- */
+
 typedef struct tagDTQ_NODE
 {
-    struct tagDTQ_NODE* pstPrev; /* the previous element */
-    struct tagDTQ_NODE* pstNext; /* the next element */
+    struct tagDTQ_NODE* pstPrev; 
+    struct tagDTQ_NODE* pstNext; 
 } DTQ_NODE_S;
 
 #define DTQ_ENTRY(ptr, type, member)    (container_of(ptr, type, member))
 
 typedef struct tagDTQ_HEAD
 {
-    DTQ_NODE_S stHead;   /* stHead.pstNext is the head of list
-                            stHead.pstPrev is the tail of list */
+    DTQ_NODE_S stHead;   
 } DTQ_HEAD_S;
 
 #define DTQ_HEAD_INIT_VALUE(list)  {(void*)(list), (void*)(list)}
-
-static inline VOID DTQ_Init(IN DTQ_HEAD_S* pstList);
-static inline VOID DTQ_NodeInit(IN DTQ_NODE_S* pstNode);
-static inline BOOL_T DTQ_IsEmpty(IN const DTQ_HEAD_S* pstList);
-static inline DTQ_NODE_S* DTQ_First(IN const DTQ_HEAD_S* pstList);
-static inline DTQ_NODE_S* DTQ_Last(IN const DTQ_HEAD_S* pstList);
-static inline BOOL_T DTQ_IsEndOfQ(IN const DTQ_HEAD_S* pstList, IN const DTQ_NODE_S* pstNode);
-static inline DTQ_NODE_S* DTQ_Prev(IN const DTQ_NODE_S* pstNode);
-static inline DTQ_NODE_S* DTQ_Next(IN const DTQ_NODE_S* pstNode);
-static inline VOID DTQ_AddAfter(IN DTQ_NODE_S* pstPrev, IN DTQ_NODE_S* pstInst);
-static inline VOID DTQ_Del(IN const DTQ_NODE_S* pstNode);
-static inline VOID DTQ_AddHead(IN DTQ_HEAD_S* pstList, IN DTQ_NODE_S* pstNode);
-static inline DTQ_NODE_S* DTQ_DelHead(IN const DTQ_HEAD_S* pstList);
-static inline DTQ_NODE_S* DTQ_DelTail(IN const DTQ_HEAD_S* pstList);
-static inline VOID DTQ_Append(IN DTQ_HEAD_S* pstDstList, IN DTQ_HEAD_S* pstSrcList);
-static inline VOID DTQ_FreeAll(IN DTQ_HEAD_S *pstList, IN VOID (*pfFree)(VOID *));
 
 static inline VOID DTQ_Init(IN DTQ_HEAD_S* pstList)
 {
@@ -91,8 +48,7 @@ static inline BOOL_T DTQ_IsEmpty(IN const DTQ_HEAD_S* pstList)
 static inline DTQ_NODE_S* DTQ_First(IN const DTQ_HEAD_S* pstList)
 {   
     DTQ_NODE_S* pstNode = pstList->stHead.pstNext;
-    if(pstNode == &(pstList->stHead))
-    {
+    if(pstNode == &(pstList->stHead)) {
         return NULL;
     }
     return pstNode;
@@ -110,14 +66,14 @@ static inline DTQ_NODE_S* DTQ_Last(IN const DTQ_HEAD_S* pstList)
 
 static inline BOOL_T DTQ_IsEndOfQ(IN const DTQ_HEAD_S* pstList, IN const DTQ_NODE_S* pstNode)
 {
-    if (DTQ_IsEmpty(pstList))
-    {
+    if (DTQ_IsEmpty(pstList)) {
         return BOOL_TRUE;
     }
-    if (NULL == pstNode)
-    {
+
+    if (NULL == pstNode) {
         return BOOL_TRUE;
     }
+
     return (pstNode == &pstList->stHead);
 }
 
@@ -126,9 +82,20 @@ static inline DTQ_NODE_S* DTQ_Prev(IN const DTQ_NODE_S* pstNode)
     return (pstNode->pstPrev);
 }
 
-static inline DTQ_NODE_S* DTQ_Next(IN const DTQ_NODE_S* pstNode)
+static inline DTQ_NODE_S* DTQ_Next(const DTQ_NODE_S* pstNode)
 {
     return (pstNode->pstNext);
+}
+
+static inline DTQ_NODE_S* DTQ_GetNext(const DTQ_HEAD_S* pstList, IN const DTQ_NODE_S* pstNode)
+{
+    DTQ_NODE_S *n = DTQ_Next(pstNode);
+
+    if (DTQ_IsEndOfQ(pstList, n)) {
+        return NULL;
+    }
+
+    return n;
 }
 
 static inline VOID DTQ_AddAfter(IN DTQ_NODE_S* pstPrev, IN DTQ_NODE_S* pstInst)
@@ -204,7 +171,7 @@ static inline DTQ_NODE_S* DTQ_DelTail(IN const DTQ_HEAD_S* pstList)
     return pstNode;
 }
 
-/* macro for walk the doubly-linked tail queue */
+
 #define DTQ_FOREACH(pstList, pstNode) \
     for ((pstNode) = (pstList)->stHead.pstNext; \
          ((pstNode) != &((pstList)->stHead)); \
@@ -267,8 +234,7 @@ static inline DTQ_NODE_S* DTQ_DelTail(IN const DTQ_HEAD_S* pstList)
 
 static inline VOID DTQ_Append(IN DTQ_HEAD_S* pstDstList, INOUT DTQ_HEAD_S* pstSrcList)
 {
-    if (BOOL_TRUE != DTQ_IsEmpty (pstSrcList))
-    {
+    if (BOOL_TRUE != DTQ_IsEmpty (pstSrcList)) {
         pstSrcList->stHead.pstNext->pstPrev = pstDstList->stHead.pstPrev;
         pstSrcList->stHead.pstPrev->pstNext = pstDstList->stHead.pstPrev->pstNext;
         pstDstList->stHead.pstPrev->pstNext = pstSrcList->stHead.pstNext;
@@ -283,9 +249,8 @@ static inline VOID DTQ_FreeAll(IN DTQ_HEAD_S *pstList, IN VOID (*pfFree)(VOID *)
     DTQ_NODE_S *pstCurNode;
     DTQ_NODE_S *pstNextNode;
 
-    /* Free all node from list */
-    DTQ_FOREACH_SAFE(pstList, pstCurNode, pstNextNode)
-    {
+    
+    DTQ_FOREACH_SAFE(pstList, pstCurNode, pstNextNode) {
         pfFree(pstCurNode);
     }
 
@@ -293,11 +258,21 @@ static inline VOID DTQ_FreeAll(IN DTQ_HEAD_S *pstList, IN VOID (*pfFree)(VOID *)
     return;
 }
 
+static inline DTQ_NODE_S * DTQ_Find(DTQ_HEAD_S *pstList, const void *key, PF_CMP_EXT_FUNC cmp_fn, void *ud)
+{
+    void *node;
 
+    DTQ_FOREACH(pstList, node) {
+        if (cmp_fn(key, node, ud) == 0) {
+            return node;
+        }
+    }
 
+    return NULL;
+}
 
 
 #ifdef __cplusplus
 }
 #endif
-#endif //LIST_DTQ_H_
+#endif 

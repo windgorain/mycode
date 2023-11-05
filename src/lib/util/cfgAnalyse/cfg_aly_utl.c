@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_CFGALY
 
 #include "bs.h"
@@ -13,7 +13,7 @@
 #include "utl/txt_utl.h"
 
 
-/* ---struct--- */
+
 typedef struct
 {
     UCHAR ucSplitChar;

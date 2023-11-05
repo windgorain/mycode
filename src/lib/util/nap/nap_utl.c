@@ -16,7 +16,7 @@
 
 #include "nap_inner.h"
 
-/* 必须紧邻在用户数据之前 */
+
 typedef struct
 {
     UINT ulID;
@@ -226,7 +226,7 @@ UINT NAP_GetNodeSize(IN NAP_HANDLE hNapHandle)
     return pstCommonHead->uiNodeSize;
 }
 
-/* 申请一个Node */
+
 VOID * NAP_Alloc(IN NAP_HANDLE hNapHandle)
 {
     _NAP_HEAD_COMMON_S *pstCommonHead = hNapHandle;
@@ -269,8 +269,7 @@ VOID * NAP_ZAlloc(IN NAP_HANDLE hNapHandle)
     return pMem;
 }
 
-/* 申请一个特定Index的Node, 如果已经被占用了，则返回NULL.
-   如果Index为INVALID,则表示忽略此参数,按非spec方式申请 */
+
 VOID * NAP_AllocByIndex(NAP_HANDLE hNapHandle, UINT uiSpecIndex)
 {
     _NAP_HEAD_COMMON_S *pstCommonHead = hNapHandle;
@@ -315,8 +314,7 @@ VOID * NAP_ZAllocByIndex(IN NAP_HANDLE hNapHandle, IN UINT uiSpecIndex)
     return pMem;
 }
 
-/* 申请一个特定ID的Node, 如果已经被占用了，则返回NULL.
-   如果ID为INVALID,则表示忽略此参数,按非spec方式申请 */
+
 VOID * NAP_AllocByID(IN NAP_HANDLE hNapHandle, IN UINT ulSpecID)
 {
     _NAP_HEAD_COMMON_S *pstCommonHead = hNapHandle;
@@ -489,7 +487,7 @@ UINT NAP_GetIndexByNode(IN NAP_HANDLE hNAPHandle, void *node)
     return NAP_GetIndexByID(hNAPHandle, id);
 }
 
-/* 改变NodeID, 注意下标不能变, 其他部位都可以改变 */
+
 BS_STATUS NAP_ChangeNodeID(IN NAP_HANDLE hNAPHandle, IN VOID *pstNode, IN UINT uiNewNodeID)
 {
     _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
@@ -514,14 +512,12 @@ BS_STATUS NAP_ChangeNodeID(IN NAP_HANDLE hNAPHandle, IN VOID *pstNode, IN UINT u
     return BS_OK;
 }
 
-/* 序列号,会在每次申请节点时进行变化
-ulSeqMask: 0表示自动计算Seq, 只在低32位内进行自动计算 
-uiSeqCount :创建多少个序列数 */
+
 BS_STATUS NAP_EnableSeq(HANDLE hNAPHandle, UINT ulSeqMask, UINT uiSeqCount)
 {
     _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;
 
-    /* 根据ulIndexMask自动计算, 只用高位 */
+    
     if (ulSeqMask == 0) {
         ulSeqMask = ~pstCommonHead->ulIndexMask;
         ulSeqMask &= 0xffff0000;
@@ -553,7 +549,7 @@ BS_STATUS NAP_EnableSeq(HANDLE hNAPHandle, UINT ulSeqMask, UINT uiSeqCount)
     return BS_OK;
 }
 
-/* 相比于NAP_GetNextID, 其性能会更高 */
+
 UINT NAP_GetNextIndex(IN NAP_HANDLE hNAPHandle, IN UINT uiCurrentIndex)
 {
     _NAP_HEAD_COMMON_S *pstCommonHead = hNAPHandle;

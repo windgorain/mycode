@@ -23,8 +23,8 @@ static int precver_udp_open(int argc, char **argv)
 {
     UINT port;
     GETOPT2_NODE_S opts[] = {
-        {'o', 'h', "help", 0, NULL, NULL, 0},
-        {'o', 'p', "port", 'u', &port, "udp service port", 0},
+        {'o', 'h', "help", GETOPT2_V_NONE, NULL, NULL, 0},
+        {'o', 'p', "port", GETOPT2_V_U32, &port, "udp service port", 0},
         {0}
     };
     
@@ -93,7 +93,7 @@ static void precver_udp_run(PRECVER_RUNNER_S *runner, int fd)
         }
         precver_udp_read(runner, fd, &ts);
 
-    } while ((cur_time - tick_base < RDTSC_HZ)); /* 1秒后停止循环 */
+    } while ((cur_time - tick_base < RDTSC_HZ)); 
 
     return;
 }

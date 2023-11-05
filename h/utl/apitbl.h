@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #ifdef IN_WINDOWS
 
@@ -35,8 +35,8 @@ PLUG_API UINT APITBL_LoadLibraryExW(IN CHAR * lpLibFileName, IN UINT hFile, IN U
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__APITBL_H_*/
+#endif 
 
 

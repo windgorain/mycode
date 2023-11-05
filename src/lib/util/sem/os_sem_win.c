@@ -9,7 +9,7 @@
 
 #include "os_sem.h"
 
-/* ---funcs--- */
+
 #ifdef IN_WINDOWS
 
 BS_STATUS _OSSEM_Create(CHAR *pcName, UINT ulInitNum, OUT OS_SEM *pOsSem)

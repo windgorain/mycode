@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS WAN_VFCmd_Init();
 UINT WAN_VrfCmd_GetVrfByEnv(IN VOID *pEnv);
@@ -18,8 +18,8 @@ VOID WAN_VrfCmd_Save(IN HANDLE hFile);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WAN_VRF_CMD_H_*/
+#endif 
 
 

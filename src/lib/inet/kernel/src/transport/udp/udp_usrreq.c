@@ -57,7 +57,7 @@ STATIC int udp_output
 );
 
 
-UINT  udp_sendspace = 9216UL;       /* really max datagram size */
+UINT  udp_sendspace = 9216UL;       
 UINT  udp_recvspace = 40 * (1024 + sizeof(SOCKADDR_IN6_S));
 
 UDP_CTRL_S g_stUdpUsrreq = {0};
@@ -65,28 +65,28 @@ UDP_CTRL_S g_stUdpUsrreq = {0};
 PROTOSW_USER_REQUEST_S udp_usrreqs =
 {
     0,
-    udp_abort,          /* pru_abort */
-    NULL,               /* pru_accept */
-	udp_attach,         /* pru_attach */
-    udp_bind,           /* pru_bind */
-    udp_connect,        /* pru_connect */
-    NULL,               /* pru_connect2 */
-    NULL,               /* pru_control */
-    udp_detach,         /* pru_detach */
-    udp_disconnect,     /* pru_disconnect */
-    NULL,               /* pru_listen */
-    in_getpeeraddr,     /* pru_peeraddr */
-    NULL,               /* pru_rcvd */
-    NULL,               /* pru_rcvoob */
-    udp_send,           /* pru_send */
-    NULL,               /* pru_sense */
-    udp_shutdown,       /* pru_shutdown */
-    in_getsockaddr,     /* pru_sockaddr */
-    sosend_dgram,       /* pru_sosend */
-    NULL,               /* pru_soreceive */
-    NULL,               /* pru_sopoll */
-    in_pcbsosetlabel,   /* pru_sosetlabel */
-    udp_close           /* pru_close */
+    udp_abort,          
+    NULL,               
+	udp_attach,         
+    udp_bind,           
+    udp_connect,        
+    NULL,               
+    NULL,               
+    udp_detach,         
+    udp_disconnect,     
+    NULL,               
+    in_getpeeraddr,     
+    NULL,               
+    NULL,               
+    udp_send,           
+    NULL,               
+    udp_shutdown,       
+    in_getsockaddr,     
+    sosend_dgram,       
+    NULL,               
+    NULL,               
+    in_pcbsosetlabel,   
+    udp_close           
 };
 
 VOID udp_Init()
@@ -116,19 +116,8 @@ void m_adj(IN MBUF_S *m, IN INT len)
     }
 }
 
-/*
-接收到的UDP报文,根据查找到的inpcb,如果inpcb设置了接收控制选项或inpcb
-对应的socket对象设置了时间选项,则调用ip_savecontrol从接收到的mbuf报文链中
-提取控制选项，生成控制mbuf，增加在数据mbuf的前面；最终生成
-(报文源addr+control选项+数据)mbuf链,存放在该inpcb对应的socket接收缓冲区内
-*/
-/*
- * Subroutine of udp_input(), which appends the provided mbuf chain to the
- * passed pcb/socket.  The caller must provide a sockaddr_in via udp_in that
- * contains the source address.  If the socket ends up being an IPv6 socket,
- * udp_append() will convert to a sockaddr_in6 before passing the address
- * into the socket code.
- */
+
+
 STATIC void udp_append
 (
     IN INPCB_S *inp,
@@ -199,7 +188,7 @@ VOID udp_input(IN MBUF_S *m, IN UINT uiPayloadOffset)
     IP_HEAD_S save_ip;
     SOCKADDR_IN_S udp_in;
     int broadcast = 0;
-    UCHAR iphead[MAX_IPHEADLEN];   /*IP头长最大为60字节，用以存储原报文的IP头，包括选项。用数组避免分支释放内存*/
+    UCHAR iphead[MAX_IPHEADLEN];   
     int needtrsend = 0;
     UINT trsendnum = 0;
     MBUF_S *n;
@@ -208,14 +197,10 @@ VOID udp_input(IN MBUF_S *m, IN UINT uiPayloadOffset)
 
     iphead[0] = '\0';
 
-    /*
-     * Strip IP options, if any; should skip this, make available to
-     * user, and use on returned packets, but we don't yet have a way to
-     * check the checksum with options still present.
-     */
+    
     if (iphlen > sizeof(IP_HEAD_S))
     {
-        IP_SaveSrcOption(m, iphead); /*只针对选项报文提取源路由*/
+        IP_SaveSrcOption(m, iphead); 
         IP_StrIpOptions(m);
         iphlen = sizeof(IP_HEAD_S);
     }
@@ -225,18 +210,13 @@ VOID udp_input(IN MBUF_S *m, IN UINT uiPayloadOffset)
         goto badunlocked;
     }
 
-    /*
-     * Get IP and UDP header together in first mbuf.
-     */
+    
     ip = MBUF_MTOD(m);
     uh = (UDP_HEAD_S *)(void *)((UCHAR*)ip + iphlen);
 
     rvrf = MBUF_GET_OUTVPNID(m);
 
-    /*
-     * Construct sockaddr format source address.  Stuff source address
-     * and datagram in user buffer.
-     */
+    
     Mem_Zero(&udp_in, sizeof(udp_in));
     udp_in.sin_len = sizeof(udp_in);
     udp_in.sin_family = AF_INET;
@@ -244,10 +224,7 @@ VOID udp_input(IN MBUF_S *m, IN UINT uiPayloadOffset)
     udp_in.sin_addr = ip->unSrcIp.uiIp;
     udp_in.sin_vrf = rvrf;
 
-    /*
-     * Make mbuf data length reflect UDP length.  If not enough data to
-     * reflect UDP length, drop.
-     */
+    
     len = ntohs(uh->usDataLength);
     if (ip->usTotlelen != len)
     {
@@ -259,10 +236,7 @@ VOID udp_input(IN MBUF_S *m, IN UINT uiPayloadOffset)
         m_adj(m, len - (INT)ip->usTotlelen);
     }
 
-    /*
-     * Save a copy of the IP header in case we want restore it for
-     * sending an ICMP error message in response.
-     */
+    
     if (0 == g_stUdpUsrreq.udp_blackhole)
     {
         save_ip = *ip;
@@ -272,9 +246,7 @@ VOID udp_input(IN MBUF_S *m, IN UINT uiPayloadOffset)
         Mem_Zero(&save_ip, sizeof(save_ip));
     }
 
-    /*
-     * Checksum extended UDP header and data.
-     */
+    
     if (0 != uh->usCrc)
     {
         USHORT uh_sum;
@@ -331,12 +303,7 @@ VOID udp_input(IN MBUF_S *m, IN UINT uiPayloadOffset)
             {
                 continue;
             }
-            /*
-             * XXX: Do not check source port of incoming datagram
-             * unless inp_connect() has been called to bind the
-             * fport part of the 4-tuple; the source could be
-             * trying to talk to us with an ephemeral port.
-             */
+            
             if (inp->inp_fport != 0 &&
                 inp->inp_fport != uh->usSrcPort)
             {
@@ -345,10 +312,7 @@ VOID udp_input(IN MBUF_S *m, IN UINT uiPayloadOffset)
 
             INP_LOCK(inp);
 
-            /*
-             * Handle socket delivery policy for any-source
-             * and source-specific multicast. [RFC3678]
-             */
+            
             imo = inp->inp_moptions;
             if ((imo != NULL) && IN_MULTICAST(ntohl(ip->unDstIp.uiIp)))
             {
@@ -366,23 +330,12 @@ VOID udp_input(IN MBUF_S *m, IN UINT uiPayloadOffset)
                 idx = imo_match_group(imo, uiIfindex, (struct sockaddr *)&sin);
                 if (idx == (UINT)(-1))
                 {
-                    /*
-                     * No group membership for this socket.
-                     * Do not bump udps_noportbcast, as
-                     * this will happen further down.
-                     */
+                    
                     blocked++;
                 }
                 else
                 {
-                    /*
-                     * Check for a multicast source filter
-                     * entry on this socket for this group.
-                     * MCAST_EXCLUDE is the default
-                     * behaviour.  It means default accept;
-                     * entries, if present, denote sources
-                     * to be excluded from delivery.
-                     */
+                    
                     ims = imo_match_source(imo, idx,
                         (struct sockaddr *)&udp_in);
                     mode = imo->imo_mfilters[idx].imf_fmode;
@@ -409,14 +362,7 @@ VOID udp_input(IN MBUF_S *m, IN UINT uiPayloadOffset)
                 INP_UNLOCK(last);
             }
             last = inp;
-            /*
-             * Don't look for additional matches if this one does
-             * not have either the SO_REUSEPORT or SO_REUSEADDR
-             * socket options set.  This heuristic avoids
-             * searching through all pcbs in the common case of a
-             * non-shared port.  It assumes that an application
-             * will never clear these options after setting them.
-             */
+            
             if ((last->inp_socket->so_options & SO_REUSEADDR) == 0)
             {
                 break;
@@ -433,9 +379,7 @@ VOID udp_input(IN MBUF_S *m, IN UINT uiPayloadOffset)
         goto badunlocked;
     }
 
-    /*
-     * Locate pcb for datagram.
-     */
+    
     inp = in_pcblookup_hash(&V_udbinfo, ip->unSrcIp.uiIp,
                     uh->usSrcPort, rvrf, ip->unDstIp.uiIp, uh->usDstPort, 1);
     if (NULL != inp)
@@ -443,10 +387,8 @@ VOID udp_input(IN MBUF_S *m, IN UINT uiPayloadOffset)
         INP_LOCK(inp);
 
         {
-            /* 本地上送处理 */
-            /*
-             * Check the minimum TTL for socket.
-             */
+            
+            
             if ((0 == inp->inp_ip_minttl) || (inp->inp_ip_minttl <= ip->ucTtl))
             {
                 udp_append(inp, ip, m, (int)iphlen + (int)sizeof(UDP_HEAD_S), &udp_in,iphead);
@@ -460,10 +402,10 @@ VOID udp_input(IN MBUF_S *m, IN UINT uiPayloadOffset)
     }
     else
     {
-        /* 这里可以直接放掉大锁 */
+        
         INP_INFO_RUNLOCK(&V_udbinfo);
 
-        /* 没有找到匹配的INPCB，需要回应ICMP差错报文 */
+        
         if (0 != (MBUF_GET_IP_PKTTYPE(m) & (IP_PKT_ETHBCAST | IP_PKT_ETHMCAST)))
         {
             goto badunlocked;
@@ -578,7 +520,7 @@ STATIC int udp_disconnect(IN SOCKET_S *so)
     in_pcbdisconnect(inp);
     inp->inp_laddr = INADDR_ANY;
     SOCK_LOCK(so);
-    so->so_state &= ~SS_ISCONNECTED;        /* XXX */
+    so->so_state &= ~SS_ISCONNECTED;        
     SOCK_UNLOCK(so);
     INP_UNLOCK(inp);
     INP_INFO_WUNLOCK(&V_udbinfo);
@@ -696,12 +638,7 @@ STATIC int udp_output
     int opt;
     ULONG ret;
 
-    /*
-     * udp_output() may need to temporarily bind or connect the current
-     * inpcb.  As such, we don't know up front whether we will need the
-     * pcbinfo lock or not.  Do any work to decide what is needed up
-     * front before acquiring any locks.
-     */
+    
     if (len + sizeof(struct udpiphdr) > IP_MAXPACKET)
     {
         MBUF_Free(m);
@@ -714,10 +651,10 @@ STATIC int udp_output
         newcontrol = MBUF_ReferenceCopy(control, 0, MBUF_TOTAL_DATA_LEN(control));
         if (NULL != newcontrol)
         {
-            /*  We DON'T assume all the optional information is stored in a single mbuf. */
+            
             while (MBUF_TOTAL_DATA_LEN(newcontrol) > 0)
             {
-                /* First pullup, length is sizeof struct cmsghdr */
+                
                 ret = MBUF_MakeContinue(newcontrol, sizeof(CMSGHDR_S));
                 if (BS_OK != ret)
                 {
@@ -741,7 +678,7 @@ STATIC int udp_output
                     continue;
                 }
                 
-                /* Second pullup, length is CMSG_ALIGN(cm->cmsg_len) */
+                
                 ret = MBUF_MakeContinue(newcontrol, CMSG_ALIGN(cm->cmsg_len));
                 if (BS_OK != ret)
                 {
@@ -794,11 +731,7 @@ STATIC int udp_output
     }
     INP_LOCK(inp);
 
-    /*
-     * If the IP_SENDSRCADDR control message was specified, override the
-     * source address for this datagram.  Its use is invalidated if the
-     * address thus specified is incomplete or clobbers other inpcbs.
-     */
+    
     laddr = inp->inp_laddr;
     lport = inp->inp_lport;
     rvrf = inp->inp_rvrf;
@@ -819,12 +752,10 @@ STATIC int udp_output
             goto release;
         }
 
-        /* Commit the local port if newly assigned. */
+        
         if (inp->inp_laddr == INADDR_ANY && inp->inp_lport == 0)
         {
-            /*
-                     * Remember addr if jailed, to prevent rebinding.
-                     */
+            
             inp->inp_lport = lport;
             if (in_pcbinshash(inp) != 0)
             {
@@ -870,26 +801,21 @@ STATIC int udp_output
         goto release;
     }
 
-    /*
-     * Fill in mbuf with extended UDP header and addresses and length put
-     * into network format.
-     */
+    
     ui = MBUF_MTOD(m);
-    Mem_Zero(ui->ui_x1, sizeof(ui->ui_x1));    /* XXX still needed? */
+    Mem_Zero(ui->ui_x1, sizeof(ui->ui_x1));    
     ui->ui_pr = IPPROTO_UDP;
     ui->ui_src = laddr;
     ui->ui_dst = faddr;
     ui->ui_sport = lport;
     ui->ui_dport = fport;
     ui->ui_ulen = htons((USHORT)len + (USHORT)sizeof(UDP_HEAD_S));
-    /*伪头部中需要计算UDP报文的长度,以便计算checksum*/
+    
     ui->ui_len  = ui->ui_ulen;
     ui->ui_sum  = 0;
     ip = (IP_HEAD_S *)&ui->ui_i;
 
-    /*
-     * Set the Don't Fragment bit in the IP header.
-     */
+    
     if (0 != (inp->inp_flags & INP_DONTFRAG))
     {
         ip->usOff |= IP_DF;
@@ -906,20 +832,20 @@ STATIC int udp_output
     }
     if (0 != (inp->inp_flags & INP_ONESBCAST))
     {
-        ipflags |= IP_SENDONES;/*标志由IP转发定义，目前不使用*/
+        ipflags |= IP_SENDONES;
     }
 
-    /* J03845: If user set output interface index, set it in mbuf. */
+    
     outif = inp->inp_outif;
     if (NULL != outif) {
-        /* set output if index */
+        
         MBUF_SET_SEND_IF_INDEX(m, outif->si_if);
-        /* set src address */
+        
         if (INADDR_ANY != outif->si_lcladdr)
         {
             ip->unSrcIp.uiIp = outif->si_lcladdr;
         }
-        /* set nexthop address */
+        
         if (INADDR_ANY != outif->si_nxthop)
         {
             MBUF_SET_NEXT_HOP(m, outif->si_nxthop);
@@ -932,11 +858,8 @@ STATIC int udp_output
         ipflags |= IP_SENDBY_LSPV;
     }
 
-    /*
-     * Set up checksum and output datagram.
-     */
-    /*checksum修改，必须保证已经有源地址，在in_pcbconnect_setup已获取了源地址,
-    每次发送报文时，都需要通过此函数查找FIB表，进行源地址选择*/
+    
+    
     if ( 0 != V_udp_cksum) 
     {
         if ( 0 != (inp->inp_flags & INP_ONESBCAST))
@@ -961,12 +884,10 @@ STATIC int udp_output
         INP_INFO_WUNLOCK(&V_udbinfo);
     }
 
-    /* set ip opts */
+    
     ip_setopt2mbuf(inp, control, m);
 
-    /*
-     * J03845: Assign send vrf index in mbuf.
-     */
+    
     MBUF_SET_RAWINVPNID(m, svrf);
     MBUF_SET_INVPNID(m, svrf);
 
@@ -1021,15 +942,13 @@ void udp_ctlinput
         return;
     }
     
-    /* Check whether cmd valid or not. */
+    
     if ((unsigned)cmd >= PRC_NCMDS || inetctlerrmap[cmd] == 0)
     {
         return;
     }
 
-    /*
-     * Redirects don't need to be handled up here.
-     */
+    
     if (PRC_IS_REDIRECT(cmd))
     {
         return;
@@ -1037,23 +956,14 @@ void udp_ctlinput
 
     rvrf = ((struct sockaddr_in *)sa)->sin_vrf;
 
-    /*
-     * Hostdead is ugly because it goes linearly through all PCBs.
-     *
-     * XXX: We never get this from ICMP, otherwise it makes an excellent
-     * DoS attack on machines with many connections.
-     */
+    
     if (cmd == PRC_HOSTDEAD)
     {
         ip = NULL;
     }
     else
     {
-        /*
-         * G03597: 协议栈支持分布式后，CTLINPUT函数也需要支持分布式
-         * 在Socket-Dist-Project项目中，修改了CTLINPUT函数第三个参数(void *vip)
-         * 的含义，传入的是mbuf的指针。所以在实际处理前需要解析mbuf。
-         */
+        
         if (NULL != vip)
         {
             inmbuf = (MBUF_S *)vip;
@@ -1070,7 +980,7 @@ void udp_ctlinput
             {
                 return ;
             }
-            /* 重新获取一下ip头指针 */
+            
             iptmp = MBUF_MTOD(inmbuf);
             icp = (struct icmp *)(void *)((char *)iptmp + ipheadlen);
             ip = (struct ip *)&icp->icmp_ip;
@@ -1079,7 +989,7 @@ void udp_ctlinput
 
     if (ip != NULL)
     {
-        /* 这种情况下，MBUF不可能为NULL */
+        
         if (NULL != inmbuf)
         {
             uh = (struct udphdr *)(void *)((UCHAR *)ip + (UCHAR)(ip->ucHLen << 2));
@@ -1090,11 +1000,7 @@ void udp_ctlinput
             if (inp != NULL) 
             {
                 INP_LOCK(inp);
-                /*
-                 * G03597: 如果找到了匹配的INPCB，首先检查是否为本板生成的，如果是本板
-                 * 生成的，则上送处理；如果INPCB不是本板生成的，且报文是从本板接收的
-                 * 需要将报文拷贝一份，并透传到对应的单板进行处理。
-                 */
+                
                 if (inp->inp_socket != NULL)
                 {
                     (void)udp_notify(inp, inetctlerrmap[cmd]);
@@ -1105,13 +1011,7 @@ void udp_ctlinput
             INP_INFO_RUNLOCK(&V_udbinfo);
         }
     }  else {
-        /*
-         * G03597: 通知所有源地址匹配的INPCB。Leopard支持分布式后，需要通知到
-         * 所有单板，所以需要透传处理。
-         * 在接口板上报文上送时，不能确定其他单板是否在位，只能直接透传，可能
-         * 导致向不在位的单板也进行了透传，但是这样也不会导致问题。后续如果存在
-         * 问题，可以考虑先透传到主控板，再透传到其他单板。
-         */
+        
 
         in_pcbnotifyall(&V_udbinfo, faddr, rvrf, inetctlerrmap[cmd], udp_notify);
     }

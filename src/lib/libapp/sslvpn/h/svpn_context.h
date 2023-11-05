@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef enum
 {
@@ -67,8 +67,8 @@ static inline SVPN_CONTEXT_HANDLE SVPN_Context_GetByEnv(IN VOID *pEnv, IN UINT u
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_CONTEXT_H_*/
+#endif 
 
 

@@ -27,42 +27,42 @@
 #define _DEF_CMD_EXP_MAX_VIEW_NAME_LEN           31
 #define _DEF_CMD_EXP_MAX_MODE_NAME_LEN           31
 
-/* 选项相关 */
-#define DEF_CMD_OPT_STR_PREFIX    "__OPT_"   /* 选项前缀 */
-#define DEF_CMD_OPT_FLAG_STR_NOSAVE   'S'    /* 不Save */
-#define DEF_CMD_OPT_FLAG_STR_NOSHOW   'H'    /* 不Show */
-#define DEF_CMD_OPT_STR_END           '_'    /* 选项结束标记 */
 
-/* 注册命令flag相关 */
+#define DEF_CMD_OPT_STR_PREFIX    "__OPT_"   
+#define DEF_CMD_OPT_FLAG_STR_NOSAVE   'S'    
+#define DEF_CMD_OPT_FLAG_STR_NOSHOW   'H'    
+#define DEF_CMD_OPT_STR_END           '_'    
+
+
 #define DEF_CMD_REG_FLAG_CYCLE 0x1
 
-/* ---define--- */
+
 #define _DEF_CMD_EXP_MAX_MODE_VALUE_LEN 255
 
 #define _DEF_CMD_EXP_MAX_CMD_ELEMENT_IN_ONE_CMD  100
 #define _DEF_CMD_EXP_MAX_CMD_ELEMENT_LEN         31
 
-/* 检测命令元素是否可执行 */
+
 #define _DEF_CMD_EXP_IS_CMD_RUNABLE(_pstNode) \
     (((_pstNode)->pfFunc != NULL) || (CMD_EXP_IS_VIEW((_pstNode)->uiType)))
 
-/* ---struct--- */
+
 
 typedef struct cmdTree
 {
-    DLL_NODE_S link_node; /* 兄弟命令连接件 */
+    DLL_NODE_S link_node; 
     DLL_HEAD_S _subcmds;
-    DLL_HEAD_S *subcmd_list; /* 子命令链表 */
+    DLL_HEAD_S *subcmd_list; 
     struct cmdTree *pstParent;
 
-    UINT uiType;  /* 命令类型 */
-    UINT uiProperty; /* 属性 */
-    UCHAR level; /* 命令级别，数字越大级别越低 */
-    CHAR acCmd[_DEF_CMD_EXP_MAX_CMD_ELEMENT_LEN + 1];  /* 命令元素 */
-    CHAR *pcHelp;  /* 帮助信息 */
-    PF_CMD_EXP_RUN pfFunc;  /*当匹配这条命令时，所执行的函数*/
+    UINT uiType;  
+    UINT uiProperty; 
+    UCHAR level; 
+    CHAR acCmd[_DEF_CMD_EXP_MAX_CMD_ELEMENT_LEN + 1];  
+    CHAR *pcHelp;  
+    PF_CMD_EXP_RUN pfFunc;  
     HANDLE hParam;
-    void *view; /* 执行这条命令后进入指向的view视图 */
+    void *view; 
 
 }_CMD_EXP_TREE_S;
 
@@ -97,21 +97,21 @@ typedef struct
 
 typedef struct
 {
-    DLL_NODE_S stLinkNode;  /* 兄弟链表节点 */
+    DLL_NODE_S stLinkNode;  
 
-    CHAR view_name[_DEF_CMD_EXP_MAX_VIEW_NAME_LEN + 1]; /* View名字 */
+    CHAR view_name[_DEF_CMD_EXP_MAX_VIEW_NAME_LEN + 1]; 
     UINT property;
 
-    _CMD_EXP_TREE_S stCmdRoot; /* 命令树 */
-    DLL_HEAD_S stSaveFuncList; /* save命令响应接口 */
-    DLL_HEAD_S stEnterFuncList; /* Enter响应接口 */
-    DLL_HEAD_S stSubViewList; /* 子View列表 */
+    _CMD_EXP_TREE_S stCmdRoot; 
+    DLL_HEAD_S stSaveFuncList; 
+    DLL_HEAD_S stEnterFuncList; 
+    DLL_HEAD_S stSubViewList; 
 }_CMD_EXP_VIEW_S;
 
 typedef struct
 {
     _CMD_EXP_VIEW_S *pstViewTbl;
-    CHAR szModeName[_DEF_CMD_EXP_MAX_MODE_NAME_LEN + 1];  /* 模式名 */
+    CHAR szModeName[_DEF_CMD_EXP_MAX_MODE_NAME_LEN + 1];  
     CHAR szModeValue[_DEF_CMD_EXP_MAX_MODE_VALUE_LEN + 1];
     char *cmd;
 }_CMD_EXP_NEW_MODE_NODE_S;
@@ -119,8 +119,8 @@ typedef struct
 typedef struct {
     _CMD_EXP_VIEW_S stRootView;
     DLL_HEAD_S stNoDbgFuncList;
-    DLL_HEAD_S stCmdViewPatternList; /* 记录通配view的命令, 用于后面添加view时再次进行匹配并添加命令 */
-    MUTEX_S lock; /* 命令行锁 */
+    DLL_HEAD_S stCmdViewPatternList; 
+    MUTEX_S lock; 
     UINT flag;
 }CMD_EXP_S;
 
@@ -129,7 +129,7 @@ typedef struct {
 typedef struct
 {
     CMD_EXP_S *cmdexp;
-    void *sub_runner; /* 当存在sub_runner时，则执行sub_runner */
+    void *sub_runner; 
     char *runner_dir;
     CMD_EXP_HOOK_FUNC hook_func;
     void *hook_ud;
@@ -137,13 +137,13 @@ typedef struct
     CHAR acInputs[DEF_CMD_EXP_MAX_CMD_LEN + 1];
     CHAR runner_name[CMD_EXP_RUNNER_NAME_LEN + 1];
     USHORT ulInputsLen;
-    USHORT uiInputsPos; /* 当前的光标距离字符串尾部的距离 */
+    USHORT uiInputsPos; 
     UINT ulHistoryIndex;
-    UINT alt_mode:1; /* 是否交互模式 */
+    UINT alt_mode:1; 
     UINT bIsRChangeToN:1;
-    UINT deny_history:1; /* 是否允许history */
-    UINT deny_help:1; /* 是否允许help */
-    UINT deny_prefix:1; /* 是否允许prefix */
+    UINT deny_history:1; 
+    UINT deny_help:1; 
+    UINT deny_prefix:1; 
     UINT reserved:3;
     UINT level:8;
     UINT runner_type: 8;
@@ -154,11 +154,11 @@ typedef struct
     HANDLE hModeStack;
 }_CMD_EXP_RUNNER_S;
 
-/* 命令执行的上下文环境 */
+
 typedef struct
 {
-    _CMD_EXP_RUNNER_S *pstRunner; /* 所属的命令实例 */
-    _CMD_EXP_TREE_S *pstCmdNode;    /* 触发动作的命令节点 */
+    _CMD_EXP_RUNNER_S *pstRunner; 
+    _CMD_EXP_TREE_S *pstCmdNode;    
 }_CMD_EXP_ENV_S;
 
 typedef struct
@@ -167,12 +167,12 @@ typedef struct
     _CMD_EXP_ENV_S *pstEnv;
     FILE *fp;
     UINT bIsNewFile:1;
-    UINT bHasCfg:1;      /* 是否有配置 */
-    UINT matched_mode:1;   /* 是否匹配了命令执行所在的模式或其子模式, 用于show this时忽略输出其他视图 */
-    UINT bIsShowAll:1;   /* 是否显示所有,如果为0的话,_OPT_S_的配置不显示 */
-    UCHAR ucPrefixSpaceNum;   /* 前缀空格个数 */
-    UCHAR ucMatchedModeIndex; /* 匹配到了hStack中的第几个Mode */
-    UCHAR ucModeDeepth;       /* 当前show/save到了多深的Mode */
+    UINT bHasCfg:1;      
+    UINT matched_mode:1;   
+    UINT bIsShowAll:1;   
+    UCHAR ucPrefixSpaceNum;   
+    UCHAR ucMatchedModeIndex; 
+    UCHAR ucModeDeepth;       
 }_CMD_EXP_SHOW_SAVE_NODE_S;
 
 typedef _CMD_EXP_MATCH_E (*PF_CMD_EXP_PATTERN_PARSE)(IN CHAR *pszCmdElement, IN CHAR *pszInputCmd);
@@ -219,23 +219,24 @@ static _CMD_EXP_PATTERN_PARSE_S g_astCmdExpParse[] =
 
 static THREAD_LOCAL void * g_cmd_exp_thread_env = NULL;
 
-typedef BS_WALK_RET_E (*PF_CMD_EXP_VIEW_WALK)(_CMD_EXP_VIEW_S *view_node, void *ud);
+typedef int (*PF_CMD_EXP_VIEW_WALK)(_CMD_EXP_VIEW_S *view_node, void *ud);
 
 static int cmdexp_WalkView(_CMD_EXP_VIEW_S *pstViewTree, PF_CMD_EXP_VIEW_WALK walk_func, void *ud)
 {
+    int ret;
     _CMD_EXP_VIEW_S *pstNode;
 
-    if (BS_WALK_STOP == walk_func(pstViewTree, ud)) {
-        return BS_WALK_STOP;
+    if ((ret = walk_func(pstViewTree, ud)) < 0) {
+        return ret;
     }
 
     DLL_SCAN(&(pstViewTree->stSubViewList), pstNode) {
-        if (BS_WALK_STOP == cmdexp_WalkView(pstNode, walk_func, ud)) {
-            return BS_WALK_STOP;
+        if ((ret = cmdexp_WalkView(pstNode, walk_func, ud)) < 0) {
+            return ret;
         }
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static _CMD_EXP_VIEW_S * cmdexp_FindViewFromViewTree(_CMD_EXP_VIEW_S *pstViewTree, char *pcViewName)
@@ -262,7 +263,7 @@ static _CMD_EXP_VIEW_S *cmdexp_FindView(CMD_EXP_S *cmdexp, CHAR *pcViewName)
     return cmdexp_FindViewFromViewTree(&cmdexp->stRootView, pcViewName);
 }
 
-static BS_WALK_RET_E cmdexp_reg_cmd_by_view_pattern(_CMD_EXP_VIEW_S *view_node, void *ud)
+static int cmdexp_reg_cmd_by_view_pattern(_CMD_EXP_VIEW_S *view_node, void *ud)
 {
     int rc;
     int ovector[3];
@@ -273,15 +274,15 @@ static BS_WALK_RET_E cmdexp_reg_cmd_by_view_pattern(_CMD_EXP_VIEW_S *view_node, 
     int view_name_len = strlen(view_name);
 
     if((rc=pcre_exec(node->pcre, NULL, (const char*)view_name, view_name_len, 0, 0, ovector, 3)) <=0) {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     cmdexp_RegCmd(cmdexp, view_name, node->cmd_param.pcCmd, &node->cmd_param, 0);
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
-/* 遍历所有的view, 匹配命令模式并注册命令 */
+
 static void cmdexp_WalkViewsToRegPatternCmd(CMD_EXP_S *cmdexp, _CMD_EXP_CMD_VIEW_PATTERN_S *node)
 {
     USER_HANDLE_S ud;
@@ -292,7 +293,7 @@ static void cmdexp_WalkViewsToRegPatternCmd(CMD_EXP_S *cmdexp, _CMD_EXP_CMD_VIEW
     cmdexp_WalkView(&cmdexp->stRootView, cmdexp_reg_cmd_by_view_pattern, &ud);
 }
 
-/* 遍历所有的命令模式, 匹配view注册命令 */
+
 static void cmdexp_WalkPatternCmdToRegView(CMD_EXP_S *cmdexp, char *view_name)
 {
     _CMD_EXP_CMD_VIEW_PATTERN_S *node;
@@ -347,7 +348,7 @@ static int cmdexp_NotifyEnter(_CMD_EXP_RUNNER_S *pstRunner, _CMD_EXP_VIEW_S *vie
     return 0;
 }
 
-/* 进入模式 */
+
 static int cmdexp_EnterMode(_CMD_EXP_RUNNER_S *pstRunner, _CMD_EXP_VIEW_S *pstViewTbl, UINT property, UINT uiArgc, CHAR **ppcArgv)
 {
     _CMD_EXP_NEW_MODE_NODE_S *pstModeNode;
@@ -389,7 +390,7 @@ static int cmdexp_EnterMode(_CMD_EXP_RUNNER_S *pstRunner, _CMD_EXP_VIEW_S *pstVi
     return BS_OK;
 }
 
-/* 退出模式 */
+
 int CmdExp_QuitMode(CMD_EXP_RUNNER hRunner)
 {
     _CMD_EXP_RUNNER_S *pstRunner = hRunner;
@@ -401,7 +402,7 @@ int CmdExp_QuitMode(CMD_EXP_RUNNER hRunner)
 
     cmdexp_FreeModeNode(pstRunner->pstCurrentMode);
 
-    pstRunner->pstCurrentMode = pstModeTmp; /* 返回到上一级mode */
+    pstRunner->pstCurrentMode = pstModeTmp; 
 
     return BS_OK;
 }
@@ -501,13 +502,13 @@ static int cmdexp_AddCmdViewPattern(CMD_EXP_S *cmdexp, CMD_EXP_REG_CMD_PARAM_S *
 
     DLL_ADD(&cmdexp->stCmdViewPatternList, &node->link_node);
 
-    /* 对已存在的view进行匹配注册 */
+    
     cmdexp_WalkViewsToRegPatternCmd(cmdexp, node);
 
     return 0;
 }
 
-/* 初始化命令行注册模块 */
+
 static int cmdexp_Init(CMD_EXP_S *cmdexp)
 {
     CMD_EXP_REG_CMD_PARAM_S stCmdParam = {0};
@@ -556,7 +557,7 @@ void CmdExp_SetFlag(CMD_EXP_HDL hCmdExp, UINT flag)
     cmdexp->flag = flag;
 }
 
-/* 得到变量命令元素的允许范围 */
+
 static int cmdexp_GetCmdElementRange(CHAR *pszCmdElemet,
         OUT INT64 *min, OUT INT64 *max)
 {
@@ -713,7 +714,7 @@ static _CMD_EXP_MATCH_E cmdexp_ParsePatternOption(IN CHAR *pszCmdElement,
     return _CMD_EXP_NOTMACTH;
 }
 
-/* 获取Pattern长度, 比如%INT<1-2>的获取结果就是%INT的长度4 */
+
 static ULONG cmdexp_GetPatternLen(IN CHAR *pcCmdEle)
 {
     CHAR *pcSplit;
@@ -740,7 +741,7 @@ static _CMD_EXP_MATCH_E cmdexp_CmdElementCmp(IN CHAR *pszCmdElement,
         }
 
         return _CMD_EXP_NOTMACTH;
-    } else {      /* 变量命令元素 */
+    } else {      
         _CMD_EXP_PATTERN_PARSE_S *node;
         for (node=g_astCmdExpParse; node->pcPattern != NULL; node++) {
             if (strncmp(node->pcPattern, pszCmdElement,
@@ -753,8 +754,8 @@ static _CMD_EXP_MATCH_E cmdexp_CmdElementCmp(IN CHAR *pszCmdElement,
     return _CMD_EXP_NOTMACTH;
 }
 
-/* 精确查找 */
-static _CMD_EXP_TREE_S * cmdexp_FindCmdElementExact(_CMD_EXP_TREE_S *pstRoot, char *pcCmdElement /*命令元素*/)
+
+static _CMD_EXP_TREE_S * cmdexp_FindCmdElementExact(_CMD_EXP_TREE_S *pstRoot, char *pcCmdElement )
 {
     _CMD_EXP_TREE_S *pstNode;
 
@@ -767,14 +768,9 @@ static _CMD_EXP_TREE_S * cmdexp_FindCmdElementExact(_CMD_EXP_TREE_S *pstRoot, ch
     return NULL;
 }
 
-/* 
-  如果只找到一个可见命令,返回它.
-  如果找到多个可见命令, 提示并返回NULL
-  如果没有找到可见命令,并且只有一个隐藏命令, 返回它
-  如果没有找到可见命令,并且有多个隐藏命令,返回NULL且不给提示
-*/
+
 static _CMD_EXP_TREE_S * cmdexp_FindCmdElement(_CMD_EXP_RUNNER_S *pstRunner, _CMD_EXP_TREE_S *pstRoot,
-        char *pcCmd /*命令元素*/)
+        char *pcCmd )
 {
     _CMD_EXP_TREE_S *pstNode;
     _CMD_EXP_TREE_S *pstNodeFoundVisable = NULL;
@@ -783,7 +779,7 @@ static _CMD_EXP_TREE_S * cmdexp_FindCmdElement(_CMD_EXP_RUNNER_S *pstRunner, _CM
     UINT uiHideCmdCount = 0;
     UINT uiVisableCmdCount = 0;
 
-    /* 优先找可见命令, 隐藏命令优先级低 */
+    
     DLL_SCAN(pstRoot->subcmd_list, pstNode) {
         if (pstNode->level < pstRunner->level) {
             continue;
@@ -791,7 +787,7 @@ static _CMD_EXP_TREE_S * cmdexp_FindCmdElement(_CMD_EXP_RUNNER_S *pstRunner, _CM
 
         eMatchResult = cmdexp_CmdElementCmp(pstNode->acCmd, pcCmd);
 
-        if (eMatchResult == _CMD_EXP_EXACTMACTH) {/* 精确匹配 */
+        if (eMatchResult == _CMD_EXP_EXACTMACTH) {
             return pstNode;
         }
 
@@ -838,7 +834,7 @@ static _CMD_EXP_TREE_S * cmdexp_FindCmd
         return NULL;
     }
 
-    if (ppArgv[0][0] == '-') { /* %OPTIONS */
+    if (ppArgv[0][0] == '-') { 
         return pstNode;
     }
 
@@ -848,7 +844,7 @@ static _CMD_EXP_TREE_S * cmdexp_FindCmd
         }
     }
 
-    if (pstNode->acCmd[0] != '%')  { /* 如果是静态元素,为了补全命令形式,指向节点中的完整命令 */
+    if (pstNode->acCmd[0] != '%')  { 
         ppArgv[0] = pstNode->acCmd;
     }
 
@@ -871,22 +867,22 @@ static VOID cmdexp_GetElement(IN CHAR *pcCmd, OUT _CMD_EXP_ELEMENT_S *pstEle)
     {
         if (FALSE == bIsHelp)
         {
-            if (*pcTmp == '(') /* 帮助信息开始 */
+            if (*pcTmp == '(') 
             {
                 bIsHelp = TRUE;
                 *pcTmp = '\0';
                 pstEle->pcHelp = pcTmp + 1;
             }
-            else if (*pcTmp == ' ') /* 获取第一个命令元素结束 */
+            else if (*pcTmp == ' ') 
             {
                 *pcTmp = '\0';
                 pstEle->pcNext = pcTmp + 1;
                 break;
             }
         }
-        else  /* 是帮助信息 */
+        else  
         {
-            if (*pcTmp == ')')   /* 帮助信息结束 */
+            if (*pcTmp == ')')   
             {
                 *pcTmp = '\0';
                 bIsHelp = FALSE;
@@ -938,11 +934,11 @@ static int cmdexp_DelCmd(CMD_EXP_S *cmdexp, _CMD_EXP_TREE_S *pstRoot, char *pcCm
         return BS_OK;
     } 
 
-    if (stEle.pcNext == NULL) { /*这是命令行的最后一个元素*/
+    if (stEle.pcNext == NULL) { 
         pstNode->pfFunc = NULL;
         pstNode->hParam = NULL;
         if (DLL_COUNT(pstNode->subcmd_list) == 0) {
-            /* 如果没有了下级命令了,则删除这个命令节点 */
+            
             cmdexp_DelSubCmd(pstRoot, pstNode);
             MEM_Free(pstNode);
         }
@@ -998,7 +994,7 @@ static _CMD_EXP_TREE_S * cmdexp_BuildNode(_CMD_EXP_ELEMENT_S *ele, CMD_EXP_REG_C
     pstNode->uiType = param->uiType;
     pstNode->level = param->level;
     if (ele->pcNext != NULL) {
-        /* 只有最后一个元素才具有View属性, 中间元素不具有 */
+        
         BIT_CLR(pstNode->uiType, DEF_CMD_EXP_TYPE_VIEW); 
     }
 
@@ -1039,7 +1035,7 @@ static int cmdexp_AddCmd
         }
         cmdexp_AddSubCmd(pstRoot, pstNode);
     } else {
-        if (stEle.pcNext == NULL) { /*这是命令行的最后一个元素*/
+        if (stEle.pcNext == NULL) { 
             if (_DEF_CMD_EXP_IS_CMD_RUNABLE(pstNode)) {
                 BS_WARNNING(("The cmd(%s) is exist, view=%s ", pcCmd, pstViewTblNode->view_name));
                 RETURN(BS_ALREADY_EXIST);
@@ -1051,14 +1047,14 @@ static int cmdexp_AddCmd
             pstNode->uiProperty |= uiProperty;
         }
 
-        pstNode->level = MAX(pstNode->level, param->level); /* 设置为较低级别 */
-        /* 如果注册的是可见命令, 则将匹配的节点的隐藏属性去掉 */
+        pstNode->level = MAX(pstNode->level, param->level); 
+        
         if (! BIT_ISSET(uiProperty, DEF_CMD_EXP_PROPERTY_HIDE)) {
             BIT_CLR(pstNode->uiProperty, DEF_CMD_EXP_PROPERTY_HIDE);
         }
     }
 
-    if (stEle.pcNext == NULL) { /*这是命令行的最后一个元素*/
+    if (stEle.pcNext == NULL) { 
         pstNode->pfFunc = param->pfFunc;
         pstNode->hParam = param->hParam;
         if (flag & DEF_CMD_REG_FLAG_CYCLE) {
@@ -1111,7 +1107,7 @@ static int cmdexp_UnregSingleCmd(IN CMD_EXP_S *cmdexp, IN char *pcView, IN char 
     }
 
     pstViewTblNode = cmdexp_FindView(cmdexp, pcView);
-    if (pstViewTblNode == NULL) {  /*没有找到视图*/
+    if (pstViewTblNode == NULL) {  
         BS_DBG_WARNNING(("The %s view does not exist!", pcView));
         RETURN(BS_NO_SUCH);
     }
@@ -1124,7 +1120,7 @@ static int cmdexp_UnregSingleCmd(IN CMD_EXP_S *cmdexp, IN char *pcView, IN char 
     return cmdexp_DelCmd(cmdexp, &pstViewTblNode->stCmdRoot, pcCmdTmp);
 }
 
-/*注册命令，命令字以空格隔开*/
+
 static int cmdexp_RegSingleCmd
 (
     CMD_EXP_S *cmdexp,
@@ -1145,7 +1141,7 @@ static int cmdexp_RegSingleCmd
     }
 
     pstView = cmdexp_FindView(cmdexp, pcView);
-    if (! pstView) {  /*没有找到视图*/
+    if (! pstView) {  
         BS_DBG_WARNNING(("The %s view does not exist!", pcView));
         RETURN(BS_NO_SUCH);
     }
@@ -1168,7 +1164,7 @@ static VOID cmdexp_OutPutByFile(IN FILE *fp, IN CHAR *pcString)
 }
 
 
-/* 判断是否在show */
+
 BOOL_T CmdExp_IsShowing(IN HANDLE hFileHandle)
 {
     _CMD_EXP_SHOW_SAVE_NODE_S *pstSSNode = hFileHandle;
@@ -1180,7 +1176,7 @@ BOOL_T CmdExp_IsShowing(IN HANDLE hFileHandle)
     return FALSE;
 }
 
-/* 判断是否在save */
+
 BOOL_T CmdExp_IsSaving(IN HANDLE hFileHandle)
 {
     _CMD_EXP_SHOW_SAVE_NODE_S *pstSSNode = hFileHandle;
@@ -1208,7 +1204,7 @@ static int cmdexp_save_OutputString(_CMD_EXP_SHOW_SAVE_NODE_S *pstSSNode, CHAR *
     return BS_OK;
 }
 
-/* 获取将要匹配的Mode */
+
 static _CMD_EXP_NEW_MODE_NODE_S *cmdexp_save_GetToMatchMode(IN _CMD_EXP_SHOW_SAVE_NODE_S *pstSSNode)
 {
     UINT uiIndex = pstSSNode->ucMatchedModeIndex;
@@ -1224,14 +1220,14 @@ static _CMD_EXP_NEW_MODE_NODE_S *cmdexp_save_GetToMatchMode(IN _CMD_EXP_SHOW_SAV
     return NULL;
 }
 
-/* 首次有命令需要输出了, 这时候才输出前置Mode */
+
 static VOID cmdexp_OutputPreMode(IN _CMD_EXP_SHOW_SAVE_NODE_S *pstSSNode)
 {
     UINT uiStackCount;
     UINT i;
     char *mode;
 
-    /* 已经输出过了 */
+    
     if (pstSSNode->bHasCfg) {
         return;
     }
@@ -1240,7 +1236,7 @@ static VOID cmdexp_OutputPreMode(IN _CMD_EXP_SHOW_SAVE_NODE_S *pstSSNode)
 
     uiStackCount = HSTACK_GetCount(pstSSNode->hStack);
 
-    /* hStack中没有user-view, 相比index少一个 */
+    
     for (i=pstSSNode->ucMatchedModeIndex - 1; i<uiStackCount; i++) {
         mode = HSTACK_GetValueByIndex(pstSSNode->hStack, i);
         cmdexp_save_OutputString(pstSSNode, mode);
@@ -1259,7 +1255,7 @@ static void cmdexp_OutputPreModeQuit(IN _CMD_EXP_SHOW_SAVE_NODE_S *pstSSNode)
 
     uiStackCount = HSTACK_GetCount(pstSSNode->hStack);
 
-    /* hStack中没有user-view, 相比index少一个 */
+    
     for (i=pstSSNode->ucMatchedModeIndex - 1; i<uiStackCount; i++) {
         cmdexp_save_OutputString(pstSSNode, "quit");
         pstSSNode->ucPrefixSpaceNum --;
@@ -1287,7 +1283,7 @@ static BOOL_T cmdexp_MatchEnvMode(_CMD_EXP_SHOW_SAVE_NODE_S *pstSSNode, char *cm
 
     if (strcmp(pstMode->cmd, cmd) == 0) {
         pstSSNode->ucMatchedModeIndex ++;
-        /* 如果output mode达到了当前env所在的mode,则设置matched */
+        
         if (pstSSNode->ucMatchedModeIndex == HSTACK_GetCount(pstSSNode->pstEnv->pstRunner->hModeStack) + 1) {
             pstSSNode->matched_mode = TRUE;
         }
@@ -1319,7 +1315,7 @@ int CmdExp_OutputMode(IN HANDLE hFileHandle, IN CHAR *fmt, ...)
         cmdexp_save_OutputString(hFileHandle, acMsg);
         pstSSNode->ucPrefixSpaceNum ++;
     } else if (! cmdexp_MatchEnvMode(pstSSNode, acMsg)) {
-        return BS_STOP; /* 匹配env所在路径失败, 后续不再需要输出了 */
+        return BS_STOP; 
     }
 
     pstSSNode->ucModeDeepth ++;
@@ -1332,7 +1328,7 @@ int CmdExp_OutputModeQuit(IN HANDLE hFileHandle)
     _CMD_EXP_SHOW_SAVE_NODE_S *pstSSNode = hFileHandle;
     BOOL_T bNeedDec = FALSE;
 
-    BS_DBGASSERT(pstSSNode->ucModeDeepth > 1); /* 之所以要大于1, 是因为user-view不需要quit */
+    BS_DBGASSERT(pstSSNode->ucModeDeepth > 1); 
 
     if (pstSSNode->matched_mode) {
         bNeedDec = TRUE;
@@ -1374,7 +1370,7 @@ int CmdExp_OutputCmd(IN HANDLE hFileHandle, IN CHAR *fmt, ...)
 
     cmdexp_OutputPreMode(pstSSNode);
 
-    if (! pstSSNode->matched_mode) { /* 还未到达env所在的视图 */
+    if (! pstSSNode->matched_mode) { 
         return BS_OK;
     }
 
@@ -1463,7 +1459,7 @@ static int cmdexp_CmdShow(_CMD_EXP_SHOW_SAVE_NODE_S *pstSSNode, _CMD_EXP_VIEW_S 
     _CMD_EXP_SVAE_NODE_S *pstSaveNode;
     _CMD_EXP_RUNNER_S *runner = pstSSNode->pstEnv->pstRunner;
 
-    pstSSNode->bHasCfg = FALSE; /* 如果没有配置,则不用输出config-view之类命令 */
+    pstSSNode->bHasCfg = FALSE; 
     pstSSNode->bIsNewFile = FALSE;
     pstSSNode->fp = 0;
 
@@ -1485,7 +1481,7 @@ static VOID cmdexp_SaveOrShow(_CMD_EXP_VIEW_S *pstViewTbl,
 {
     _CMD_EXP_VIEW_S *pstNode;
 
-    /* 如果还没有匹配当前所在mode, 则进行mode匹配 */
+    
     if (! cmdexp_MatchEnvMode(pstSSNode, pstViewTbl->view_name)) {
         return;
     }
@@ -1581,7 +1577,7 @@ int CmdExp_CmdShow(UINT ulArgc, CHAR **pArgv, VOID *pEnv)
     stSSNode.hStack = hStack;
     stSSNode.pstEnv = pEnv;
 
-    /* show this all */
+    
     if ((ulArgc >= 3) && (pArgv[2][0] == 'a')) {
         stSSNode.bIsShowAll = 1;
     }
@@ -1628,16 +1624,16 @@ static int cmdexp_UnregCmd(CMD_EXP_S *cmdexp, CHAR *pcView, CHAR *pcCmd)
 
     TXT_Strlcpy(acCmdTmp, pcCmd, sizeof(acCmdTmp));
 
-    /* 将命令行中的{} | []解析成多条命令行 */
+    
 
-    /* 查找 [] , 其中的命令元素是可选的 */
+    
     if (BS_OK == TXT_FindBracket(acCmdTmp, strlen(pcCmd),
                 "[]", &pcFindStart, &pcFindEnd)) {
         *pcFindStart = ' ';
         *pcFindEnd = ' ';
         cmdexp_UnregCmd(cmdexp, pcView, acCmdTmp);
 
-        /* 处理不包含[]中元素的命令行 */
+        
         TXT_StrCpy (acCmdTmp, pcCmd);
         while (pcFindStart <= pcFindEnd) {
             *pcFindStart = ' ';
@@ -1648,7 +1644,7 @@ static int cmdexp_UnregCmd(CMD_EXP_S *cmdexp, CHAR *pcView, CHAR *pcCmd)
         return BS_OK;
     }
 
-    /* 查找 {} ,  和'|' 配合使用, 表示其中的命令元素必选一个 */
+    
     if (BS_OK == TXT_FindBracket(acCmdTmp, strlen(pcCmd),
                 "{}", &pcFindStart, &pcFindEnd)) {
         CHAR *pcFindOr;
@@ -1658,7 +1654,7 @@ static int cmdexp_UnregCmd(CMD_EXP_S *cmdexp, CHAR *pcView, CHAR *pcCmd)
         pcCopyStart = pcCmd + ((pcFindStart - acCmdTmp) + 1);
 
         for (;;) {
-            /* 将 命令行中{}中的元素全清成空白 */
+            
             pcFindOr = pcFindStart;
             while (pcFindOr <= pcFindEnd) {
                 *pcFindOr = ' ';
@@ -1668,7 +1664,7 @@ static int cmdexp_UnregCmd(CMD_EXP_S *cmdexp, CHAR *pcView, CHAR *pcCmd)
             pcFindOr = strchr (pcCopyStart, '|');
             if ((pcFindOr == NULL)
                     || ((pcFindOr - pcCmd) > (pcFindEnd - acCmdTmp))) {
-                /* 处理{}中最后一个命令元素 */
+                
                 ulCopyLen = (UINT)((pcFindEnd - acCmdTmp) - (pcCopyStart - pcCmd));
                 MEM_Copy(pcFindStart, pcCopyStart, ulCopyLen);
                 pcFindStart[ulCopyLen] = ' ';
@@ -1690,7 +1686,7 @@ static int cmdexp_UnregCmd(CMD_EXP_S *cmdexp, CHAR *pcView, CHAR *pcCmd)
         return BS_OK;
     }
 
-    /* 分解命令行完毕, 进行注册 */
+    
     return cmdexp_UnregSingleCmd(cmdexp, pcView, acCmdTmp);
 }
 
@@ -1702,15 +1698,15 @@ static int cmdexp_RegCmd(CMD_EXP_S *cmdexp, CHAR *pcView, CHAR *pcCmd, CMD_EXP_R
 
     strlcpy(acCmdTmp, pcCmd, sizeof(acCmdTmp));
 
-    /* 将命令行中的{} | []解析成多条命令行分别注册 */
+    
 
-    /* 查找 [] , 其中的命令元素是可选的 */
+    
     if (BS_OK == TXT_FindBracket(acCmdTmp, len, "[]", &pcFindStart, &pcFindEnd)) {
         *pcFindStart = ' ';
         *pcFindEnd = ' ';
         cmdexp_RegCmd(cmdexp, pcView, acCmdTmp, param, flag);
 
-        /* 注册不包含[]中元素的命令行 */
+        
         strlcpy(acCmdTmp, pcCmd, sizeof(acCmdTmp));
         while (pcFindStart <= pcFindEnd) {
             *pcFindStart = ' ';
@@ -1721,7 +1717,7 @@ static int cmdexp_RegCmd(CMD_EXP_S *cmdexp, CHAR *pcView, CHAR *pcCmd, CMD_EXP_R
         return BS_OK;
     }
 
-    /* 查找 {} ,  和'|' 配合使用, 表示其中的命令元素必选一个 */
+    
     if (BS_OK == TXT_FindBracket(acCmdTmp, len, "{}", &pcFindStart, &pcFindEnd)) {
         CHAR *pcFindOr;
         CHAR *pcCopyStart;
@@ -1737,7 +1733,7 @@ static int cmdexp_RegCmd(CMD_EXP_S *cmdexp, CHAR *pcView, CHAR *pcCmd, CMD_EXP_R
         pcCopyStart = pcCmd + ((pcFindStart - acCmdTmp) + 1);
 
         for (;;) {
-            /* 将 命令行中{}中的元素全清成空白 */
+            
 
             pcFindOr = pcFindStart;
             while (pcFindOr <= pcClrEnd) {
@@ -1747,7 +1743,7 @@ static int cmdexp_RegCmd(CMD_EXP_S *cmdexp, CHAR *pcView, CHAR *pcCmd, CMD_EXP_R
 
             pcFindOr = strchr (pcCopyStart, '|');
             if ((pcFindOr == NULL) || ((pcFindOr - pcCmd) > (pcFindEnd - acCmdTmp))) {
-                /* 处理{}中最后一个命令元素 */
+                
                 ulCopyLen = (UINT)((pcFindEnd - acCmdTmp) - (pcCopyStart - pcCmd));
                 if (ulCopyLen > 0) {
                     MEM_Copy(pcFindStart, pcCopyStart, ulCopyLen);
@@ -1771,7 +1767,7 @@ static int cmdexp_RegCmd(CMD_EXP_S *cmdexp, CHAR *pcView, CHAR *pcCmd, CMD_EXP_R
         return BS_OK;
     }
 
-    /* 分解命令行完毕, 进行注册 */
+    
     return cmdexp_RegSingleCmd(cmdexp, pcView, acCmdTmp, param, flag);
 }
 
@@ -1860,7 +1856,7 @@ int CmdExp_RegSave(CMD_EXP_HDL hCmdExp, char *save_path, CMD_EXP_REG_CMD_PARAM_S
     char *pcViews = param->pcViews;
     char *pcView;
 
-    /* 向不同view注册命令行 */
+    
     TXT_SCAN_ELEMENT_BEGIN(pcViews,'|',pcView) {
         cmdexp_RegSave(cmdexp, save_path, pcView, param);
     }TXT_SCAN_ELEMENT_END();
@@ -1874,7 +1870,7 @@ int CmdExp_RegEnter(CMD_EXP_HDL hCmdExp, CMD_EXP_REG_CMD_PARAM_S *param)
     char *pcViews = param->pcViews;
     char *pcView;
 
-    /* 向不同view注册命令行 */
+    
     TXT_SCAN_ELEMENT_BEGIN(pcViews,'|',pcView) {
         cmdexp_RegEnter(cmdexp, pcView, param);
     }TXT_SCAN_ELEMENT_END();
@@ -1899,7 +1895,7 @@ int CmdExp_UnregCmd(CMD_EXP_HDL hCmdExp, CMD_EXP_REG_CMD_PARAM_S *pstParam)
     CMD_EXP_S *cmdexp = hCmdExp;
     CHAR *pcView;
 
-    /* 向不同view去注册命令行 */
+    
     TXT_SCAN_ELEMENT_BEGIN(pstParam->pcViews,'|',pcView) {
         cmdexp_UnregCmd(cmdexp, pcView, pstParam->pcCmd);
     }TXT_SCAN_ELEMENT_END();
@@ -1930,7 +1926,7 @@ int CmdExp_RegCmd(CMD_EXP_HDL hCmdExp, CMD_EXP_REG_CMD_PARAM_S *pstParam)
         return cmdexp_AddCmdViewPattern(cmdexp, pstParam);
     }
 
-    /* 向不同view注册命令行 */
+    
     TXT_SCAN_ELEMENT_BEGIN(pstParam->pcViews,'|',pcView) {
         cmdexp_RegCmd(cmdexp, pcView, pstParam->pcCmd, pstParam, 0);
     }TXT_SCAN_ELEMENT_END();
@@ -1964,7 +1960,7 @@ int CmdExp_UnregCmdSimple(CMD_EXP_HDL hCmdExp, char *view, char *cmd)
 }
 
 
-/* 创建一个用于运行命令的实例 */
+
 CMD_EXP_RUNNER CmdExp_CreateRunner(CMD_EXP_HDL hCmdExp, UINT type)
 {
     CMD_EXP_S *cmdexp = hCmdExp;
@@ -2118,7 +2114,7 @@ static void cmdexp_OutputPrefix(_CMD_EXP_RUNNER_S *pstRunner)
     }
 }
 
-/* 开始cmd exp实例 */
+
 void CmdExp_RunnerOutputPrefix(CMD_EXP_RUNNER hRunner)
 {
     _CMD_EXP_RUNNER_S *pstRunner = hRunner;
@@ -2135,7 +2131,7 @@ static inline void cmdexp_ClearInputsBuf(_CMD_EXP_RUNNER_S *pstRunner)
     pstRunner->uiInputsPos = 0;
 }
 
-/* 恢复一个运行实例至初始状态 */
+
 void CmdExp_ResetRunner(CMD_EXP_RUNNER hRunner)
 {
     _CMD_EXP_RUNNER_S *pstRunner = hRunner;
@@ -2175,7 +2171,7 @@ static int cmdexp_hook_notify(_CMD_EXP_RUNNER_S *runner, int event, void *data)
     return runner->hook_func(event, data, runner->hook_ud, &stEnv);
 }
 
-/* 删除一个用于运行命令的实例 */
+
 int CmdExp_DestroyRunner(CMD_EXP_RUNNER hRunner)
 {
     _CMD_EXP_RUNNER_S *pstRunner = hRunner;
@@ -2248,8 +2244,8 @@ static int cmdexp_CmdHelp(_CMD_EXP_RUNNER_S *pstRunner)
         }
     }while (pcSplit);
 
-    if (pstFindView != NULL)  { /* 找到了View 或者View 下的命令 */
-        if (pstNode != pstFindView)  { /* 找到了View 下的命令 */
+    if (pstFindView != NULL)  { 
+        if (pstNode != pstFindView)  { 
             RETURN(BS_NO_SUCH);
         } else {
             if (! BIT_ISSET(pstNode->uiProperty, DEF_CMD_EXP_PROPERTY_HIDE_CR)) {
@@ -2340,12 +2336,12 @@ static int cmdexp_RunCmdExpand(_CMD_EXP_RUNNER_S *pstRunner)
             continue;
         }
 
-        /* 是变量命令元素，不能自动补全*/
+        
         if (pstNode->acCmd[0] == '%') {
             return cmdexp_CmdHelp(pstRunner);
         }
 
-        /* 多个匹配项，计算最大能补全多少字符  */
+        
         if (pstNodeTmp != NULL) {
             uiSamePrefixLenTmp = (UINT)TXT_GetSamePrefixLen(pstNodeTmp->acCmd, pstNode->acCmd);
             if (uiSamePrefixLenTmp < uiSamePrefixLen) {
@@ -2359,7 +2355,7 @@ static int cmdexp_RunCmdExpand(_CMD_EXP_RUNNER_S *pstRunner)
         uiFindCount ++;
     }
 
-    /*  找到了匹配项, 自动补全 */
+    
     if (pstNodeTmp != NULL) {
         if (pstRunner->ulInputsLen + strlen(pstNodeTmp->acCmd) - ulLen < DEF_CMD_EXP_MAX_CMD_LEN) {
             TXT_Strlcat(pstRunner->acInputs, pstNodeTmp->acCmd + ulLen, sizeof(pstRunner->acInputs));
@@ -2468,7 +2464,7 @@ static void cmdexp_Record2History(_CMD_EXP_RUNNER_S *pstRunner)
     return;
 }
 
-/* 执行\n */
+
 static int cmdexp_RunCR(_CMD_EXP_RUNNER_S *pstRunner)
 {
     int eRet = BS_OK;
@@ -2486,7 +2482,7 @@ static int cmdexp_RunCR(_CMD_EXP_RUNNER_S *pstRunner)
         EXEC_Flush();
     }
 
-    /* 去掉命令行最后的空格 */
+    
     while ((pstRunner->ulInputsLen > 0)
             && (pstRunner->acInputs[pstRunner->ulInputsLen - 1] == ' ')) {
         pstRunner->ulInputsLen--;
@@ -2509,7 +2505,7 @@ static int cmdexp_RunCR(_CMD_EXP_RUNNER_S *pstRunner)
     return eRet;
 }
 
-/* 执行\b */
+
 static void cmdexp_RunDelChar(_CMD_EXP_RUNNER_S *pstRunner)
 {
     int i;
@@ -2529,7 +2525,7 @@ static void cmdexp_RunDelChar(_CMD_EXP_RUNNER_S *pstRunner)
     EXEC_Flush();
 }
 
-/* 执行?号 */
+
 static void cmdexp_RunQuaestio(_CMD_EXP_RUNNER_S *pstRunner)
 {
     if (pstRunner->deny_help) {
@@ -2551,7 +2547,7 @@ static void cmdexp_RunQuaestio(_CMD_EXP_RUNNER_S *pstRunner)
     EXEC_Flush();
 }
 
-/* 执行\t */
+
 static void cmdexp_RunTab(_CMD_EXP_RUNNER_S *pstRunner)
 {
     if (pstRunner->deny_help) {
@@ -2616,7 +2612,7 @@ static int cmdexp_RunOneChar(_CMD_EXP_RUNNER_S *pstRunner, CHAR cCmdChar)
         }
     }
 
-    if (cCmdChar == '\n') {   /*输入了一条完整的命令*/
+    if (cCmdChar == '\n') {   
         eRet = cmdexp_RunCR(pstRunner);
     } else if (cCmdChar == '\b') {
         cmdexp_RunDelChar(pstRunner);
@@ -2646,12 +2642,12 @@ static int cmdexp_RunHistroy(_CMD_EXP_RUNNER_S *pstRunner, EXCHAR enCmdType)
 
     pstRunner->uiInputsPos = 0;
 
-    /* 用户的显示区回退,重新显示新的字符串 */
+    
     for (ulLen = 0; ulLen < pstRunner->ulInputsLen; ulLen++) {
         EXEC_OutInfo("\b \b");
     }
 
-    if (enCmdType == EXCHAR_EXTEND_UP) {      /* 向上箭头 */
+    if (enCmdType == EXCHAR_EXTEND_UP) {      
         if (RArray_ReadReversedIndex(pstRunner->hCmdRArray,
                     pstRunner->ulHistoryIndex,
                     (UCHAR**)&pszLastedCmd, &ulLen) == BS_OK) {
@@ -2716,14 +2712,14 @@ void CmdExp_SetCurrentModeValue(void *env, char *mode_value)
             "%s-%s", pstModeNode->pstViewTbl->view_name, mode_value);
 }
 
-/* 获取当前的模式值, 例如"acl-xyz"中的"xyz" */
+
 CHAR * CmdExp_GetCurrentModeValue(IN VOID *pEnv)
 {
     _CMD_EXP_ENV_S *pstEnv = pEnv;
     return pstEnv->pstRunner->pstCurrentMode->szModeValue;
 }
 
-/* 获取当前的View名, 例如"acl-xyz"中的"acl" */
+
 CHAR * CmdExp_GetCurrentViewName(void *pEnv)
 {
     _CMD_EXP_ENV_S *pstEnv = pEnv;
@@ -2741,7 +2737,7 @@ void * CmdExp_GetCurrentEnv()
     return g_cmd_exp_thread_env;
 }
 
-/* 获取当前的模式名, 例如"acl-xyz"中的"acl-xyz" */
+
 CHAR * CmdExp_GetCurrentModeName(IN VOID *pEnv)
 {
     _CMD_EXP_ENV_S *pstEnv = pEnv;
@@ -2793,7 +2789,7 @@ static _CMD_EXP_NEW_MODE_NODE_S * cmdexp_GetHistroyMode(IN VOID *pEnv,
     return HSTACK_GetValueByIndex(pstEnv->pstRunner->hModeStack, uiIndex);
 }
 
-/* 获取上级模式, 0表示当前模式, 1表示上一个模式, 2表示上上个模式, 以此类推 */
+
 CHAR * CmdExp_GetUpModeValue(IN VOID *pEnv, IN UINT uiHistroyIndex)
 {
     _CMD_EXP_NEW_MODE_NODE_S *pstModeTmp;
@@ -2806,7 +2802,7 @@ CHAR * CmdExp_GetUpModeValue(IN VOID *pEnv, IN UINT uiHistroyIndex)
     return pstModeTmp->szModeValue;
 }
 
-/* 获取上级模式, 0表示当前模式, 1表示上一个模式, 2表示上上个模式, 以此类推 */
+
 CHAR * CmdExp_GetUpModeName(IN VOID *pEnv, IN UINT uiHistroyIndex)
 {
     _CMD_EXP_NEW_MODE_NODE_S *pstModeTmp;
@@ -2925,9 +2921,9 @@ static int cmdexp_Run(CMD_EXP_RUNNER hRunner, UCHAR ucCmdChar)
         }
     }
 
-    /* 将\r\n, \r都转换成\n */
+    
     if ((ucCmdChar == '\n') && (pstRunner->bIsRChangeToN == TRUE)) {
-        /* 如果上一个字符是\r，并且转换成了\n，则这个\n就不应该再被处理了 */
+        
         pstRunner->bIsRChangeToN = FALSE;
         return BS_OK;
     } else if (ucCmdChar == '\r') {
@@ -2985,7 +2981,7 @@ static int cmdexp_RunString(CMD_EXP_RUNNER hRunner, char *string, int len, int a
     int is_have_err = 0;
     int ret;
     char c, tmp;
-    int in_qout = 0; /* 是否在引号中 */
+    int in_qout = 0; 
 
     for (i=0; i<len; i++) {
         c = string[i];
@@ -3012,7 +3008,7 @@ static int cmdexp_RunString(CMD_EXP_RUNNER hRunner, char *string, int len, int a
             return BS_STOP;
         } else if (ret < 0) {
             is_have_err = ret;
-            if ((in_qout == 0) && (c == '&')) { /* &号表示必须执行成功，才能执行下面的命令, ;号表示不管如何都继续执行下面的命令 */
+            if ((in_qout == 0) && (c == '&')) { 
                 break;
             }
         }
@@ -3086,7 +3082,7 @@ UINT CmdExp_GetOptFlag(IN CHAR *pcString)
     return uiFlag;
 }
 
-/* 是否允许输出 */
+
 BOOL_T CmdExp_IsOptPermitOutput(IN HANDLE hFile, IN CHAR *pcString)
 {
     UINT uiFlag;

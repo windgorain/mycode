@@ -15,7 +15,7 @@
 #include "utl/exec_utl.h"
 #include "utl/lasterr_utl.h"
 
-/* vars */
+
 
 static PLUG_MGR_S g_stPlugctMgr;
 
@@ -34,7 +34,7 @@ static int _plugct_LoadManual(char *plug_name)
     return PlugMgr_LoadManual(&g_stPlugctMgr, SYSINFO_ExpandConfPath(buf, sizeof(buf), "plug_config.ini"), plug_name);
 }
 
-/* load plugin _STRING_ */
+
 BS_STATUS PLUGCT_LoadPlug(IN UINT uiArgc, IN CHAR **ppcArgv)
 {
     if (uiArgc < 3)

@@ -54,7 +54,7 @@ static BS_STATUS _sslfinger_parse_asn_line(SSL_FINGER_S *ctrl, char *line)
         RETURN(BS_ERR);
     }
 
-    IP_MAKS_S ip_mask;
+    IP_MASK_S ip_mask;
     IPString_ParseIpMask(ip_mask_str, &ip_mask);
     if (ip_mask.uiIP == 0) {
         RETURN(BS_ERR);

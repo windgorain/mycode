@@ -34,7 +34,7 @@ int ProcessIndex_Get(char *index_file)
         index = TXT_Str2Ui(buf);
     }
 
-    /* 清空文件内容 */
+    
     if (ftruncate(file,0) < 0) {
     }
 

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #ifdef __ATOMIC_RELAXED
 
@@ -31,7 +31,7 @@
 #define ATOM_INC_FETCH(ptr)      ATOM_ADD_FETCH(ptr,1)
 #define ATOM_DEC_FETCH(ptr)      ATOM_SUB_FETCH(ptr,1)
 
-/* 表示如果*ptr==*ifptr,那么就*ptr=newval. 成功返回true */
+
 #define ATOM_BOOL_COMP_SWAP(ptr,ifptr,newval) \
         __atomic_compare_exchange_n((ptr), (ifptr), (newval), 0, __ATOMIC_RELAXED, __ATOMIC_RELAXED)
 
@@ -66,8 +66,8 @@
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__ATOMIC_UTL_H_*/
+#endif 
 
 

@@ -35,7 +35,7 @@ typedef struct {
     BS_ACTION_E action;
 }_URLACL_MATCH_DESC_S;
 
-/* pcre 编译处理 */
+
 static void _url_acl_pcre_compile(IN const CHAR *pcPattern, IN INT iOptions, OUT URL_ACL_PCRE_S *pstPcre)
 {
     const CHAR* pcError = NULL;
@@ -71,21 +71,7 @@ static void _url_acl_free_rule(IN URL_ACL_RULE_S *pstRule)
     return;
 }
 
-/*****************************************************************************
-  Description: 匹配字符串
-       Return: BOOL_TRUE   匹配
-               BOOL_FALSE  不匹配
-      Caution: 1、 usr: http://1.2.3.1/path1/path2
-                  rule: http://1.2.3.1/path1/
-                    ----matched
-               2、 usr: http://1.2.3.1/path1/
-                  rule: http://1.2.3.1/path1
-                    ----not-matched
-               3、 usr: http://1.2.3.1/path313/ 或者
-                        http://1.2.3.1/path313
-                  rule: http://1.2.3.1/path
-                    ----not-matched
-*****************************************************************************/
+
 static BOOL_T _url_acl_match_usr_str_pattern(IN const UCHAR *pucUsrString, IN const UCHAR *pucPtnString)
 {
     ULONG ulPtnStrLen;
@@ -107,10 +93,7 @@ static BOOL_T _url_acl_match_usr_str_pattern(IN const UCHAR *pucUsrString, IN co
     return TRUE;
 }
 
-/* 匹配字符串:
-   Return: BOOL_TRUE   匹配
-           BOOL_FALSE  不匹配
-*/ 
+ 
 static BOOL_T _url_acl_match_simp_str(const UCHAR *pucUsrString, const URL_ACL_PATTERN_S *pstPattern)
 {
     BOOL_T is_match = BOOL_FALSE;
@@ -119,13 +102,13 @@ static BOOL_T _url_acl_match_simp_str(const UCHAR *pucUsrString, const URL_ACL_P
 
     pucPatStr = pstPattern->szPattern;
 
-    /* 要求path区分大小写 */
+    
     iRet = strcmp((CHAR *)pucUsrString, (CHAR *)pucPatStr);
     if (0 == iRet) {
         is_match = BOOL_TRUE;
-    } else if (0 < iRet) {/* pucUsrString长于pattern*/
+    } else if (0 < iRet) {
         is_match = _url_acl_match_usr_str_pattern(pucUsrString, pucPatStr);
-    } else {/* pucUsrString短于pattern */
+    } else {
         is_match = BOOL_FALSE;
     }
     
@@ -171,14 +154,14 @@ static BOOL_T _url_acl_match_rule(IN void *pstRule, void *ud)
     pucStr = match_info->szDomain;
     pstPattern = &(((URL_ACL_RULE_S*)pstRule)->stRuleCfg.uHostDomain);
 
-    /* 简单字符串 */
+    
     if (URL_ACL_PATTERN_STRING == pstPattern->enType) {
         match = _url_acl_match_simp_str(pucStr, pstPattern);
-    } else { /* 正则 */
+    } else { 
         RE_MATCH_CAPTURE_S m_data;
         m_data.str = (char*) pucStr;
         m_data.str_len = strlen(m_data.str);
-        // check over 0 match
+        
         iRet = RE_Match(pstPattern->pstPcre, NULL, &m_data);
         if (iRet && m_data.matchCaptureSize > 0) 
         {
@@ -189,18 +172,14 @@ static BOOL_T _url_acl_match_rule(IN void *pstRule, void *ud)
     return match;
 }
 
-/*****************************************************************************
-  Description: pcre 高级编译不区分大小写
-*****************************************************************************/
+
 VOID URL_ACL_KPCRE_Compile2(IN const CHAR* pcPattern, OUT URL_ACL_PCRE_S *pstPcre)
 {
     _url_acl_pcre_compile(pcPattern, PCRE_NEWLINE_ANY | PCRE_DOTALL | PCRE_CASELESS, pstPcre);
     return;
 }
 
-/*****************************************************************************
-  Description: 正则释放
-*****************************************************************************/
+
 VOID URL_ACL_KPCRE_Free(IN URL_ACL_PCRE_S *pstPcre)
 {
     if (NULL != pstPcre->pstReg)
@@ -220,10 +199,7 @@ VOID URL_ACL_KPCRE_Free(IN URL_ACL_PCRE_S *pstPcre)
     return;
 }
 
-/*****************************************************************************
-  Description: 正则查找
-       Return: 匹配的个数
-*****************************************************************************/
+
 INT URL_ACL_KPCRE_Exec(IN const URL_ACL_PCRE_S *pstPcre, 
                        IN const UCHAR* pucStr, 
                        IN INT iLeng, 
@@ -345,7 +321,7 @@ int URL_ACL_SetDefaultActionByID(URL_ACL_HANDLE acl, UINT list_id, BS_ACTION_E a
     return ListRule_SetDefaultActionByID(acl, list_id, action);
 }
 
-UINT URL_ACL_GetNextListID(URL_ACL_HANDLE acl, UINT curr_list_id/* 0表示获取第一个 */)
+UINT URL_ACL_GetNextListID(URL_ACL_HANDLE acl, UINT curr_list_id)
 {
     return ListRule_GetNextListID(acl, curr_list_id);
 }
@@ -482,7 +458,7 @@ BS_ACTION_E URL_ACL_Match(URL_ACL_HANDLE acl, UINT list_id, URL_ACL_MATCH_INFO_S
 
     pstList = ListRule_GetListByID(acl, list_id);
     if (NULL != pstList) {
-        /* 按rule匹配 */
+        
         RuleList_ScanRule(&pstList->stRuleList, _url_acl_match_rule, &stMatchDesc);
 
         if (!stMatchDesc.is_match) {

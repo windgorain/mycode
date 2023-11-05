@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef enum
 {
@@ -49,8 +49,8 @@ extern DBG_UTL_CTRL_S g_stSvpnDbgCtrl;
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_DEBUG_H_*/
+#endif 
 
 

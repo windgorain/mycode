@@ -17,7 +17,7 @@
 #include "uipc_func.h"
 #include "uipc_compat.h"
 
-/* BSD中实现指定内存和uio中缓存数据相互拷贝功能的函数 */
+
 int uiomove(IN void *cp, IN int n, IN UIO_S *uio)
 {
     struct iovec *iov;
@@ -63,7 +63,7 @@ int uiomove(IN void *cp, IN int n, IN UIO_S *uio)
 }
 
 
-/* BSD中实现从uio结构中拷贝数据到mbuf中的功能 */
+
 MBUF_S *m_uiotombuf
 (
     IN UIO_S *uio,
@@ -77,10 +77,7 @@ MBUF_S *m_uiotombuf
     struct iovec *iov;
     UINT cnt;
 
-    /*
-     * len can be zero or an arbitrary large value bound by
-     * the total data supplied by the uio.
-     */
+    
     if (len > 0)
     {
         total = MIN(uio->uio_resid, len);

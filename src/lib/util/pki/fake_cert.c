@@ -138,20 +138,20 @@ static int fakecert_InitCert(X509 * pstX509)
     X509_NAME *pstName = NULL;
     X509_EXTENSION *pstExtention = NULL;
     
-    /* 设置自签名证书version属性 */
+    
     iRet = X509_set_version(pstX509, 2);
     if (1 !=  iRet) {
         return -1;
     }
 
-    /* 设置证书Serial Number属性 */
+    
     pstSerialNumber = X509_get_serialNumber(pstX509);
     iRet = ASN1_INTEGER_set(pstSerialNumber,0);
     if (1 != iRet) {
         return -1;
     }
 
-    /* 设置证书有效期 */
+    
     pstTime = X509_get_notBefore(pstX509);
     pstTimeRet = X509_gmtime_adj(pstTime,(LONG)0);
     if (NULL == pstTimeRet) {
@@ -161,29 +161,29 @@ static int fakecert_InitCert(X509 * pstX509)
     ulSecsOneDay = (60 * 60) * 24;
     ulTime = 7300 * ulSecsOneDay;
 
-    /* ulTime不会超过0x8FFFFFFF,即ulTime转换为LONG类型后不会出现数据损失 */
+    
     pstTimeRet = X509_gmtime_adj(pstTime, (LONG)ulTime);
     if (NULL == pstTimeRet) {
         return -1;
     }
 
-    /* 设置证书的subject name属性 */
+    
     pstName = X509_get_subject_name(pstX509);
     iRet = X509_NAME_add_entry_by_txt(pstName, "CN", MBSTRING_ASC, (void*)"test", -1, -1, 0);
     if (1 != iRet) {
         return -1;
     }
     
-    /* 创建扩展属性CA:TRUE */
+    
     pstExtention = X509V3_EXT_conf_nid(NULL, NULL, NID_basic_constraints, "CA:FALSE");
     if (NULL == pstExtention) {
         return -1;
     }
 
-    /* 设置扩展属性 */
+    
     iRet = X509_add_ext(pstX509, pstExtention, -1);
 
-    /* 释放扩展属性 */
+    
     X509_EXTENSION_free(pstExtention);
 
     if (1 != iRet) {
@@ -193,7 +193,7 @@ static int fakecert_InitCert(X509 * pstX509)
     return 0;
 }
 
-/* 对已经存在的cert进行伪造 */
+
 int FakeCert_BuildByCert(FAKECERT_CTRL_S *ctrl, X509 *cert)
 {
     int ret;
@@ -209,19 +209,19 @@ int FakeCert_BuildByCert(FAKECERT_CTRL_S *ctrl, X509 *cert)
 
     return 0;
 }
-/* 构造一个证书 */
+
 X509 * FakeCert_Build(FAKECERT_CTRL_S *ctrl)
 {
     X509 *pstX509;
     int ret;
 
-    /* 申请证书结构体资源 */
+    
     pstX509 = X509_new();
     if (NULL == pstX509) {
         return NULL;
     }
 
-    /* 设置自签名证书属性 */
+    
     ret = fakecert_InitCert(pstX509);
     if (0 != ret) {
         X509_free(pstX509);

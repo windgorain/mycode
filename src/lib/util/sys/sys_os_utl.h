@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 char * _SYS_OS_GetSelfFileName(void);
 char * _SYS_OS_GetSelfFilePath(void);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SYS_OS_UTL_H_*/
+#endif 
 
 

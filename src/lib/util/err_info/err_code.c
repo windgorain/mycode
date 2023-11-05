@@ -155,6 +155,15 @@ void ErrCode_Print(void)
     }
 }
 
+void ErrCode_PrintErrInfo(void)
+{
+    char *errinfo = ErrCode_GetInfo();
+
+    if (errinfo && errinfo[0]) {
+        fprintf(stderr, "ErrInfo: %s \r\n", errinfo);
+    }
+}
+
 void ErrCode_Output(PF_PRINT_FUNC output)
 {
     const char *file = ErrCode_GetFileName();

@@ -42,8 +42,8 @@ void DBG_UTL_ClrAllDebugFlags(DBG_UTL_CTRL_S *ctrl)
 
 void DBG_UTL_DebugCmd(IN DBG_UTL_CTRL_S *pstCtrl, IN CHAR *pcModuleName, IN CHAR *pcDbgName)
 {
-    BOOL_T bModuleWild = FALSE; /* 模块名是否通配 */
-    BOOL_T bFlagWild = FALSE;   /* debug falg name是否通配 */
+    BOOL_T bModuleWild = FALSE; 
+    BOOL_T bFlagWild = FALSE;   
     DBG_UTL_DEF_S *def = pstCtrl->debug_defs;
 
     if (strcmp(pcModuleName, "all") == 0) {
@@ -67,8 +67,8 @@ void DBG_UTL_DebugCmd(IN DBG_UTL_CTRL_S *pstCtrl, IN CHAR *pcModuleName, IN CHAR
 
 void DBG_UTL_NoDebugCmd(IN DBG_UTL_CTRL_S *pstCtrl, IN CHAR *pcModuleName, IN CHAR *pcDbgName)
 {
-    BOOL_T bModuleWild = FALSE; /* 模块名是否通配 */
-    BOOL_T bFlagWild = FALSE;   /* debug falg name是否通配 */
+    BOOL_T bModuleWild = FALSE; 
+    BOOL_T bFlagWild = FALSE;   
     DBG_UTL_DEF_S *def = pstCtrl->debug_defs;
 
     if (strcmp(pcModuleName, "all") == 0) {

@@ -44,7 +44,7 @@ BS_STATUS DNS_Service_PktInput
 
     if (0 == stInfo.uiIP)
     {
-        /* TODO : 应该回应Failed */
+        
         return BS_NO_SUCH;
     }
 
@@ -58,7 +58,7 @@ BS_STATUS DNS_Service_PktInput
     uiRemainLen = sizeof(DNS_PKT_S) - uiRequestLen;
     uiDataLen = uiRequestLen;
 
-    /* Answer */
+    
     {
         pstDnsHeader->usAnCount = htons(1);
         uiLen = DNS_BuildRRCompress(sizeof(DNS_HEADER_S), DNS_TYPE_A, DNS_CLASS_IN, 60, 4,
@@ -73,7 +73,7 @@ BS_STATUS DNS_Service_PktInput
     }
 
 #if 0
-    /* Authoritative */
+    
     {
         pstDnsHeader->usNsCount = htons(1);
         uiNsLen = DNS_DomainName2DnsName(DNS_SERVICE_NS_NAME, szDnsName, sizeof(szDnsName));
@@ -94,7 +94,7 @@ BS_STATUS DNS_Service_PktInput
         uiRemainLen -= uiLen;
     }
 
-    /* Additional */
+    
     {
         uiIP = htonl(0x0a0efffe);
         pstDnsHeader->usArCount = htons(1);

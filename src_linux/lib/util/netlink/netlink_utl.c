@@ -38,7 +38,7 @@ static int _netlink_init_gen_family_id(int nl_fd, char *nl_gen_name)
     nl_request_msg.n.nlmsg_flags = NLM_F_REQUEST;  
     nl_request_msg.n.nlmsg_seq = 0;  
     nl_request_msg.n.nlmsg_pid = getpid();
-    nl_request_msg.n.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);  
+    nl_request_msg.n.nlmsg_len = NLMSG_SPACE(GENL_HDRLEN);  
     nl_request_msg.g.cmd = CTRL_CMD_GETFAMILY;  
     nl_request_msg.g.version = 0x1;  
 
@@ -72,7 +72,7 @@ static int _netlink_init_gen_family_id(int nl_fd, char *nl_gen_name)
         return -1; 
     }  
 
-    //解析出attribute中的family id  
+    
     nl_na = (struct nlattr *) GENLMSG_DATA(&nl_response_msg);  
     nl_na = (struct nlattr *) ((char *) nl_na + NLA_ALIGN(nl_na->nla_len));  
     if (nl_na->nla_type == CTRL_ATTR_FAMILY_ID) {  
@@ -119,6 +119,7 @@ int NetLink_Open(NETLINK_S *nl, char *nl_gen_name)
     if (nl->gen_family_id < 0) {
         nl->gen_family_id = _netlink_init_gen_family_id(nl->nl_fd, nl_gen_name);
         if (nl->gen_family_id < 0) {
+            PRINTFLM_RED("Error: netlink init error");
             return -1;
         }
     }
@@ -134,43 +135,41 @@ void NetLink_Close(NETLINK_S *nl)
     }
 }
 
-int NetLink_SendMsg(NETLINK_S *nl, unsigned int msg_type, void *data, int datalen, void *recv_buf)
+static int _netlink_send_msg(NETLINK_S *nl, unsigned int msg_type, void *data, int datalen, void *recv_buf)
 {
     unsigned int msg_len;
     NETLINK_MSG_S *message;
-	struct sockaddr_nl 	local;
 	struct sockaddr_nl 	kpeer;
 	struct netlink_reply_st reply;
 	socklen_t 		kpeerlen;
 	int 			rcvlen = -1;	
 
-	memset(&local, 0, sizeof(local));
-	local.nl_family = AF_NETLINK;
-	local.nl_pid = getpid();
-	local.nl_groups = 0;
-
     memset(&kpeer, 0, sizeof(kpeer));
     kpeer.nl_family = AF_NETLINK;
 
     msg_len = datalen + sizeof(NETLINK_MSG_S);
+    msg_len = NLMSG_SPACE(msg_len);
     message = (void*)malloc(msg_len);
     if (message == NULL) {
         return -1;
     }
-
     memset(message, 0, msg_len);
+
     message->hdr.nlmsg_flags = NLM_F_REQUEST;
-    message->hdr.nlmsg_pid = local.nl_pid;
+    message->hdr.nlmsg_pid = getpid();
     message->hdr.nlmsg_len = msg_len;
     message->hdr.nlmsg_type = nl->gen_family_id;
     message->g.cmd = NETLINK_GEN_C_CMD;
     message->msg_type = msg_type;
     message->reply_ptr = recv_buf;
 
-    memcpy(message->data, data, datalen);
+    if (datalen) {
+        memcpy(message->data, data, datalen);
+    }
 
-    if( sendto(nl->nl_fd, message, message->hdr.nlmsg_len, 0, (struct sockaddr*)&kpeer, sizeof(kpeer))>0 ) {
+    if (sendto(nl->nl_fd, message, message->hdr.nlmsg_len, 0, (struct sockaddr*)&kpeer, sizeof(kpeer))>0 ) {
         kpeerlen = sizeof(struct sockaddr_nl);
+        memset(&reply, 0, sizeof(reply));
         rcvlen = recvfrom(nl->nl_fd, &reply, sizeof(struct netlink_reply_st), 0, (struct sockaddr*)&kpeer, &kpeerlen);
     }
 
@@ -181,6 +180,12 @@ int NetLink_SendMsg(NETLINK_S *nl, unsigned int msg_type, void *data, int datale
     }
 
     return reply.err.error;
+}
+
+int NetLink_SendMsg(NETLINK_S *nl, unsigned int msg_type, void *data, int datalen, void *recv_buf)
+{
+    int ret = _netlink_send_msg(nl, msg_type, data, datalen, recv_buf);
+    return ret;
 }
 
 int NetLink_Do(PF_NETLINK_DO do_func, int cmd, void *data, int data_len)

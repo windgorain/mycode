@@ -159,20 +159,7 @@ void sofree(IN SOCKET_S *so)
         (*pr->pr_usrreqs->pru_detach)(so);
     }
 
-    /*
-     * From this point on, we assume that no other references to this
-     * socket exist anywhere else in the stack.  Therefore, no locks need
-     * to be acquired or held.
-     *
-     * We used to do a lot of socket buffer and socket locking here, as
-     * well as invoke sorflush() and perform wakeups.  The direct call to
-     * dom_dispose() and sbrelease_internal() are an inlining of what was
-     * necessary from sorflush().
-     *
-     * Notice that the socket buffer and kqueue state are torn down
-     * before calling pru_detach.  This means that protocols shold not
-     * assume they can perform socket wakeups, etc, in their detach code.
-     */
+    
     sbdestroy(&so->so_snd, so);
     sbdestroy(&so->so_rcv, so);
 
@@ -183,9 +170,7 @@ void sofree(IN SOCKET_S *so)
     sodealloc(so);
 }
 
-/*
-丢弃一个新连接的接口。此接口用于新连接未完成时而发生了某些异常情况时，可以直接调用此接口丢弃此连接
-*/
+
 void soabort(IN SOCKET_S *so)
 {
     BS_DBGASSERT(so->so_count == 0);
@@ -226,7 +211,7 @@ int soclose(IN SOCKET_S *so)
                 goto drop;
             }
 
-            /*对sock接收缓冲加锁，避免被软中断抢占后,so_state状态已经断开，导致soclose长时间无法唤醒*/
+            
             SOCK_LOCK(so);
             while (so->so_state & SS_ISCONNECTED)
             {
@@ -315,11 +300,7 @@ int soconnect(IN SOCKET_S *so, SOCKADDR_S *nam)
 
     if (so->so_options & SO_ACCEPTCONN)
         return (EOPNOTSUPP);
-    /*
-     * If protocol is connection-based, can only connect once.
-     * Otherwise, if connected, try to disconnect first.  This allows
-     * user to disconnect by connecting to, e.g., a null address.
-     */
+    
     if (so->so_state & (SS_ISCONNECTED|SS_ISCONNECTING))
     {
         if (so->so_proto->pr_flags & PR_CONNREQUIRED)
@@ -336,10 +317,7 @@ int soconnect(IN SOCKET_S *so, SOCKADDR_S *nam)
         }
     }
 
-    /*
-     * Prevent accumulated error from previous connection from
-     * biting us.
-     */
+    
     so->so_error = 0;
     error = (*so->so_proto->pr_usrreqs->pru_connect)(so, nam);
 
@@ -464,10 +442,7 @@ int sosetopt(IN SOCKET_S *so, IN SOCKOPT_S *sopt)
             (sopt->sopt_name == SO_SNDBUF ? &so->so_snd : &so->so_rcv)->sb_flags &= ~SB_AUTOSIZE;
             break;
 
-        /*
-         * Make sure the low-water is never greater than the
-         * high-water.
-         */
+        
         case SO_SNDLOWAT:
             SOCKBUF_LOCK(&so->so_snd);
             so->so_snd.sb_lowat =
@@ -685,16 +660,7 @@ int sosend_dgram
         resid = MBUF_TOTAL_DATA_LEN(top);
     }
     
-    /*
-     * In theory resid should be unsigned.  However, space must be
-     * signed, as it might be less than 0 if we over-committed, and we
-     * must use a signed comparison of space and resid.  On the other
-     * hand, a negative resid causes us to loop sending 0-length
-     * segments to the protocol.
-     *
-     * Also check to make sure that MSG_EOR isn't used on SOCK_STREAM
-     * type sockets since that's an error.
-     */
+    
     if (resid < 0)
     {
         error = EINVAL;
@@ -733,11 +699,7 @@ int sosend_dgram
     
     if ((so->so_state & SS_ISCONNECTED) == 0)
     {
-        /*
-         * `sendto' and `sendmsg' is allowed on a connection-based
-         * socket if it supports implied connect.  Return ENOTCONN if
-         * not connected and no address is supplied.
-         */
+        
         if ((so->so_proto->pr_flags & PR_CONNREQUIRED) &&
             (so->so_proto->pr_flags & PR_IMPLOPCL) == 0)
         {
@@ -763,10 +725,7 @@ int sosend_dgram
         }
     }
 
-    /*
-     * Do we need MSG_OOB support in SOCK_DGRAM?  Signs here may be a
-     * problem and need fixing.
-     */
+    
     space = sbspace(&so->so_snd);
     if (flags & MSG_OOB)
     {
@@ -782,46 +741,29 @@ int sosend_dgram
     if (uio == NULL)
     {
         resid = 0;
-        /* MSG_EOR will not supported int Leopard
-        if (flags & MSG_EOR)
-            top->m_flags |= M_EOR;
-        */
+        
     }
     else
     {
-        /*
-         * Copy the data from userland into a mbuf chain.
-         * If no data is to be copied in, a single empty mbuf
-         * is returned.
-         */
+        
         top = m_uiotombuf(uio, space, max_hdr);
         if (top == NULL)
         {
-            error = EFAULT;    /* only possible error */
+            error = EFAULT;    
             goto out;
         }
         space -= resid - uio->uio_resid;
         resid = uio->uio_resid;
     }
     BS_DBGASSERT(resid == 0);
-    /*
-     * XXXRW: Frobbing SO_DONTROUTE here is even worse without sblock
-     * than with.
-     */
+    
     if (dontroute)
     {
         SOCK_LOCK(so);
         so->so_options |= SO_DONTROUTE;
         SOCK_UNLOCK(so);
     }
-    /*
-     * XXX all the SBS_CANTSENDMORE checks previously done could be out
-     * of date.  We could have recieved a reset packet in an interrupt or
-     * maybe we slept while doing page faults in uiomove() etc.  We could
-     * probably recheck again inside the locking protection here, but
-     * there are probably other places that this also happens.  We must
-     * rethink this.
-     */
+    
     error = (*so->so_proto->pr_usrreqs->pru_send)(so,
             (flags & MSG_OOB) ? PRUS_OOB :((flags & MSG_EOF) && (so->so_proto->pr_flags & PR_IMPLOPCL) && (resid <= 0)) ? PRUS_EOF : (resid > 0 && space > 0) ? PRUS_MORETOCOME : 0,
             top, addr, control);
@@ -845,10 +787,7 @@ out:
 void soisdisconnected(IN SOCKET_S *so)
 {
 
-    /*
-     * Note: This code assumes that SOCK_LOCK(so) and
-     * SOCKBUF_LOCK(&so->so_rcv) are the same.
-     */
+    
     SOCKBUF_LOCK(&so->so_rcv);
     so->so_state &= ~(SS_ISCONNECTING|SS_ISCONNECTED|SS_ISDISCONNECTING);
     so->so_state |= SS_ISDISCONNECTED;
@@ -865,12 +804,7 @@ int sooptcopyin(IN struct sockopt *sopt, OUT void *buf, IN UINT len, IN UINT min
 {
     UINT valsize;
 
-    /*
-     * If the user gives us more than we wanted, we ignore it, but if we
-     * don't get the minimum length the caller wants, we return EINVAL.
-     * On success, sopt->sopt_valsize is set to however much we actually
-     * retrieved.
-     */
+    
     if ((valsize = sopt->sopt_valsize) < minlen)
     {
         return EINVAL;
@@ -892,14 +826,7 @@ int sooptcopyout(OUT struct sockopt *sopt, IN const void *buf, IN UINT len)
 
     error = 0;
 
-    /*
-     * Documented get behavior is that we always return a value, possibly
-     * truncated to fit in the user's buffer.  Traditional behavior is
-     * that we always tell the user precisely how much we copied, rather
-     * than something useful like the total amount we had available for
-     * her.  Note that this interface is not idempotent; the entire
-     * answer must generated ahead of time.
-     */
+    
     valsize = MIN(len, (UINT)sopt->sopt_valsize);
     sopt->sopt_valsize = valsize;
     if (sopt->sopt_val != NULL)

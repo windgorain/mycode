@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 INT VNETC_Init();
 
@@ -18,8 +18,8 @@ extern VNETC_MAC_FW_NoDebugAll();
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_INIT_H_*/
+#endif 
 
 

@@ -3,16 +3,16 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 BS_STATUS VNETC_VPN_LINK_Input(IN MBUF_S *pstMbuf);
 BS_STATUS VNETC_VPN_LINK_Output (IN UINT ulIfIndex, IN MBUF_S *pstMbuf, IN USHORT usProtoType);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__VNETC_VPN_LINK_H_*/
+#endif 
 
 
 

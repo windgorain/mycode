@@ -10,14 +10,14 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 WS_DELIVER_RET_E SVPN_TcpRelay_RequestIn(IN WS_TRANS_HANDLE hTrans, IN UINT uiEvent);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__SVPN_TCPRELAY_H_*/
+#endif 
 
 

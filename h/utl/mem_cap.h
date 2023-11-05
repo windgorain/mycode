@@ -73,7 +73,7 @@ static inline void * _MemCap_ZMalloc(MEM_CAP_S *mem_cap, int size, const char *f
 }
 #define MemCap_ZMalloc(memcap, size) _MemCap_ZMalloc(memcap, size, __FILE__, __LINE__)
 
-/* 尝试调用RCU Call */
+
 static inline void MemCap_Call(MEM_CAP_S *mem_cap, void *rcu_node, PF_RCU_FREE_FUNC func)
 {
     if ((! mem_cap) || (! mem_cap->cap_call)) {
@@ -95,4 +95,4 @@ static inline void * MemCap_Dup(MEM_CAP_S *mem_cap, void *data, int len)
 #ifdef __cplusplus
 }
 #endif
-#endif //MEM_CAP_H_
+#endif 

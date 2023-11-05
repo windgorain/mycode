@@ -6,7 +6,7 @@
 *******************************************************************************
 注意,本模块由外部使用者保证使用和删除之间的互斥性. 确保不使用了才能删除实例.
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_FIBUTL
 
 #include "bs.h"
@@ -31,7 +31,7 @@ typedef struct
 
 typedef struct
 {
-    UINT uiNextHop; /* 网络序 */
+    UINT uiNextHop; 
     IF_INDEX uiOutIfIndex;
     UINT uiFlag;
 }_FIB_NEXT_HOP_S;
@@ -41,7 +41,7 @@ typedef struct
     HASH_NODE_S stHashNode;
     FIB_KEY_S stFibKey;
     _FIB_NEXT_HOP_S stNextHop;
-    _FIB_NEXT_HOP_S astStaticNextHop[FIB_MAX_NEXT_HOP_NUM];  /* 静态路由存放处 */
+    _FIB_NEXT_HOP_S astStaticNextHop[FIB_MAX_NEXT_HOP_NUM];  
     UINT uiStaticNextHopCount;
 }_FIB_HASH_NODE_S;
 
@@ -84,13 +84,13 @@ static INT  fib_HashCmp(IN VOID *pstHashNode, IN VOID *pstNodeToFind)
     return iCmpRet;
 }
 
-static BS_WALK_RET_E fib_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
+static int fib_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
 {
     _FIB_HASH_NODE_S *pstFibHashNode = (_FIB_HASH_NODE_S*)pstNode;
     USER_HANDLE_S *pstUserHandle = pUserHandle;
     PF_FIB_WALK_FUNC pfWalkFunc = pstUserHandle->ahUserHandle[0];
     FIB_NODE_S stFibNode;
-    BS_WALK_RET_E eRet = BS_WALK_CONTINUE;
+    int ret = 0;
     UINT i;
 
     stFibNode.stFibKey = pstFibHashNode->stFibKey;
@@ -100,10 +100,9 @@ static BS_WALK_RET_E fib_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNod
         stFibNode.uiNextHop = pstFibHashNode->stNextHop.uiNextHop;
         stFibNode.uiOutIfIndex = pstFibHashNode->stNextHop.uiOutIfIndex;
         stFibNode.uiFlag = pstFibHashNode->stNextHop.uiFlag;
-        eRet = pfWalkFunc(&stFibNode, pstUserHandle->ahUserHandle[1]);
-        if (eRet != BS_WALK_CONTINUE)
-        {
-            return eRet;
+        ret = pfWalkFunc(&stFibNode, pstUserHandle->ahUserHandle[1]);
+        if (ret < 0) {
+            return ret;
         }
     }
 
@@ -112,14 +111,13 @@ static BS_WALK_RET_E fib_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNod
         stFibNode.uiNextHop = pstFibHashNode->astStaticNextHop[i].uiNextHop;
         stFibNode.uiOutIfIndex = pstFibHashNode->astStaticNextHop[i].uiOutIfIndex;
         stFibNode.uiFlag = pstFibHashNode->astStaticNextHop[i].uiFlag;
-        eRet = pfWalkFunc(&stFibNode, pstUserHandle->ahUserHandle[1]);
-        if (eRet != BS_WALK_CONTINUE)
-        {
+        ret = pfWalkFunc(&stFibNode, pstUserHandle->ahUserHandle[1]);
+        if (ret < 0) {
             break;
         }
     }
 
-    return eRet;
+    return ret;
 }
 
 static VOID fib_ShowEach(IN FIB_NODE_S *pstFibNode)
@@ -157,7 +155,7 @@ static inline VOID fib_UnLock(IN _FIB_CTRL_S *pstFibCtrl)
     }
 }
 
-static BS_WALK_RET_E _fib_ClearAutoIFEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
+static int _fib_ClearAutoIFEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
 {
     _FIB_HASH_NODE_S *pstFibHashNode = (_FIB_HASH_NODE_S*)pstNode;
     UINT i;
@@ -170,7 +168,7 @@ static BS_WALK_RET_E _fib_ClearAutoIFEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S
         }
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 static VOID _fib_CleareAutoIF(IN _FIB_CTRL_S *pstFibCtrl)
@@ -327,7 +325,7 @@ static VOID _fib_AutoFindIf(IN _FIB_CTRL_S *pstFibCtrl, IN FIB_NODE_S *pstFibNod
     return;
 }
 
-static BS_STATUS _fib_PrefixMatch(IN _FIB_CTRL_S *pstFibCtrl, IN UINT uiDstIp /* 网络序 */, OUT FIB_NODE_S *pstFibNode)
+static BS_STATUS _fib_PrefixMatch(IN _FIB_CTRL_S *pstFibCtrl, IN UINT uiDstIp , OUT FIB_NODE_S *pstFibNode)
 {
     _FIB_HASH_NODE_S *pstFound = NULL;
     _FIB_HASH_NODE_S stFibToFind;
@@ -384,7 +382,7 @@ static BS_STATUS _fib_PrefixMatch(IN _FIB_CTRL_S *pstFibCtrl, IN UINT uiDstIp /*
     return eRet;
 }
 
-FIB_HANDLE FIB_Create(IN UINT uiInstanceFlag /* FIB_INSTANCE_FLAG_XXX */)
+FIB_HANDLE FIB_Create(IN UINT uiInstanceFlag )
 {
     _FIB_CTRL_S *pstFibCtrl;
     HASH_HANDLE hHash;
@@ -450,9 +448,7 @@ BS_STATUS FIB_Add(IN FIB_HANDLE hFibHandle, IN FIB_NODE_S *pstFibNode)
     return eRet;
 }
 
-/* 关键字: dst,mask,flag的Static位
-           当flag为static时, 如果nexthop为0,表示删除所有nexthop.否则只删除对应的nexthop
-           当flag为非static时,忽略nexthop */
+
 VOID FIB_Del(IN FIB_HANDLE hFibHandle, IN FIB_NODE_S *pstFibNode)
 {
     _FIB_CTRL_S *pstFibCtrl = hFibHandle;
@@ -487,7 +483,7 @@ VOID FIB_DelAll(IN FIB_HANDLE hFibHandle)
     fib_UnLock(pstFibCtrl);
 }
 
-BS_STATUS FIB_PrefixMatch(IN FIB_HANDLE hFibHandle, IN UINT uiDstIp /* 网络序 */, OUT FIB_NODE_S *pstFibNode)
+BS_STATUS FIB_PrefixMatch(IN FIB_HANDLE hFibHandle, IN UINT uiDstIp , OUT FIB_NODE_S *pstFibNode)
 {
     _FIB_CTRL_S *pstFibCtrl = hFibHandle;
     BS_STATUS eRet;
@@ -564,7 +560,7 @@ static INT _fib_GetNextCmp(IN FIB_NODE_S *pstNode1, IN FIB_NODE_S *pstNode2)
     return iCmpRet;
 }
 
-static BS_WALK_RET_E _fib_GetNextEach(IN FIB_NODE_S *pstFibNode, IN HANDLE hUserHandle)
+static int _fib_GetNextEach(IN FIB_NODE_S *pstFibNode, IN HANDLE hUserHandle)
 {
     USER_HANDLE_S *pstUserHandle = hUserHandle;
     FIB_NODE_S *pstFibCurrent = pstUserHandle->ahUserHandle[0];
@@ -575,25 +571,25 @@ static BS_WALK_RET_E _fib_GetNextEach(IN FIB_NODE_S *pstFibNode, IN HANDLE hUser
     {
         if (_fib_GetNextCmp(pstFibNode, pstFibCurrent) >= 0)
         {
-            return BS_WALK_CONTINUE;
+            return 0;
         }
     }
 
     if (_fib_GetNextCmp(pstFibNode, pstFibNext) <= 0)
     {
-        return BS_WALK_CONTINUE;
+        return 0;
     }
 
     *pstFibNext = *pstFibNode;
     *pbFound = TRUE;
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 BS_STATUS FIB_GetNext
 (
     IN FIB_HANDLE hFibHandle,
-    IN FIB_NODE_S *pstFibCurrent/* 如果为NULL表示获取第一个 */,
+    IN FIB_NODE_S *pstFibCurrent,
     OUT FIB_NODE_S *pstFibNext
 )
 {

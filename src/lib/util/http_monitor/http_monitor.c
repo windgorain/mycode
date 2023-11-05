@@ -156,7 +156,7 @@ int HttpMonitor_Input(HTTP_MONITOR_S *ctrl, UINT64 offset, UCHAR *data,
         RETURN(BS_ERR);
     }
 
-    if (ctrl->offset < offset) { /* 有丢包 */
+    if (ctrl->offset < offset) { 
         ctrl->state = HTTP_MONITOR_STATE_ERR;
         output(ctrl, HTTP_MONITOR_DATA_ERR, NULL, 0, ud);
         RETURN(BS_OUT_OF_RANGE);
@@ -187,7 +187,7 @@ int HttpMonitor_Input(HTTP_MONITOR_S *ctrl, UINT64 offset, UCHAR *data,
     return process_len;
 }
 
-/* 强制解析头部,即使不全 */
+
 int HttpMonitor_ForceParseHead(HTTP_MONITOR_S *ctrl, UCHAR *data, int len, PF_HTTP_MONITOR_OUTPUT output, void *ud)
 {
     if (ctrl->state != HTTP_MONITOR_STATE_HEAD) {

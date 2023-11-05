@@ -10,19 +10,19 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #include "utl/nap_utl.h"
 
-#if 1 /* Object */
+#if 1 
 
 typedef struct {
     void *memcap;
-    UINT uiMaxNum; /* 0表示不限制 */
-    UINT uiObjSize; /* 对象大小 */
+    UINT uiMaxNum; 
+    UINT uiObjSize; 
 }OBJECT_PARAM_S;
 
-typedef BS_WALK_RET_E (*OBJECT_WALK_FUNC)(IN HANDLE hAggregate, IN UINT64 ulObjectId, IN USER_HANDLE_S *pstUserHandle);
+typedef int (*OBJECT_WALK_FUNC)(IN HANDLE hAggregate, IN UINT64 ulObjectId, IN USER_HANDLE_S *pstUserHandle);
 HANDLE OBJECT_CreateAggregate(OBJECT_PARAM_S *p);
 VOID OBJECT_DestroyAggregate(IN HANDLE hAggregate);
 VOID OBJECT_EnableSeq(IN HANDLE hAggregate, IN UINT64 ulMask, IN UINT uiCount);
@@ -51,14 +51,14 @@ UINT64 OBJECT_GetNextID(IN HANDLE hAggregate, IN UINT64 uiCurrentID);
 UINT OBJECT_GetCount(IN HANDLE hAggregate);
 #endif
 
-#if 1  /* Named Object */
+#if 1  
 typedef HANDLE NO_HANDLE;
 NO_HANDLE NO_CreateAggregate(OBJECT_PARAM_S *p);
 VOID NO_DestroyAggregate(IN NO_HANDLE hAggregate);
 VOID NO_EnableSeq(IN NO_HANDLE hAggregate, IN UINT64 ulMask, IN UINT uiCount);
 VOID * NO_NewObject(IN NO_HANDLE hAggregate, IN CHAR *pcName);
-/* 自动在name后面添加Index */
-VOID * NO_NewObjectForNameIndex(IN NO_HANDLE hAggregate, IN CHAR *pcNamePrefix /* 名称前缀 */);
+
+VOID * NO_NewObjectForNameIndex(IN NO_HANDLE hAggregate, IN CHAR *pcNamePrefix );
 UINT64 NO_NewObjectID(IN NO_HANDLE hAggregate, IN CHAR *pcName);
 VOID NO_FreeObject(IN NO_HANDLE hAggregate, IN VOID *pObject);
 VOID NO_FreeObjectByID(IN NO_HANDLE hAggregate, IN UINT64 ulID);
@@ -109,8 +109,8 @@ CHAR * NO_GetKeyValueByName
 
 UINT64 NO_GetNextID(IN NO_HANDLE hAggregate, IN UINT64 ulCurrentID);
 
-/* 根据名字字典序进行获取下一个 */
-CHAR * NO_GetNextName(IN NO_HANDLE hAggregate, IN CHAR *pcCurrentName/* NULL表示获取第一个 */);
+
+CHAR * NO_GetNextName(IN NO_HANDLE hAggregate, IN CHAR *pcCurrentName);
 
 UINT NO_GetCount(IN NO_HANDLE hAggregate);
 
@@ -118,8 +118,8 @@ UINT NO_GetCount(IN NO_HANDLE hAggregate);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__OBJECT_UTL_H_*/
+#endif 
 
 

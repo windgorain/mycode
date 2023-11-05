@@ -17,10 +17,10 @@ typedef struct {
 }TCPB_S;
 
 typedef struct {
-    UINT64 offset; /* 在整条流中的偏移 */
+    UINT64 offset; 
     void *data;
     int len;
-    UINT save_offset:16; /* 在本段数据内需要缓存的偏移 */
+    UINT save_offset:16; 
     UINT need_save:1;
     UINT failed:1;
 }TCPB_BUF_S;
@@ -36,7 +36,7 @@ void * TCPB_Alloc(TCPB_S *tcpb, UINT payload_sn);
 void * TCPB_AlocSpec(TCPB_S *tcpb, UINT index, UINT payload_sn);
 void TCPB_Free(TCPB_S *tcpb, UINT index);
 void TCPB_Alloc_SetPayloadSn(TCPB_S *tcpb, void *tcpb_node, UINT payload_sn);
-/* sn为主机序 */
+
 int TCPB_Input(TCPB_S *tcpb, void *tcpb_node, UINT sn,
         void *payload, int payload_len, PF_TCPB_OUTPUT output, void *ud);
 void TCPB_SetSaveOffset(TCPB_BUF_S *tcpbuf, UINT offset);
@@ -44,4 +44,4 @@ void TCPB_SetSaveOffset(TCPB_BUF_S *tcpbuf, UINT offset);
 #ifdef __cplusplus
 }
 #endif
-#endif //TCP_BUFFER_H_
+#endif 

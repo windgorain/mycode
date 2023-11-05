@@ -5,7 +5,7 @@
 * History:     
 ******************************************************************************/
 
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_CONNPOOL
 
 #include "bs.h"
@@ -15,7 +15,7 @@
 #include "utl/ssltcp_utl.h"
 
 
-/* ---structs--- */
+
 typedef struct
 {
     DLL_NODE_S stDllNode;
@@ -29,7 +29,7 @@ typedef struct
     UINT ulMaxNodeNum;
 }S_CONN_POOL_CTRL;
 
-/* --funcs--- */
+
 BS_STATUS CONN_POOL_Create(IN UINT ulMaxNodeNum, OUT HANDLE *phHandle)
 {
     S_CONN_POOL_CTRL *pstCtrl;

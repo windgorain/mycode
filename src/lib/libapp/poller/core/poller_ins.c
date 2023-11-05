@@ -46,17 +46,17 @@ static void pollerins_base_ob()
     pollerins_TriggerOb(&g_poller_base);
 }
 
-static BS_WALK_RET_E pollerins_PollerEvent(UINT uiEvent, USER_HANDLE_S *ud)
+static int pollerins_PollerEvent(UINT uiEvent, USER_HANDLE_S *ud)
 {
     if (uiEvent & POLLER_INS_EVENT_QUIT) {
-        return BS_WALK_STOP;
+        return BS_STOP;
     }
 
     if (uiEvent & POLLER_INS_EVENT_TRIGGER) {
         pollerins_TriggerOb(ud->ahUserHandle[0]);
     }
 
-    return BS_WALK_CONTINUE;
+    return 0;
 }
 
 POLLER_INS_S * POLLER_INS_Add(char *ins_name)

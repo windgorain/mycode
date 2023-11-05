@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define WSAPP_WROKER_NUM 1
-#define WSAPP_GW_NAME_LEN 63   /* 最大gateway name名长度 */
+#define WSAPP_GW_NAME_LEN 63   
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__WSAPP_DEF_H_*/
+#endif 
 
 

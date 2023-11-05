@@ -7,7 +7,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     http:
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,6 +27,7 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <assert.h>
+#include "pcap.h"
 #include "ubpf_int.h"
 #include "ubpf.h"
 #include "ubpf_jit_x86_64.h"
@@ -42,7 +43,7 @@ ubpf_translate(struct ubpf_vm* vm, uint8_t* buffer, size_t* size, char** errmsg)
 int
 ubpf_translate_null(struct ubpf_vm* vm, uint8_t* buffer, size_t* size, char** errmsg)
 {
-    /* NULL JIT target - just returns an error. */
+    
     UNUSED(vm);
     UNUSED(buffer);
     UNUSED(size);

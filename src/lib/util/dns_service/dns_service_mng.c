@@ -6,10 +6,10 @@
 #include "utl/txt_utl.h"
 #include "utl/dns_service.h"
 
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_DNS_SERVICE
 
-#define DNS_SERVICE_LABEL_HASH_BUCKET_DFT 16      /* 当不在g_auiDnsServiceLevelHashBucket中定义的级别,使用这个默认数字 */
+#define DNS_SERVICE_LABEL_HASH_BUCKET_DFT 16      
 
 #define DNS_SERVICE_FUNC_INIT() \
     do {    \
@@ -24,7 +24,7 @@
         }       \
         TXT_Strlcpy(szDomainName, pcDomainName, sizeof(szDomainName));      \
         uiLabelNum = DNS_DomainName2Labels(szDomainName, &stLabels);        \
-        if (uiLabelNum < 2)   /* 最少要有两个Label */       \
+        if (uiLabelNum < 2)          \
         {       \
             RETURN(BS_BAD_PARA);        \
         }       \
@@ -33,10 +33,10 @@
 typedef struct tagDNS_SERVICE_LABEL_S
 {
     HASH_NODE_S stHashNode;
-    UINT uiIP;  /* 网络序 */
+    UINT uiIP;  
     CHAR *pcLabel;
     struct tagDNS_SERVICE_LABEL_S *pstParent;
-    HASH_HANDLE hLabelHash; /* 下一级Label的链表 */
+    HASH_HANDLE hLabelHash; 
 }DNS_SERVICE_LABEL_S;
 
 typedef struct
@@ -46,11 +46,11 @@ typedef struct
     MUTEX_S stMutex;
 }DNS_SERVICE_S;
 
-/* 内部函数声明 */
+
 static VOID dns_service_FreeLabelNode(IN DNS_SERVICE_LABEL_S *pstLabel);
 
-/* vars */
-/* 各级Label Hash表的桶个数 */
+
+
 static UINT g_auiDnsServiceLevelHashBucket[] =
 {
     16,1024
@@ -136,7 +136,7 @@ static VOID  dns_service_FreeEach(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN V
 
 static VOID dns_service_FreeLabelNode(IN DNS_SERVICE_LABEL_S *pstLabel)
 {
-    /* 删除这个域名的所有子域名 */
+    
     if (pstLabel->hLabelHash != NULL)
     {
         HASH_DelAll(pstLabel->hLabelHash, dns_service_FreeEach, NULL);
@@ -163,14 +163,14 @@ static DNS_SERVICE_LABEL_S * dns_service_FindLabel(IN HASH_HANDLE hLabelHash, IN
     return (DNS_SERVICE_LABEL_S*) HASH_Find(hLabelHash, dns_service_LabelCmp, (HASH_NODE_S*)&stNodeToFind);
 }
 
-/* 创建各级Label, 并返回最后一级的Label的指针 */
+
 static DNS_SERVICE_LABEL_S * dns_service_CreateLabels
 (
     IN DNS_SERVICE_LABEL_S *pstParent,
     IN HASH_HANDLE hLabelHash,
-    IN CHAR **ppcLabels,  /* Label列表 */
-    IN UINT uiLabelPos,  /* 要处理第几个Label */
-    IN UINT uiLevel      /* 级别 */
+    IN CHAR **ppcLabels,  
+    IN UINT uiLabelPos,  
+    IN UINT uiLevel      
 )
 {
     DNS_SERVICE_LABEL_S *pstNode, *pstNodeTmp;
@@ -209,8 +209,8 @@ static DNS_SERVICE_LABEL_S * dns_service_CreateLabels
 static BS_STATUS dns_service_AddName
 (
     IN DNS_SERVICE_S *pstService,
-    IN CHAR **ppcLabels,  /* Label列表 */
-    IN UINT uiLabelNum,  /* 有多少个Label */
+    IN CHAR **ppcLabels,  
+    IN UINT uiLabelNum,  
     IN UINT uiIP
 )
 {
@@ -230,8 +230,8 @@ static BS_STATUS dns_service_AddName
 static BS_STATUS dns_service_DelLabels
 (
     IN HASH_HANDLE hLabelHash,
-    IN CHAR **ppcLabels,  /* Label列表 */
-    IN UINT uiLabelPos    /* 要处理第几个Label */
+    IN CHAR **ppcLabels,  
+    IN UINT uiLabelPos    
 )
 {
     DNS_SERVICE_LABEL_S *pstNode;
@@ -259,14 +259,14 @@ static BS_STATUS dns_service_DelLabels
 static inline BS_STATUS dns_service_DelName
 (
     IN DNS_SERVICE_S *pstService,
-    IN CHAR **ppcLabels,  /* Label列表 */
-    IN UINT uiLabelNum    /* 有多少个Label */
+    IN CHAR **ppcLabels,  
+    IN UINT uiLabelNum    
 )
 {
     return dns_service_DelLabels(pstService->hLabelHash, ppcLabels, uiLabelNum - 1);
 }
 
-/* 返回最后一个Label的指针 */
+
 static DNS_SERVICE_LABEL_S * dns_service_FindLabels
 (
     IN HASH_HANDLE hLabelHash,
@@ -312,8 +312,8 @@ static BOOL_T dns_service_CheckDomainName(IN CHAR *pcDomainName)
 static BS_STATUS dns_service_GetInfoByName
 (
     IN DNS_SERVICE_S *pstService,
-    IN CHAR **ppcLabels,  /* Label列表 */
-    IN UINT uiLabelNum,   /* 有多少个Label */
+    IN CHAR **ppcLabels,  
+    IN UINT uiLabelNum,   
     OUT DNS_SERVICE_INFO_S *pstInfo
 )
 {
@@ -402,7 +402,7 @@ BS_STATUS DNS_Service_AddName
 (
     IN DNS_SERVICE_HANDLE hService,
     IN CHAR *pcDomainName,
-    IN UINT uiIP/* 网络序 */
+    IN UINT uiIP
 )
 {
     DNS_SERVICE_S *pstService = hService;

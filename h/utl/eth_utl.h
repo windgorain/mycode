@@ -7,7 +7,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define ETH_MAC_ADDR_STRING_LEN 17
 
@@ -23,23 +23,23 @@
 #define ETH_IS_PKTLEN(usPktLenOrType) ((usPktLenOrType) <= ETH_MAX_MTU)
 
 
-#define ETHERTYPE_IP         0x0800   /* IP protocol */
-#define ETHERTYPE_IP6        0x86DD   /*IPv6 protocol*/
-#define ETHERTYPE_ARP        0x0806   /* Addr. resolution protocol */
-#define ETHERTYPE_ISIS       0x8000   /* need tested with cisco*/
-#define ETHERTYPE_VLAN       0x8100   /* IEEE 802.1Q VLAN */
-#define ETHERTYPE_ISIS2      0x8870   /* Large 802.3/802.2 frames , now support isis */
-#define ETHERTYPE_IP_MPLS    0x8847   /* MPLS */
-#define ETHERTYPE_OTHER      0xFFFF   /* use for bridge */
+#define ETHERTYPE_IP         0x0800   
+#define ETHERTYPE_IP6        0x86DD   
+#define ETHERTYPE_ARP        0x0806   
+#define ETHERTYPE_ISIS       0x8000   
+#define ETHERTYPE_VLAN       0x8100   
+#define ETHERTYPE_ISIS2      0x8870   
+#define ETHERTYPE_IP_MPLS    0x8847   
+#define ETHERTYPE_OTHER      0xFFFF   
 
-/* 以太网帧格式 */
-#define PKTFMT_ETHII_ENCAP                    0   /* 以太II封装 */
-#define PKTFMT_SNAP_ENCAP                     1   /* SNAP 封装 */
-#define PKTFMT_LLC_ENCAP                      2   /* LLC(纯802.3)封装 */
-#define PKTFMT_8023RAW_ENCAP                  3   /* 802.3RAW封装 */
-#define PKTFMT_OTHERS                         0xFF /* 未知报文类型 */
 
-#define ETH_MIN_PAYLOAD_LEN  46 /* 最小的以太报文载荷的长度 */
+#define PKTFMT_ETHII_ENCAP                    0   
+#define PKTFMT_SNAP_ENCAP                     1   
+#define PKTFMT_LLC_ENCAP                      2   
+#define PKTFMT_8023RAW_ENCAP                  3   
+#define PKTFMT_OTHERS                         0xFF 
+
+#define ETH_MIN_PAYLOAD_LEN  46 
 
 #define MAC_ADDR_LEN 6
 
@@ -87,7 +87,7 @@
         _pucMac[5] = ((uiMac2)) & 0xff;  \
     }while(0)
 
-/* 将MAC转换成将xx-xx格式的字符串, 其中'-'可以使用cSplit来指定为':'等 */
+
 #define MAC_ADDR_2_STRING(aucMac, pcString, cSplit) \
     do { \
         CHAR *_pcString = (pcString);  \
@@ -99,7 +99,7 @@
         }   \
     }while(0)
 
-/* 将xx xx格式的字符串转换为MAC地址 */
+
 #define STRING_2_MAC_ADDR(pcString, aucMac) \
     do { \
         CHAR *_pcString = (pcString);  \
@@ -111,13 +111,13 @@
     }while(0)
 
 #define ETH_P_ALL  0x0003  
-#define ETH_P_IP   0x0800    /* IPv4 protocol. 主机序 */
-#define ETH_P_ARP  0x0806    /* ARP protocol. 主机序 */
-#define ETH_P_IP6  0x86DD    /* IPv6 protocol. 主机序 */
-#define ETH_P_MPLS 0x8847    /* MPLS . 主机序 */
+#define ETH_P_IP   0x0800    
+#define ETH_P_ARP  0x0806    
+#define ETH_P_IP6  0x86DD    
+#define ETH_P_MPLS 0x8847    
 
 
-/* VLAN ID */
+
 #define ETH_INVALID_VLAN_ID 0
 #define ETH_MIN_VLAN_ID 1
 #define ETH_MAX_VLAN_ID 4094
@@ -125,7 +125,7 @@
 
 #pragma pack(1)
 
-/* ---struct--- */
+
 typedef struct tagETH_HEAD_S
 {
     MAC_ADDR_S stDMac;
@@ -133,13 +133,10 @@ typedef struct tagETH_HEAD_S
     USHORT usProto;
 }ETH_HEADER_S;
 
-/**
- * Ethernet VLAN Header.
- * Contains the 16-bit VLAN Tag Control Identifier and the Ethernet type of the encapsulated frame.
- */
+
 typedef struct tagETH_VLAN_HEAD_S {
-    USHORT usVlanTci;   /**< Priority (3) + CFI (1) + Identifier Code (12) */
-    USHORT usProto;     /**< Ethernet type of encapsulated frame. */
+    USHORT usVlanTci;   
+    USHORT usProto;     
 }ETH_VLAN_HEAD_S;
 
 typedef struct vlanETH_HEAD_S
@@ -155,9 +152,9 @@ typedef struct vlanETH_HEAD_S
 
 typedef struct
 {
-    UCHAR      ucDSAP;                                  /* destination service access point*/
-    UCHAR      ucSSAP;                                  /* source service access point */
-    UCHAR      ucCtrl;                                  /* control domain */    
+    UCHAR      ucDSAP;                                  
+    UCHAR      ucSSAP;                                  
+    UCHAR      ucCtrl;                                      
 }ETH_LLC_S;
 
 #define ETH_SNAPORI_LEN         3
@@ -167,7 +164,7 @@ typedef struct
     USHORT     usType;
 }ETH_SNAP_S;
 
-/* SNAP 封装 */
+
 typedef struct
 {
     ETH_HEADER_S stHeader;
@@ -182,9 +179,9 @@ typedef struct
     USHORT usHeadLen;
     UCHAR ucPktFmt;
     UCHAR ucReserved;
-    USHORT usType;          /* 主机序 */
-    USHORT usPktLenOrType;  /* 主机序 */
-    USHORT usVlanId;        /* 主机序 */
+    USHORT usType;          
+    USHORT usPktLenOrType;  
+    USHORT usVlanId;        
 }ETH_PKT_INFO_S;
 
 
@@ -205,9 +202,9 @@ static inline BS_STATUS ETH_Get_Eth_SrcMacString(IN UCHAR *pucData, IN UINT uiDa
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__ETH_UTL_H_*/
+#endif 
 
 
 

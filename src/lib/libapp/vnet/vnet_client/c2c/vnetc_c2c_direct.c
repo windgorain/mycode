@@ -14,7 +14,7 @@
 #include "../inc/vnetc_udp_phy.h"
 
 
-/* 直连检测成功 */
+
 static VOID vnetc_c2c_direct_DetectSuccess(IN UINT uiPeerNodeID, IN UINT uiSesID, IN UINT uiIfIndex)
 {
     VNETC_NODE_Learn(uiPeerNodeID, uiIfIndex, uiSesID);
@@ -54,8 +54,8 @@ static BS_STATUS vnetc_c2c_direct_SesEvent(IN UINT uiSesID, IN UINT uiEvent, IN 
 BS_STATUS VNETC_C2C_Direct_StartDetect
 (
     IN UINT uiPeerNodeID,
-    IN UINT uiPeerIP,    /* 网络序 */
-    IN USHORT usPeerPort /* 网络序 */
+    IN UINT uiPeerIP,    
+    IN USHORT usPeerPort 
 )
 {
     VNETC_PHY_CONTEXT_S stPhyContext;

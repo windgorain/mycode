@@ -13,7 +13,7 @@
 
 #include "arpcheat_main.h"
 
-/* pcap %INT */
+
 PLUG_API BS_STATUS ARPCheat_CMD_SetPcapIndex(IN UINT ulArgc, IN CHAR **argv)
 {
     UINT uiPcapIndex;
@@ -25,7 +25,7 @@ PLUG_API BS_STATUS ARPCheat_CMD_SetPcapIndex(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* cheat ip %STRING */
+
 PLUG_API BS_STATUS ARPCheat_CMD_SetCheatIP(IN UINT ulArgc, IN CHAR **argv)
 {
     UINT uiIP;
@@ -42,7 +42,7 @@ PLUG_API BS_STATUS ARPCheat_CMD_SetCheatIP(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* cheat mac %STRING */
+
 PLUG_API BS_STATUS ARPCheat_CMD_SetCheatMAC(IN UINT ulArgc, IN CHAR **argv)
 {
     MAC_ADDR_S stMacAddr;
@@ -54,13 +54,13 @@ PLUG_API BS_STATUS ARPCheat_CMD_SetCheatMAC(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-/* start */
+
 PLUG_API BS_STATUS ARPCheat_CMD_Start(IN UINT ulArgc, IN CHAR **argv)
 {
     return ARPCheat_Main_Start();
 }
 
-/* save */
+
 PLUG_API BS_STATUS ARPCheat_CMD_Save(IN HANDLE hFile)
 {
     ARPCheat_Main_Save(hFile);
