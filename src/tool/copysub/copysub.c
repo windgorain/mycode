@@ -35,9 +35,7 @@ static VOID copysub_help()
         );
 }
 
-/* 
-    copysub [option] fromFile [toFile].
-*/
+
 VOID main(IN INT uiArgc, IN CHAR **ppcArgv)
 {
     FILE *pstFrom, *pstTo = NULL;

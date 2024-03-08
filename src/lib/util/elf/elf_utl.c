@@ -182,8 +182,8 @@ void ELF_Close(ELF_S *elf)
     }
 }
 
-/* 返回 iter, NULL表示结束 */
-void * ELF_GetNextSection(ELF_S *elf, void *iter/* NULL表示获取第一个 */, OUT ELF_SECTION_S *sec)
+
+void * ELF_GetNextSection(ELF_S *elf, void *iter, OUT ELF_SECTION_S *sec)
 {
 	Elf_Scn *scn = iter;
 
@@ -198,11 +198,11 @@ void * ELF_GetNextSection(ELF_S *elf, void *iter/* NULL表示获取第一个 */,
 
 int ELF_SecCount(ELF_S *elf)
 {
-    /* sec从1开始, 所以需要减掉1 */
+    
     return elf->ehdr.e_shnum - 1;
 }
 
-/* 获取第几个section, id就是section的序号 */
+
 int ELF_GetSecByID(ELF_S *elf, int sec_id, OUT ELF_SECTION_S *sec)
 {
     return elf_get_sec_by_id(elf, sec_id, sec);
@@ -221,7 +221,7 @@ int ELF_GetSecByName(ELF_S *elf, char *sec_name, OUT ELF_SECTION_S *sec)
     return -1;
 }
 
-/* 返回对应sec的id */
+
 int ELF_GetSecIDByName(ELF_S *elf, char *sec_name)
 {
     ELF_SECTION_S sec;
@@ -233,7 +233,7 @@ int ELF_GetSecIDByName(ELF_S *elf, char *sec_name)
     return sec.sec_id;
 }
 
-/* 获取指定SecID中指定类型的symbols数目, 如果type为0则忽略type */
+
 int ELF_SecSymbolCount(ELF_S *elf, int sec_id, int type)
 {
 	int i, count = 0;
@@ -266,7 +266,7 @@ int ELF_SecSymbolCount(ELF_S *elf, int sec_id, int type)
     return count;
 }
 
-/* 根据id获取symbol */
+
 Elf64_Sym * ELF_GetSymbol(ELF_S *elf, int id)
 {
 	Elf_Data *symbols = elf->symbols;
@@ -274,7 +274,7 @@ Elf64_Sym * ELF_GetSymbol(ELF_S *elf, int id)
     return elf_sym_by_id(symbols, id);
 }
 
-/* 获取指定Sec中的symbol. index表示是第几个section中匹配的symbol的索引, type为0则表示忽略 */
+
 Elf64_Sym * ELF_GetSecSymbol(ELF_S *elf, int sec_id, int type, int index)
 {
 	int i, count = 0;
@@ -321,7 +321,7 @@ char * ELF_GetSymbolName(ELF_S *elf, Elf64_Sym * sym)
     return elf_sym_str(elf, sym->st_name);
 }
 
-/* 通过指定的重定位索引获取重定位项 */
+
 GElf_Rel * ELF_GetRel(Elf_Data *relo_data, int id, OUT GElf_Rel *rel)
 {
     return gelf_getrel(relo_data, id, rel);
@@ -378,7 +378,7 @@ BOOL_T ELF_IsBssSection(ELF_SECTION_S *sec)
     return FALSE;
 }
 
-/* 获取data sections */
+
 int ELF_GetGlobalData(ELF_S *elf, OUT ELF_GLOBAL_DATA_S *global_data)
 {
     void *iter = NULL;
@@ -426,7 +426,7 @@ int ELF_GetProgsCount(ELF_S *elf)
     return count;
 }
 
-/* 获取ELF中所有的prog的size之和 */
+
 int ELF_GetProgsSize(ELF_S *elf)
 {
     void *iter = NULL;
@@ -443,9 +443,7 @@ int ELF_GetProgsSize(ELF_S *elf)
     return size;
 }
 
-/* 把elf中的progs copy到mem; 如果mem_size不够会返回错误,
- 成功: 返回copy了多长. 
- 失败: return < 0 */
+
 int ELF_CopyProgs(ELF_S *elf, OUT void *mem, int mem_size)
 {
     ELF_SECTION_S sec;
@@ -471,7 +469,7 @@ int ELF_CopyProgs(ELF_S *elf, OUT void *mem, int mem_size)
     return offset;
 }
 
-/* 申请内存并copy progs */
+
 void * ELF_DupProgs(ELF_S *elf)
 {
     int size = ELF_GetProgsSize(elf);

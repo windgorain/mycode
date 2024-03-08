@@ -100,7 +100,7 @@ void BITMATCH_DelRule(BITMATCH_S *ctrl, UINT rule_id)
 {
     int i, j;
     void *bits;
-    int line_count = (1 << ctrl->seg_bits); /* 每个table有多少行 */
+    int line_count = (1 << ctrl->seg_bits); 
 
     BS_DBGASSERT(rule_id < ctrl->max_rule_num);
 
@@ -117,7 +117,7 @@ void BITMATCH_GetRuleBits(BITMATCH_S *ctrl, OUT void *rule_bits)
     int i, j;
     void *bits;
     int size = ctrl->max_rule_num / 8;
-    int line_count = (1 << ctrl->seg_bits); /* 每个table有多少行 */
+    int line_count = (1 << ctrl->seg_bits); 
 
     memset(rule_bits, 0, size);
 
@@ -135,7 +135,7 @@ int BITMATCH_GetRule(BITMATCH_S *ctrl, U32 rule_id, OUT void *min, OUT void *max
     void *bits;
     U8 *d_min, *d_max;
     int ret = -1;
-    int line_count = (1 << ctrl->seg_bits); /* 每个table有多少行 */
+    int line_count = (1 << ctrl->seg_bits); 
     int shift = 0;
 
     d_min = min;
@@ -147,7 +147,7 @@ int BITMATCH_GetRule(BITMATCH_S *ctrl, U32 rule_id, OUT void *min, OUT void *max
     for (tbl_index = 0; tbl_index < ctrl->tab_number; tbl_index++) {
         int found = -1;
 
-        /* 寻找min */
+        
         for (i=0; i<line_count; i++) {
             shift = (tbl_index & ((8 /ctrl->seg_bits) - 1)) * ctrl->seg_bits;
             bits = _bitmatch_get_bits(ctrl->max_rule_num, ctrl->rule_bits, ctrl->seg_bits, tbl_index, i);
@@ -163,7 +163,7 @@ int BITMATCH_GetRule(BITMATCH_S *ctrl, U32 rule_id, OUT void *min, OUT void *max
             continue;
         }
 
-        /* 寻找max */
+        
         for (i=(line_count - 1); i>=found; i--) {
             shift = (tbl_index & ((8 /ctrl->seg_bits) - 1)) * ctrl->seg_bits;
             bits = _bitmatch_get_bits(ctrl->max_rule_num, ctrl->rule_bits, ctrl->seg_bits, tbl_index, i);

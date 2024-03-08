@@ -218,9 +218,9 @@ VOID MyPoll_Destory(MYPOLL_HANDLE hMypoll)
     return;
 }
 
-/* 设置事件位,会覆盖掉已有的事件位 */
+
 BS_STATUS MyPoll_SetEvent(MYPOLL_HANDLE hMypoll, int fd, UINT uiEvent,
-        PF_MYPOLL_EV_NOTIFY pfNotifyFunc, USER_HANDLE_S *uh /* 可以为NULL */)
+        PF_MYPOLL_EV_NOTIFY pfNotifyFunc, USER_HANDLE_S *uh )
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
     int add = 0;
@@ -270,7 +270,7 @@ USER_HANDLE_S * MyPoll_GetUserHandle(MYPOLL_HANDLE hMypoll, int fd)
     return &info->stUserHandle;
 }
 
-/* 在原有事件位的基础上, 增加新的事件位 */
+
 BS_STATUS MyPoll_AddEvent(MYPOLL_HANDLE hMypoll, int fd, UINT uiEvent)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
@@ -292,7 +292,7 @@ BS_STATUS MyPoll_AddEvent(MYPOLL_HANDLE hMypoll, int fd, UINT uiEvent)
     return MyPoll_SetEvent(hMypoll, fd, pstFdInfo->uiEvent, pstFdInfo->pfNotifyFunc, &pstFdInfo->stUserHandle);
 }
 
-/* 在原有事件位的基础上, 删除一些事件位 */
+
 BS_STATUS MyPoll_DelEvent(MYPOLL_HANDLE hMypoll, int fd, UINT uiEvent)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
@@ -314,13 +314,13 @@ BS_STATUS MyPoll_DelEvent(MYPOLL_HANDLE hMypoll, int fd, UINT uiEvent)
     return MyPoll_SetEvent(hMypoll, fd, pstFdInfo->uiEvent, pstFdInfo->pfNotifyFunc, &pstFdInfo->stUserHandle);
 }
 
-/* 清除所有事件位 */
+
 BS_STATUS MyPoll_ClearEvent(MYPOLL_HANDLE hMypoll, INT fd)
 {
     return MyPoll_DelEvent(hMypoll, fd, MYPOLL_EVENT_ALL);
 }
 
-/* 修改事件位, 覆盖掉原有事件位 */
+
 BS_STATUS MyPoll_ModifyEvent(MYPOLL_HANDLE hMypoll, int fd, UINT uiEvent)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
@@ -342,7 +342,7 @@ BS_STATUS MyPoll_ModifyEvent(MYPOLL_HANDLE hMypoll, int fd, UINT uiEvent)
     return MyPoll_SetEvent(hMypoll, fd, pstFdInfo->uiEvent, pstFdInfo->pfNotifyFunc, &pstFdInfo->stUserHandle);
 }
 
-/* 不再关注fd */
+
 void MyPoll_Del(MYPOLL_HANDLE hMypoll, int fd)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
@@ -358,9 +358,9 @@ int MyPoll_Run(MYPOLL_HANDLE hMypoll)
     return _Mypoll_Proto_Run(pstCtrl);
 }
 
-/* 可能因为某些原因,当前poll出来的信息可能已经无效,需要重新poll获取数据 */
-/* 比如一对关联的fd1和fd2, 处理fd1时出错, 同时把fd1和fd2关闭. 如果不restart, 则可能导致接下来处理fd2的消息是出错 */
-/* 此函数为pller回调函数中调用 */
+
+
+
 void MyPoll_Restart(MYPOLL_HANDLE hMypoll)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
@@ -368,7 +368,7 @@ void MyPoll_Restart(MYPOLL_HANDLE hMypoll)
     pstCtrl->uiFlag |= _MYPOLL_FLAG_RESTART;
 }
 
-/* 设置遇到Signal处理函数 */
+
 BS_STATUS MyPoll_SetSignalProcessor(MYPOLL_HANDLE hMypoll, INT signo, PF_MYPOLL_SIGNAL_FUNC pfFunc)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
@@ -385,10 +385,10 @@ BS_STATUS MyPoll_SetSignalProcessor(MYPOLL_HANDLE hMypoll, INT signo, PF_MYPOLL_
     return BS_OK;
 }
 
-/* 设置user event的响应函数 */
+
 BS_STATUS MyPoll_SetUserEventProcessor(MYPOLL_HANDLE hMypoll,
         PF_MYPOLL_USER_EVENT_FUNC pfFunc,
-        USER_HANDLE_S *uh /* 可以为NULL */)
+        USER_HANDLE_S *uh )
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
 
@@ -401,7 +401,7 @@ BS_STATUS MyPoll_SetUserEventProcessor(MYPOLL_HANDLE hMypoll,
     return BS_OK;
 }
 
-/* 触发user event */
+
 BS_STATUS MyPoll_PostUserEvent(MYPOLL_HANDLE hMypoll, UINT uiEvent)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
@@ -423,7 +423,7 @@ BS_STATUS MyPoll_PostUserEvent(MYPOLL_HANDLE hMypoll, UINT uiEvent)
     return BS_OK;
 }
 
-/* 触发mypoller一次 */
+
 BS_STATUS MyPoll_Trigger(MYPOLL_HANDLE hMyPoll)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMyPoll;

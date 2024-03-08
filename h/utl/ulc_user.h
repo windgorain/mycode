@@ -86,4 +86,4 @@ static long (*bpf_snprintf)(char *str, U32 str_size, const char *fmt, U64 *data,
 #ifdef __cplusplus
 }
 #endif
-#endif //ULC_USER_H_
+#endif 

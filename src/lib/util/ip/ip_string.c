@@ -15,7 +15,7 @@
 #include "utl/socket_utl.h"
 #include "utl/ip_string.h"
 
-/* 解析字符串 IP:Port, 输出主机序IP_PORT_S */
+
 int IPString_ParseIpPort(CHAR *ip_port_string, OUT IP_PORT_S *out)
 {
     LSTR_S stIP;
@@ -51,7 +51,7 @@ int IPString_ParseIpPort(CHAR *ip_port_string, OUT IP_PORT_S *out)
     return 0;
 }
 
-/* 解析字符串 IP/Prefix, 输出主机序IP_PREFIX_S */
+
 int IPString_ParseIpPrefix(CHAR *pcIpPrefixString, OUT IP_PREFIX_S *pstIpPrefix)
 {
     LSTR_S stIP;
@@ -88,7 +88,7 @@ int IPString_ParseIpPrefix(CHAR *pcIpPrefixString, OUT IP_PREFIX_S *pstIpPrefix)
     return BS_OK;
 }
 
-/* 解析字符串 IP/Prefix, 输出IP_MASK_S */
+
 int IPString_IpPrefixString2IpMask(CHAR *pcIpPrefixString, OUT IP_MASK_S *pstIpMask)
 {
     BS_STATUS enRet;
@@ -105,7 +105,7 @@ int IPString_IpPrefixString2IpMask(CHAR *pcIpPrefixString, OUT IP_MASK_S *pstIpM
     return BS_OK;
 }
 
-/* 解析字符串 IP/Mask, 输出IP_MASK_S */
+
 BS_STATUS IPString_ParseIpMask(CHAR *pcIpMaskString, OUT IP_MASK_S *pstIpMask)
 {
     LSTR_S stIP;
@@ -132,9 +132,7 @@ BS_STATUS IPString_ParseIpMask(CHAR *pcIpMaskString, OUT IP_MASK_S *pstIpMask)
 }
 
 
-/* 解析字符串IP/Mask列表,比如:1.1.1.1/255.0.0.0,2.1.1.1./255.0.0.0,
-   返回值: IP个数
-*/
+
 UINT IPString_ParseIpMaskList(IN CHAR *pcIpMaskString, IN CHAR cSplitChar, IN UINT uiIpMaskMaxNum, OUT IP_MASK_S *pstIpMasks)
 {
     CHAR *pcIpMask;
@@ -156,7 +154,7 @@ UINT IPString_ParseIpMaskList(IN CHAR *pcIpMaskString, IN CHAR cSplitChar, IN UI
     return uiNum;
 }
 
-CHAR * IPString_IP2String(IN UINT ip/*net order*/, OUT CHAR *str)
+CHAR * IPString_IP2String(IN UINT ip, OUT CHAR *str)
 {
     UCHAR *pucData = (void*)&ip;
     sprintf(str, "%u.%u.%u.%u", pucData[0], pucData[1], pucData[2], pucData[3]);

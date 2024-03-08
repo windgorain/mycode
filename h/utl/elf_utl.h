@@ -22,7 +22,7 @@ typedef struct {
     Elf *elf_info;
     GElf_Ehdr ehdr;
     void *symbols;
-	int symbols_shndx; /* symbols section的id */
+	int symbols_shndx; 
 	int strtabidx;
 }ELF_S;
 
@@ -36,7 +36,7 @@ typedef struct {
 #define ELF_MAX_GLOBAL_DATA_SEC_NUM 32
 
 typedef struct {
-    UINT sec_count: 8; /* global data sec count */
+    UINT sec_count: 8; 
     UINT rodata_count: 8;
     UINT have_bss:1;
     UINT have_data:1;
@@ -47,8 +47,8 @@ typedef struct {
 
 int ELF_Open(char *path, OUT ELF_S *elf);
 void ELF_Close(ELF_S *elf);
-/* 返回 iter, NULL表示结束 */
-void * ELF_GetNextSection(ELF_S *elf, void *iter/* NULL表示获取第一个 */, OUT ELF_SECTION_S *sec);
+
+void * ELF_GetNextSection(ELF_S *elf, void *iter, OUT ELF_SECTION_S *sec);
 int ELF_SecCount(ELF_S *elf);
 int ELF_GetSecIDByName(ELF_S *elf, char *sec_name);
 int ELF_GetSecByID(ELF_S *elf, int id, OUT ELF_SECTION_S *sec);
@@ -70,11 +70,11 @@ int ELF_GetProgsCount(ELF_S *elf);
 int ELF_CopyProgs(ELF_S *elf, OUT void *mem, int mem_size);
 void * ELF_DupProgs(ELF_S *elf);
 int ELF_GetProgsInfo(ELF_S *elf, OUT ELF_PROG_INFO_S *progs, int max_prog_count);
-/* return <0: err and stop walk; return 0: continue */
+
 typedef int (*PF_ELF_WALK_PROG)(void *data, ELF_PROG_INFO_S *info, void *ud);
 int ELF_WalkProgs(ELF_S *elf, PF_ELF_WALK_PROG walk_func, void *ud);
 
 #ifdef __cplusplus
 }
 #endif
-#endif //ELF_UTL_H_
+#endif 

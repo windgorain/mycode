@@ -107,7 +107,7 @@ inline static uint64_t
 ubpf_mem_load(uint64_t address, size_t size)
 {
     if (!IS_ALIGNED(address, size)) {
-        // Fill the result with 0 to avoid leaking uninitialized memory.
+        
         uint64_t value = 0;
         memcpy(&value, (void*)address, size);
         return value;
@@ -265,7 +265,7 @@ static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 
     U64 reg[16];
 
     if (!insts) {
-        /* Code must be loaded before we can execute */
+        
         RETURN(BS_ERR);
     }
 
@@ -907,7 +907,7 @@ BOOL_T MYBPF_Validate(MYBPF_VM_S *vm, void *insn, UINT num_insts)
                 vm->print_func("incomplete lddw at PC %d", i);
                 return false;
             }
-            i++; /* Skip next instruction */
+            i++; 
             break;
 
         case EBPF_OP_JA:
@@ -1022,9 +1022,9 @@ static inline bool _mybpf_bounds_check(
         return true;
 
     if (mem && (addr >= mem && ((char*)addr + size) <= ((char*)mem + mem_len))) {
-        return true; /* Context access */
+        return true; 
     } else if ((char*)addr >= ctx->stack && ((char*)addr + size) <= (ctx->stack + ctx->stack_size)) {
-        return true; /* Stack access */
+        return true; 
     } else {
         vm->print_func("uBPF error: out of bounds memory %s at PC %u, addr %p, size %d\nmem %p/%d stack %p/%d\n",
                 type, cur_pc, addr, size, mem, mem_len, ctx->stack, ctx->stack_size);
@@ -1157,11 +1157,11 @@ static int _mybpf_run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, 
 
 int MYBPF_Run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
-    /* 注意: 它需要已经调用过MYBPF_PROG_FixupBpfCalls */
+    
     return _mybpf_run(vm, ctx, p1, p2, p3, p4, p5);
 }
 
-/* 以3个ebpf参数方式运行 */
+
 int MYBPF_RunP3(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3)
 {
     return _mybpf_run(vm, ctx, p1, p2, p3, 0, 0);

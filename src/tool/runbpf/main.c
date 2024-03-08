@@ -410,7 +410,7 @@ static int _export_prog(int argc, char **argv)
     return _export_spf_prog(filename, function);
 }
 
-/* 转换成bpf的表达式 */
+
 static int _convert_bpfexp(int argc, char **argv)
 {
     char *filename=NULL;
@@ -599,14 +599,14 @@ static MYBPF_SIMPLE_CONVERT_CALL_MAP_S * _build_convert_calls_map(char *file)
         }
 
         if (strcmp(buf, "offset") == 0) {
-            ele_index = 0; /* 重置了offset, ele index重新计数 */
+            ele_index = 0; 
             base_offset = strtol(split + 1, NULL, 16);
             continue;
         }
 
         int imm = strtol(buf, NULL, 10);
         if (imm) {
-            /* imm == 0 是空位 */
+            
             map[index].imm = imm;
             map[index].new_imm = base_offset + ele_index * ele_size;
             index ++;
@@ -615,7 +615,7 @@ static MYBPF_SIMPLE_CONVERT_CALL_MAP_S * _build_convert_calls_map(char *file)
         ele_index ++;
     }
 
-    /* 最后一个写0表示结束 */
+    
     map[index].imm = 0;
 
     fclose(fp);

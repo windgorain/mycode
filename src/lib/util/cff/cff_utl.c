@@ -85,7 +85,7 @@ _CFF_S * _cff_Open(IN CHAR *pcFileName, IN UINT uiFlag)
 
     pstCff->pcFileContent = (CHAR*)pstCff->pstFileMemMap->data;
 
-    /* 检测是否有UTF8的BOM */
+    
     if (pstCff->pstFileMemMap->len >= 3)
     {
         if ((pstCff->pcFileContent[0] == (CHAR)0xef)
@@ -581,7 +581,7 @@ BS_STATUS CFF_GetPropAsInt(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag, IN CHAR *pc
     return CFF_X_GetPropAsInt(hCffHandle, &stTreParam, pcProp, piValue);
 }
 
-/* 如果获取失败,则返回dft */
+
 UINT CFF_GetPropAsUintDft(CFF_HANDLE hCffHandle, char *pcTag, char *pcProp, UINT dft)
 {
     UINT val;
@@ -606,7 +606,7 @@ char * CFF_GetPropAsStringDft(CFF_HANDLE hCffHandle, char *pcTag, char *pcProp, 
     return CFF_GetPropAsString(hCffHandle, pcTag, pcProp, &val) == 0 ? val : dft;
 }
 
-/* 返回Tag的个数 */
+
 UINT CFF_GetTagNum(IN CFF_HANDLE hCffHandle)
 {
     MKV_X_PARA_S stTreParam;
@@ -670,7 +670,7 @@ VOID CFF_WalkProp(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag, IN PF_CFF_PROP_WALK_
     MKV_WalkKeyInMark(pstMarkRoot, (PF_MKV_KEY_WALK_FUNC)cff_WalkPropFunc, &stUserHandle);
 }
 
-/* 返回section中属性的个数 */
+
 UINT CFF_GetPorpNumOfTag(IN CFF_HANDLE hCffHandle, IN CHAR *pcTag)
 {
     MKV_MARK_S *pstMarkRoot;

@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     http:
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@
 #define _countof(array) (sizeof(array) / sizeof(array[0]))
 #endif
 
-/* Special values for target_pc in struct jump */
+
 #define TARGET_PC_EXIT -1
 #define TARGET_PC_DIV_BY_ZERO -2
 
@@ -43,21 +43,18 @@ muldivmod(struct jit_state* state, uint8_t opcode, int src, int dst, int32_t imm
 
 #define REGISTER_MAP_SIZE 11
 
-/*
- * There are two common x86-64 calling conventions, as discussed at
- * https://en.wikipedia.org/wiki/X86_calling_conventions#x86-64_calling_conventions
- */
+
 
 #if defined(_WIN32)
 static int platform_nonvolatile_registers[] = {RBP, RBX, RDI, RSI, R12, R13, R14, R15};
 static int platform_parameter_registers[] = {RCX, RDX, R8, R9};
 #define RCX_ALT R10
-// Register assignments:
-// BPF R0-R4 are "volatile"
-// BPF R5-R10 are "non-volatile"
-// Map BPF volatile registers to x64 volatile and map BPF non-volatile to
-// x64 non-volatile.
-// Avoid R12 as we don't support encoding modrm modifier for using R12.
+
+
+
+
+
+
 static int register_map[REGISTER_MAP_SIZE] = {
     RAX,
     R10,
@@ -121,7 +118,7 @@ static int register_map[REGISTER_MAP_SIZE] = {
 
 #include "../mybpf/mybpf_jit_x86_64_inner.h"
 
-/* Return the x86 register for the given eBPF register */
+
 static int
 map_register(int r)
 {
@@ -129,7 +126,7 @@ map_register(int r)
     return register_map[r % REGISTER_MAP_SIZE];
 }
 
-/* For testing, this changes the mapping between x86 and eBPF registers */
+
 void
 ubpf_set_register_offset(int x)
 {
@@ -141,7 +138,7 @@ ubpf_set_register_offset(int x)
             register_map[i] = tmp[(i + x) % REGISTER_MAP_SIZE];
         }
     } else {
-        /* Shuffle array */
+        
         unsigned int seed = x;
         for (i = 0; i < REGISTER_MAP_SIZE - 1; i++) {
             int j = i + (rand_r(&seed) % (REGISTER_MAP_SIZE - i));
@@ -157,20 +154,20 @@ translate(struct ubpf_vm* vm, struct jit_state* state, char** errmsg)
 {
     int i;
 
-    /* Save platform non-volatile registers */
+    
     for (i = 0; i < _countof(platform_nonvolatile_registers); i++) {
         emit_push(state, platform_nonvolatile_registers[i]);
     }
 
-    /* Move first platform parameter register into register 1 */
+    
     if (map_register(1) != platform_parameter_registers[0]) {
         emit_mov(state, platform_parameter_registers[0], map_register(1));
     }
 
-    /* Copy stack pointer to R10 */
+    
     emit_mov(state, RSP, map_register(10));
 
-    /* Allocate stack space */
+    
     emit_alu64_imm32(state, 0x81, 5, RSP, UBPF_STACK_SIZE);
 
     for (i = 0; i < vm->num_insts; i++) {
@@ -252,17 +249,17 @@ translate(struct ubpf_vm* vm, struct jit_state* state, char** errmsg)
             break;
 
         case EBPF_OP_LE:
-            /* No-op */
+            
             break;
         case EBPF_OP_BE:
             if (inst.imm == 16) {
-                /* rol */
-                emit1(state, 0x66); /* 16-bit override */
+                
+                emit1(state, 0x66); 
                 emit_alu32_imm8(state, 0xc1, 0, dst, 8);
-                /* and */
+                
                 emit_alu32_imm32(state, 0x81, 4, dst, 0xffff);
             } else if (inst.imm == 32 || inst.imm == 64) {
-                /* bswap */
+                
                 emit_basic_rex(state, inst.imm == 64, 0, dst);
                 emit1(state, 0x0f);
                 emit1(state, 0xc8 | (dst & 7));
@@ -338,7 +335,7 @@ translate(struct ubpf_vm* vm, struct jit_state* state, char** errmsg)
             emit_alu64(state, 0xd3, 7, dst);
             break;
 
-        /* TODO use 8 bit immediate when possible */
+        
         case EBPF_OP_JA:
             emit_jmp(state, target_pc);
             break;
@@ -519,7 +516,7 @@ translate(struct ubpf_vm* vm, struct jit_state* state, char** errmsg)
             emit_jcc(state, 0x8e, target_pc);
             break;
         case EBPF_OP_CALL:
-            /* We reserve RCX for shifts */
+            
             emit_mov(state, RCX_ALT, RCX);
             emit_call(state, vm->ext_funcs[inst.imm]);
             if (inst.imm == vm->unwind_stack_extension_index) {
@@ -572,12 +569,12 @@ translate(struct ubpf_vm* vm, struct jit_state* state, char** errmsg)
             emit_store(state, SIZE_64, src, dst, inst.offset);
             break;
 
-        /* added by lixg */
+        
         case EPBF_OP_LOCK_STXW:
             _x64_mybpf_jit_lock_stx(state, 0, src, dst, &inst, BPF_TMP1, BPF_TMP2);
             break;
 
-        /* added by lixg */
+        
         case EPBF_OP_LOCK_STXDW:
             _x64_mybpf_jit_lock_stx(state, 1, src, dst, &inst, BPF_TMP1, BPF_TMP2);
             break;
@@ -595,23 +592,23 @@ translate(struct ubpf_vm* vm, struct jit_state* state, char** errmsg)
         }
     }
 
-    /* Epilogue */
+    
     state->exit_loc = state->offset;
 
-    /* Move register 0 into rax */
+    
     if (map_register(0) != RAX) {
         emit_mov(state, map_register(0), RAX);
     }
 
-    /* Deallocate stack space */
+    
     emit_alu64_imm32(state, 0x81, 0, RSP, UBPF_STACK_SIZE);
 
-    /* Restore platform non-volatile registers */
+    
     for (i = 0; i < _countof(platform_nonvolatile_registers); i++) {
         emit_pop(state, platform_nonvolatile_registers[_countof(platform_nonvolatile_registers) - i - 1]);
     }
 
-    emit1(state, 0xc3); /* ret */
+    emit1(state, 0xc3); 
 
     return 0;
 }
@@ -625,13 +622,13 @@ muldivmod(struct jit_state* state, uint8_t opcode, int src, int dst, int32_t imm
     bool is64 = (opcode & EBPF_CLS_MASK) == EBPF_CLS_ALU64;
     bool reg = (opcode & EBPF_SRC_REG) == EBPF_SRC_REG;
 
-    // Short circuit for imm == 0.
+    
     if (!reg && imm == 0) {
         if (div || mul) {
-            // For division and multiplication, set result to zero.
+            
             emit_alu32(state, 0x31, dst, dst);
         } else {
-            // For modulo, set result to dividend.
+            
             emit_mov(state, dst, dst);
         }
         return;
@@ -645,47 +642,47 @@ muldivmod(struct jit_state* state, uint8_t opcode, int src, int dst, int32_t imm
         emit_push(state, RDX);
     }
 
-    // Load the divisor into RCX.
+    
     if (imm) {
         emit_load_imm(state, RCX, imm);
     } else {
         emit_mov(state, src, RCX);
     }
 
-    // Load the dividend into RAX.
+    
     emit_mov(state, dst, RAX);
 
-    // BPF has two different semantics for division and modulus. For division
-    // if the divisor is zero, the result is zero.  For modulus, if the divisor
-    // is zero, the result is the dividend. To handle this we set the divisor
-    // to 1 if it is zero and then set the result to zero if the divisor was
-    // zero (for division) or set the result to the dividend if the divisor was
-    // zero (for modulo).
+    
+    
+    
+    
+    
+    
 
     if (div || mod) {
-        // Check if divisor is zero.
+        
         if (is64) {
             emit_alu64(state, 0x85, RCX, RCX);
         } else {
             emit_alu32(state, 0x85, RCX, RCX);
         }
 
-        // Save the dividend for the modulo case.
+        
         if (mod) {
-            emit_push(state, RAX); // Save dividend.
+            emit_push(state, RAX); 
         }
 
-        // Save the result of the test.
-        emit1(state, 0x9c); /* pushfq */
+        
+        emit1(state, 0x9c); 
 
-        // Set the divisor to 1 if it is zero.
+        
         emit_load_imm(state, RDX, 1);
         emit1(state, 0x48);
         emit1(state, 0x0f);
         emit1(state, 0x44);
-        emit1(state, 0xca); /* cmove rcx,rdx */
+        emit1(state, 0xca); 
 
-        /* xor %edx,%edx */
+        
         emit_alu32(state, 0x31, RDX, RDX);
     }
 
@@ -693,36 +690,36 @@ muldivmod(struct jit_state* state, uint8_t opcode, int src, int dst, int32_t imm
         emit_rex(state, 1, 0, 0, 0);
     }
 
-    // Multiply or divide.
+    
     emit_alu32(state, 0xf7, mul ? 4 : 6, RCX);
 
-    // Division operation stores the remainder in RDX and the quotient in RAX.
+    
     if (div || mod) {
-        // Restore the result of the test.
-        emit1(state, 0x9d); /* popfq */
+        
+        emit1(state, 0x9d); 
 
-        // If zero flag is set, then the divisor was zero.
+        
 
         if (div) {
-            // Set the dividend to zero if the divisor was zero.
+            
             emit_load_imm(state, RCX, 0);
 
-            // Store 0 in RAX if the divisor was zero.
-            // Use conditional move to avoid a branch.
+            
+            
             emit1(state, 0x48);
             emit1(state, 0x0f);
             emit1(state, 0x44);
-            emit1(state, 0xc1); /* cmove rax,rcx */
+            emit1(state, 0xc1); 
         } else {
-            // Restore dividend to RCX.
+            
             emit_pop(state, RCX);
 
-            // Store the dividend in RAX if the divisor was zero.
-            // Use conditional move to avoid a branch.
+            
+            
             emit1(state, 0x48);
             emit1(state, 0x0f);
             emit1(state, 0x44);
-            emit1(state, 0xd1); /* cmove rdx,rcx */
+            emit1(state, 0xd1); 
         }
     }
 
@@ -756,7 +753,7 @@ resolve_jumps(struct jit_state* state)
             target_loc = state->pc_locs[jump.target_pc];
         }
 
-        /* Assumes jump offset is at end of instruction */
+        
         uint32_t rel = target_loc - (jump.offset_loc + sizeof(uint32_t));
 
         uint8_t* offset_ptr = &state->buf[jump.offset_loc];

@@ -13,9 +13,9 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-/* ---defines--- */
+
 #define FILE_MAX_PATH_LEN 511
 
 #ifdef IN_WINDOWS
@@ -168,19 +168,19 @@ typedef enum
     FILE_TIME_MODE_SET
 }FILE_TIME_MODE_E;
 
-/* ---funcs--- */
+
 extern S64 FILE_GetSize(char *pszFileName);
 extern S64 FILE_GetFileSize(void *fp);
 extern BOOL_T FILE_IsFileExist(IN CHAR *pcFilePath);
 extern BOOL_T FILE_IsDirExist(IN CHAR *pcDirName);
 extern BOOL_T FILE_IsDir(IN CHAR *pcPath);
-/* 先创建文件所在目录路径，再打开文件 */
+
 extern FILE * FILE_Open(IN CHAR *pszFilePath, IN BOOL_T bIsCreateDirIfNotExist, IN CHAR *pszOpenMode);
 extern VOID FILE_Close(IN FILE *fp);
 extern UINT FILE_Read(IN FILE *fp, OUT UCHAR *pucBuf, IN UINT uiBufSize);
 extern BOOL_T FILE_IsHaveUtf8Bom(IN FILE *fp);
-/* 如果已经存在，则返回BS_ALREADY_EXIST */
-/*pszPath:  以'/'或'\\'结尾的一个路径, 如果不是,则自动忽略最后一个'/'或'\\'之后的字符*/
+
+
 extern BS_STATUS FILE_MakeDirs(IN CHAR *pszPath);
 extern BS_STATUS FILE_MakePath(IN CHAR *pszPath);
 extern BS_STATUS FILE_MakeFile(IN CHAR *pszFilePath);
@@ -189,9 +189,9 @@ extern BOOL_T FILE_DelFile(IN CHAR *pszFilePath);
 extern BS_STATUS FILE_GetUtcTime
 (
     IN CHAR *pszFileName,
-    OUT time_t *pulCreateTime,   /* NULL表示不关心 */
-    OUT time_t *pulModifyTime,   /* NULL表示不关心 */
-    OUT time_t *pulAccessTime    /* NULL表示不关心 */
+    OUT time_t *pulCreateTime,   
+    OUT time_t *pulModifyTime,   
+    OUT time_t *pulAccessTime    
 );
 extern BS_STATUS FILE_SetUtcTime
 (
@@ -211,12 +211,12 @@ extern char * FILE_ToAbsPath(char *base_dir, char *path, OUT char *dst, int dst_
 
 extern char * FILE_Dup2AbsPath(IN char *base_dir, IN char *path);
 
-/* 从携带文件名的路径中,把路径取出来,路径以"/"结束 */
+
 VOID FILE_GetPathFromFilePath(CHAR *pszFilePath, OUT CHAR *szPath);
 
 extern CHAR * FILE_GetExternNameFromPath(IN CHAR *pszPath, IN UINT uiPathLen);
 
-/* 抹去扩展名 */
+
 extern CHAR * FILE_EarseExternName(IN CHAR *pcFilePath);
 
 extern CHAR * FILE_ChangeExternName(CHAR *file_name, CHAR *ext_name);
@@ -231,14 +231,14 @@ extern VOID FILE_WriteStr(IN FILE *fp, IN CHAR *pszString);
 
 extern int FILE_MemTo(IN CHAR *pszFilePath, OUT void *buf, int buf_size);
 
-/* 读取文件内容放到内存中. 调用者需要释放内存 */
+
 extern FILE_MEM_S * FILE_Mem(IN CHAR *pszFilePath);
 extern FILE_MEM_S * FILE_MemByData(void *data, int data_len);
 extern VOID FILE_MemFree(IN FILE_MEM_S *pstMemMap);
 
 typedef VOID (*PF_ScanFile_Output)
 (
-    IN CHAR *pcCurrentScanDir, /* 文件所在的相对于UserScanDir的相对目录 */
+    IN CHAR *pcCurrentScanDir, 
     IN CHAR *pcFileName,
     IN VOID *pUserData
 );
@@ -246,7 +246,7 @@ typedef VOID (*PF_ScanFile_Output)
 VOID FILE_ScanFile
 (
     IN CHAR *pcScanDir,
-    IN CHAR *pcPattern, /* NULL表示所有文件类型 */
+    IN CHAR *pcPattern, 
     IN PF_ScanFile_Output pfOutput,
     IN VOID *pUserData
 );
@@ -259,8 +259,8 @@ cJSON *FILE_LoadJson(const char *filename, bool is_encrypted);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__FILE_UTL_H_*/
+#endif 
 
 

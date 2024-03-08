@@ -26,9 +26,9 @@ static inline int _bfunc_call_bpf(BFUNC_S *ctrl, BFUNC_NODE_S *node, UINT64 *bpf
     MYBPF_CTX_S ctx;
 
     if (node->mem_check) {
-        /* 如果开启了mem check, 则这个函数的入参必须是data + data_size */
-        ctx.mem = (void*)(long)p1; /* data */
-        ctx.mem_len = p2; /* data_size */
+        
+        ctx.mem = (void*)(long)p1; 
+        ctx.mem_len = p2; 
         ctx.mem_check = 1;
     }
 
@@ -89,12 +89,7 @@ int BFUNC_Set(BFUNC_S *ctrl, UINT id, UINT jited, void *prog, void *func, void *
     return 0;
 }
 
-/* 
-id: 被调用函数的ID
-bpf_ret: 被调用函数的返回值. 可以为NULL不关心返回值
-px: 传给被调用函数的参数
-return: 调用成功失败
- */
+
 int BFUNC_Call(BFUNC_S *ctrl, UINT id, UINT64 *bpf_ret, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
     BFUNC_NODE_S *node;

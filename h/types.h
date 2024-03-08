@@ -177,8 +177,8 @@ typedef struct {
 }LDATA_S;
 
 typedef struct {
-    UCHAR *data; /* 文件数据 */
-    UINT64 len;   /* 文件长度 */
+    UCHAR *data; 
+    UINT64 len;   
 }LLDATA_S;
 
 typedef LLDATA_S FILE_MEM_S;

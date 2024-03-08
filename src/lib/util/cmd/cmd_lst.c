@@ -27,7 +27,7 @@ static int cmdlst_ParseType(char *type_str)
     return -1;
 }
 
-/* 得到命令行类型 */
+
 static BS_STATUS cmdlst_GetType(CHAR *type_str, OUT CMDLST_ELE_S *ele)
 {
     int type = 0;
@@ -49,7 +49,7 @@ static BS_STATUS cmdlst_GetType(CHAR *type_str, OUT CMDLST_ELE_S *ele)
     int i;
     for (i=1; i<num; i++) {
         if (strcmp(token[i], "templet") == 0) {
-            /* 是templet必然是view */
+            
             prop |= DEF_CMD_EXP_PROPERTY_TEMPLET;
         } else if (strcmp(token[i], "hide") == 0) {
             prop |= (DEF_CMD_EXP_PROPERTY_HIDE | DEF_CMD_EXP_PROPERTY_HIDE_CR);
@@ -79,13 +79,13 @@ static BS_STATUS cmdlst_ParseCmdLine(char *line, OUT CMDLST_ELE_S *ele)
         RETURN(BS_ERR);
     }
 
-    /* 获取注册的命令行类型 */
+    
     char *type = TXT_Strim(token[index++]);
     if (BS_OK != cmdlst_GetType(type, ele)) {
         RETURN(BS_ERR);
     }
 
-    /* 获取view*/
+    
     ele->view = TXT_Strim(token[index++]);
 
     if (CMD_EXP_IS_SAVE(ele->type) || CMD_EXP_IS_ENTER(ele->type)) {
@@ -95,13 +95,13 @@ static BS_STATUS cmdlst_ParseCmdLine(char *line, OUT CMDLST_ELE_S *ele)
         return BS_OK;
     }
 
-    /* 获取cmd */
+    
     ele->cmd = TXT_Strim(token[index++]);
     if (index >= num) {
         RETURN(BS_ERR);
     }
 
-    /* 获取view名 */
+    
     if (CMD_EXP_IS_VIEW(ele->type)) {
         ele->view_name = TXT_StrimAll(token[index++]);
         if (index >= num) {
@@ -109,7 +109,7 @@ static BS_STATUS cmdlst_ParseCmdLine(char *line, OUT CMDLST_ELE_S *ele)
         }
     }
 
-    /* 获取函数名 */
+    
     ele->func_name = TXT_Strim(token[index++]);
 
     if (index < num) {
@@ -152,8 +152,8 @@ BS_STATUS CMDLST_Scan(CMDLST_S *ctrl, char *buf)
     buf = TXT_Strim(buf);
 
     TXT_SCAN_LINE_BEGIN(buf, line, line_len) {
-        /*最短为5，再短就不是合法命令行了*/
-        /* #号表示注释行 */
+        
+        
         if ((line_len > 5) && (line[0] != '#')) { 
             line[line_len] = '\0';
             cmdlst_Line(ctrl, line);

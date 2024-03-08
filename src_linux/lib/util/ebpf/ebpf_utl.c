@@ -95,7 +95,7 @@ int EBPF_GetFd(char *pin_filename)
 
 void EBPF_CloseFd(int fd)
 {
-    /* 关闭通过EBPF_GetFd()获取到的fd */
+    
     close(fd);
 }
 
@@ -286,7 +286,7 @@ int EBPF_GetMapFdByName(void *obj, const char *name)
     return bpf_object__find_map_fd_by_name(obj, name);
 }
 
-/* 获取attach到ifname上的xdp fd  */
+
 int EBPF_GetXdpAttachedFd(char *ifname)
 {
     unsigned int fd;

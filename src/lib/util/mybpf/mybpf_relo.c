@@ -23,14 +23,14 @@ static BOOL_T _mybpf_relo_is_globle_data(MYBPF_RELO_MAP_S *relo_map)
 static int _mybpf_relo_map(MYBPF_INSN_S *insn, int cur_pc,
         GElf_Sym *sym, MYBPF_RELO_MAP_S *relo_maps, int maps_count)
 {
-    /* Match FD relocation against recorded map_data[] offset */
+    
     for (int i= 0; i< maps_count; i++) {
         if (relo_maps[i].sec_id != sym->st_shndx) {
             continue;
         }
 
         if (_mybpf_relo_is_globle_data(&relo_maps[i])) {
-            /* is global data */
+            
             int old_imm = insn->imm;
             insn->imm = relo_maps[i].value;
             insn[1].imm = old_imm + sym->st_value;
@@ -72,7 +72,7 @@ static BOOL_T _mybpf_is_text_sec(ELF_S *elf, int sec_id)
     return TRUE;
 }
 
-/* 转成相对位置的调用 */
+
 static int _mybpf_relo_sub_prog(ELF_S *elf, MYBPF_INSN_S *insn, int cur_pc, GElf_Sym *sym)
 {
     if (insn->src_reg != BPF_PSEUDO_CALL) {
@@ -83,9 +83,9 @@ static int _mybpf_relo_sub_prog(ELF_S *elf, MYBPF_INSN_S *insn, int cur_pc, GElf
         return BS_ERR;
     }
 
-    /* insn->imm + sym->st_value/8 + 1: 目标绝对位置 */
-    /* 目标绝对位置 - 当前位置: 相对于cur_pc的的相对位置 */
-    /* 先对位置 - 1: 相对于pc的的相对位置. pc = cur_pc + 1 */
+    
+    
+    
 
     int new_imm = (insn->imm + sym->st_value/8) - cur_pc;
 
@@ -118,7 +118,7 @@ static int _mybpf_relo_load(ELF_S *elf, MYBPF_INSN_S *insn, int cur_pc,
     int ret;
 
     ret = _mybpf_relo_map(insn, cur_pc, sym, relo_maps, maps_count);
-    if (ret < 0) { /* 不是map, 进行函数指针处理 */
+    if (ret < 0) { 
         ret = _mybpf_relo_func_ptr(elf, insn, cur_pc, sym);
     }
 
@@ -176,7 +176,7 @@ static ELF_PROG_INFO_S * _mybpf_relo_get_prog_by_sec_id(ELF_PROG_INFO_S *progs_i
     return NULL;
 }
 
-/* 重定位Prog Map 和 sub prog */
+
 int MYBPF_RELO_ProgRelo(ELF_S *elf, void *insts, MYBPF_RELO_MAP_S *relo_maps, int maps_count,
         ELF_PROG_INFO_S *progs_info, int prog_count)
 {
@@ -190,7 +190,7 @@ int MYBPF_RELO_ProgRelo(ELF_S *elf, void *insts, MYBPF_RELO_MAP_S *relo_maps, in
             continue;
         }
 
-        /* 根据sec id找到对应的prog */
+        
         prog_info = _mybpf_relo_get_prog_by_sec_id(progs_info, prog_count, relo_sec.shdr.sh_info);
         if (! prog_info) {
             continue;
@@ -261,7 +261,7 @@ static BOOL_T _mybpf_relo_is_map_used(ELF_S *elf, int map_sec_id, int map_offset
     return FALSE;
 }
 
-/* 判断某个map是否被insn使用到了 */
+
 BOOL_T MYBPF_RELO_IsMapUsed(ELF_S *elf, int map_sec_id, int map_offset, int is_global_data)
 {
     return _mybpf_relo_is_map_used(elf, map_sec_id, map_offset, is_global_data);

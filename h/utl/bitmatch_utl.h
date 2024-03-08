@@ -15,9 +15,9 @@ extern "C" {
 
 typedef struct tagBITMATCH_S {
     U16 tab_number;
-    U8 seg_bits; /* 多少个bits分一段: 只能是2,4,8 */
+    U8 seg_bits; 
     U8 reserved;
-    UINT max_rule_num; /* 必须是64的倍数 */
+    UINT max_rule_num; 
     UCHAR *rule_bits;
 }BITMATCH_S;
 
@@ -29,28 +29,28 @@ void BITMATCH_DelRule(BITMATCH_S *ctrl, UINT rule_id);
 void BITMATCH_GetRuleBits(BITMATCH_S *ctrl, OUT void *rule_bits);
 int BITMATCH_GetRule(BITMATCH_S *ctrl, U32 rule_id, OUT void *min, OUT void *max);
 
-/* 获取对应行: tbl_index表索引, seg_bits每个分段的bit数目, pos行索引 */
+
 static inline UCHAR * _bitmatch_get_bits(U32 max_rule, U8 *rules_bits, int seg_bits, int tbl_index, int pos)
 {
     UCHAR *bits;
 
-    /* 先定位tbl_index所对应的表的起始地址 */
+    
     bits = rules_bits + (((max_rule / 8) << seg_bits) * tbl_index);
 
-    /* 再定位pos所对应的位图表 */
+    
     bits += ((max_rule/ 8) * pos);
 
     return bits;
 }
 
-/* 获取对应行的第offset个U64 */
+
 static inline U64 _bitmatch_get_u64(U32 max_rule, void *rules_bits, int seg_bits, int tbl_index, int pos, int offset)
 {
     U64 * d = (void*)_bitmatch_get_bits(max_rule, rules_bits, seg_bits, tbl_index, pos);
     return d[offset];
 }
 
-/* 获取最靠前的匹配项的index */
+
 static inline INT64 _bitmatch_match_first2(U32 tab_num, U32 max_rule, int seg_bits, void *rule_bits, void *data)
 {
     int i;
@@ -80,7 +80,7 @@ static inline INT64 _bitmatch_match_first2(U32 tab_num, U32 max_rule, int seg_bi
     return -1;
 }
 
-/* 获取最靠前的匹配项的index */
+
 static inline INT64 _bitmatch_match_first4(U32 tab_num, U32 max_rule, int seg_bits, void *rule_bits, void *data)
 {
     int i;
@@ -106,7 +106,7 @@ static inline INT64 _bitmatch_match_first4(U32 tab_num, U32 max_rule, int seg_bi
     return -1;
 }
 
-/* 获取最靠前的匹配项的index */
+
 static inline INT64 _bitmatch_match_first8(U32 tab_num, U32 max_rule, int seg_bits, void *rule_bits, void *data)
 {
     int i;
@@ -201,7 +201,7 @@ static inline int _bitmatch_match8(U32 tab_num, U32 max_rule, void *rule_bits, i
     return 0;
 }
 
-/* 获取最靠前的匹配项的index */
+
 static inline INT64 BITMATCH_MatchFirst(U32 tab_num, U32 max_rule, void *rule_bits, int seg_bits, void *data)
 {
     if (seg_bits == 2) {
@@ -228,7 +228,7 @@ static inline int BITMATCH_Match(U32 tab_num, U32 max_rule, void *rule_bits, int
     }
 }
 
-/* data的长度必须是ctrl->tab_number字节数 */
+
 static inline int BITMATCH_DoMatch(BITMATCH_S *ctrl, void *data, OUT void *matched_bits)
 {
     return BITMATCH_Match(ctrl->tab_number, ctrl->max_rule_num, ctrl->rule_bits, ctrl->seg_bits, data, matched_bits);
@@ -237,4 +237,4 @@ static inline int BITMATCH_DoMatch(BITMATCH_S *ctrl, void *data, OUT void *match
 #ifdef __cplusplus
 }
 #endif
-#endif //BITMATCH_UTL_H_
+#endif 

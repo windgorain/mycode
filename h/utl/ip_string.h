@@ -12,17 +12,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 
-/* 解析字符串 IP/Mask */
+
 BS_STATUS IPString_ParseIpMask(IN CHAR *pcIpMaskString, OUT IP_MASK_S *pstIpMask);
 
-/* 解析字符串IP/Mask列表,比如:1.1.1.1/255.0.0.0,2.1.1.1./255.0.0.0,
-   返回值: IP个数
-*/
+
 UINT IPString_ParseIpMaskList(IN CHAR *pcIpMaskString, IN CHAR cSplitChar, IN UINT uiIpMaskMaxNum, OUT IP_MASK_S *pstIpMasks);
-CHAR * IPString_IP2String(IN UINT ip/*net order*/, OUT CHAR *str);
+CHAR * IPString_IP2String(IN UINT ip, OUT CHAR *str);
 CHAR * IPString_IPHeader2String(IN VOID *ippkt, OUT CHAR *info, IN UINT infosize);
 CHAR * IPString_IPHeader2Hex(IN VOID *ippkt, OUT CHAR *info);
 INT IPString_IpMask2String_OutIpPrefix(IN IP_MASK_S *pstIpMask, IN INT iStrLen, OUT CHAR *str);
@@ -34,8 +32,8 @@ int IPString_IpPrefixString2IpMask(CHAR *pcIpPrefixString, OUT IP_MASK_S *pstIpM
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__IP_STRING_H_*/
+#endif 
 
 

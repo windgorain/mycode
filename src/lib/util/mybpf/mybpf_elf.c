@@ -65,7 +65,7 @@ static void _mybpf_def_get_global_maps(ELF_S *elf, OUT ELF_GLOBAL_DATA_S *data)
     }
 }
 
-/* 获取被使用的global data sections, 没被使用的忽略掉 */
+
 void MYBPF_ELF_GetGlobalDataUsed(ELF_S *elf, OUT ELF_GLOBAL_DATA_S *global_data)
 {
     _mybpf_def_get_global_maps(elf, global_data);
@@ -92,7 +92,7 @@ int MYBPF_ELF_GetMapsSection(ELF_S *elf, OUT MYBPF_MAPS_SEC_S *map_sec)
     }
 
     map_sec->map_count = map_count;
-    map_sec->map_def_size = sec.data->d_size / map_count; /* 计算map结构体的大小 */
+    map_sec->map_def_size = sec.data->d_size / map_count; 
     map_sec->maps = sec.data->d_buf;
     map_sec->sec_id = sec.sec_id;
 

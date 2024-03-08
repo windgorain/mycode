@@ -31,7 +31,7 @@ static void _bfunc_walk_config(HANDLE cff, char *tag, HANDLE ud)
         return;
     }
 
-    /* sec name 和 func name至少要指定一个 */
+    
     if ((! sec_name) && (! func_name)) {
         return;
     }

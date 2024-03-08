@@ -93,7 +93,7 @@ void MYBPF_PROG_ShowProg(MYBPF_RUNTIME_S *runtime, PF_PRINT_FUNC print_func)
     }
 }
 
-/* 根据instance:func_name 获取prog fd. 找不到则返回<0 */
+
 MYBPF_PROG_NODE_S * MYBPF_PROG_GetByFuncName(MYBPF_RUNTIME_S *runtime, char *instance, char *func_name)
 {
     int i;
@@ -115,7 +115,7 @@ MYBPF_PROG_NODE_S * MYBPF_PROG_GetByFuncName(MYBPF_RUNTIME_S *runtime, char *ins
     return NULL;
 }
 
-/* 根据instance:sec_name 获取prog. 找不到则返回<0 */
+
 MYBPF_PROG_NODE_S * MYBPF_PROG_GetBySecName(MYBPF_RUNTIME_S *runtime, char *instance, char *sec_name)
 {
     int i;
@@ -209,9 +209,7 @@ static MYBPF_PROG_NODE_S * _mybpf_prog_get_next(MYBPF_RUNTIME_S *runtime,
     return NULL;
 }
 
-/* 获取下一个prog, 如果current=NULL,则获取第一个.
- * sec_name: 匹配sec_name. /结尾表示通配, 否则精确匹配, 例如 xdp/. 如果为NULL则表示不关心
- */
+
 MYBPF_PROG_NODE_S * MYBPF_PROG_GetNext(MYBPF_RUNTIME_S *runtime, char *instance, char *sec_name,
         MYBPF_PROG_NODE_S *current)
 {

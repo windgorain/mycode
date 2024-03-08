@@ -178,7 +178,7 @@ BS_STATUS SVPN_LocalAdmin_GetNext
 }
 
 
-/* mf */
+
 static CHAR *g_apcSvpnLocalUserProperty[] = {"Password", "Role"};
 static UINT g_uiSvpnLocalUserPropertyCount = sizeof(g_apcSvpnLocalUserProperty)/sizeof(CHAR*);
 
@@ -280,7 +280,7 @@ static SVPN_MF_MAP_S g_astSvpnLocalUserMfMap[] =
     {SVPN_USER_TYPE_ADMIN, "LocalUser.Modify",   svpn_localuser_Modify},
     {SVPN_USER_TYPE_ADMIN, "LocalUser.Get",      svpn_localusermf_Get},
     {SVPN_USER_TYPE_ADMIN, "LocalUser.List",     svpn_localusermf_List},
-    {SVPN_USER_TYPE_USER,  "User.Password.Change", svpn_localusermf_ChangePwd}, /* 更改用户密码 */
+    {SVPN_USER_TYPE_USER,  "User.Password.Change", svpn_localusermf_ChangePwd}, 
 };
 
 BS_STATUS SVPN_LocalUser_Init()
@@ -289,16 +289,16 @@ BS_STATUS SVPN_LocalUser_Init()
 }
 
 
-/* 命令行 */
 
-/* local-user xxx */
+
+
 PLUG_API BS_STATUS SVPN_LocalUserCmd_EnterView(UINT argc,
         char **argv, VOID *pEnv)
 {
     return SVPN_CD_EnterView(pEnv, SVPN_CTXDATA_LOCAL_USER, argv[1]);
 }
 
-/* password simple xxx */
+
 PLUG_API BS_STATUS SVPN_LocalUserCmd_SetPassword(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     CHAR szCipherText[PW_MD5_ENCRYPT_LEN + 1];
@@ -308,13 +308,13 @@ PLUG_API BS_STATUS SVPN_LocalUserCmd_SetPassword(IN UINT ulArgc, IN CHAR **argv,
     return SVPN_CD_SetProp(pEnv, SVPN_CTXDATA_LOCAL_USER, "Password", szCipherText);
 }
 
-/* password cipher xxx */
+
 PLUG_API BS_STATUS SVPN_LocalUserCmd_SetPasswordCipher(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     return SVPN_CD_SetProp(pEnv, SVPN_CTXDATA_LOCAL_USER, "Password", argv[2]);
 }
 
-/* role xxx */
+
 PLUG_API BS_STATUS SVPN_LocalUserCmd_SetRole(IN UINT ulArgc, IN CHAR **argv, IN VOID *pEnv)
 {
     return SVPN_CD_AddPropElement(pEnv, SVPN_CTXDATA_LOCAL_USER, "Role", argv[1], SVPN_PROPERTY_SPLIT);

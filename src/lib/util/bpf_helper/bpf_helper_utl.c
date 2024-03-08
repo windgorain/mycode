@@ -44,7 +44,7 @@ U64 __bpfktime_get_ns(void)
     return TM_NsFromInit();
 }
 
-/* macos-arm系统调用约定和arm标准不一致, 需要特殊处理 */
+
 #if ((defined IN_MAC) && (defined __ARM__))
 long __bpftrace_printk(const char *fmt, U32 fmt_size, void *p1, void *p2, void *p3)
 {
@@ -287,7 +287,7 @@ static void ulc_err_code_set(int err_code, char *info, const char *file_name, co
     ErrCode_Set(err_code, info, file_name, func_name, line);
 }
 
-/* macos-arm系统调用约定和arm标准不一致, 需要特殊处理 */
+
 #if ((defined IN_MAC) && (defined __ARM__))
 static void ulc_err_info_set(const char *fmt, void *p1, void *p2, void *p3, void *p4)
 {
@@ -318,7 +318,7 @@ static int ulc_call_back(UINT_FUNC_4 func, U64 p1, U64 p2, U64 p3, U64 p4)
 }
 
 static const void * g_bpfsys_helpers[BPF_SYS_HELPER_COUNT] = {
-    [0] = ulc_sys_malloc, /* 10000 */
+    [0] = ulc_sys_malloc, 
     [1] = ulc_sys_calloc,
     [2] = ulc_sys_free,
     [3] = ulc_sys_strncmp,
@@ -348,7 +348,7 @@ const void ** BpfHelper_UserHelper(void)
     return (const void **)g_bpfuser_helpers;
 }
 
-/* 根据id获取helper函数指针 */
+
 void * BpfHelper_GetFunc(unsigned int id)
 {
     if (id < BPF_BASE_HELPER_END) {

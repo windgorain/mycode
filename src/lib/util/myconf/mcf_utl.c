@@ -13,10 +13,10 @@
 #include "utl/mkv_utl.h"
 #include "utl/mcf_utl.h"
 
-#define MYCONF_CHAR_REMARK '#'  /* 注释符号 */
-#define MYCONF_CHAR_KEY_PRO_SPLIT ':'  /* 分割Key和属性 */
-#define MYCONF_CHAR_PRO_SPLIT ';'  /* 分割属性 */
-#define MYCONF_CHAR_PRO_VALUE_SPLIT '='  /* 分割属性和Value */
+#define MYCONF_CHAR_REMARK '#'  
+#define MYCONF_CHAR_KEY_PRO_SPLIT ':'  
+#define MYCONF_CHAR_PRO_SPLIT ';'  
+#define MYCONF_CHAR_PRO_VALUE_SPLIT '='  
 
 static VOID mcf_ProcLine(IN MCF_HEAD_S *pstHead, IN BOOL_T bSort, IN CHAR *pcLine)
 {
@@ -143,7 +143,7 @@ MCF_HANDLE MCF_Open
     
     fclose(fp);
 
-    /* 检测是否UTF8 */
+    
     if (filesize >= 3)
     {
         if ((pstHead->pucFileContent[0] == (CHAR)0xef)
@@ -177,10 +177,7 @@ MCF_HANDLE MCF_Open
     return (HANDLE)pstHead;
 }
 
-/*
-找不到Prop,返回NULL; 找到Prop,但是无Value,返回""; 
 
-*/
 CHAR * MCF_GetProp(IN MCF_HANDLE hMcfHandle, IN CHAR *pcKey, IN CHAR *pcProp)
 {
     CHAR *pcValue = NULL;

@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define MEM_Set(pBuf, ucTo, uiLen) memset(pBuf, ucTo, uiLen)
 #define Mem_Zero(pMem,ulSize)  MEM_Set(pMem, 0, ulSize)
@@ -26,7 +26,7 @@
 #define MEM_MallocAndCopy(pSrc,uiSrcLen,uiMallocLen) _mem_MallocAndCopy(pSrc,uiSrcLen,uiMallocLen,__FILE__,__LINE__)
 
 #define MEM_Free(pMem)  _mem_Free((VOID*)(pMem), __FILE__, __LINE__)
- /* 如果存在则free */
+ 
 #define MEM_SafeFree(pMem) do {if (pMem) {MEM_Free(pMem);}}while(0)
 
 #define MEM_ZMallocAndCopy(pSrc,uiSrcLen,uiMallocLen) ({ \
@@ -146,15 +146,15 @@ int MEM_CaseCmp(UCHAR *pucMem1, UINT uiMem1Len, UCHAR *pucMem2, UINT uiMem2Len);
 
 typedef struct
 {
-    UCHAR *pucPattern;     /* 模式串 */
-    UINT uiPatternLen;     /* 模式串长度 */
-    UINT uiPatternCmpLen;  /* 已经匹配了模式串多长 */
-    UINT uiCmpMemOffset;   /* 正在和模式串匹配的区段的总Offset */
-    UINT uiPreMemTotleSize;/* 之前已经扫描过的所有数据块的长度 */
+    UCHAR *pucPattern;     
+    UINT uiPatternLen;     
+    UINT uiPatternCmpLen;  
+    UINT uiCmpMemOffset;   
+    UINT uiPreMemTotleSize;
 }MEM_FIND_INFO_S;
 
 VOID MEM_DiscreteFindInit(INOUT MEM_FIND_INFO_S *pstFindInfo, IN UCHAR *pucPattern, IN UINT uiPatternLen);
-/* 在不连续缓冲区中查找数据 */
+
 BS_STATUS MEM_DiscreteFind
 (
     INOUT MEM_FIND_INFO_S *pstFindInfo,
@@ -163,11 +163,11 @@ BS_STATUS MEM_DiscreteFind
     OUT UINT *puiFindOffset
 );
 
-/* 将内存中的内容反序 */
+
 void MEM_Invert(void *in, int len, void *out);
-/* 是否全0 */
+
 int MEM_IsZero(void *data, int size);
-/* 是否全部是0xff */
+
 int MEM_IsFF(void *data, int size);
 
 void MEM_ZeroByUlong(void *data, int count);
@@ -175,19 +175,19 @@ void MEM_ZeroByUlong(void *data, int count);
 int MEM_SprintCFromat(void *mem, UINT len, OUT char *buf, int buf_size);
 int MEM_Sprint(void *pucMem, UINT uiLen, OUT char *buf, int buf_size);
 typedef void (*PF_MEM_PRINT_FUNC)(const char *fmt, ...);
-void MEM_Print(void *pucMem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */);
-void MEM_PrintCFormat(void *mem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */);
+void MEM_Print(void *pucMem, int len, PF_MEM_PRINT_FUNC print_func);
+void MEM_PrintCFormat(void *mem, int len, PF_MEM_PRINT_FUNC print_func);
 
-/* 将内存中的src字符替换为dst, 返回替换了多少个字符 */
+
 int MEM_ReplaceChar(void *data, int len, UCHAR src, UCHAR dst);
 
-/* 将内存中的src字符替换为dst, 返回替换了多少个字符 */
+
 int MEM_ReplaceOneChar(void *data, int len, UCHAR src, UCHAR dst);
 
-/* 交换两块内存的内容 */
+
 void MEM_Swap(void *buf1, void *buf2, int len);
 
 #ifdef __cplusplus
 }
 #endif
-#endif //MEM_UTL_H_
+#endif 

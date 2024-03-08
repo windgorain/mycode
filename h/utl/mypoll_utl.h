@@ -10,11 +10,11 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 typedef HANDLE MYPOLL_HANDLE;
 
-/* mypoll 事件 */
+
 #ifdef IN_LINUX
 #include <sys/epoll.h>
 #define MYPOLL_EVENT_IN  EPOLLIN
@@ -37,7 +37,7 @@ typedef int (*PF_MYPOLL_SIGNAL_FUNC)(int signum);
 MYPOLL_HANDLE MyPoll_Create(void);
 VOID MyPoll_Destory(MYPOLL_HANDLE hMypoll);
 BS_STATUS MyPoll_SetEvent(MYPOLL_HANDLE hMypoll, int fd, UINT uiEvent,
-        PF_MYPOLL_EV_NOTIFY pfNotifyFunc, USER_HANDLE_S *uh /* 可以为NULL */);
+        PF_MYPOLL_EV_NOTIFY pfNotifyFunc, USER_HANDLE_S *uh );
 BS_STATUS MyPoll_AddEvent(MYPOLL_HANDLE hMypoll, int fd, UINT uiEvent);
 BS_STATUS MyPoll_DelEvent(MYPOLL_HANDLE hMypoll, int fd, UINT uiEvent);
 BS_STATUS MyPoll_ClearEvent(MYPOLL_HANDLE hMypoll, int fd);
@@ -54,8 +54,8 @@ void MyPoll_Restart(MYPOLL_HANDLE hMypoll);
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__MYPOLL_UTL_H_*/
+#endif 
 
 

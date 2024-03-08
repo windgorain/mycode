@@ -58,8 +58,8 @@ static int _mybpf_loader_fixup(MYBPF_LOADER_NODE_S *node)
         return ret;
     }
 
-    //TODO:
-    //检查是否支持某些helper id
+    
+    
 #if 0
     ret = MYBPF_PROG_FixupExtCalls(node->insts, node->insts_len);
     if (ret < 0) {
@@ -252,7 +252,7 @@ static int _mybpf_loader_load_ok(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_NODE_S *
     return 0;
 }
 
-/* 校验是否可以replace时保留map, maps定义必须一致 */
+
 static BOOL_T _mybpf_loader_check_may_keep_map_elf(MYBPF_RUNTIME_S *runtime,
         ELF_S *new_elf, MYBPF_LOADER_NODE_S *old_node)
 {
@@ -265,7 +265,7 @@ static BOOL_T _mybpf_loader_check_may_keep_map_elf(MYBPF_RUNTIME_S *runtime,
     return _MYBPF_LOADER_CheckMayKeepMap(runtime, &map_sec, old_node);
 }
 
-/* 检查是否允许替换 */
+
 static int _mybpf_loader_check_may_replace_elf(MYBPF_RUNTIME_S *runtime,
         MYBPF_LOADER_PARAM_S *p, MYBPF_LOADER_NODE_S *old_node)
 {
@@ -273,14 +273,14 @@ static int _mybpf_loader_check_may_replace_elf(MYBPF_RUNTIME_S *runtime,
     int ret;
     BOOL_T check = TRUE;
 
-    /* 判断能否打开文件 */
+    
     ret = ELF_Open(p->filename, &elf);
     if (ret < 0) {
         RETURNI(BS_CAN_NOT_OPEN, "Can't open file %s", p->filename);
     }
 
     if (p->flag & MYBPF_LOADER_FLAG_KEEP_MAP) {
-        /* 判断map def是否一致 */
+        
         check = _mybpf_loader_check_may_keep_map_elf(runtime, &elf, old_node);
     }
 
@@ -331,7 +331,7 @@ static int _mybpf_loader_load_globle_data(MYBPF_LOADER_NODE_S *node, MYBPF_LOADE
     int i;
     int map_data_count;
 
-    /* 向global data map中填充数据 */
+    
     map_data_count = MYBPF_SIMPLE_GetTypeSecCount(p->simple_mem, MYBPF_SIMPLE_SEC_TYPE_GLOBAL_DATA);
 
     for (i=0; i<map_data_count; i++) {
@@ -523,7 +523,7 @@ static int _mybpf_loader_load_simple(MYBPF_RUNTIME_S *runtime,
     return _mybpf_loader_load_ok(runtime, node, old);
 }
 
-/* 校验是否可以replace时保留map, maps定义必须一致 */
+
 static BOOL_T _mybpf_loader_check_may_keep_map_simple(MYBPF_RUNTIME_S *runtime, FILE_MEM_S *f, MYBPF_LOADER_NODE_S *old)
 {
     MYBPF_MAPS_SEC_S map_sec;
@@ -544,7 +544,7 @@ static int _mybpf_loader_check_may_replace_simple(MYBPF_RUNTIME_S *r, MYBPF_LOAD
     BS_DBGASSERT(f);
 
     if (p->flag & MYBPF_LOADER_FLAG_KEEP_MAP) {
-        /* 判断map def是否一致 */
+        
         check = _mybpf_loader_check_may_keep_map_simple(r, f, old);
     }
 
@@ -743,7 +743,7 @@ MYBPF_LOADER_NODE_S * MYBPF_LoaderGet(MYBPF_RUNTIME_S *runtime, char *instance)
     return _mybpf_loader_get_node(runtime, instance);
 }
 
-/* *iter=NULL表示获取第一个, return NULL表示结束 */
+
 MYBPF_LOADER_NODE_S * MYBPF_LoaderGetNext(MYBPF_RUNTIME_S *runtime, INOUT void **iter)
 {
     MAP_ELE_S *ele;
@@ -786,7 +786,7 @@ UINT64 MYBPF_CallAgent(UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5, UI
     }
 
     if (fid <= 3) {
-        /* 对map操作,把map index转为map ptr */
+        
         p1 = _mybpf_loader_agent_fix_p1(ud, p1);
         if (! p1) {
             return (fid == 1) ? 0 : -1;

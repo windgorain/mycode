@@ -6,7 +6,7 @@
 #include "bs.h"
 #include "utl/consistent_hash.h"
 
-/* 查找比key大的最小节点 */
+
 int ConsistentHash_FindBigger(CONSISTENT_HASH_S *ctrl, int start, int end, UINT key)
 {
     int left, right, mid;
@@ -32,7 +32,7 @@ int ConsistentHash_FindBigger(CONSISTENT_HASH_S *ctrl, int start, int end, UINT 
     return found;
 }
 
-/* 添加一个节点 */
+
 int ConsistentHash_AddNode(CONSISTENT_HASH_S *ctrl, UINT key, UINT data)
 {
     CONSISTENT_HASH_NODE_S *node;
@@ -57,7 +57,7 @@ int ConsistentHash_AddNode(CONSISTENT_HASH_S *ctrl, UINT key, UINT data)
     return 0;
 }
 
-/* 删除指定Data的节点 */
+
 void ConsistentHash_DelByData(CONSISTENT_HASH_S *ctrl, UINT data)
 {
     int i;
@@ -70,7 +70,7 @@ void ConsistentHash_DelByData(CONSISTENT_HASH_S *ctrl, UINT data)
             continue;
         }
 
-        if (i < ctrl->count - 1) { /* 不是last */
+        if (i < ctrl->count - 1) { 
             memmove(&ctrl->nodes[i], &ctrl->nodes[i + 1], 
                 sizeof(CONSISTENT_HASH_NODE_S) * ((ctrl->count - 1) - i));
         }

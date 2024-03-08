@@ -24,7 +24,7 @@ long UMAP_UpdateElem(UMAP_HEADER_S *map, const void *key, const void *value, U32
 int UMAP_DirectValue(UMAP_HEADER_S *map, OUT UINT64 *addr, UINT off);
 int UMAP_GetNextKey(UMAP_HEADER_S *map, void *curr_key, OUT void **next_key);
 
-/* 增加引用计数 */
+
 static inline void UMAP_IncRef(UMAP_HEADER_S *map)
 {
     map->ref_count ++;
@@ -33,4 +33,4 @@ static inline void UMAP_IncRef(UMAP_HEADER_S *map)
 #ifdef __cplusplus
 }
 #endif
-#endif //UMAP_UTL_H_
+#endif 

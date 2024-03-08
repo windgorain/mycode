@@ -167,7 +167,7 @@ static int mypoll_select_Run(IN _MYPOLL_CTRL_S *pstMyPoll)
         BIT_SET(pstCtrl->pstMyPollCtrl->uiFlag, _MYPOLL_FLAG_PROCESSING_EVENT);
 
         for (i=0; i<=pstCtrl->iMaxSocketId; i++) {
-            /* 检测到ReStart标记,则重新Select */
+            
             if (pstCtrl->pstMyPollCtrl->uiFlag & _MYPOLL_FLAG_RESTART) {
                 break;
             }

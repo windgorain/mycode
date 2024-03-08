@@ -5,7 +5,7 @@
 *                  其中a为标记名,key=value为属性;  key为属性名,value为属性值
 * History:     
 ******************************************************************************/
-/* retcode所需要的宏 */
+
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_XMLC
 
 #include "bs.h"
@@ -194,7 +194,7 @@ static BS_STATUS _XMLC_Parse(IN XMLC_HEAD_S *pstXmlHead)
         RETURN(BS_ERR);
     }
 
-    /* 检测是否UTF8 */
+    
     if (pstXmlHead->uiFileSize >= 3)
     {
         if ((pstXmlHead->pucFileContent[0] == (CHAR)0xef)
@@ -430,7 +430,7 @@ BS_STATUS XMLC_DelMark(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections)
     return MKV_DelMark(&pstHead->stSecRoot, pstSections);
 }
 
-/* 覆盖已经重复的Mark */
+
 BS_STATUS XMLC_AddMark(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections)
 {
     XMLC_HEAD_S *pstHead = (XMLC_HEAD_S *)hXmlcHandle;
@@ -438,7 +438,7 @@ BS_STATUS XMLC_AddMark(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections)
     return MKV_AddMark(&pstHead->stSecRoot, pstSections, pstHead->bIsSort);
 }
 
-/* 不覆盖已经重复的Mark, 而是生成一个新的 */
+
 MKV_MARK_S * XMLC_AddMark2Mark(IN HANDLE hXmlcHandle, IN MKV_MARK_S *pstMark, IN CHAR *pcMark)
 {
     return MKV_AddMark2Mark(pstMark, pcMark, TRUE);
@@ -478,7 +478,7 @@ CHAR * XMLC_GetNextMark(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections, IN 
     return MKV_GetNextMark(&pstHead->stSecRoot, pstSections, pcCurSecName);
 }
 
-CHAR * XMLC_GetMarkByIndex(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections, IN UINT uiIndex/* 从0开始计算 */)
+CHAR * XMLC_GetMarkByIndex(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections, IN UINT uiIndex)
 {
     XMLC_HEAD_S *pstHead = (XMLC_HEAD_S*)hXmlcHandle;
 
@@ -552,7 +552,7 @@ BOOL_T XMLC_IsKeyExist(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections, IN C
     return MKV_IsKeyExist(&pstHead->stSecRoot, pstSections, pszKeyName);
 }
 
-/* 返回section的个数 */
+
 UINT XMLC_GetMarkNumInMark(IN MKV_MARK_S *pstMark)
 {
     return MKV_GetMarkNumInMark(pstMark);
@@ -564,7 +564,7 @@ UINT XMLC_GetMarkNum(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections)
     return MKV_GetSectionNum(&pstHead->stSecRoot, pstSections);
 }
 
-/* 返回section中属性的个数 */
+
 UINT XMLC_GetKeyNumOfMark(IN MKV_MARK_S *pstMark)
 {
     return MKV_GetKeyNumOfMark(pstMark);
