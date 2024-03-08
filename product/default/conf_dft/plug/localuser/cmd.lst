@@ -8,7 +8,7 @@ view|templet, localuser-view, local-user %STRING<1-63>, localuser-templet, Local
 
 # ×¢²áÃüÁî
 cmd, localuser-templet, password simple %STRING<1-63>, LocalUser_CmdPasswordSimple
-cmd, localuser-templet, password cipher %STRING<1-63>, LocalUser_CmdPasswordCipher
+cmd, localuser-templet, password cipher %STRING<1-128>, LocalUser_CmdPasswordCipher
 cmd, localuser-templet, description %STRING<1-256>, LocalUser_CmdDescription
 cmd, localuser-templet, type {cmd|pipecmd|telnet|web}*, LocalUser_CmdType
 

@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-
+/* retcode所需要的宏 */
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_CFGUTL
 
 #include "bs.h"
@@ -13,7 +13,7 @@
 #include "utl/file_utl.h"
 #include "utl/cfgutl.h"
 
-#define _CFGUTL_MAX_KEY_NUM 255   
+#define _CFGUTL_MAX_KEY_NUM 255   /* 一行最大的单词数目 */
 
 VOID _CFGUTL_ParseLine(IN CHAR *pszLine, IN CFGUTL_REG_TBL_S *pstRegTbl, IN UINT ulTblSize)
 {
@@ -56,9 +56,9 @@ VOID CFGUTL_Open(IN CHAR *pszFileName, IN CFGUTL_REG_TBL_S *pstRegTbl, IN UINT u
         return;
     }
     
-    TXT_StrimAndMove((CHAR*)pstMemMap->pucFileData);
+    TXT_StrimAndMove((CHAR*)pstMemMap->data);
 
-    TXT_SCAN_LINE_BEGIN((CHAR*)pstMemMap->pucFileData,pucLineHead,ulLineLen)
+    TXT_SCAN_LINE_BEGIN((CHAR*)pstMemMap->data, pucLineHead, ulLineLen)
     {
         pucLineHead[ulLineLen] = '\0';
         TXT_StrimAndMove(pucLineHead);

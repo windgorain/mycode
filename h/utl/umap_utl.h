@@ -17,15 +17,20 @@ char * UMAP_TypeName(unsigned int type);
 int UMAP_RegType(UINT type, UMAP_FUNC_TBL_S *ops);
 void * UMAP_Open(UMAP_ELF_MAP_S *elfmap, char *map_name);
 void UMAP_Close(UMAP_HEADER_S *map);
-void UMAP_IncRef(UMAP_HEADER_S *map);
 
 void * UMAP_LookupElem(UMAP_HEADER_S *map, const void *key);
 long UMAP_DeleteElem(UMAP_HEADER_S *map, const void *key);
 long UMAP_UpdateElem(UMAP_HEADER_S *map, const void *key, const void *value, U32 flag);
-int UMAP_GetNextKey(UMAP_HEADER_S *map, void *curr_key, OUT void **next_key);
 int UMAP_DirectValue(UMAP_HEADER_S *map, OUT UINT64 *addr, UINT off);
+int UMAP_GetNextKey(UMAP_HEADER_S *map, void *curr_key, OUT void **next_key);
+
+/* 增加引用计数 */
+static inline void UMAP_IncRef(UMAP_HEADER_S *map)
+{
+    map->ref_count ++;
+}
 
 #ifdef __cplusplus
 }
 #endif
-#endif 
+#endif //UMAP_UTL_H_

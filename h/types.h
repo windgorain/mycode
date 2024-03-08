@@ -177,8 +177,8 @@ typedef struct {
 }LDATA_S;
 
 typedef struct {
-    UCHAR *pucFileData; 
-    UINT64 uiFileLen;   
+    UCHAR *data; /* 文件数据 */
+    UINT64 len;   /* 文件长度 */
 }LLDATA_S;
 
 typedef LLDATA_S FILE_MEM_S;
@@ -285,10 +285,14 @@ typedef enum
 #define BS_WAIT_FOREVER	0
 
 #define BS_OFFSET(type,item) ((ULONG)&(((type *) 0)->item))
+#define BS_END_OFFSET(type,item) (BS_OFFSET(type,item) + sizeof(((type *)0)->item))
 #define BS_ENTRY(pAddr, item, type) ((type *) ((UCHAR*)(pAddr) - BS_OFFSET (type, item)))
 
 #ifndef offsetof
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+#endif
+#ifndef offsetofend
+# define offsetofend(TYPE, FIELD) (offsetof(TYPE, FIELD) + sizeof(((TYPE *)0)->FIELD))
 #endif
 
 #ifndef container_of

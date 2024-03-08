@@ -52,7 +52,7 @@ static BS_STATUS _localuser_PasswordSimple(IN CHAR *pcUserName, IN CHAR *pcPassw
         return BS_NOT_FOUND;
     }
 
-    PW_Md5Encrypt(pcPassword, szCipherText);
+    PW_Md5Encrypt(pcPassword, szCipherText, sizeof(szCipherText));
 
     return NO_SetKeyValue(g_hLocalUserNo, pNode, "Password", szCipherText);
 }
@@ -249,7 +249,7 @@ static LOCALUSER_RET_E _localuser_InnerLogin(UINT type, char *pcUserName, char *
     CHAR szCipherText[PW_MD5_ENCRYPT_LEN + 1];
 
 #ifdef IN_UNIXLIKE
-    
+    /* 如果系统中不存在用户,则添加一个默认的admin用户 */
     if (NO_GetCount(g_hLocalUserNo) == 0) {
         pNode = NO_NewObject(g_hLocalUserNo, "admin");
         if (NULL == pNode) {
@@ -265,7 +265,7 @@ static LOCALUSER_RET_E _localuser_InnerLogin(UINT type, char *pcUserName, char *
         return LOCALUSER_USER_NOT_EXIST;
     }
 
-    PW_Md5Encrypt(pcPasswordInput, szCipherText);
+    PW_Md5Encrypt(pcPasswordInput, szCipherText, sizeof(szCipherText));
 
     pNode = NO_GetObjectByName(g_hLocalUserNo, pcUserName);
     if (pNode == NULL) {
@@ -326,7 +326,7 @@ static VOID _localusermf_PreAdd(IN MIME_HANDLE hMime)
         return;
     }
     
-    PW_Md5Encrypt(pcPassword, szCipherText);
+    PW_Md5Encrypt(pcPassword, szCipherText, sizeof(szCipherText));
 
     MIME_SetKeyValue(hMime, "Password", szCipherText);
 }
@@ -433,7 +433,7 @@ BS_STATUS LocalUserCore_Init()
     return BS_OK;
 }
 
-
+/* local-user xxx */
 PLUG_API BS_STATUS LocalUser_EnterLocalUserView(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS eRet;
@@ -451,7 +451,7 @@ PLUG_API BS_STATUS LocalUser_EnterLocalUserView(IN UINT uiArgc, IN CHAR **ppcArg
     return BS_OK;
 }
 
-
+/* password simple %STRING */
 PLUG_API BS_STATUS LocalUser_CmdPasswordSimple(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcUserName;
@@ -472,7 +472,7 @@ PLUG_API BS_STATUS LocalUser_CmdPasswordSimple(IN UINT uiArgc, IN CHAR **ppcArgv
     return BS_OK;
 }
 
-
+/* password cipher %STRING */
 PLUG_API BS_STATUS LocalUser_CmdPasswordCipher(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcUserName;
@@ -493,7 +493,7 @@ PLUG_API BS_STATUS LocalUser_CmdPasswordCipher(IN UINT uiArgc, IN CHAR **ppcArgv
     return BS_OK;
 }
 
-
+/* description %STRING */
 PLUG_API BS_STATUS LocalUser_CmdDescription(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcUserName;
@@ -514,7 +514,7 @@ PLUG_API BS_STATUS LocalUser_CmdDescription(IN UINT uiArgc, IN CHAR **ppcArgv, I
     return BS_OK;
 }
 
-
+/* type {cmd|pipecmd|telnet|web}* */
 PLUG_API int LocalUser_CmdType(int argc, char **argv, void *env)
 {
     CHAR *pcUserName;

@@ -131,7 +131,7 @@ int SUBCMD_DoExt(SUB_CMD_NODE_S *subcmd, int argc, char **argv, int flag)
 {
     PF_SUBCMD_FUNC func;
     int tok_num;
-    SUBCMD_MATCHED_S matched;
+    SUBCMD_MATCHED_S matched = {0};
 
     subcmd_search_subcmds(subcmd, argc-1, argv+1, &matched);
     if ((matched.shuld_help) && ((flag & SUBCMD_FLAG_HIDE_HELP) == 0)){

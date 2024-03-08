@@ -12,6 +12,8 @@
 #include "utl/mybpf_hookpoint.h"
 #include "utl/mybpf_elf.h"
 #include "utl/mybpf_file.h"
+#include "utl/mybpf_insn.h"
+#include "utl/mybpf_simple.h"
 
 static inline int _mybpf_run_file(MYBPF_RUNTIME_S *runtime, MYBPF_FILE_CTX_S *ctx,
         UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
@@ -67,3 +69,15 @@ int MYBPF_RunFile(char *filename, char *sec_name, UINT64 p1, UINT64 p2, UINT64 p
     return MYBPF_RunFileExt(&ctx, p1, p2, p3, p4, p5);
 }
 
+int MYBPF_ShowPcAccessGlobal(char *filename)
+{
+    FILE_MEM_S *m = MYBPF_SIMPLE_OpenFile(filename);
+    if (! m) {
+        RETURN(BS_ERR);
+    }
+
+    void *insn = MYBPF_SIMPLE_GetProgs(m);
+    int insn_len = MYBPF_SIMPLE_GetProgsSize(m);
+
+    return MYBPF_INSN_ShowPcAccessGlobal(insn, insn_len);
+}

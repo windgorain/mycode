@@ -1,6 +1,6 @@
 /* 公开部分 */
 function RQ_IsOK(oJson) {
-    if (oJson.result == "Failed") {
+    if (oJson.result != "Success") {
         return false;
     }
     return true;

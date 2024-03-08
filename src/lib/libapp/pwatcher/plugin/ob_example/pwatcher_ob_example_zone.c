@@ -13,7 +13,7 @@
 #include "../h/pwatcher_ob_common.h"
 
 typedef struct {
-    UINT service_enable: 1; 
+    UINT service_enable: 1; /* 本service是否使能 */
 }PWATCHER_OB_EXAMPLE_SERVICE_S;
 
 static int pwatcher_ob_example_input(UINT point, PWATCHER_PKT_DESC_S *pkt, void *data);
@@ -73,7 +73,7 @@ static PWATCHER_OB_EXAMPLE_SERVICE_S * pwatcher_ob_example_get_service_by_env(vo
 static int pwatcherob_example_save_service(HANDLE hFile, PWATCHER_OB_EXAMPLE_SERVICE_S *svr)
 {
     if (svr->service_enable) {
-        CMD_EXP_OutputCmd(hFile, "ob example enable");
+        CMD_EXP_OutputCmd(hFile, "ob example service enable");
     }
 
     return 0;
@@ -106,7 +106,7 @@ static void pwatcher_ob_example_zone_event(PWATCHER_ZONE_EV_S *ev)
 
 static void pwatcher_ob_example_ip_input(PWATCHER_PKT_DESC_S *pkt_info)
 {
-    
+    /* process pkt */
 }
 
 static int pwatcher_ob_example_input(UINT point, PWATCHER_PKT_DESC_S *pkt_info, void *data)
@@ -157,8 +157,8 @@ PLUG_ENTRY
 
 PWATCHER_OB_FUNCTIONS 
 
-
-PLUG_API int PWatcherObTopn_CmdEnable(int argc, char **argv, void *env)
+/* [no] ob example enable */
+PLUG_API int PWatcherObExample_CmdEnable(int argc, char **argv, void *env)
 {
     PWATCHER_OB_EXAMPLE_SERVICE_S *svr = pwatcher_ob_example_get_service_by_env(env, 1, NULL);
 
@@ -176,9 +176,9 @@ PLUG_API int PWatcherObTopn_CmdEnable(int argc, char **argv, void *env)
     return 0;
 }
 
-PLUG_API int PWatcherObTopn_Save(HANDLE hFile)
+PLUG_API int PWatcherObExample_Save(HANDLE hFile)
 {
-    PWATCHEROB_SaveFilter(hFile);
+    PWATCHEROB_Save(hFile);
     return 0;
 }
 

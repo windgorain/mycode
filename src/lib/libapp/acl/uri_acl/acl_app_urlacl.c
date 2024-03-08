@@ -114,7 +114,7 @@ static BS_STATUS _aclurl_GetListIDByName(IN URL_ACL_HANDLE urlacl, IN ACL_NAME_I
     return BS_OK;
 }
 
-
+/* 增加List引用计数 */
 static BS_STATUS _aclurl_AddListRef(IN URL_ACL_HANDLE urlacl, IN CHAR *pcListName)
 {
     return URL_ACL_AddListRef(urlacl, URL_ACL_GetListByName(urlacl, pcListName));
@@ -220,13 +220,13 @@ static VOID _aclurl_NoRule(IN URL_ACL_HANDLE urlacl, IN CHAR *pcListName, IN UIN
 
 static BOOL_T _aclurl_ShowStats(IN UINT uiRuleID, IN URL_ACL_RULE_S *pstRule, IN VOID *pUserHandle)
 {
-    
+    //EXEC_OutInfo("%-10u %-10llu \r\n", uiRuleID, pstRule->stStatistics.ulMatchCount);
     return BOOL_TRUE;
 }
 
 static BOOL_T _aclurl_ClearStats(IN UINT uiRuleID, IN URL_ACL_RULE_S *pstRule, IN VOID *pUserHandle)
 {
-    
+    //Mem_Zero(&pstRule->stStatistics, sizeof(URL_ACL_RULE_STATISTICS_S));
     return BOOL_TRUE;
 }
 
@@ -313,9 +313,9 @@ void AclURL_DestroyMuc(ACL_MUC_S *acl_muc)
     }
     return;
 }
+/* CMD */
 
-
-
+/* ip-acl %STRING */
 PLUG_API BS_STATUS AclURL_EnterListView(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS eRet;
@@ -335,7 +335,7 @@ PLUG_API BS_STATUS AclURL_EnterListView(IN UINT uiArgc, IN CHAR **ppcArgv, IN VO
     return BS_OK;
 }
 
-
+/* no url-acl %STRING */
 PLUG_API BS_STATUS AclURL_CmdNoList(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS eRet;
@@ -365,7 +365,7 @@ PLUG_API BS_STATUS AclURL_Clear(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv
 }
 
 
-
+/* move rule %INT to %INT */
 PLUG_API BS_STATUS AclURL_CmdMoveRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName;
@@ -402,7 +402,7 @@ PLUG_API BS_STATUS AclURL_CmdMoveRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID
     return eRet;
 }
 
-
+/* no rule %INT */
 PLUG_API BS_STATUS AclURL_CmdNoRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName;
@@ -542,7 +542,7 @@ PLUG_API BS_STATUS AclURL_CmdIncreaseID(IN UINT uiArgc, IN CHAR **ppcArgv, IN VO
 }
 
 #if 0
-
+/*TODO:暂时只做简单的检查*/
 static BS_STATUS _aclurl_ParseDomain(IN CHAR* pcArgc, OUT CHAR* pcDomain)
 {
     int length = strlen(pcArgc);
@@ -566,7 +566,7 @@ static BS_STATUS _aclurl_ParseDomain(IN CHAR* pcArgc, OUT CHAR* pcDomain)
 #endif
 
 
-
+/* default action permit|deny */
 PLUG_API BS_STATUS AclURL_CmdSet_DefaultAction(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName = CMD_EXP_GetCurrentModeValue(pEnv);
@@ -691,7 +691,7 @@ static BS_STATUS _aclurl_ParseRule(IN INT muc_id, IN UINT uiArgc, IN CHAR **ppcA
     return BS_OK;
 }
 
-
+/* rule %INT<1-10000> action {permit|deny} --sip 10.0.0.0/8 --dip 10.0.0.0/8 --sport 100000-60000 --dport 443,80 --proto 17  */
 PLUG_API BS_STATUS AclURL_CmdRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS enRet = BS_OK;
@@ -764,7 +764,7 @@ static BS_STATUS _aclurl_LoadRule(IN INT muc_id, IN URL_ACL_HANDLE urlacl, IN UI
         uiArgc = ARGS_Split(acLine, ppcArgv, URL_ACL_CMD_RULE_ELEMENT_MAX);
         if (uiArgc == 0)
         {
-            
+            // 将空行去掉
             continue;
         } 
         
@@ -808,7 +808,7 @@ PLUG_API BS_STATUS AclURL_Cmd_LoadFile(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOI
     CHAR *pcListName;
     UINT uiListID;
     BS_STATUS enRet;
-    UINT64 uiSize;
+    S64 filesize;
     URL_ACL_HANDLE urlacl = _aclurl_get_instance_by_env(pEnv);
     if (! urlacl) {
         RETURN(BS_NO_SUCH);
@@ -827,11 +827,9 @@ PLUG_API BS_STATUS AclURL_Cmd_LoadFile(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOI
         RETURN(BS_NO_SUCH);
     }
 
-    enRet = FILE_GetSize(pcFileName, &uiSize);
-    if (BS_OK != enRet)
-    {
-        EXEC_OutInfo("%s.\r\n", ErrInfo_Get(enRet));
-        RETURN(enRet);
+    filesize = FILE_GetSize(pcFileName);
+    if (filesize < 0) {
+        RETURN(BS_ERR);
     }
 
     enRet = _aclurl_LoadRule(CmdExp_GetEnvMucID(pEnv), urlacl, uiListID, pcListName, pcFileName);

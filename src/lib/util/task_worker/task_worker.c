@@ -10,26 +10,26 @@
 #include "utl/msgque_utl.h"
 #include "utl/task_worker.h"
 
-#define TASK_WORKER_GET_TICK_BY_TIME(uiTime, uiTimeOfTick) (((uiTime) + (uiTimeOfTick) - 1) / (uiTimeOfTick))
+#define TASK_WORKER_GET_TICK_BY_TIME(uiTime/* ms */, uiTimeOfTick) (((uiTime) + (uiTimeOfTick) - 1) / (uiTimeOfTick))
 
-
+/* 事件 */
 #define _TASK_WORKER_EVENT_DATA  0x80000000
 #define _TASK_WORKER_EVENT_CLOCK 0x40000000
 #define _TASK_WORKER_EVENT_QUIT  0x20000000
 
-
+/* 消息类型 */
 #define _TASK_WORKER_MSG_DATA   1
 
-
+/* 用户自定义事件 */
 #define _TASK_WORKER_MAX_USER_EVENT 16
 #define _TASK_WORKER_USER_EVENT_BITS 0x0000ffff
 
 typedef struct
 {
-    THREAD_ID uiTid;         
+    THREAD_ID uiTid;         /* 线程ID */
     VCLOCK_INSTANCE_HANDLE hClockInstance;
-    EVENT_HANDLE hEvent;    
-    MSGQUE_HANDLE hMsgQue;  
+    EVENT_HANDLE hEvent;    /* 事件 */
+    MSGQUE_HANDLE hMsgQue;  /* 消息队列 */
 }TASK_WORKER_S;
 
 typedef struct
@@ -43,7 +43,7 @@ typedef struct
     UINT uiWorkerNum;
     UINT uiTimeOfTick;
     MTIMER_S timer;
-    UINT uiCurrentWorkerId;   
+    UINT uiCurrentWorkerId;   /* 用于自动选择worker的情况 */
     _TASK_WORKER_USER_EVENT_S astUserEvent[_TASK_WORKER_MAX_USER_EVENT];
     TASK_WORKER_S astWorker[0];
 }TASK_WORKER_CTRL_S;
@@ -162,12 +162,8 @@ static void task_worker_Main (IN USER_HANDLE_S *pstUserHandle)
     return;
 }
 
-static BS_STATUS task_worker_InitOne
-(
-    IN TASK_WORKER_CTRL_S *pstCtrl,
-    IN TASK_WORKER_S *pstWorker,
-    IN UINT uiTime
-)
+static BS_STATUS task_worker_InitOne(char *name, TASK_WORKER_CTRL_S *pstCtrl,
+        TASK_WORKER_S *pstWorker, UINT uiTime)
 {
     USER_HANDLE_S stUserHandle;
 
@@ -193,8 +189,7 @@ static BS_STATUS task_worker_InitOne
     stUserHandle.ahUserHandle[0] = pstCtrl;
     stUserHandle.ahUserHandle[1] = pstWorker;
 
-    if (0 == (pstWorker->uiTid = THREAD_Create("taskworker", NULL,
-                    task_worker_Main, &stUserHandle))) {
+    if (0 == (pstWorker->uiTid = THREAD_Create(name, NULL, task_worker_Main, &stUserHandle))) {
         task_worker_Clean(pstWorker);
         RETURN(BS_ERR);
     }
@@ -217,25 +212,26 @@ static VOID task_worker_TimeOut(IN HANDLE hTimerId, IN USER_HANDLE_S *pstUserHan
     }
 }
 
-TASK_WORKER_HANDLE TASK_Worker_Create(IN UINT uiWorkerNum,
-        IN UINT uiTime)
+/* timer:  ms. 如果为0表示不创建定时器 */
+TASK_WORKER_HANDLE TASK_Worker_Create(char *name_prefix, UINT worker_num, UINT time)
 {
     UINT i, j;
     int ret;
     TASK_WORKER_CTRL_S *pstCtrl;
     USER_HANDLE_S stUserHandle;
+    char name[64];
 
     pstCtrl = MEM_ZMalloc(sizeof(TASK_WORKER_CTRL_S)
-            + sizeof(TASK_WORKER_S) * uiWorkerNum);
+            + sizeof(TASK_WORKER_S) * worker_num);
     if (NULL == pstCtrl) {
         return NULL;
     }
 
-    pstCtrl->uiWorkerNum = uiWorkerNum;
+    pstCtrl->uiWorkerNum = worker_num;
 
-    for (i=0; i<uiWorkerNum; i++) {
-        if (BS_OK != task_worker_InitOne(pstCtrl,
-                    &pstCtrl->astWorker[i], uiTime)) {
+    for (i=0; i<worker_num; i++) {
+        snprintf(name, sizeof(name), "%s%d", name_prefix, i);
+        if (BS_OK != task_worker_InitOne(name, pstCtrl, &pstCtrl->astWorker[i], time)) {
             for (j=0; j<i; j++) {
                 task_worker_TriggerQuit(&pstCtrl->astWorker[j]);
             }
@@ -246,10 +242,10 @@ TASK_WORKER_HANDLE TASK_Worker_Create(IN UINT uiWorkerNum,
     }
 
     stUserHandle.ahUserHandle[0] = pstCtrl;
-    ret = MTimer_Add(&pstCtrl->timer, uiTime, TIMER_FLAG_CYCLE,
+    ret = MTimer_Add(&pstCtrl->timer, time, TIMER_FLAG_CYCLE,
             task_worker_TimeOut, &stUserHandle);
     if (ret < 0) {
-        for (i=0; i<uiWorkerNum; i++) {
+        for (i=0; i<worker_num; i++) {
             task_worker_TriggerQuit(&pstCtrl->astWorker[i]);
         }
         
@@ -262,7 +258,7 @@ TASK_WORKER_HANDLE TASK_Worker_Create(IN UINT uiWorkerNum,
 BS_STATUS TASK_Worker_SetEvent
 (
     IN TASK_WORKER_HANDLE hTaskWorker,
-    IN UINT uiEventOffset, 
+    IN UINT uiEventOffset, /* 0-15 */
     IN PF_TASK_WORKER_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle
 )
@@ -286,8 +282,8 @@ BS_STATUS TASK_Worker_SetEvent
 BS_STATUS TASK_Worker_EventInput
 (
     IN TASK_WORKER_HANDLE hTaskWorker,
-    IN UINT uiWokerId,  
-    IN UINT uiEventOffset 
+    IN UINT uiWokerId,  /* 从0开始.如果为TASK_WORKER_ID_AUTO,表示自动选择 */
+    IN UINT uiEventOffset /* 0-15 */
 )
 {
     TASK_WORKER_CTRL_S *pstCtrl = hTaskWorker;
@@ -322,7 +318,7 @@ BS_STATUS TASK_Worker_EventInput
 BS_STATUS TASK_Worker_MsgInput
 (
     TASK_WORKER_HANDLE hTaskWorker,
-    UINT uiWokerId,  
+    UINT uiWokerId,  /* 从0开始.如果为TASK_WORKER_ID_AUTO,表示自动选择 */
     PF_TASK_WORKER_FUNC pfFunc,
     void *ud
 )
@@ -361,7 +357,7 @@ VCLOCK_HANDLE TASK_Worker_AddTimer
 (
     IN TASK_WORKER_HANDLE hTaskWorker,
     IN UINT uiWokerId,
-    IN UINT uiTime,    
+    IN UINT uiTime,    /* 多少个ms之后触发. */
     IN PF_TIME_OUT_FUNC pfFunc,
     IN USER_HANDLE_S *pstUserHandle
 )

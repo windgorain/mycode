@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-
+/* retcode所需要的宏 */
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_VLDCODE
 
 #include "bs.h"
@@ -15,23 +15,23 @@
 #include "utl/rand_utl.h"
 #include "utl/time_utl.h"
 
-#define _VLDCODE_CODE_LEN  (4)   
+#define _VLDCODE_CODE_LEN  (4)  /* 校验码长度 */ 
 
-
+/* 图片中每个字符的大小 */
 #define _VLDCODE_BMP_WIDTH  32
 #define _VLDCODE_BMP_HEIGHT 32
 
-
+/* 验证码超时时间, 单位:秒 */
 #define _VLDCODE_TIMEOUT_TIME 60
 
-
+/* 两次遍历超时节点的最小时间间隔, 单位:秒 */
 #define _VLDCODE_SCAN_FREE_TIME 3
 
 
 typedef struct
 {
     HASH_NODE_S stLinkNode;
-    UINT ulClientId;     
+    UINT ulClientId;     /* 用于标志客户端. 可以使用IP地址等 */
     time_t ulTime;
     CHAR szVldCode[_VLDCODE_CODE_LEN + 1];
 }_VLDCODE_NODE_S;
@@ -39,7 +39,7 @@ typedef struct
 typedef struct
 {
     UINT ulMaxVldNum;
-    UINT ulScanFreeTime;   
+    UINT ulScanFreeTime;   /* 上一次遍历并释放超时节点的时间, 单位秒 */
     HANDLE hNapId;
     HANDLE hHashId;
 }_VLDCODE_CTRL_S;
@@ -79,8 +79,7 @@ HANDLE VLDCODE_CreateInstance(IN UINT ulMaxVldNum)
 {
     _VLDCODE_CTRL_S *pstCtrl;
 
-    if (ulMaxVldNum <= 0)
-    {
+    if (ulMaxVldNum < 4) {
         return 0;
     }
 
@@ -90,7 +89,7 @@ HANDLE VLDCODE_CreateInstance(IN UINT ulMaxVldNum)
         return 0;
     }
 
-    pstCtrl->hHashId = HASH_CreateInstance(NULL, ulMaxVldNum / 5 + 1, (PF_HASH_INDEX_FUNC)_VLDCODE_HashIndex);
+    pstCtrl->hHashId = HASH_CreateInstance(NULL, ulMaxVldNum / 4, (PF_HASH_INDEX_FUNC)_VLDCODE_HashIndex);
     if (0 == pstCtrl->hHashId)
     {
         MEM_Free(pstCtrl);
@@ -147,14 +146,14 @@ static BS_STATUS vldcode_AddNode(IN _VLDCODE_CTRL_S *pstCtrl, IN UINT uiClientId
     pstNode = NAP_ZAlloc(pstCtrl->hNapId);
     if (NULL == pstNode)
     {
-        
+        /* 避免频繁扫面节点 */
         ulTimeNow= TM_NowInSec();
         if (ulTimeNow - pstCtrl->ulScanFreeTime <= _VLDCODE_SCAN_FREE_TIME)
         {
             return BS_ERR;
         }
     
-        
+        /* 申请不到节点, 扫描并释放超时的节点 */
         pstCtrl->ulScanFreeTime = (UINT)ulTimeNow;
         _VLDCODE_FreeTimeOutNode(pstCtrl);
         pstNode = NAP_ZAlloc(pstCtrl->hNapId);
@@ -172,7 +171,7 @@ static BS_STATUS vldcode_AddNode(IN _VLDCODE_CTRL_S *pstCtrl, IN UINT uiClientId
     return BS_OK;
 }
 
-
+/* 产生一个随机的ClientID. 返回0表示失败 */
 UINT VLDCODE_RandClientId(IN HANDLE hVldCodeInstance)
 {
     _VLDCODE_CTRL_S *pstCtrl = (_VLDCODE_CTRL_S *)hVldCodeInstance;
@@ -200,7 +199,7 @@ UINT VLDCODE_RandClientId(IN HANDLE hVldCodeInstance)
 VLDBMP_S * VLDCODE_GenVldBmp
 (
     IN HANDLE hVldCodeInstance,
-    INOUT UINT *puiClientId
+    INOUT UINT *puiClientId/* 当clientID为0时,表示要自动产生一个 */
 )
 {
     _VLDCODE_CTRL_S *pstCtrl = (_VLDCODE_CTRL_S *)hVldCodeInstance;

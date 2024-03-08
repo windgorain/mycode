@@ -45,13 +45,14 @@ static inline void _log_WriteFile(FILE *fp, char *str, int len)
 
 static BOOL_T _log_check_logfile_exceed(LOG_UTL_S *pstLogCtrl)
 {
-    UINT64 filesize;
+    S64 filesize;
 
     if (pstLogCtrl->log_file_size == 0) {
         return FALSE;
     }
 
-    if (0 != FILE_GetSize(pstLogCtrl->log_file_name, &filesize)) {
+    filesize = FILE_GetSize(pstLogCtrl->log_file_name);
+    if (filesize < 0) {
         return FALSE;
     }
 
@@ -63,9 +64,9 @@ static BOOL_T _log_check_logfile_exceed(LOG_UTL_S *pstLogCtrl)
     return FALSE;
 }
 
-
-
-
+/*send fail exceed 10 times, stop send and write log to log_file*/
+/*if file_name not null, then logs that be sent fail will be written into log_file;*/
+/*if file_enable is 1, then all logs will be written into log_file*/
 static void _log_send_fail_write_file(LOG_UTL_S *pstLogCtrl,void* pData, UINT uiLen){
     if (! pstLogCtrl->log_file_fp && pstLogCtrl->log_file_name) {
         pstLogCtrl->log_file_fp = FILE_Open(pstLogCtrl->log_file_name, 1, "a+");
@@ -226,7 +227,7 @@ void LOG_SetOutputFunc(LOG_UTL_S *pstLogCtrl, PF_LOG_OUT_FUNC output_func)
     pstLogCtrl->output_func = output_func;
 }
 
-
+/* {filename:xxx;print:1;} */
 int LOG_ParseConfig(LOG_UTL_S *pstLogCtrl, char *pcConfigString,
         UINT uiConfigStringLen)
 {

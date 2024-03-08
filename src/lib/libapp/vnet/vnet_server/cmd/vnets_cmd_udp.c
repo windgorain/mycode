@@ -13,7 +13,7 @@
 #include "../inc/vnets_dns_phy.h"
 #include "../inc/vnets_vpn_link.h"
 
-static USHORT g_usVnetsCmdUdpPort = VNET_CONF_DFT_UDP_PORT;  
+static USHORT g_usVnetsCmdUdpPort = VNET_CONF_DFT_UDP_PORT;  /* 主机序 */
 static BOOL_T g_bVnetsCmdUdpStart = FALSE;
 
 static BS_STATUS _vnet_cmdudp_OpenService()
@@ -27,7 +27,7 @@ static BS_STATUS _vnet_cmdudp_OpenService()
     return BS_OK;
 }
 
-
+/* port _ULONG_<1-65535> */
 PLUG_API BS_STATUS VNETS_CmdUdp_SetServicePort(int argc, char **argv)
 {
     UINT uiPort;
@@ -39,28 +39,12 @@ PLUG_API BS_STATUS VNETS_CmdUdp_SetServicePort(int argc, char **argv)
     return BS_OK;
 }
 
-
+/* start */
 PLUG_API BS_STATUS VNETS_CmdUdp_Start(IN UINT ulArgc, IN UCHAR **argv, IN VOID *pEnv)
 {
     if (BS_OK == _vnet_cmdudp_OpenService())
     {
         g_bVnetsCmdUdpStart = TRUE;
-    }
-
-    return BS_OK;
-}
-
-
-PLUG_API BS_STATUS VNETS_CmdUdp_ShowThis(IN UINT ulArgc, IN UCHAR **argv)
-{
-    if (g_usVnetsCmdUdpPort != VNET_CONF_DFT_UDP_PORT)
-    {
-        EXEC_OutInfo(" port %d\r\n", g_usVnetsCmdUdpPort);
-    }
-
-    if (g_bVnetsCmdUdpStart == TRUE)
-    {
-        EXEC_OutString(" start\r\n");
     }
 
     return BS_OK;

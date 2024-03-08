@@ -41,7 +41,7 @@ $.ajax(
 		async: false,
 		dataType: "json",
 		success: function(oJson) {
-            if (RQ_IsOK(oJson) {
+            if (RQ_IsOK(oJson)) {
 				var aGW = oJson.data;
 				var x;
 				for (x in aGW) {
@@ -60,7 +60,7 @@ $.ajax(
 		async: false,
 		dataType: "json",
 		success: function(oJson) {
-            if (RQ_IsOK(oJson) {
+            if (RQ_IsOK(oJson)) {
 				$("#WsService").val(oJson.WsService);
 			}
 		}
@@ -84,7 +84,7 @@ function mysubmit(oForm)
 		async: false,
 		dataType: "json",
 		success: function(oJson) {
-            if (RQ_IsOK(oJson) {
+            if (RQ_IsOK(oJson)) {
 				$("#result").html("结果: 成功");
 			} else {
 				var sContent = "结果: 失败<br>原因: " + oJson.reason;

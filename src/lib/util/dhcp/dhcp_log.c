@@ -1,6 +1,7 @@
 #include "bs.h"
 #include "utl/net.h"
 #include "utl/ip_utl.h"
+#include "utl/eth_def.h"
 #include "utl/udp_utl.h"
 #include "utl/udp_log.h"
 #include "utl/dhcp_utl.h"
@@ -131,10 +132,10 @@ void DhcpLog_Process(UDP_LOG_S *config, UDP_HEAD_S *udp_hdr, UINT pktlen)
         if (0 == request_addr) request_addr = dhcp_h->ciaddr;
 
         offset += scnprintf(info + offset, sizeof(info) - offset,
-                ",\"client_mac\":\""ETH_MAC_FORMAT"\",\"client_ip\":\""IPV4_FORMAT"\","
+                ",\"client_mac\":\"" ETH_MAC_FMT "\",\"client_ip\":\"" IPV4_FORMAT "\","
                 "\"client_name\":\"%s\",\"server_ip\":\""IPV4_FORMAT"\",\"client_id_type\":\"%02x\"",
-                dhcp_h->chaddr[0], dhcp_h->chaddr[1], dhcp_h->chaddr[2], dhcp_h->chaddr[3], dhcp_h->chaddr[4],
-                dhcp_h->chaddr[5], NIPQUAD(request_addr), hostname, NIPQUAD(server_addr), client_type);
+                ETH_MAC_CHAR(dhcp_h->chaddr),
+                NIPQUAD(request_addr), hostname, NIPQUAD(server_addr), client_type);
         if (opt_flags & HAS_OPT_CLIID) {
             offset += scnprintf(info + offset, sizeof(info) - offset, ",\"client_id_val\":\"%s\"", client_id_buf);
         }

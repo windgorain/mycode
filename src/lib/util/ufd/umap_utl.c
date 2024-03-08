@@ -66,12 +66,6 @@ void UMAP_Close(UMAP_HEADER_S *map)
     }
 }
 
-
-void UMAP_IncRef(UMAP_HEADER_S *map)
-{
-    map->ref_count ++;
-}
-
 void * UMAP_LookupElem(UMAP_HEADER_S *map, const void *key)
 {
     if (! map) {
@@ -99,7 +93,7 @@ long UMAP_UpdateElem(UMAP_HEADER_S *map, const void *key, const void *value, U32
     return g_umap_func_tbl[map->type]->update_elem_func(map, key, value, flag);
 }
 
-
+/* 获取数组map的数组地址 */
 int UMAP_DirectValue(UMAP_HEADER_S *map, OUT U64 *addr, UINT off)
 {
     if (! map) {
@@ -113,7 +107,7 @@ int UMAP_DirectValue(UMAP_HEADER_S *map, OUT U64 *addr, UINT off)
     return g_umap_func_tbl[map->type]->direct_value_func(map, addr, off);
 }
 
-
+/* 注意: 调用者的*next_key和接受返回值不要用同一个变量, 因为在array map中*next_key有存储id的作用 */
 int UMAP_GetNextKey(UMAP_HEADER_S *map, void *curr_key, OUT void **next_key)
 {
     return g_umap_func_tbl[map->type]->get_next_key_func(map, curr_key, next_key);

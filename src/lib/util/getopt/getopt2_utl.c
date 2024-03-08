@@ -41,15 +41,15 @@ static inline BOOL_T getopt2_is_param_type(char type)
     return FALSE;
 }
 
-
+/* 是否设置了必选标志 */
 static inline BOOL_T getopt2_is_must(GETOPT2_NODE_S *node)
 {
-    
+    /* 检查是否设置了必选参数 */
     if (node->opt_type == 'P') {
         return TRUE;
     }
 
-    
+    /* 检查是否设置了必选选项 */
     if (node->opt_type == 'O') {
         return TRUE;
     }
@@ -87,7 +87,7 @@ static int getopt2_parse_value_string(GETOPT2_NODE_S *pstNode, CHAR *pcValue)
     return 0;
 }
 
-
+/* ipv4 address */
 static int getopt2_parse_value_ipv4(GETOPT2_NODE_S *pstNode, CHAR *pcValue)
 {
     UINT *p = pstNode->value;
@@ -101,7 +101,7 @@ static int getopt2_parse_value_ipv4(GETOPT2_NODE_S *pstNode, CHAR *pcValue)
     return 0;
 }
 
-
+/* ipv6 address */
 static int getopt2_parse_value_ipv6(GETOPT2_NODE_S *pstNode, CHAR *pcValue)
 {
     char tmp[256] = {0};
@@ -115,14 +115,21 @@ static int getopt2_parse_value_ipv6(GETOPT2_NODE_S *pstNode, CHAR *pcValue)
     return 0;
 }
 
-
+/* ip/prefix */
 static int getopt2_parse_value_ipv4_prefix(GETOPT2_NODE_S *pstNode, CHAR *pcValue)
 {
     IP_PREFIX_S *p = pstNode->value;
     return IPString_ParseIpPrefix(pcValue, p);
 }
 
+/* ip:port*/
+static int getopt2_parse_value_ipv4_port(GETOPT2_NODE_S *pstNode, CHAR *pcValue)
+{
+    IP_PORT_S *p = pstNode->value;
+    return IPString_ParseIpPort(pcValue, p);
+}
 
+/* num range */
 static int getopt2_parse_value_range(GETOPT2_NODE_S *pstNode, CHAR *pcValue)
 {
     LSTR_S lstr;
@@ -137,7 +144,7 @@ static int getopt2_parse_value_range(GETOPT2_NODE_S *pstNode, CHAR *pcValue)
 static int getopt2_parse_value_mac(GETOPT2_NODE_S *pstNode, CHAR *pcValue)
 {
     int i = 0;
-    
+    /* 11:22:33:44:55:66 */
     UCHAR *mac = pstNode->value;
 
     if (strlen(pcValue) != 17)
@@ -174,6 +181,7 @@ static GETOPT2_VALUE_TYPE_S g_getopt2_value_types[] = {
     {.value_type = GETOPT2_V_IP, .value_type_help="IPv4", .func = getopt2_parse_value_ipv4},
     {.value_type = GETOPT2_V_IP6, .value_type_help="IPv6", .func = getopt2_parse_value_ipv6},
     {.value_type = GETOPT2_V_IP_PREFIX, .value_type_help="IP/Prefix", .func = getopt2_parse_value_ipv4_prefix},
+    {.value_type = GETOPT2_V_IP_PORT, .value_type_help="IP:Port", .func = getopt2_parse_value_ipv4_port},
     {.value_type = GETOPT2_V_IP_PROTOCOL, .value_type_help="IPProtocol", .func = getopt2_parse_value_ip_protocol},
 };
 
@@ -287,7 +295,7 @@ static int getopt2_parse_short_opts(UINT uiArgc, CHAR **ppcArgv, GETOPT2_NODE_S 
     char *pcValue = NULL;
     char value_processed = 0;
     char *opt = &ppcArgv[uiOptIndex][1];
-    int consume_count = 0; 
+    int consume_count = 0; /* 消耗了多少个arg */
     int ret;
 
     for (; *opt != 0; opt++) {
@@ -303,7 +311,7 @@ static int getopt2_parse_short_opts(UINT uiArgc, CHAR **ppcArgv, GETOPT2_NODE_S 
         }
 
         if (value_processed) {
-            
+            /* 当多个短名连在一起的时候,仅支持其中一个携带value */
             RETURNI(BS_REACH_MAX, "Only support one opt with value \'-%s\'", ppcArgv[uiOptIndex]);
         }
 
@@ -368,14 +376,14 @@ static BOOL_T _getopt2_is_long_opt(char *opt)
 
     opt += 2;
     if (*opt == 0) {
-        
+        /* 只有-- */
         return FALSE;
     }
 
     return TRUE;
 }
 
-
+/* 从开始就已经是需要处理的参数/选项 */
 int GETOPT2_ParseFromArgv0(UINT uiArgc, CHAR **ppcArgv, INOUT GETOPT2_NODE_S *opts)
 {
     int i;
@@ -384,9 +392,9 @@ int GETOPT2_ParseFromArgv0(UINT uiArgc, CHAR **ppcArgv, INOUT GETOPT2_NODE_S *op
     getopt2_init(opts);
 
     for (i=0; i<uiArgc; i++) {
-        
+        /* 判断是否"-" */
         if (ppcArgv[i][0] == '-') {
-            
+            /* 判断是否long option */
             if (_getopt2_is_long_opt(ppcArgv[i])) {
                 consume_count = getopt2_parse_long_opt(uiArgc, ppcArgv, opts, i);
             } else {
@@ -419,7 +427,7 @@ int GETOPT2_ParseFromArgv0(UINT uiArgc, CHAR **ppcArgv, INOUT GETOPT2_NODE_S *op
 
 int GETOPT2_Parse(UINT uiArgc, CHAR **ppcArgv, INOUT GETOPT2_NODE_S *opts)
 {
-    
+    /* 有时候第一个argv是可执行程序名,从第二个开始才是需要处理的参数/选项,所以需要跳过第一个argv */
     return GETOPT2_ParseFromArgv0(uiArgc - 1, ppcArgv + 1, opts);
 }
 
@@ -462,9 +470,9 @@ static int getopt2_build_param_help(GETOPT2_NODE_S *nodes, OUT char *buf, int bu
         }
 
         if (node->opt_long_name != NULL) {
-            if (getopt2_is_must(node)) { 
+            if (getopt2_is_must(node)) { /* 必须的param */
                 len += snprintf(buf+len, buf_size-len, " %s", node->opt_long_name);
-            } else { 
+            } else { /* 可选的param */
                 len += snprintf(buf+len, buf_size-len, " [%s]", node->opt_long_name);
             }
         }
@@ -579,13 +587,13 @@ int GETOPT2_IsOptSetted(GETOPT2_NODE_S *nodes, char short_opt_name, char *long_o
     return 0;
 }
 
-
+/* 是否存在必须设置但没有设置的选项 */
 GETOPT2_NODE_S * GETOPT2_IsMustErr(GETOPT2_NODE_S *opts)
 {
     GETOPT2_NODE_S *node;
 
     for (node=opts; node->opt_type!=0; node++) {
-        
+        /* 检查是否设置了必选 */
         if (getopt2_is_must(node)) {
             if (! (node->flag & GETOPT2_OUT_FLAG_ISSET)) {
                 return node;

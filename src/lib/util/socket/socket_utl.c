@@ -55,7 +55,10 @@ static INT socket_GetLastErrno(void)
     return iErr;
 }
 
-
+/*
+  >  0: 成功
+  <= 0: SOCKET_E_XXX
+*/
 INT Socket_Read(IN INT iSocketId, OUT void *buf, IN UINT uiBufLen, IN UINT uiFlag)
 {
     INT iReadLen;
@@ -63,31 +66,22 @@ INT Socket_Read(IN INT iSocketId, OUT void *buf, IN UINT uiBufLen, IN UINT uiFla
 
     iReadLen = recv(iSocketId, buf, (INT)uiBufLen, (INT)uiFlag);
 
-    if (iReadLen == 0)
-    {
+    if (iReadLen == 0) {
         iRet = 0;
-    }
-    else if (iReadLen < 0)
-    {
+    } else if (iReadLen < 0) {
         iRet = socket_GetLastErrno();
-    }
-    else
-    {
+    } else {
         iRet = iReadLen;
     }
 
 	return iRet;
 }
 
-
-BS_STATUS Socket_Read2
-(
-	IN INT iSocketId,
-	OUT void *buf,
-	IN UINT uiLen,
-	OUT UINT *puiReadLen,
-	IN UINT ulFlag
-)
+/*
+   BS_OK: 成功;
+   BS_PEER_CLOSED: 对端关闭
+*/
+BS_STATUS Socket_Read2(int iSocketId, OUT void *buf, UINT uiLen, OUT UINT *puiReadLen, UINT ulFlag)
 {
     INT iLen;
     BS_STATUS eRet = BS_ERR;
@@ -96,19 +90,13 @@ BS_STATUS Socket_Read2
 
     iLen = Socket_Read(iSocketId, buf, uiLen, ulFlag);
 
-	if (iLen > 0)
-	{
+	if (iLen > 0) {
         eRet = BS_OK;
 		*puiReadLen = iLen;
-	}
-    else
-    {
-        if (iLen == 0)
-        {
+	} else {
+        if (iLen == 0) {
             eRet = BS_PEER_CLOSED;
-        }
-        else if (iLen == SOCKET_E_AGAIN)
-        {
+        } else if (iLen == SOCKET_E_AGAIN) {
             eRet = BS_OK;
         }
     }
@@ -116,10 +104,10 @@ BS_STATUS Socket_Read2
     return eRet;
 }
 
-
+/* pstAddr和piLen可以为NULL */
 int _Socket_Accept(int fd, OUT struct sockaddr *pstAddr, INOUT INT *piLen, char *filename, int line)
 {
-    
+    /*接受连接*/
     struct sockaddr server_addr;
     INT s;
     INT iRet;
@@ -145,7 +133,7 @@ int _Socket_Accept(int fd, OUT struct sockaddr *pstAddr, INOUT INT *piLen, char 
     return iRet;
 }
 
-
+/* 返回值: >=0: 发送的字节数. <0 : 错误 */
 INT Socket_Write(IN INT iSocketId, IN VOID *data, IN UINT ulLen, IN UINT ulFlag)
 {
     INT iSendLen;
@@ -161,6 +149,23 @@ INT Socket_Write(IN INT iSocketId, IN VOID *data, IN UINT ulLen, IN UINT ulFlag)
     return iRet;
 }
 
+/* 对AGAIN转换成return 0 */
+int Socket_Write2(int fd, void *data, U32 len, U32 flag)
+{
+    int ret;
+    
+    ret = Socket_Write(fd, data, len, flag);
+    if (ret > 0) {
+        return ret;
+    }
+
+    if (ret == SOCKET_E_AGAIN) {
+        return 0;
+    }
+
+    return ret;
+}
+
 int Socket_WriteString(int fd, char *buf, unsigned int flag)
 {
     return Socket_Write(fd, buf, strlen(buf), flag);
@@ -174,8 +179,7 @@ BS_STATUS Socket_WriteUntilFinish(IN INT iSocketId, IN UCHAR *pucBuf, IN UINT ul
     while (uiSendLen < ulLen)
     {
         iLen = Socket_Write(iSocketId, pucBuf + uiSendLen, ulLen - uiSendLen, ulFlag);
-        if (iLen <= 0)
-        {
+        if (iLen <= 0) {
             RETURN(BS_ERR);
         }
         uiSendLen += (UINT)iLen;
@@ -184,10 +188,13 @@ BS_STATUS Socket_WriteUntilFinish(IN INT iSocketId, IN UCHAR *pucBuf, IN UINT ul
     return BS_OK;
 }
 
-
-int Socket_Connect(IN INT iSocketID, IN UINT ulIp, IN USHORT usPort)
+/*
+  >=  0: 成功
+  < 0: SOCKET_E_XXX
+*/
+int Socket_Connect(IN INT iSocketID, IN UINT ulIp/* 主机序 */, IN USHORT usPort/* 主机序 */)
 {
-    struct sockaddr_in server_addr;     
+    struct sockaddr_in server_addr;     /* 服务器地址结构   */
 
     if ((ulIp == 0) || (usPort == 0)) {
         return 0;
@@ -206,6 +213,19 @@ int Socket_Connect(IN INT iSocketID, IN UINT ulIp, IN USHORT usPort)
     return BS_OK;
 }
 
+/* 对AGAIN转换成return 0 */
+int Socket_Connect2(int fd, UINT ulIp/* 主机序 */, USHORT usPort/* 主机序 */)
+{
+    int ret;
+    
+    ret = Socket_Connect(fd, ulIp, usPort);
+    if (ret == SOCKET_E_AGAIN) {
+        return 0;
+    }
+
+    return ret;
+}
+
 int Socket_ConnectUnixSocket(int fd, char *path)
 {
     struct sockaddr_un server_addr;
@@ -220,7 +240,7 @@ int Socket_ConnectUnixSocket(int fd, char *path)
     return 0;
 }
 
-int Socket_UDPClient(UINT ip, USHORT port)
+int Socket_UDPClient(UINT ip/* 主机序 */, USHORT port/* 主机序 */)
 {
     int fd;
 
@@ -265,52 +285,38 @@ BOOL_T Socket_IsIPv4(IN CHAR *pcIpOrName)
     CHAR *pcSplit;
     UINT ulLen, i, j;
 
-    for (j=0; j<4; j++)
-    {
-        
-        if (j < 3)
-        {
+    for (j=0; j<4; j++) {
+        /* 最后一节是没有'.' 的，前三节都有'.' */
+        if (j < 3) {
             pcSplit = strchr(pcTmp, '.');
-            if (pcSplit == NULL)
-            {
+            if (pcSplit == NULL) {
                 return FALSE;
             }
-        }
-        else
-        {
+        } else {
             pcSplit = pcTmp + strlen(pcTmp);
         }
         
         ulLen = (UINT)(pcSplit - pcTmp);
-        if (ulLen > 3)      
-        {
+        if (ulLen > 3) {     /* 长度不能超过3 */
             return FALSE;
         }
-        for (i=0; i<ulLen; i++)     
-        {
-            if (!NUM_IN_RANGE((INT)pcTmp[i], (INT)'0', (INT)'9'))
-            {
+        for (i=0; i<ulLen; i++) {     /* IP 必须是数字 */
+            if (!NUM_IN_RANGE((INT)pcTmp[i], (INT)'0', (INT)'9')) {
                 return FALSE;
             }
         }
-        if (ulLen == 3)     
-        {
-            if (pcTmp[0] > '2')
-            {
+        if (ulLen == 3) {    /* 不能大于255 */
+            if (pcTmp[0] > '2') {
                 return FALSE;
             }
 
-            if (pcTmp[0] == '2')
-            {
-                if (pcTmp[1] > '5')
-                {
+            if (pcTmp[0] == '2') {
+                if (pcTmp[1] > '5') {
                     return FALSE;
                 }
 
-                if (pcTmp[1] == '5')
-                {
-                    if (pcTmp[2] > '5')
-                    {
+                if (pcTmp[1] == '5') {
+                    if (pcTmp[2] > '5') {
                         return FALSE;
                     }
                 }
@@ -348,7 +354,7 @@ UINT Socket_Ipsz2IpNetWitchCheck(IN CHAR *pcIP)
     return inet_addr(pcIP);
 }
 
-
+/* 将字符串形式的IP 转换成网络序IP地址 */
 UINT Socket_Ipsz2IpNet(char *pcIP)
 {
     return inet_addr(pcIP);
@@ -363,7 +369,7 @@ UINT Socket_Ipsz2IpHost(IN CHAR *pcIP)
     return ntohl(uiIp);
 }
 
-
+/* 将主机名或字符串形式的IP 转换成网络序IP地址 */
 UINT Socket_NameToIpNet(IN CHAR *szIpOrHostName)
 {
     socket_WindowInit();
@@ -396,7 +402,7 @@ UINT Socket_NameToIpNet(IN CHAR *szIpOrHostName)
     }
 }
 
-
+/* 将主机名或字符串形式的IP 转换成主机序IP地址 */
 UINT Socket_NameToIpHost (IN CHAR *szIpOrHostName)
 {
     UINT uiIP;
@@ -406,7 +412,7 @@ UINT Socket_NameToIpHost (IN CHAR *szIpOrHostName)
     return ntohl(uiIP);
 }
 
-
+/* 主机序IP转换成字符串 */
 CHAR * Socket_IpToName (IN UINT ulIp)
 {
     struct in_addr stAddr;
@@ -420,7 +426,7 @@ CHAR * Socket_IpToName (IN UINT ulIp)
     return inet_ntoa (stAddr);
 }
 
-CHAR * Socket_Ip2Name(IN UINT ip, OUT char *buf, IN int buf_size)
+CHAR * Socket_Ip2Name(IN UINT ip/*net order*/, OUT char *buf, IN int buf_size)
 {
 #ifdef IN_UNIXLIKE
     inet_ntop(AF_INET, &ip, buf, buf_size);
@@ -460,7 +466,7 @@ BS_STATUS Socket_Ioctl(INT iSocketId, INT lCmd, void *argp)
     return BS_OK;
 }
 
-
+/* 返回主机序IP和Port */
 BS_STATUS Socket_GetLocalIpPort(IN INT iSocketId, OUT UINT *pulIp, OUT USHORT *pusPort)
 {
     socklen_t iAddrLen;
@@ -484,7 +490,7 @@ BS_STATUS Socket_GetLocalIpPort(IN INT iSocketId, OUT UINT *pulIp, OUT USHORT *p
     return BS_OK;
 }
 
-
+/* 返回主机序IP和Port */
 BS_STATUS Socket_GetPeerIpPort(IN INT iSocketId, OUT UINT *pulIp, OUT USHORT *pusPort)
 {
     socklen_t iAddrLen;
@@ -509,7 +515,7 @@ BS_STATUS Socket_GetPeerIpPort(IN INT iSocketId, OUT UINT *pulIp, OUT USHORT *pu
     return BS_OK;
 }
 
-
+/* 返回主机序Port */
 USHORT Socket_GetHostPort(IN INT iSocketId)
 {
     UINT uiIp;
@@ -537,7 +543,7 @@ UINT Socket_GetFamily(IN INT iSocketId)
     return pstSinLocal->sin_family;
 }
 
-BS_STATUS Socket_Bind(IN INT iSocketId, IN UINT ulIp, IN USHORT usPort)
+BS_STATUS Socket_Bind(IN INT iSocketId, IN UINT ulIp/* 网络序 */, IN USHORT usPort/* 网络序 */)
 {
     struct sockaddr_in server_addr;
 
@@ -592,7 +598,7 @@ int _Socket_Create(int iFamily, UINT ulType, const char *filename, int line)
 
     socket_WindowInit();
 
-    
+    /* 建立Socket  */
     s = socket (iFamily, (INT)ulType, 0);
 
     if (s < 0) {
@@ -604,11 +610,11 @@ int _Socket_Create(int iFamily, UINT ulType, const char *filename, int line)
     return s;
 }
 
-BS_STATUS Socket_Listen(IN INT iSocketID, UINT ulLocalIp, IN USHORT usPort, IN UINT uiBacklog)
+BS_STATUS Socket_Listen(IN INT iSocketID, UINT ulLocalIp/* 网络序 */, IN USHORT usPort/* 网络序 */, IN UINT uiBacklog)
 {
     INT iReuse = 1;
 
-#ifndef IN_WINDOWS 
+#ifndef IN_WINDOWS /* 不是windows,则设置reuseaddr属性 */
     (VOID) setsockopt(iSocketID, SOL_SOCKET, SO_REUSEADDR, (CHAR*)&iReuse, sizeof(INT));
 #endif
 
@@ -630,8 +636,8 @@ BS_STATUS Socket_SendTo
     IN INT iSocketId,
     IN VOID *pBuf,
     IN UINT ulBufLen,
-    IN UINT ulToIp,
-    IN USHORT usToPort
+    IN UINT ulToIp/* 网络序 */,
+    IN USHORT usToPort/* 网络序 */
 )
 {
     struct sockaddr_in stSockAddr;
@@ -659,8 +665,8 @@ BS_STATUS Socket_RecvFrom
     OUT VOID *pBuf,
     IN UINT ulBufLen,
     OUT UINT *pulRecvLen,
-    OUT UINT *pulFromIp,
-    OUT USHORT *pusFromPort
+    OUT UINT *pulFromIp/* 网络序 */,
+    OUT USHORT *pusFromPort/* 网络序 */
 )
 {
     struct sockaddr_in stSockAddr;
@@ -782,7 +788,7 @@ BS_STATUS Socket_SetNoDelay(IN INT iSocketID, IN BOOL_T bNoDelay)
     return Socket_SetSockOpt(iSocketID, IPPROTO_TCP, TCP_NODELAY, &iOn, sizeof(INT));
 }
 
-int Socket_SetReuseAddr(int fd, int reuse)
+int Socket_SetReuseAddr(int fd, int reuse/* 0 or 1*/)
 {
     return Socket_SetSockOpt(fd, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse, sizeof(int));
 }
@@ -817,7 +823,7 @@ INT Socket_Dup(IN INT iFd)
     return iNewFd;
 }
 
-
+/* 创建一个可继承的FD. linux本身就可以继承,返回原id即可,windows要复制一份,然后关闭原fd. 失败不关闭原fd */
 INT Socket_Inheritable(IN INT iFd)
 {
 #ifdef IN_UNIXLIKE
@@ -836,7 +842,7 @@ INT Socket_Inheritable(IN INT iFd)
 #endif
 }
 
-int _Socket_OpenUdp(UINT ip, USHORT port, const char *file, int line)
+int _Socket_OpenUdp(UINT ip/*net order*/, USHORT port/*net order*/, const char *file, int line)
 {
     int fd;
 
@@ -856,7 +862,7 @@ int _Socket_OpenUdp(UINT ip, USHORT port, const char *file, int line)
     return fd;
 }
 
-int _Socket_UdpClient(UINT ip, USHORT port, const char *file, int line)
+int _Socket_UdpClient(UINT ip/*网络序*/, USHORT port/*网络序*/, const char *file, int line)
 {
     int fd;
     int ret;
@@ -875,7 +881,7 @@ int _Socket_UdpClient(UINT ip, USHORT port, const char *file, int line)
     return fd;
 }
 
-int _Socket_TcpServer(UINT ip, USHORT port, const char *file, int line)
+int _Socket_TcpServer(UINT ip/* 网络序 */, USHORT port/* 网络序 */, const char *file, int line)
 {
     int fd;
     int ret;
@@ -904,7 +910,7 @@ int _Socket_UnixServer(char *path, int type, const char *file, int line)
         return fd;
     }
 
-	unlink(path);	
+	unlink(path);	/* in case it already exists */
 
 	memset(&un, 0, sizeof(un));
 	un.sun_family = AF_UNIX;

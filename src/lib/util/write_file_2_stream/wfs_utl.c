@@ -4,7 +4,7 @@
 * Description: write file 2 stream
 * History:     
 ******************************************************************************/
-
+/* retcode所需要的宏 */
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_WFS
 
 #include "bs.h"
@@ -21,13 +21,14 @@ typedef struct
     FILE *fp;
     UINT uiSsltcpId;
     HANDLE hOfbuf;
-    UINT64 uiFileLength;  
-    UINT64 uiSendLen;     
+    UINT64 uiFileLength;  /* 文件总长度 */
+    UINT64 uiSendLen;     /* 已经发送的长度 */
 }_WFS_CTRL_S;
 
 HANDLE WFS_Create(IN CHAR *pszFileName, IN UINT uiSsltcpId)
 {
     _WFS_CTRL_S *pstCtrl;
+    S64 filesize;
 
     pstCtrl = MEM_ZMalloc(sizeof(_WFS_CTRL_S));
     if (NULL == pstCtrl)
@@ -50,13 +51,14 @@ HANDLE WFS_Create(IN CHAR *pszFileName, IN UINT uiSsltcpId)
         return NULL;
     }
 
-    if (BS_OK != FILE_GetSize(pszFileName, &pstCtrl->uiFileLength))
-    {
+    filesize = FILE_GetSize(pszFileName);
+    if (filesize < 0) {
         OFBUF_Destory(pstCtrl->hOfbuf);
         MEM_Free(pstCtrl);
         return NULL;
     }
 
+    pstCtrl->uiFileLength = filesize;
     pstCtrl->uiSsltcpId = uiSsltcpId;
 
     return pstCtrl;
@@ -80,7 +82,7 @@ VOID WFS_Destory(IN HANDLE hWfsHandle)
 }
 
 
-
+/* OK/AGAIN/ERR等 */
 BS_STATUS WFS_Write(IN HANDLE hWfsHandle)
 {
     _WFS_CTRL_S *pstCtrl = (_WFS_CTRL_S *)hWfsHandle;
@@ -96,7 +98,7 @@ BS_STATUS WFS_Write(IN HANDLE hWfsHandle)
     for (;;)
     {
         uiLen = OFBUF_GetDataLen(pstCtrl->hOfbuf);
-        if (uiLen > 0) 
+        if (uiLen > 0) /* 缓冲区中有数据 */
         {
             pucData = OFBUF_GetData(pstCtrl->hOfbuf);
 
@@ -109,13 +111,13 @@ BS_STATUS WFS_Write(IN HANDLE hWfsHandle)
             pstCtrl->uiSendLen += uiWriteSize;
 
             OFBUF_CutHead(pstCtrl->hOfbuf, uiWriteSize);
-            if (uiLen > uiWriteSize)        
+            if (uiLen > uiWriteSize)        /* 未发送完成，缓冲区中还有数据 */
             {
                 return BS_AGAIN;
             }
         }
 
-        if (NULL == pstCtrl->fp)    
+        if (NULL == pstCtrl->fp)    /* 文件中也没有可读数据了,已经被关闭.这种情况下说明已经发送完成了 */
         {
             return BS_OK;
         }
@@ -126,7 +128,7 @@ BS_STATUS WFS_Write(IN HANDLE hWfsHandle)
             return BS_ERR;
         }
         
-        if (iReadLen < _WFS_MAX_DATA_BLOCK_SIZE)    
+        if (iReadLen < _WFS_MAX_DATA_BLOCK_SIZE)    /* 文件已经读完 */
         {
             fclose(pstCtrl->fp);
             pstCtrl->fp = NULL;
@@ -138,7 +140,7 @@ BS_STATUS WFS_Write(IN HANDLE hWfsHandle)
     return BS_OK;
 }
 
-
+/* 得到已经发送了多少数据 */
 UINT64 WFS_GetWritedLen(IN HANDLE hWfsHandle)
 {
     _WFS_CTRL_S *pstCtrl = (_WFS_CTRL_S *)hWfsHandle;
@@ -146,7 +148,7 @@ UINT64 WFS_GetWritedLen(IN HANDLE hWfsHandle)
     return pstCtrl->uiSendLen;
 }
 
-
+/* 得到剩余多少数据待发送 */
 UINT64 WFS_GetRemainLen(IN HANDLE hWfsHandle)
 {
     _WFS_CTRL_S *pstCtrl = (_WFS_CTRL_S *)hWfsHandle;

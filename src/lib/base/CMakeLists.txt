@@ -38,6 +38,14 @@ aux_source_directory(./vtimer BS_SRC)
 aux_source_directory(./poller BS_SRC)
 aux_source_directory(./data_box BS_SRC)
 
+IF (UNIX)
+aux_source_directory(./loadbs/linux BS_SRC)
+ENDIF()
+
+IF (WIN32)
+aux_source_directory(./loadbs/win BS_SRC)
+ENDIF()
+
 add_library(bs SHARED ${BS_SRC} )
 target_compile_definitions(bs PRIVATE USE_BS)
 TARGET_LINK_LIBRARIES(bs util unixlike_util ncurses m pthread pcre ssl crypto)

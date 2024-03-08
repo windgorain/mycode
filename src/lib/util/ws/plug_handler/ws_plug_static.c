@@ -43,7 +43,7 @@ static WS_EV_RET_E ws_plugstatic_HeadOK(IN WS_TRANS_S *pstTrans)
         return WS_EV_RET_ERR;
     }
 
-    pcRequestFile ++; 
+    pcRequestFile ++; /* 去掉开始的'/' */
 
     pcStaticPath = WS_Context_File2RootPathFile(hContext, pcRequestFile, szFilePath, sizeof(szFilePath));
     if (pcStaticPath == NULL)
@@ -139,7 +139,7 @@ static BOOL_T ws_plugstatic_IsShouldReply304(IN WS_TRANS_S *pstTrans)
 
 static WS_EV_RET_E ws_plugstatic_RecvBodyOK(IN WS_TRANS_S *pstTrans)
 {
-    UINT64 uiFileSize;
+    S64 filesize;
     FILE *fp;
     _WS_PLUG_STATIC_S *pstCtrl;
     CHAR szStringTime[HTTP_RFC1123_DATESTR_LEN + 1];
@@ -157,8 +157,8 @@ static WS_EV_RET_E ws_plugstatic_RecvBodyOK(IN WS_TRANS_S *pstTrans)
         return WS_EV_RET_STOP;
     }
 
-    if (BS_OK != FILE_GetSize(pstCtrl->szFilePath, &uiFileSize))
-    {
+    filesize = FILE_GetSize(pstCtrl->szFilePath);
+    if (filesize < 0) {
         WS_Trans_Reply(pstTrans, HTTP_STATUS_NOT_FOUND, WS_TRANS_REPLY_FLAG_WITHOUT_BODY);
         return WS_EV_RET_STOP;
     }
@@ -173,7 +173,7 @@ static WS_EV_RET_E ws_plugstatic_RecvBodyOK(IN WS_TRANS_S *pstTrans)
     pstCtrl->fp = fp;
 
     HTTP_SetStatusCode(pstTrans->hHttpHeadReply, HTTP_STATUS_OK);
-    HTTP_SetContentLen(pstTrans->hHttpHeadReply, uiFileSize);
+    HTTP_SetContentLen(pstTrans->hHttpHeadReply, filesize);
 
     uiTime = TM_NowInSec();
     HTTP_DateToStr(uiTime, szStringTime);

@@ -1,7 +1,8 @@
 config-view
  localuser-view
   local-user admin
-   password cipher 309cb42eb8616f2cae687d94788fc797
+   password cipher 82bfb700edde9278e730778f8778e188c1391f71edb3940060177a87a56ca6a8
+   type web
    quit
   quit
  quit

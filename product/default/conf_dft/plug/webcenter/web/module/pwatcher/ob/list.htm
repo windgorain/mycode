@@ -32,13 +32,8 @@
 <![endif]--> 
 
 <script language="javascript">
-function Create()
-{
-	window.location="add.htm";
-}
-
 var oParam = {
-		"sListUrl":"/request.cgi?_do=cmd.jshow&cmd=config-view;pwatcher-view;jshow ob",
+		"sListUrl":"/request.cgi?_do=cmd.list&cmd=config-view;pwatcher-view;show ob",
 		"sDeleteUrl":"/request.cgi?_do=svpn.context.Delete",
 		"columns":[{"data":null}, {"data":"Name"}, {"data":"Status"}],
 	};
@@ -48,9 +43,25 @@ function Disable()
     var oTable = $('#MyDftTableID').DataTable();
     oTable.$('input[type="checkbox"]').each(function() {
         if (this.checked) {
-            window.alert(this.value);
+            var sData = "_do=cmd.run&cmd=config-view;pwatcher-view;no ob " + this.value + " enable";
+            RQ_Post("/request.cgi", sData);
         }
     });
+
+    location.reload();
+}
+
+function Enable()
+{
+    var oTable = $('#MyDftTableID').DataTable();
+    oTable.$('input[type="checkbox"]').each(function() {
+        if (this.checked) {
+            var sData = "_do=cmd.run&cmd=config-view;pwatcher-view;ob " + this.value + " enable";
+            RQ_Post("/request.cgi", sData);
+        }
+    });
+
+    location.reload();
 }
 
 $(document).ready(function() {
@@ -76,8 +87,8 @@ $(document).ready(function() {
  		</THEAD>
  	</TABLE>
  	
- 	<input type="button" class="btn large blue" value="使能" onclick="Create()">
- 	<input type="button" class="btn large blue" value="关闭" onclick="Disable()">
+ 	<input type="button" class="btn large blue" value="使能" onclick="Enable()">
+ 	<input type="button" class="btn large blue" value="去使能" onclick="Disable()">
  	
  </div>
 

@@ -1,14 +1,18 @@
-/*================================================================
+/*********************************************************
 *   Copyright (C), Xingang.Li
 *   Author:      LiXingang  Version: 1.0  Date: 2017-10-1
 *   Description: simple bpf file
 *   在某些场景,如openwrt/iot/sdwan等资源有限场景,可以使用spf代替elf
 *
-================================================================*/
+********************************************************/
 #include <sys/mman.h>
 #include "bs.h"
+#include "types.h"
 #include "utl/file_utl.h"
 #include "utl/elf_utl.h"
+#include "utl/mem_utl.h"
+#include "utl/mybpf_utl.h"
+#include "utl/umap_def.h"
 #include "utl/vbuf_utl.h"
 #include "utl/bpf_helper_utl.h"
 #include "utl/umap_utl.h"
@@ -22,12 +26,14 @@
 #include "utl/mybpf_simple.h"
 #include "utl/mybpf_jit.h"
 #include "utl/mybpf_insn.h"
+#include "mybpf_def_inner.h"
+#include "mybpf_simple_func.h"
 
 #define MYBPF_SIMPLE_PRIVATE_NAME_MAX_LEN 255
 
-
+/* END Section HDR */
 typedef struct {
-    UINT sec_size; 
+    UINT sec_size; /* net order, 包含hdr */
     UCHAR sec_type;
 }MYBPF_SIMPLE_END_S;
 
@@ -35,6 +41,21 @@ typedef struct {
     int helpers[1024];
     int count;
 }MYBPF_HELPER_DEPENDS_S;
+
+/* 写入0 */
+static int _mybpf_simple_write_zero(VBUF_S *vbuf, int len)
+{
+    UCHAR zero[2] = {0};
+    int i;
+
+    for (i=0; i<len; i++) {
+        if (VBUF_CatFromBuf(vbuf, zero, 1) < 0) {
+            RETURNI(BS_CAN_NOT_WRITE, "Can't write buf");
+        }
+    }
+
+    return 0;
+}
 
 static int _mybpf_simple_write(VBUF_S *vbuf, void *mem, int size)
 {
@@ -51,13 +72,14 @@ static int _mybpf_simple_write_header(VBUF_S *vbuf)
     hdr.magic = MYBPF_SIMPLE_MAGIC;
     hdr.ver = MYBPF_SIMPLE_VER;
 
-    
+    /* 写入header */
     return _mybpf_simple_write(vbuf, &hdr, sizeof(hdr));
 }
 
-static int _mybpf_simple_write_totle_size(VBUF_S *vbuf, UINT size)
+static int _mybpf_simple_write_totle_size(VBUF_S *vbuf)
 {
     MYBPF_SIMPLE_HDR_S *hdr;
+    UINT size = VBUF_GetDataLength(vbuf);
 
     hdr = VBUF_GetData(vbuf);
     if (! hdr) {
@@ -82,7 +104,7 @@ static int _mybpf_simple_write_global_data(VBUF_S *vbuf, ELF_GLOBAL_DATA_S *data
     map->size_key = sizeof(int);
     map->max_elem = 1;
 
-    
+    /* 写入顺序和构建relo的顺序要一致 : bss -> data -> rodata -> bpfmap */
 
     if (data->have_bss) {
         map->size_value = data->bss_sec.data->d_size;
@@ -104,40 +126,60 @@ static int _mybpf_simple_write_global_data(VBUF_S *vbuf, ELF_GLOBAL_DATA_S *data
     return ret;
 }
 
-static int _mybpf_simple_write_maps_sec(VBUF_S *vbuf, ELF_S *elf, ELF_GLOBAL_DATA_S *data, MYBPF_MAPS_SEC_S *map_sec)
+static int _mybpf_simpe_add_map(OUT VBUF_S *vbuf, MYBPF_MAPS_SEC_S *s, int padding_len)
 {
-    MYBPF_SIMPLE_MAP_HDR_S hdr = {0};
-    char *map;
     int i;
     int ret = 0;
-    int map_count;
-    int map_def_size;
-    
-    map_def_size = UMAP_ELF_MAP_MIN_SIZE;
-    if (map_sec->map_def_size) {
-        map_def_size = map_sec->map_def_size;
-        BS_DBGASSERT(map_def_size >= UMAP_ELF_MAP_MIN_SIZE);
+    char *map;
+
+    map = s->maps;
+
+    for (i=0; i<s->map_count; i++) {
+        ret |= _mybpf_simple_write(vbuf, map, s->map_def_size);
+        ret |= _mybpf_simple_write_zero(vbuf, padding_len);
+        map = map + s->map_def_size;
     }
 
-    map_count = data->sec_count + map_sec->map_count;
+    return ret;
+}
+
+/* 写入map header */
+static int _mybpf_simple_add_map_sec_hdr(VBUF_S *vbuf, int map_count, int map_def_size)
+{
+    MYBPF_SIMPLE_MAP_HDR_S hdr = {0};
 
     hdr.sec_type = MYBPF_SIMPLE_SEC_TYPE_MAP;
     hdr.sec_size = sizeof(MYBPF_SIMPLE_MAP_HDR_S) + (map_count * map_def_size);
     hdr.map_count = map_count;
     hdr.sec_size = htonl(hdr.sec_size);
 
-    
-    ret |= _mybpf_simple_write(vbuf, &hdr, sizeof(hdr));
+    /* 写入header */
+    return _mybpf_simple_write(vbuf, &hdr, sizeof(hdr));
+}
 
-    
-    ret |= _mybpf_simple_write_global_data(vbuf, data, map_def_size);
+static int _mybpf_simple_write_maps_sec(VBUF_S *vbuf, ELF_S *elf,
+        ELF_GLOBAL_DATA_S *global_data, MYBPF_MAPS_SEC_S *map_sec)
+{
+    int ret = 0;
+    int map_count;
+    int padding = 0;
+    int map_def_size = map_sec->map_def_size;
 
-    
-    map = map_sec->maps;
-    for (i=0; i<map_sec->map_count; i++) {
-        ret |= _mybpf_simple_write(vbuf, map, map_def_size);
-        map = map + map_def_size;
+    if (map_def_size < UMAP_ELF_MAP_MIN_SIZE) {
+        map_def_size = UMAP_ELF_MAP_MIN_SIZE;
+        padding = map_def_size - map_sec->map_def_size;
     }
+
+    map_count = global_data->sec_count + map_sec->map_count;
+
+    /* 写入map header */
+    ret |= _mybpf_simple_add_map_sec_hdr(vbuf, map_count, map_def_size);
+
+    /* 写入global data map */
+    ret |= _mybpf_simple_write_global_data(vbuf, global_data, map_def_size);
+
+    /* 写入bpf maps */
+    ret |= _mybpf_simpe_add_map(vbuf, map_sec, padding);
 
     return ret;
 }
@@ -160,11 +202,11 @@ static int _mybpf_simple_write_map_data_sec_one(VBUF_S *vbuf, int map_index, voi
     return ret;
 }
 
-
+/* 对于global data段进行记录 */
 static int _mybpf_simple_write_global_data_secs(VBUF_S *vbuf, ELF_S *elf, ELF_GLOBAL_DATA_S *data)
 {
     int ret = 0;
-    int map_index = 0; 
+    int map_index = 0; /* data关联哪个map */
 
     if (data->have_bss) {
         ret |= _mybpf_simple_write_map_data_sec_one(vbuf, map_index, NULL, 0);
@@ -186,48 +228,58 @@ static int _mybpf_simple_write_global_data_secs(VBUF_S *vbuf, ELF_S *elf, ELF_GL
     return ret;
 }
 
+static int _mybpf_simple_write_maps_name_sec_hdr(VBUF_S *vbuf, int map_count, int data_size)
+{
+    MYBPF_SIMPLE_MAP_NAME_HDR_S hdr = {0};
+
+    hdr.sec_type = MYBPF_SIMPLE_SEC_TYPE_MAP_NAME;
+    hdr.map_count = map_count;
+    hdr.sec_size = sizeof(hdr) + data_size;
+    hdr.sec_size = htonl(hdr.sec_size);
+
+    /* 写入header */
+    return _mybpf_simple_write(vbuf, &hdr, sizeof(hdr));
+}
+
 static int _mybpf_simple_write_maps_name_sec(VBUF_S *vbuf, ELF_S *elf, ELF_GLOBAL_DATA_S *data, MYBPF_MAPS_SEC_S *map_sec)
 {
     int i;
     int ret = 0;
-    MYBPF_SIMPLE_MAP_NAME_HDR_S hdr = {0};
+    int data_size = 0;
+    int map_count;
     char *maps_name[MYBPF_LOADER_MAX_MAPS];
 
     BS_DBGASSERT(map_sec->map_count <= MYBPF_LOADER_MAX_MAPS);
 
-    hdr.sec_type = MYBPF_SIMPLE_SEC_TYPE_MAP_NAME;
-    hdr.sec_size = sizeof(MYBPF_SIMPLE_MAP_NAME_HDR_S);
-    hdr.map_count = map_sec->map_count + data->sec_count;
-
-    if (data->have_bss) hdr.sec_size += sizeof(".bss");
-    if (data->have_data) hdr.sec_size += sizeof(".data");
+    if (data->have_bss) data_size += sizeof(".bss");
+    if (data->have_data) data_size += sizeof(".data");
     for (i=0; i<data->rodata_count; i++) {
-        hdr.sec_size += sizeof(".rodata");
+        data_size += sizeof(".rodata");
     }
 
-    
+    /* 获取maps name */
     for (i=0; i<map_sec->map_count; i++) {
         maps_name[i] = ELF_GetSecSymbolName(elf, map_sec->sec_id, 0, i);
         if (! maps_name[i]) {
             RETURNI(BS_ERR, "Can't get map name");
         }
-        hdr.sec_size += (strlen(maps_name[i]) + 1);
+        data_size += (strlen(maps_name[i]) + 1);
     }
 
-    hdr.sec_size = htonl(hdr.sec_size);
+    map_count = map_sec->map_count + data->sec_count;
 
-    
-    ret |= _mybpf_simple_write(vbuf, &hdr, sizeof(hdr));
+    /* 写入header */
+    ret |= _mybpf_simple_write_maps_name_sec_hdr(vbuf, map_count, data_size);
 
-    
+    /* 写入global data name */
     if (data->have_bss) ret |= _mybpf_simple_write(vbuf, ".bss", sizeof(".bss"));
     if (data->have_data) ret |= _mybpf_simple_write(vbuf, ".data", sizeof(".data"));
     for (i=0; i<data->rodata_count; i++) {
         ret |= _mybpf_simple_write(vbuf, ".rodata", sizeof(".rodata"));
     }
 
-    
-    
+    /* 写入maps-name */
+    /* 格式为: name1\0name2\0...namex\0 */
     for (i=0; i<map_sec->map_count; i++) {
         int map_name_size = strlen(maps_name[i]) + 1;
         ret |= _mybpf_simple_write(vbuf, maps_name[i], map_name_size);
@@ -244,17 +296,17 @@ static void _mybpf_simple_fill_relo_map(int sec_id, int type, int offset, int va
     relo_map->value = value;
 }
 
-
+/* 构建重定位用的maps relo表 */
 static void _mybpf_simple_build_relo_maps(ELF_GLOBAL_DATA_S *data, MYBPF_MAPS_SEC_S *map_sec,
         OUT MYBPF_RELO_MAP_S *maps_relo)
 {
     int index = 0;
     int i;
 
-    
-    
+    /* 构建maps_relo的顺序要和wirte map时的顺序一致, 才能建立好映射关系 */
+    /* bss -> data -> rodata -> bpfmap */
 
-    
+    /* global data 表，使用type来区分data类型, 使用sec_id来作为sym查找用的key */
     if (data->have_bss) {
         _mybpf_simple_fill_relo_map(data->bss_sec.sec_id, MYBPF_RELO_MAP_BSS, 0, index, &maps_relo[index]);
         index ++;
@@ -271,14 +323,15 @@ static void _mybpf_simple_build_relo_maps(ELF_GLOBAL_DATA_S *data, MYBPF_MAPS_SE
     }
 
     for (i=0; i<map_sec->map_count; i++) {
-        
+        /* bpf map表，使用sec_id + offset来作为sym查找用的key */
         int offset = map_sec->map_def_size * i;
         _mybpf_simple_fill_relo_map(map_sec->sec_id, MYBPF_RELO_MAP_BPFMAP, offset, index, &maps_relo[index]);
         index ++;
     }
 }
 
-static int _mybpf_simple_write_maps(VBUF_S *vbuf, ELF_S *elf, OUT MYBPF_RELO_MAP_S *maps_relo, MYBPF_SIMPLE_CONVERT_PARAM_S *p)
+static int _mybpf_simple_write_maps(VBUF_S *vbuf, ELF_S *elf,
+        OUT MYBPF_RELO_MAP_S *maps_relo, MYBPF_SIMPLE_CONVERT_PARAM_S *p)
 {
     MYBPF_MAPS_SEC_S map_sec = {0};
     ELF_GLOBAL_DATA_S global_data = {0};
@@ -290,7 +343,7 @@ static int _mybpf_simple_write_maps(VBUF_S *vbuf, ELF_S *elf, OUT MYBPF_RELO_MAP
 
     map_count = global_data.sec_count + map_sec.map_count;
 
-    
+    /* 不存在map, 不用写入map sec */
     if (map_count <= 0) {
         return 0;
     }
@@ -318,27 +371,31 @@ static int _mybpf_simple_write_maps(VBUF_S *vbuf, ELF_S *elf, OUT MYBPF_RELO_MAP
     return map_count;
 }
 
-static int _mybpf_simple_write_prog_sec(VBUF_S *vbuf, void *mem, int mem_size, void *jitted, int jit_arch)
+/* 写入prog header */
+static int _mybpf_simple_write_prog_hdr(VBUF_S *vbuf, int prog_size, int jit_arch)
 {
     MYBPF_SIMPLE_PROG_HDR_S hdr = {0};
-    int ret = 0;
 
     hdr.sec_type = MYBPF_SIMPLE_SEC_TYPE_PROG;
-    hdr.sec_size = sizeof(hdr) + mem_size;
+    hdr.sec_size = sizeof(hdr) + prog_size;
     hdr.sec_size = htonl(hdr.sec_size);
+    hdr.jit_arch = jit_arch;
 
-    if (jitted) {
-        hdr.jit_arch = jit_arch;
-    }
+    /* 写入header */
+    return _mybpf_simple_write(vbuf, &hdr, sizeof(hdr));
+}
 
-    
-    ret |= _mybpf_simple_write(vbuf, &hdr, sizeof(hdr));
+static int _mybpf_simple_write_prog_sec(VBUF_S *vbuf, void *mem, int mem_size, int jit_arch)
+{
+    int ret = 0;
+
+    ret |= _mybpf_simple_write_prog_hdr(vbuf, mem_size, jit_arch);
     ret |= _mybpf_simple_write(vbuf, mem, mem_size);
 
     return ret;
 }
 
-
+/* 对于jit后,可以不需要sub prog info了 */
 static int _mybpf_simple_drop_sub_prog_info(INOUT ELF_PROG_INFO_S *progs, int count)
 {
     int new_count = count;
@@ -358,7 +415,7 @@ static int _mybpf_simple_drop_sub_prog_info(INOUT ELF_PROG_INFO_S *progs, int co
     return new_count;
 }
 
-
+/* 对于不携带name的情况,精简掉funcname */
 static void _mybpf_simple_drop_prog_name(INOUT ELF_PROG_INFO_S *progs, int count)
 {
     for (int i=0; i<count; i++) {
@@ -366,40 +423,48 @@ static void _mybpf_simple_drop_prog_name(INOUT ELF_PROG_INFO_S *progs, int count
     }
 }
 
-static int _mybpf_simple_write_prog_info(VBUF_S *vbuf, ELF_PROG_INFO_S *progs, int count)
+static int _mybpf_simple_write_prog_info_hdr(VBUF_S *vbuf, int info_size, int func_count)
 {
     MYBPF_SIMPLE_PROG_INFO_HDR_S hdr = {0};
-    MYBPF_SIMPLE_PROG_OFF_S info;
-    int i;
-    int ret = 0;
 
     hdr.sec_type = MYBPF_SIMPLE_SEC_TYPE_PROG_INFO;
-    hdr.sec_size = sizeof(hdr);
-    hdr.func_count = htons(count);
-
-    
-    hdr.sec_size += sizeof(info) * count;
-    for (i=0; i<count; i++) {
-        hdr.sec_size += strlen(progs[i].sec_name) + 1;
-        hdr.sec_size += strlen(progs[i].func_name) + 1;
-    }
-
+    hdr.func_count = htons(func_count);
+    hdr.sec_size = sizeof(hdr) + info_size;
     hdr.sec_size = htonl(hdr.sec_size);
 
-    
-    ret |= _mybpf_simple_write(vbuf, &hdr, sizeof(hdr));
+    return _mybpf_simple_write(vbuf, &hdr, sizeof(hdr));
+}
 
-    
-    for (i=0; i<count; i++) {
-        info.offset = htonl(progs[i].prog_offset);
-        info.len = htonl(progs[i].size);
+/* 写入func info */
+static int _mybpf_simple_write_func_info(VBUF_S *vbuf, ELF_PROG_INFO_S *progs_info, int prog_count)
+{
+    int ret = 0;
+    int i;
+    MYBPF_SIMPLE_PROG_OFF_S info;
+
+    for (i=0; i<prog_count; i++) {
+        info.offset = htonl(progs_info[i].prog_offset);
+        info.len = htonl(progs_info[i].size);
         ret |= _mybpf_simple_write(vbuf, &info, sizeof(info));
     }
 
-    
-    for (i=0; i<count; i++) {
-        char *str = progs[i].sec_name;
-        int len = strlen(str) + 1;
+    return ret;
+}
+
+/* 写入sec name & func name */
+static int _mybpf_simple_write_progs_name(VBUF_S *vbuf, ELF_PROG_INFO_S *progs, int prog_count)
+{
+    char *str;
+    int len;
+    int i;
+    int ret = 0;
+
+    /* 写入sec_name和func_name:
+       格式: sec_name1\0func_name1\0...sec_namex\0\func_namex\0
+     */
+    for (i=0; i<prog_count; i++) {
+        str = progs[i].sec_name;
+        len = strlen(str) + 1;
         ret |= _mybpf_simple_write(vbuf, str, len);
         str = progs[i].func_name;
         len = strlen(str) + 1;
@@ -409,7 +474,33 @@ static int _mybpf_simple_write_prog_info(VBUF_S *vbuf, ELF_PROG_INFO_S *progs, i
     return ret;
 }
 
-static int _mybpf_simple_jit(void *insts, int insts_len, void *progs, int prog_count,
+static int _mybpf_simple_write_prog_info(VBUF_S *vbuf, ELF_PROG_INFO_S *progs_info, int prog_count)
+{
+    MYBPF_SIMPLE_PROG_OFF_S info;
+    int i;
+    int ret = 0;
+    int info_size;
+
+    /* 计算sec size */
+    info_size = sizeof(info) * prog_count;
+    for (i=0; i<prog_count; i++) {
+        info_size += strlen(progs_info[i].sec_name) + 1;
+        info_size += strlen(progs_info[i].func_name) + 1;
+    }
+
+    /* 写入header */
+    ret |= _mybpf_simple_write_prog_info_hdr(vbuf, info_size, prog_count);
+
+    /* 写入func info */
+    ret |= _mybpf_simple_write_func_info(vbuf, progs_info, prog_count);
+
+    /* 写入sec name & func name */
+    ret |= _mybpf_simple_write_progs_name(vbuf, progs_info, prog_count);
+
+    return ret;
+}
+
+static int _mybpf_simple_jit_progs(void *insts, int insts_len, void *progs, int prog_count,
         void **jitted, MYBPF_SIMPLE_CONVERT_PARAM_S *p)
 {
     MYBPF_JIT_INSN_S jit_insn = {0};
@@ -435,42 +526,10 @@ static int _mybpf_simple_jit(void *insts, int insts_len, void *progs, int prog_c
     return jit_insn.insts_len;
 }
 
-static char * _mybpf_simple_get_sec_name(void *hdr)
+static int _mybpf_simple_get_sec_size(void *hdr)
 {
     MYBPF_SIMPLE_COMMON_HDR_S *sec = hdr;
-
-    if (sec->name_size == 0) {
-        return NULL;
-    }
-    
-    return (void*)(sec + 1);
-}
-
-static int _mybpf_simple_get_sec_data_size(void *hdr)
-{
-    MYBPF_SIMPLE_COMMON_HDR_S *sec = hdr;
-    int size;
-
-    size = ntohl(sec->sec_size);
-    size -= sizeof(*sec);
-    size -= sec->name_size;
-
-    return size;
-}
-
-static void * _mybpf_simple_get_sec_data(void *hdr)
-{
-    MYBPF_SIMPLE_COMMON_HDR_S *sec = hdr;
-    char *d;
-
-    if (_mybpf_simple_get_sec_data_size(sec) == 0) {
-        return NULL;
-    }
-
-    d = (void*)(sec + 1);
-    d += sec->name_size;
-
-    return d;
+    return ntohl(sec->sec_size);
 }
 
 static int _mybpf_simple_get_helper_offset(int imm, void *ud)
@@ -487,6 +546,38 @@ static int _mybpf_simple_get_helper_offset(int imm, void *ud)
     return 0;
 }
 
+typedef struct {
+    void *progs;
+    void *progs_info;
+    int progs_size;
+    int progs_count;
+}_MYBPF_SIMPLE_PROG_INFO_S;
+
+static int _mybpf_simple_get_progs_info(FILE_MEM_S *m, OUT _MYBPF_SIMPLE_PROG_INFO_S *info)
+{
+    info->progs_size = MYBPF_SIMPLE_GetProgsSize(m);
+    info->progs_count = MYBPF_SIMPLE_GetProgsCount(m);
+
+    info->progs = MYBPF_SIMPLE_GetProgs(m);
+    info->progs_info = MEM_ZMalloc(sizeof(ELF_PROG_INFO_S) * info->progs_count);
+
+    if ((! info->progs) ||  (! info->progs_info)) {
+        MEM_SafeFree(info->progs);
+        MEM_SafeFree(info->progs_info);
+        info->progs = info->progs_info = NULL;
+        RETURN(BS_NO_MEMORY);
+    }
+
+    MYBPF_SIMPLE_GetProgsInfo(m, info->progs_info, info->progs_count);
+
+    return 0;
+}
+
+static void _mybpf_simple_clear_progs_info(_MYBPF_SIMPLE_PROG_INFO_S *info)
+{
+    MEM_SafeFree(info->progs_info);
+}
+
 static int _mybpf_simple_add_helper_depends(void *insts, int insn_index, void *ud)
 {
     MYBPF_HELPER_DEPENDS_S *d = ud;
@@ -496,7 +587,7 @@ static int _mybpf_simple_add_helper_depends(void *insts, int insn_index, void *u
 
     imm = htonl(imm);
 
-    
+    /* 已经存在则直接返回 */
     for (i=0; i<d->count; i++) {
         if (d->helpers[i] == imm) {
             return 0;
@@ -523,7 +614,7 @@ static int _mybpf_simple_write_helper_depends_sec(VBUF_S *vbuf, MYBPF_HELPER_DEP
     hdr.sec_size = sizeof(hdr) + (d->count * sizeof(int));
     hdr.sec_size = htonl(hdr.sec_size);
 
-    
+    /* 写入header */
     ret |= _mybpf_simple_write(vbuf, &hdr, sizeof(hdr));
     ret |= _mybpf_simple_write(vbuf, d->helpers, d->count * sizeof(int));
 
@@ -549,57 +640,66 @@ static int _mybpf_simple_write_helper_depends(VBUF_S *vbuf, void *progs_mem, int
     return _mybpf_simple_write_helper_depends_sec(vbuf, &d);
 }
 
-static inline int _mybpf_simple_write_prog_mem(VBUF_S *vbuf, MYBPF_SIMPLE_CONVERT_PARAM_S *p,
+static int _mybpf_simple_write_progs(VBUF_S *vbuf, MYBPF_SIMPLE_CONVERT_PARAM_S *p,
+        void *mem, int mem_size,
+        ELF_PROG_INFO_S *progs_info, int prog_count)
+{
+    int ret;
+
+    if ((p) && (p->jit_arch) && (! p->with_func_name)) {
+        prog_count = _mybpf_simple_drop_sub_prog_info(progs_info, prog_count);
+    }
+
+    if ((p) && (p->with_func_name == 0)) {
+        _mybpf_simple_drop_prog_name(progs_info, prog_count);
+    }
+
+    if ((ret = _mybpf_simple_write_prog_sec(vbuf, mem, mem_size, p->jit_arch)) < 0) {
+        return ret;
+    }
+
+    if ((ret = _mybpf_simple_write_prog_info(vbuf, progs_info, prog_count)) < 0) {
+        return ret;
+    }
+
+    return 0;
+}
+
+static int _mybpf_simple_jit_and_write(VBUF_S *vbuf, MYBPF_SIMPLE_CONVERT_PARAM_S *p,
         void *mem, int mem_size,
         ELF_PROG_INFO_S *progs_info, int prog_count)
 {
     int ret;
     void *jitted = NULL;
     int jitted_len;
-    int jit_arch = p ? p->jit_arch : MYBPF_JIT_ARCH_NONE;
 
-    if (p->helper_map) {
-        if (MYBPF_INSN_FixupExtCalls(mem, mem_size, _mybpf_simple_get_helper_offset, p->helper_map) < 0) {
-            ret = ERR_Set(BS_ERR, "Fixup ext calls error");
-            goto Out;
-        }
+    jitted_len = _mybpf_simple_jit_progs(mem, mem_size, progs_info, prog_count, &jitted, p);
+    if (jitted_len < 0) {
+        ErrCode_Print();
+        PRINTLN_HYELLOW("Jit failed");
+        return jitted_len;
+    } 
+
+    ret = _mybpf_simple_write_helper_depends(vbuf, mem, mem_size);
+    ret |= _mybpf_simple_write_progs(vbuf, p, jitted, jitted_len, progs_info, prog_count);
+
+    MEM_Free(jitted);
+
+    return ret;
+}
+
+static int _mybpf_simple_write_prog_mem(VBUF_S *vbuf, MYBPF_SIMPLE_CONVERT_PARAM_S *p,
+        void *mem, int mem_size,
+        ELF_PROG_INFO_S *progs_info, int prog_count)
+{
+    int ret;
+
+    if (p->jit_arch) {
+        ret = _mybpf_simple_jit_and_write(vbuf, p, mem, mem_size, progs_info, prog_count);
+    }else {
+        ret =_mybpf_simple_write_progs(vbuf, p, mem, mem_size, progs_info, prog_count);
     }
 
-    if (jit_arch) {
-        jitted_len = ret = _mybpf_simple_jit(mem, mem_size, progs_info, prog_count, &jitted, p);
-        if (jitted_len <= 0) {
-            jit_arch = MYBPF_JIT_ARCH_NONE;
-            ErrCode_Print();
-            PRINTLN_HYELLOW("Jit failed");
-            goto Out;
-        } 
-
-        ret = _mybpf_simple_write_helper_depends(vbuf, mem, mem_size);
-        if (ret < 0) {
-            goto Out;
-        }
-
-        mem = jitted;
-        mem_size = jitted_len;
-    }
-
-    if ((ret = _mybpf_simple_write_prog_sec(vbuf, mem, mem_size, mem, jit_arch)) < 0) {
-        goto Out;
-    }
-
-    if ((jit_arch) && (! p->with_func_name)) {
-        prog_count = _mybpf_simple_drop_sub_prog_info(progs_info, prog_count);
-    }
-
-    if ((!p) || (p->with_func_name == 0)) 
-        _mybpf_simple_drop_prog_name(progs_info, prog_count);
-
-    if ((ret = _mybpf_simple_write_prog_info(vbuf, progs_info, prog_count)) < 0) {
-        goto Out;
-    }
-
-Out:
-    MEM_SafeFree(jitted);
     return ret;
 }
 
@@ -629,6 +729,13 @@ static int _mybpf_simple_write_prog(VBUF_S *vbuf, ELF_S *elf, MYBPF_SIMPLE_CONVE
         goto Out;
     }
 
+    if ((p) && (p->helper_map)) {
+        if (MYBPF_INSN_FixupExtCalls(mem, mem_size, _mybpf_simple_get_helper_offset, p->helper_map) < 0) {
+            ret = ERR_Set(BS_ERR, "Fixup ext calls error");
+            goto Out;
+        }
+    }
+
     ret = _mybpf_simple_write_prog_mem(vbuf, p, mem, mem_size, progs_info, prog_count);
 
 Out:
@@ -652,7 +759,7 @@ static int _mybpf_simple_write_private_secs(VBUF_S *vbuf, ELF_S *elf)
     while ((iter = ELF_GetNextSection(elf, iter, &sec))) {
 
         if (ELF_IsProgSection(&sec)) {
-            
+            /* progs已经被处理过了, 不需要重复处理 */
             continue;
         }
 
@@ -687,224 +794,108 @@ static int _mybpf_simple_write_private_secs(VBUF_S *vbuf, ELF_S *elf)
     return 0;
 }
 
-static int _mybpf_simple_write_end_sec(VBUF_S *vbuf)
+/* 根据id获取map */
+static void * _mybpf_simple_get_map(MYBPF_MAPS_SEC_S *map_sec, U32 id)
 {
-    MYBPF_SIMPLE_END_S hdr = {0};
-    hdr.sec_type = MYBPF_SIMPLE_SEC_TYPE_END;
-    return _mybpf_simple_write(vbuf, &hdr, sizeof(hdr));
-}
+    char *map = map_sec->maps;
 
-static int _mybpf_simple_write_vbuf_2_file(VBUF_S *vbuf, char *simple_file)
-{
-    FILE *fp = NULL;
-
-    fp = FILE_Open(simple_file, TRUE, "wb+");
-    if (! fp) {
-        RETURNI(BS_ERR, "Can't open file %s", simple_file);
-    }
-
-    int ret = fwrite(VBUF_GetData(vbuf), 1, VBUF_GetDataLength(vbuf), fp);
-
-    FILE_Close(fp);
-
-    if (ret < 0) {
-        RETURNI(BS_CAN_NOT_WRITE, "Can't wiret to file");
-    }
-
-    return ret;
-}
-
-static inline MYBPF_SIMPLE_COMMON_HDR_S * _mybpf_simple_get_next_sec(FILE_MEM_S *m, void *cur_hdr)
-{
-    MYBPF_SIMPLE_COMMON_HDR_S *common_hdr = cur_hdr;
-
-    if (! cur_hdr) {
-        
-        MYBPF_SIMPLE_HDR_S *hdr = (void*)m->pucFileData;
-        return (void*)(hdr + 1);
-    }
-
-    
-    if (common_hdr->sec_type == MYBPF_SIMPLE_SEC_TYPE_END) {
+    if (id >= map_sec->map_count) {
         return NULL;
     }
 
-    return (void*)((UCHAR*)common_hdr + ntohl(common_hdr->sec_size));
+    map += (id * map_sec->map_def_size);
+
+    return map;
 }
 
-
-static inline void * _mybpf_simple_get_next_type_sec(FILE_MEM_S *m, int type, void *cur_hdr)
+static int _mybpf_simple_modify_map(FILE_MEM_S *m, U32 map_id, UMAP_ELF_MAP_S *mapdef, MYBPF_SIMPLE_MAP_MASK_S *msk)
 {
-    MYBPF_SIMPLE_COMMON_HDR_S *common_hdr = cur_hdr;
+    MYBPF_MAPS_SEC_S map_sec = {0};
+    UMAP_ELF_MAP_S *map;
 
-    while ((common_hdr = _mybpf_simple_get_next_sec(m, common_hdr))) {
-        if (common_hdr->sec_type == type) {
-            return common_hdr;
-        }
-    }
+    MYBPF_SIMPLE_GetMapsSection(m, &map_sec);
 
-    return NULL;
-}
-
-
-static inline int _mybpf_simple_get_type_sec_count(FILE_MEM_S *m, int type)
-{
-    MYBPF_SIMPLE_COMMON_HDR_S *common_hdr = NULL;
-    int count = 0;
-
-    while ((common_hdr = _mybpf_simple_get_next_type_sec(m, type, common_hdr))) {
-        count ++;
-    }
-
-    return count;
-}
-
-
-static inline void * _mybpf_simple_get_type_sec(FILE_MEM_S *m, int type, int id)
-{
-    MYBPF_SIMPLE_COMMON_HDR_S *common_hdr = NULL;
-    int this_id = 0;
-
-    while ((common_hdr = _mybpf_simple_get_next_type_sec(m, type, common_hdr))) {
-        if (this_id == id) {
-            return common_hdr;
-        }
-        this_id ++;
-    }
-
-    return NULL;
-}
-
-static inline int _mybpf_simple_get_prog_names(FILE_MEM_S *m, int id, OUT char **sec_name, OUT char **func_name)
-{
-    int i;
-    char *fname;
-    char *sname;
-    int func_count;
-    MYBPF_SIMPLE_PROG_OFF_S *off;
-
-    MYBPF_SIMPLE_PROG_INFO_HDR_S *hdr = _mybpf_simple_get_type_sec(m, MYBPF_SIMPLE_SEC_TYPE_PROG_INFO, 0);
-    if (! hdr) {
+    if (map_id >= map_sec.map_count) {
         RETURN(BS_NOT_FOUND);
     }
 
-    func_count = ntohs(hdr->func_count);
-    if (id >= func_count) {
-        RETURN(BS_OUT_OF_RANGE);
+    map = _mybpf_simple_get_map(&map_sec, map_id);
+    if (! map) {
+        RETURN(BS_NO_SUCH);
     }
 
-    off = _mybpf_simple_get_sec_data(hdr);
-
-    sname = (void*)(off + func_count);
-    fname = sname + strlen(sname) + 1;
-
-    for (i=0; i<id; i++) {
-        sname = fname + strlen(fname) + 1;
-        fname = sname + strlen(sname) + 1;
+    if (msk->type) {
+        map->type = mapdef->type;
     }
 
-    if (sec_name) {
-        *sec_name = sname;
+    if (msk->size_key) {
+        map->size_key = mapdef->size_key;
     }
 
-    if (func_name) {
-        *func_name = fname;
+    if (msk->size_value) {
+        map->size_value = mapdef->size_value;
+    }
+
+    if (msk->max_elem) {
+        map->max_elem = mapdef->max_elem;
+    }
+
+    if ((map_sec.map_def_size >= sizeof(UMAP_ELF_MAP_S)) && (msk->flags)){
+        map->flags = mapdef->flags;
     }
 
     return 0;
 }
 
-static inline char * _mybpf_simple_get_prog_sec_name(FILE_MEM_S *m, int id)
+static int _mybpf_simple_del_sec(VBUF_S *vbuf, int type, int id)
 {
-    char *sec_name;
+    FILE_MEM_S m;
+    void *sec;
+    int sec_size;
 
-    if (_mybpf_simple_get_prog_names(m, id, &sec_name, NULL) < 0) {
-        return NULL;
-    }
+    m.data = VBUF_GetData(vbuf);
+    m.len = VBUF_GetDataLength(vbuf);
 
-    return sec_name;
-}
-
-static inline char * _mybpf_simple_get_prog_func_name(FILE_MEM_S *m, int id)
-{
-    char *func_name;
-
-    if (_mybpf_simple_get_prog_names(m, id, NULL, &func_name) < 0) {
-        return NULL;
-    }
-
-    return func_name;
-}
-
-static inline MYBPF_SIMPLE_PROG_OFF_S * _mybpf_simple_get_prog_offs(FILE_MEM_S *m)
-{
-    MYBPF_SIMPLE_PROG_INFO_HDR_S *hdr = _mybpf_simple_get_type_sec(m, MYBPF_SIMPLE_SEC_TYPE_PROG_INFO, 0);
-    if (! hdr) {
-        return NULL;
-    }
-
-    return _mybpf_simple_get_sec_data(hdr);
-}
-
-static inline char * _mybpf_simple_get_map_name(FILE_MEM_S *m, int id)
-{
-    int i;
-    char *map_name;
-
-    MYBPF_SIMPLE_MAP_NAME_HDR_S *name_hdr = _mybpf_simple_get_type_sec(m, MYBPF_SIMPLE_SEC_TYPE_MAP_NAME, 0);
-    if (! name_hdr) {
-        return NULL;
-    }
-
-    if (id >= name_hdr->map_count) {
-        return NULL;
-    }
-
-    map_name = _mybpf_simple_get_sec_data(name_hdr);
-
-    for (i=0; i<id; i++) {
-        map_name = map_name + strlen(map_name) + 1;
-    }
-
-    return map_name;
-}
-
-static int _mybpf_simple_get_map_def_size(MYBPF_SIMPLE_MAP_HDR_S *hdr)
-{
-    int map_size;
-
-    if (hdr->map_count == 0) {
+    sec = mybpf_simple_get_type_sec(&m, type, id);
+    if (! sec) {
         return 0;
     }
 
-    map_size = _mybpf_simple_get_sec_data_size(hdr);
+    sec_size = _mybpf_simple_get_sec_size(sec);
 
-    return map_size / hdr->map_count;
+    VBUF_Cut(vbuf, VBUF_Ptr2Offset(vbuf, sec), sec_size);
+
+    return 0;
 }
 
 static int _mybpf_simple_format_map_info(FILE_MEM_S *m, void *common_hdr, OUT char *buf, int buf_size)
 {
     int i;
+    int map_def_size;
     MYBPF_SIMPLE_MAP_HDR_S *hdr = (void*)common_hdr;
 
     BS_DBGASSERT(hdr->sec_type == MYBPF_SIMPLE_SEC_TYPE_MAP);
 
+    map_def_size = mybpf_simple_get_map_def_size(hdr);
+
     int ret = SNPRINTF(buf, buf_size, "map_count:%u, map_def_size:%u \r\n",
-            hdr->map_count, _mybpf_simple_get_map_def_size(hdr));
+            hdr->map_count, map_def_size);
     if (ret < 0) {
         RETURNI(BS_NOT_COMPLETE, "buf size too small");
     }
 
-    UMAP_ELF_MAP_S * map = _mybpf_simple_get_sec_data(hdr);
+    UMAP_ELF_MAP_S * map = mybpf_simple_get_sec_data(hdr);
 
     for (i=0; i<hdr->map_count; i++) {
         int len = strlen(buf);
         ret = SNPRINTF(buf + len, buf_size - len,
                     "map_id:%u, type:%u, key_size:%u, value_size:%u, max_elem:%u, name:%s \r\n",
-                    i, map->type, map->size_key, map->size_value, map->max_elem, _mybpf_simple_get_map_name(m, i));
+                    i, map->type, map->size_key, map->size_value,
+                    map->max_elem, mybpf_simple_get_map_name(m, i));
         if (ret < 0) {
             RETURNI(BS_NOT_COMPLETE, "buf size too small");
         }
+        map = (void*)((char*)map + map_def_size);
     }
 
     return 0;
@@ -921,15 +912,15 @@ static int _mybpf_simple_format_prog_info(FILE_MEM_S *m, void *common_hdr, OUT c
 static int _mybpf_simple_format_proginfo_info(FILE_MEM_S *m, void *common_hdr, OUT char *buf, int buf_size)
 {
     MYBPF_SIMPLE_PROG_INFO_HDR_S *hdr = common_hdr;
-    MYBPF_SIMPLE_PROG_OFF_S *off = _mybpf_simple_get_sec_data(hdr);
+    MYBPF_SIMPLE_PROG_OFF_S *off = mybpf_simple_get_sec_data(hdr);
     int i;
     int ret;
     int func_count = ntohs(hdr->func_count);
 
     for (i=0; i<func_count; i++) {
         int len = strlen(buf);
-        char *func_name = _mybpf_simple_get_prog_func_name(m, i);
-        char *sec_name = _mybpf_simple_get_prog_sec_name(m, i);
+        char *func_name = mybpf_simple_get_prog_func_name(m, i);
+        char *sec_name = mybpf_simple_get_prog_sec_name(m, i);
 
         if ((func_name) && (func_name[0])) {
             ret = SNPRINTF(buf + len, buf_size - len, "sec:%s, func:%s, offset:%u, size:%u \r\n", 
@@ -950,7 +941,7 @@ static int _mybpf_simple_format_proginfo_info(FILE_MEM_S *m, void *common_hdr, O
 static int _mybpf_simple_format_private_info(FILE_MEM_S *m, void *common_hdr, OUT char *buf, int buf_size)
 {
     MYBPF_SIMPLE_PRIVATE_HDR_S *hdr = common_hdr;
-    char *name = _mybpf_simple_get_sec_name(hdr);
+    char *name = mybpf_simple_get_sec_name(hdr);
     int sec_size;
 
     int len = strlen(buf);
@@ -975,7 +966,7 @@ static int _mybpf_simple_format_helper_depends_info(FILE_MEM_S *m, void *common_
 
     helper_count = sec_size / sizeof(int);
 
-    int *helpers = _mybpf_simple_get_sec_data(hdr);
+    int *helpers = mybpf_simple_get_sec_data(hdr);
 
     len = strlen(buf);
     if (SNPRINTF(buf + len, buf_size - len, "helpers:") < 0) {
@@ -1000,7 +991,6 @@ static int _mybpf_simple_format_helper_depends_info(FILE_MEM_S *m, void *common_
 typedef int (*PF_MYBPF_SIMPLE_FORMAT_SEC_FUNC)(FILE_MEM_S *m, void *common_hdr, OUT char *buf, int buf_size);
 
 static PF_MYBPF_SIMPLE_FORMAT_SEC_FUNC g_mybpf_simple_format_sec_funcs[] = {
-    [MYBPF_SIMPLE_SEC_TYPE_END] = NULL,
     [MYBPF_SIMPLE_SEC_TYPE_MAP] = _mybpf_simple_format_map_info,
     [MYBPF_SIMPLE_SEC_TYPE_PROG] = _mybpf_simple_format_prog_info,
     [MYBPF_SIMPLE_SEC_TYPE_PROG_INFO] = _mybpf_simple_format_proginfo_info,
@@ -1012,7 +1002,7 @@ static int _mybpf_simple_format_file_info(FILE_MEM_S *m, OUT char *buf, int buf_
 {
     int ret;
     PF_MYBPF_SIMPLE_FORMAT_SEC_FUNC func;
-    MYBPF_SIMPLE_HDR_S *hdr = (void*)m->pucFileData;
+    MYBPF_SIMPLE_HDR_S *hdr = (void*)m->data;
 
     ret = SNPRINTF(buf, buf_size, "version:%u, total_size:%u \r\n", hdr->ver, ntohl(hdr->totle_size));
     if (ret < 0) {
@@ -1021,7 +1011,7 @@ static int _mybpf_simple_format_file_info(FILE_MEM_S *m, OUT char *buf, int buf_
 
     MYBPF_SIMPLE_COMMON_HDR_S *common_hdr = NULL;
 
-    while ((common_hdr = _mybpf_simple_get_next_sec(m, common_hdr))) {
+    while ((common_hdr = mybpf_simple_get_next_sec(m, common_hdr))) {
         if (common_hdr->sec_type > ARRAY_SIZE(g_mybpf_simple_format_sec_funcs)) {
             continue;
         }
@@ -1041,8 +1031,7 @@ static int _mybpf_simple_format_file_info(FILE_MEM_S *m, OUT char *buf, int buf_
     return 0;
 }
 
-
-int MYBPF_SIMPLE_Elf2SpfBuf(void *elf, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT VBUF_S *vbuf)
+static int _mybpf_simple_elf2spfbuf(void *elf, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT VBUF_S *vbuf)
 {
     int maps_count;
     MYBPF_RELO_MAP_S maps_relo[MYBPF_LOADER_MAX_MAPS];
@@ -1064,19 +1053,329 @@ int MYBPF_SIMPLE_Elf2SpfBuf(void *elf, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT VBUF
         return -1;
     }
 
-    if (_mybpf_simple_write_end_sec(vbuf) < 0) {
-        return -1;
-    }
-
-    UINT size = VBUF_GetDataLength(vbuf);
-    if (_mybpf_simple_write_totle_size(vbuf, size) < 0) {
+    if (_mybpf_simple_write_totle_size(vbuf) < 0) {
         return -1;
     }
 
     return 0;
 }
 
+/* merge global data */
+static int _mybpf_simple_merge_global_data(FILE_MEM_S *m, OUT VBUF_S *vbuf, int map_index_off)
+{
+    int i;
+    int ret = 0;
+    int global_map_count;
+    MYBPF_SIMPLE_MAP_DATA_S *sec;
 
+    global_map_count = MYBPF_SIMPLE_GetTypeSecCount(m, MYBPF_SIMPLE_SEC_TYPE_GLOBAL_DATA);
+
+    for (i=0; i<global_map_count; i++) {
+        sec = MYBPF_SIMPLE_GetSec(m, MYBPF_SIMPLE_SEC_TYPE_GLOBAL_DATA, i);
+        if (sec) {
+            int sec_size = _mybpf_simple_get_sec_size(sec);
+            sec->map_index += map_index_off;
+            ret |= _mybpf_simple_write(vbuf, sec, sec_size);
+        }
+    }
+
+    return ret;
+}
+
+/* merge map names */
+static int _mybpf_simple_merge_map_name(FILE_MEM_S *m1, FILE_MEM_S *m2, OUT VBUF_S *vbuf)
+{
+    MYBPF_SIMPLE_MAP_NAME_HDR_S *name_sec1, *name_sec2 = NULL;
+    int ret;
+    int map_count;
+    int data_size1, data_size2 = 0;
+    void *data1, *data2 = NULL;
+
+    name_sec1 = mybpf_simple_get_type_sec(m1, MYBPF_SIMPLE_SEC_TYPE_MAP_NAME, 0);
+    if (! name_sec1) {
+        return 0;
+    }
+
+    if (m2) {
+        name_sec2 = mybpf_simple_get_type_sec(m2, MYBPF_SIMPLE_SEC_TYPE_MAP_NAME, 0);
+        if (! name_sec2) {
+            return 0;
+        }
+    }
+
+    data1 = mybpf_simple_get_sec_data(name_sec1);
+    data_size1 = mybpf_simple_get_sec_data_size(name_sec1);
+    map_count = name_sec1->map_count;
+
+    if (m2) {
+       map_count += name_sec2->map_count;
+       data2 = mybpf_simple_get_sec_data(name_sec2);
+       data_size2 = mybpf_simple_get_sec_data_size(name_sec2);
+    }
+
+    ret = _mybpf_simple_write_maps_name_sec_hdr(vbuf, map_count, data_size1 + data_size2);
+    ret |= _mybpf_simple_write(vbuf, data1, data_size1);
+    if (m2) {
+        ret |= _mybpf_simple_write(vbuf, data2, data_size2);
+    }
+
+    return ret;
+}
+
+static int _mybpf_simple_merge_maps(FILE_MEM_S *m1, FILE_MEM_S *m2, OUT VBUF_S *vbuf, int with_map_name)
+{
+    MYBPF_MAPS_SEC_S map1 = {0}, map2 = {0};
+    int ret = 0;
+    int map_count;
+    int map_size_def;
+
+    MYBPF_SIMPLE_GetMapsSection(m1, &map1);
+
+    if (m2) {
+        MYBPF_SIMPLE_GetMapsSection(m2, &map2);
+    }
+
+    map_count = map1.map_count + map2.map_count;
+    if (map_count == 0) {
+        return 0;
+    }
+    
+    map_size_def = MAX(map1.map_def_size, map2.map_def_size);
+
+    /* 写入map header */
+    ret |= _mybpf_simple_add_map_sec_hdr(vbuf, map_count, map_size_def);
+
+    /* 写入maps */
+    ret |= _mybpf_simpe_add_map(vbuf, &map1, map_size_def - map1.map_def_size);
+    ret |= _mybpf_simpe_add_map(vbuf, &map2, map_size_def - map2.map_def_size);
+
+    /* 写入global data */
+    ret |= _mybpf_simple_merge_global_data(m1, vbuf, 0);
+    if (m2) {
+        ret |= _mybpf_simple_merge_global_data(m2, vbuf, map1.map_count);
+    }
+
+    /* 写入map name */
+    if (with_map_name) {
+        ret |= _mybpf_simple_merge_map_name(m1, m2, vbuf);
+    }
+
+    return ret;
+}
+
+static int _mybpf_simple_merge_modify_prog(void *insts, int insn_index, void *ud)
+{
+    MYBPF_MAPS_SEC_S *map1 = ud;
+    MYBPF_INSN_S *insn = insts;
+    int src_reg;
+
+    src_reg = insn[insn_index].src_reg;
+
+    if ((src_reg == BPF_PSEUDO_MAP_FD) || (src_reg == BPF_PSEUDO_MAP_VALUE)) {
+        insn[insn_index].imm += map1->map_count;
+        return 0;
+    }
+
+    return 0;
+}
+
+static int _mybpf_simple_merge_progs(FILE_MEM_S *m1, FILE_MEM_S *m2, OUT VBUF_S *vbuf)
+{
+    int ret;
+    int i;
+    ELF_PROG_INFO_S *info;
+    MYBPF_MAPS_SEC_S map1, map2;
+    _MYBPF_SIMPLE_PROG_INFO_S info1 = {0};
+    _MYBPF_SIMPLE_PROG_INFO_S info2 = {0};
+
+    MYBPF_SIMPLE_GetMapsSection(m1, &map1);
+    MYBPF_SIMPLE_GetMapsSection(m2, &map2);
+
+    if ((0 != MYBPF_SIMPLE_GetJitArch(m1)) || (0 != MYBPF_SIMPLE_GetJitArch(m2))) {
+        /* 对于已经jit后的prog, 不能修改其代码了 */
+        RETURN(BS_NOT_SUPPORT);
+    }
+
+    ret = _mybpf_simple_get_progs_info(m1, &info1);
+    ret |= _mybpf_simple_get_progs_info(m2, &info2);
+    if (ret < 0) {
+        goto _OUT;
+    }
+
+    /* 修改prog中使用的map id */
+    MYBPF_INSN_WalkLddw(info2.progs, info2.progs_size, _mybpf_simple_merge_modify_prog, &map1);
+    
+    /* 修改prog2 offset */
+    info = info2.progs_info;
+    for (i=0; i<info2.progs_count; i++) {
+        info[i].prog_offset += info1.progs_size;
+    }
+
+    ret = _mybpf_simple_write_prog_hdr(vbuf, info1.progs_size + info2.progs_size, 0);
+    ret |= _mybpf_simple_write(vbuf, info1.progs, info1.progs_size);
+    ret |= _mybpf_simple_write(vbuf, info2.progs, info2.progs_size);
+
+    ret |= _mybpf_simple_write_prog_info_hdr(vbuf,
+            MYBPF_SIMPLE_GetProgsInfoSize(m1) + MYBPF_SIMPLE_GetProgsInfoSize(m2),
+            info1.progs_count + info2.progs_count);
+    ret |= _mybpf_simple_write_func_info(vbuf, info1.progs_info, info1.progs_count);
+    ret |= _mybpf_simple_write_func_info(vbuf, info2.progs_info, info2.progs_count);
+
+    ret |= _mybpf_simple_write_progs_name(vbuf, info1.progs_info, info1.progs_count);
+    ret |= _mybpf_simple_write_progs_name(vbuf, info2.progs_info, info2.progs_count);
+
+_OUT:
+    _mybpf_simple_clear_progs_info(&info1);
+    _mybpf_simple_clear_progs_info(&info2);
+
+    return ret;
+}
+
+static int _mybpf_simple_find_depend(MYBPF_HELPER_DEPENDS_S *d, int helper_id)
+{
+    int i;
+
+    for (i = 0; i<d->count; i++) {
+        if (d->helpers[i] == helper_id) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+static int _mybpf_simple_merge_depends(FILE_MEM_S *m1, FILE_MEM_S *m2, OUT VBUF_S *vbuf)
+{
+    int ret = 0;
+    void *sec1, *sec2 = NULL;
+    int count1 = 0, count2 = 0, i;
+    int *helpers1, *helpers2;
+    MYBPF_HELPER_DEPENDS_S d = {0};
+
+    sec1 = mybpf_simple_get_type_sec(m1, MYBPF_SIMPLE_SEC_TYPE_HELPER_DEPENDS, 0);
+    if (m2) {
+        sec2 = mybpf_simple_get_type_sec(m2, MYBPF_SIMPLE_SEC_TYPE_HELPER_DEPENDS, 0);
+    }
+
+    if (sec1) {
+        count1 = mybpf_simple_get_sec_data_size(sec1) / sizeof(int);
+        helpers1 = mybpf_simple_get_sec_data(sec1);
+    }
+
+    if (sec2) {
+        count2 = mybpf_simple_get_sec_data_size(sec2) / sizeof(int);
+        helpers2 = mybpf_simple_get_sec_data(sec2);
+    }
+
+    if (count1) {
+        memcpy(d.helpers, helpers1, count1 * sizeof(int));
+        d.count = count1;
+    }
+    
+    for (i=0; i<count2; i++) {
+        if (_mybpf_simple_find_depend(&d, helpers2[i]) < 0) {
+            if (d.count >= ARRAY_SIZE(d.helpers)) {
+                RETURN(BS_OUT_OF_RANGE);
+            }
+            d.helpers[d.count] = helpers2[i];
+            d.count ++;
+        }
+    }
+
+    if (d.count) {
+        ret = _mybpf_simple_write_helper_depends_sec(vbuf, &d);
+    }
+
+    return ret;
+}
+
+static int _mybpf_simple_merge_private(FILE_MEM_S *m, OUT VBUF_S *vbuf)
+{
+    void *sec = NULL;
+    int ret = 0;
+
+    while ((sec = mybpf_simple_get_next_type_sec(m, MYBPF_SIMPLE_SEC_TYPE_PRIVATE, sec))) {
+        ret |= _mybpf_simple_write(vbuf, sec, _mybpf_simple_get_sec_size(sec));
+    }
+
+    return ret;
+}
+
+static int _mybpf_simple_convert_prog(FILE_MEM_S *m, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT VBUF_S *dst)
+{
+    int ret = 0;
+    int old_jit_arch;
+    _MYBPF_SIMPLE_PROG_INFO_S info = {0};
+
+    if ((ret = _mybpf_simple_get_progs_info(m, &info)) < 0) {
+        return ret;
+    }
+
+    old_jit_arch = MYBPF_SIMPLE_GetJitArch(m);
+
+    if ((! old_jit_arch) && (p->jit_arch)) {
+        ret = _mybpf_simple_jit_and_write(dst, p, info.progs, info.progs_size, info.progs_info, info.progs_count);
+    }else {
+        ret |= _mybpf_simple_write_progs(dst, p, info.progs, info.progs_size, info.progs_info, info.progs_count);
+    }
+
+    _mybpf_simple_clear_progs_info(&info);
+
+    return ret;
+}
+
+/* 打开elf格式的文件并转换成spf */
+static FILE_MEM_S * _mybpf_simple_open_elf_file(char *elf_file)
+{
+    VBUF_S vbuf;
+    FILE_MEM_S *m = NULL;
+    MYBPF_SIMPLE_CONVERT_PARAM_S p = {0};
+
+    p.with_func_name = 1;
+    p.with_map_name = 1;
+
+    VBUF_Init(&vbuf);
+
+    if (MYBPF_SIMPLE_Bpf2SpfBuf(elf_file, &p, &vbuf) >= 0) {
+        m = FILE_MemByData(VBUF_GetData(&vbuf), VBUF_GetDataLength(&vbuf));
+    }
+
+    VBUF_Finit(&vbuf);
+
+    return m;
+}
+
+/* 转换文件为spf vbuf */
+static int _mybpf_simple_convert_file_2_spf_buf(char *src_filename, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT VBUF_S *vbuf)
+{
+    FILE_MEM_S *m = NULL;
+    int ret;
+
+    m = MYBPF_SIMPLE_OpenFile(src_filename);
+    if (! m) {
+        RETURN(BS_CAN_NOT_OPEN);
+    }
+
+    ret = MYBPF_SIMPLE_Convert(m, vbuf, p);
+
+    MYBPF_SIMPLE_Close(m);
+
+    return ret;
+}
+
+/* 将elf转换为File MEM. */
+FILE_MEM_S * MYBPF_SIMPLE_Elf2Mem(char *elf_file)
+{
+    return _mybpf_simple_open_elf_file(elf_file);
+}
+
+/* 将elf转换为spf buf. p: 控制参数,可以为NULL */
+int MYBPF_SIMPLE_Elf2SpfBuf(void *elf, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT VBUF_S *vbuf)
+{
+    return _mybpf_simple_elf2spfbuf(elf, p, vbuf);
+}
+
+/* 将bpf file转换为spf buf. p: 控制参数,可以为NULL */
 int MYBPF_SIMPLE_Bpf2SpfBuf(char *bpf_file, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT VBUF_S *vbuf)
 {
     ELF_S elf = {0};
@@ -1085,24 +1384,65 @@ int MYBPF_SIMPLE_Bpf2SpfBuf(char *bpf_file, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT
         RETURNI(BS_ERR, "Can't open file %s", bpf_file);
     }
 
-    int ret = MYBPF_SIMPLE_Elf2SpfBuf(&elf, p, vbuf);
+    int ret = _mybpf_simple_elf2spfbuf(&elf, p, vbuf);
 
     ELF_Close(&elf);
 
     return ret;
 }
 
+int MYBPF_SIMPLE_DelSec(VBUF_S *vbuf, int type, int id)
+{
+    return _mybpf_simple_del_sec(vbuf, type, id);
+}
 
-int MYBPF_SIMPLE_Bpf2SpfFile(char *bpf_file, char *simple_file, MYBPF_SIMPLE_CONVERT_PARAM_S *p)
+/* 将src merge到dst */
+int MYBPF_SIMPLE_Merge(VBUF_S *src1, VBUF_S *src2, OUT VBUF_S *dst)
+{
+    int ret = 0;
+    FILE_MEM_S m1, m2;
+
+    m1.data= VBUF_GetData(src1);
+    m1.len = VBUF_GetDataLength(src1);
+    m2.data= VBUF_GetData(src2);
+    m2.len = VBUF_GetDataLength(src2);
+
+    ret |= _mybpf_simple_write_header(dst);
+    ret |= _mybpf_simple_merge_maps(&m1, &m2, dst, 1);
+    ret |= _mybpf_simple_merge_progs(&m1, &m2, dst);
+    ret |= _mybpf_simple_merge_depends(&m1, &m2, dst);
+    ret |= _mybpf_simple_merge_private(&m1, dst);
+    ret |= _mybpf_simple_merge_private(&m2, dst);
+    ret |= _mybpf_simple_write_totle_size(dst);
+
+    return ret;
+}
+
+int MYBPF_SIMPLE_Convert(FILE_MEM_S *spf, OUT VBUF_S *dst, MYBPF_SIMPLE_CONVERT_PARAM_S *p)
+{
+    int ret = 0;
+
+    ret |= _mybpf_simple_write_header(dst);
+    ret |= _mybpf_simple_merge_maps(spf, NULL, dst, p->with_map_name);
+    ret |= _mybpf_simple_convert_prog(spf, p, dst);
+    ret |= _mybpf_simple_merge_depends(spf, NULL, dst);
+    ret |= _mybpf_simple_merge_private(spf, dst);
+    ret |= _mybpf_simple_write_totle_size(dst);
+
+    return ret;
+}
+
+/* 转换文件为spf file */
+int MYBPF_SIMPLE_Convert2SpfFile(char *src_filename, char *dst_filename, MYBPF_SIMPLE_CONVERT_PARAM_S *p)
 {
     VBUF_S vbuf;
+    int ret = 0;
 
     VBUF_Init(&vbuf);
 
-    int ret = MYBPF_SIMPLE_Bpf2SpfBuf(bpf_file, p, &vbuf);
-
+    ret = _mybpf_simple_convert_file_2_spf_buf(src_filename, p, &vbuf);
     if (ret == 0) {
-        ret = _mybpf_simple_write_vbuf_2_file(&vbuf, simple_file);
+        ret = VBUF_WriteFile(dst_filename, &vbuf);
     }
 
     VBUF_Finit(&vbuf);
@@ -1110,16 +1450,64 @@ int MYBPF_SIMPLE_Bpf2SpfFile(char *bpf_file, char *simple_file, MYBPF_SIMPLE_CON
     return ret;
 }
 
+/* 转换文件为bare file: 整个文件只有code部分 */
+int MYBPF_SIMPLE_Convert2BareFile(char *src_filename, char *dst_filename, MYBPF_SIMPLE_CONVERT_PARAM_S *p)
+{
+    VBUF_S vbuf;
+    int ret = 0;
+    FILE_MEM_S m;
+
+    VBUF_Init(&vbuf);
+
+    ret = _mybpf_simple_convert_file_2_spf_buf(src_filename, p, &vbuf);
+    if (ret < 0) {
+        goto _OUT;
+    }
+
+    m.data = VBUF_GetData(&vbuf);
+    m.len = VBUF_GetDataLength(&vbuf);
+
+    /* bare模式不支持map */
+    if (mybpf_simple_get_map_count(&m) > 0) {
+        ret = ERR_Set(BS_OUT_OF_RANGE, "Not support maps");
+        goto _OUT;
+    }
+
+    void *progs = mybpf_simple_get_progs(&m);
+    int progs_size = mybpf_simple_get_progs_size(&m);
+    if (progs_size <= 0) {
+        ret = ERR_Set(BS_OUT_OF_RANGE, "Can't get progs");
+        goto _OUT;
+    }
+
+    int len = (char*)progs - (char*)m.data;
+
+    VBUF_CutHead(&vbuf, len);
+    VBUF_CutTail(&vbuf, (m.len - len) - progs_size);
+
+    ret = VBUF_WriteFile(dst_filename, &vbuf);
+
+_OUT:
+    VBUF_Finit(&vbuf);
+
+    return ret;
+}
+
+int MYBPF_SIMPLE_ModifyMap(FILE_MEM_S *m, int map_id, UMAP_ELF_MAP_S *mapdef, MYBPF_SIMPLE_MAP_MASK_S *msk)
+{
+    return _mybpf_simple_modify_map(m, map_id, mapdef, msk);
+}
+
 int MYBPF_SIMPLE_BuildInfo(FILE_MEM_S *m, OUT char *buf, int buf_size)
 {
     return _mybpf_simple_format_file_info(m, buf, buf_size);
 }
 
-int MYBPF_SIMPLE_BuildFileInfo(char *simple_file, OUT char *buf, int buf_size)
+int MYBPF_SIMPLE_BuildFileInfo(char *file, OUT char *buf, int buf_size)
 {
-    FILE_MEM_S *m = MYBPF_SIMPLE_OpenFile(simple_file);
+    FILE_MEM_S *m = MYBPF_SIMPLE_OpenFile(file);
     if (! m) {
-        RETURNI(BS_ERR, "Can't open %s", simple_file);
+        RETURNI(BS_ERR, "Can't open %s", file);
     }
 
     int ret = _mybpf_simple_format_file_info(m, buf, buf_size);
@@ -1129,7 +1517,7 @@ int MYBPF_SIMPLE_BuildFileInfo(char *simple_file, OUT char *buf, int buf_size)
     return ret;
 }
 
-BOOL_T MYBPF_SIMPLE_IsSimpleFormatFile(char *simple_file)
+BOOL_T MYBPF_SIMPLE_IsSpfFile(char *simple_file)
 {
     MYBPF_SIMPLE_HDR_S hdr = {0};
 
@@ -1145,353 +1533,16 @@ BOOL_T MYBPF_SIMPLE_IsSimpleFormatFile(char *simple_file)
     return TRUE;
 }
 
-FILE_MEM_S * MYBPF_SIMPLE_OpenFile(char *simple_file)
+FILE_MEM_S * MYBPF_SIMPLE_OpenFile(char *file)
 {
-    FILE_MEM_S *m = FILE_Mem(simple_file);
-    if (! m) {
-        return NULL;
+    if (MYBPF_SIMPLE_IsSpfFile(file)) {
+        return MYBPF_SIMPLE_OpenSpf(file);
+    } else {
+        return MYBPF_SIMPLE_Elf2Mem(file);
     }
-
-    if (m->uiFileLen < sizeof(MYBPF_SIMPLE_HDR_S)) {
-        FILE_MemFree(m);
-        return NULL;
-    }
-
-    MYBPF_SIMPLE_HDR_S *hdr = (void*)m->pucFileData;
-
-    if ((hdr->ver != MYBPF_SIMPLE_VER) || (hdr->magic != MYBPF_SIMPLE_MAGIC)) {
-        FILE_MemFree(m);
-        return NULL;
-    }
-
-    return m;
 }
 
-void MYBPF_SIMPLE_Close(FILE_MEM_S *f)
+int MYBPF_SIMPLE_WriteFile(FILE_MEM_S *m, char *filename)
 {
-    FILE_MemFree(f);
+    return FILE_WriteFile(filename, m->data, m->len);
 }
-
-int MYBPF_SIMPLE_GetMapsSection(FILE_MEM_S *m, OUT MYBPF_MAPS_SEC_S *map_sec)
-{
-    MYBPF_SIMPLE_MAP_HDR_S *hdr;
-
-    map_sec->map_count = 0;
-    map_sec->map_def_size = 0;
-    map_sec->maps = NULL;
-
-    hdr = _mybpf_simple_get_type_sec(m, MYBPF_SIMPLE_SEC_TYPE_MAP, 0);
-    if (! hdr) {
-        return 0;
-    }
-
-    map_sec->map_count = hdr->map_count;
-    map_sec->map_def_size = _mybpf_simple_get_map_def_size(hdr);
-    map_sec->maps = _mybpf_simple_get_sec_data(hdr);
-
-    return 0;
-}
-
-
-char * MYBPF_SIMPLE_GetMapName(FILE_MEM_S *m, int id)
-{
-    return _mybpf_simple_get_map_name(m, id);
-}
-
-int MYBPF_SIMPLE_GetJitArch(FILE_MEM_S *m)
-{
-    MYBPF_SIMPLE_PROG_HDR_S *hdr;
-
-    hdr = _mybpf_simple_get_type_sec(m, MYBPF_SIMPLE_SEC_TYPE_PROG, 0);
-    if (! hdr) {
-        return MYBPF_JIT_ARCH_NONE;
-    }
-
-    return hdr->jit_arch;
-}
-
-int MYBPF_SIMPLE_GetTypeSecCount(FILE_MEM_S *m, int type)
-{
-    return _mybpf_simple_get_type_sec_count(m, type);
-}
-
-
-void * MYBPF_SIMPLE_GetSec(FILE_MEM_S *m, int type, int id)
-{
-    return _mybpf_simple_get_type_sec(m, type, id);
-}
-
-
-void * MYBPF_SIMPLE_GetSecByName(FILE_MEM_S *m, int type, char *name)
-{
-    MYBPF_SIMPLE_PRIVATE_HDR_S *hdr = NULL;
-
-    while ((hdr = _mybpf_simple_get_next_type_sec(m, type, hdr))) {
-        char *sec_name;
-
-        if (hdr->sec_size == 0) { 
-            continue;
-        }
-
-        sec_name = _mybpf_simple_get_sec_name(hdr);
-
-        if (strcmp(name, sec_name) == 0) {
-            return hdr;
-        }
-    }
-
-    return NULL;
-}
-
-char * MYBPF_SIMPLE_GetSecName(void *sec)
-{
-    if (! sec) {
-        return NULL;
-    }
-
-    return _mybpf_simple_get_sec_name(sec);
-}
-
-int MYBPF_SIMPLE_GetSecDataSize(void *sec)
-{
-    if (! sec) {
-        return 0;
-    }
-
-    return _mybpf_simple_get_sec_data_size(sec);
-}
-
-void * MYBPF_SIMPLE_GetSecData(void *sec)
-{
-    if (! sec) {
-        return NULL;
-    }
-
-    return _mybpf_simple_get_sec_data(sec);
-}
-
-int MYBPF_SIMPLE_CopySecData(void *sec, OUT void *mem, int mem_size)
-{
-    if (! sec) {
-        RETURN(BS_NO_SUCH);
-    }
-
-    int size = MYBPF_SIMPLE_GetSecDataSize(sec);
-    size = MIN(size, mem_size);
-    if (size) {
-        memcpy(mem, MYBPF_SIMPLE_GetSecData(sec), size);
-    }
-
-    return size;
-}
-
-void * MYBPF_SIMPLE_DupSecData(void *sec)
-{
-    if (! sec) {
-        return NULL;
-    }
-
-    int size = MYBPF_SIMPLE_GetSecDataSize(sec);
-    if (size <= 0) {
-        return NULL;
-    }
-
-    void *mem = MEM_Malloc(size);
-    if (! mem) {
-        return NULL;
-    }
-
-    MYBPF_SIMPLE_CopySecData(sec, mem, size);
-
-    return mem;
-}
-
-
-int MYBPF_SIMPLE_GetProgsCount(FILE_MEM_S *m)
-{
-    MYBPF_SIMPLE_PROG_INFO_HDR_S *hdr;
-
-    hdr = _mybpf_simple_get_type_sec(m, MYBPF_SIMPLE_SEC_TYPE_PROG_INFO, 0);
-    if (! hdr) {
-        return 0;
-    }
-
-    return ntohs(hdr->func_count);
-}
-
-
-int MYBPF_SIMPLE_GetProgsSize(FILE_MEM_S *m)
-{
-    void *sec = MYBPF_SIMPLE_GetSec(m, MYBPF_SIMPLE_SEC_TYPE_PROG, 0);
-    return MYBPF_SIMPLE_GetSecDataSize(sec);
-}
-
-void * MYBPF_SIMPLE_GetProgs(FILE_MEM_S *m)
-{
-    void *sec = MYBPF_SIMPLE_GetSec(m, MYBPF_SIMPLE_SEC_TYPE_PROG, 0);
-    return MYBPF_SIMPLE_GetSecData(sec);
-}
-
-int MYBPF_SIMPLE_CopyPorgs(FILE_MEM_S *m, OUT void *mem, int mem_size)
-{
-    void *sec = MYBPF_SIMPLE_GetSec(m, MYBPF_SIMPLE_SEC_TYPE_PROG, 0);
-    return MYBPF_SIMPLE_CopySecData(sec, mem, mem_size);
-}
-
-void * MYBPF_SIMPLE_DupPorgs(FILE_MEM_S *m)
-{
-    void *sec = MYBPF_SIMPLE_GetSec(m, MYBPF_SIMPLE_SEC_TYPE_PROG, 0);
-    return MYBPF_SIMPLE_DupSecData(sec);
-}
-
-int MYBPF_SIMPLE_GetProgInfo(FILE_MEM_S *m, int id, OUT ELF_PROG_INFO_S *progs)
-{
-    int count = MYBPF_SIMPLE_GetProgsCount(m);
-    MYBPF_SIMPLE_PROG_OFF_S *offs = _mybpf_simple_get_prog_offs(m);
-
-    if (id >= count) {
-        return BS_NO_SUCH;
-    }
-
-    progs->prog_offset = ntohl(offs[id].offset);
-    progs->size = ntohl(offs[id].len);
-    progs->sec_name = _mybpf_simple_get_prog_sec_name(m, id);
-    progs->func_name = _mybpf_simple_get_prog_func_name(m, id);
-
-    return 0;
-}
-
-int MYBPF_SIMPLE_GetProgsInfo(FILE_MEM_S *m, OUT ELF_PROG_INFO_S *progs, int max_prog_count)
-{
-    int i;
-    char *sec_name, *func_name;
-
-    int count = MYBPF_SIMPLE_GetProgsCount(m);
-    MYBPF_SIMPLE_PROG_OFF_S *offs = _mybpf_simple_get_prog_offs(m);
-
-    count = MIN(count, max_prog_count);
-
-    for (i=0; i<count; i++) {
-        progs[i].prog_offset = ntohl(offs[i].offset);
-        progs[i].size = ntohl(offs[i].len);
-        sec_name = _mybpf_simple_get_prog_sec_name(m, i);
-        func_name = _mybpf_simple_get_prog_func_name(m, i);
-        progs[i].sec_name = TXT_Strdup(sec_name);
-        progs[i].func_name = TXT_Strdup(func_name);
-    }
-
-    return count;
-}
-
-
-int MYBPF_SIMPLE_GetMainProgsCount(FILE_MEM_S *m)
-{
-    int i;
-    int index = 0;
-
-    int count = MYBPF_SIMPLE_GetProgsCount(m);
-
-    for (i=0; i<count; i++) {
-        char *sec_name;
-
-        sec_name = _mybpf_simple_get_prog_sec_name(m, i);
-        if (strcmp(".text", sec_name) == 0) {
-            continue;
-        }
-
-        index ++;
-    }
-
-    return index;
-}
-
-
-int MYBPF_SIMPLE_GetMainProgInfo(FILE_MEM_S *m, int id, OUT ELF_PROG_INFO_S *info)
-{
-    int i;
-    int index = 0;
-
-    int count = MYBPF_SIMPLE_GetProgsCount(m);
-    MYBPF_SIMPLE_PROG_OFF_S *offs = _mybpf_simple_get_prog_offs(m);
-
-    for (i=0; i<count; i++) {
-        char *sec_name;
-
-        sec_name = _mybpf_simple_get_prog_sec_name(m, i);
-        if (strcmp(".text", sec_name) == 0) {
-            continue;
-        }
-
-        if (id == index) {
-            info->prog_offset = ntohl(offs[i].offset);
-            info->size = ntohl(offs[i].len);
-            info->sec_name = sec_name;
-            info->func_name = _mybpf_simple_get_prog_func_name(m, i);
-            return 0;
-        }
-
-        index ++;
-    }
-
-    return -1;
-}
-
-
-int MYBPF_SIMPLE_GetMainProgsInfo(FILE_MEM_S *m, OUT ELF_PROG_INFO_S *progs, int max_prog_count)
-{
-    int i;
-    int index = 0;
-
-    int count = MYBPF_SIMPLE_GetProgsCount(m);
-    MYBPF_SIMPLE_PROG_OFF_S *offs = _mybpf_simple_get_prog_offs(m);
-
-    for (i=0; i<count; i++) {
-        char *sec_name;
-
-        if (index >= max_prog_count) {
-            break;
-        }
-
-        sec_name = _mybpf_simple_get_prog_sec_name(m, i);
-        if (strcmp(".text", sec_name) == 0) {
-            continue;
-        }
-
-        progs[index].prog_offset = ntohl(offs[i].offset);
-        progs[index].size = ntohl(offs[i].len);
-        progs[index].sec_name = sec_name;
-        progs[index].func_name = _mybpf_simple_get_prog_func_name(m, i);
-        index ++;
-    }
-
-    return index;
-}
-
-int MYBPF_SIMPLE_WalkProg(FILE_MEM_S *m, PF_ELF_WALK_PROG walk_func, void *ud)
-{
-    ELF_PROG_INFO_S info = {0};
-    char *progs;
-
-    int count = MYBPF_SIMPLE_GetProgsCount(m);
-    progs = MYBPF_SIMPLE_GetProgs(m);
-
-    for (int i=0; i<count; i++) {
-        MYBPF_SIMPLE_GetProgInfo(m, i, &info);
-        walk_func(progs + info.prog_offset, info.prog_offset, info.size, info.sec_name, info.func_name, ud);
-    }
-
-    return 0;
-}
-
-
-UINT MYBPF_SIMPLE_GetSimpleSizeByHdr(void *hdr)
-{
-    MYBPF_SIMPLE_HDR_S *h = hdr;
-
-    if ((h->magic != MYBPF_SIMPLE_MAGIC) || (h->ver != 0)) {
-        return 0;
-    }
-
-    return ntohl(h->totle_size);
-}
-

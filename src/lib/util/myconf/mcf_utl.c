@@ -13,10 +13,10 @@
 #include "utl/mkv_utl.h"
 #include "utl/mcf_utl.h"
 
-#define MYCONF_CHAR_REMARK '#'  
-#define MYCONF_CHAR_KEY_PRO_SPLIT ':'  
-#define MYCONF_CHAR_PRO_SPLIT ';'  
-#define MYCONF_CHAR_PRO_VALUE_SPLIT '='  
+#define MYCONF_CHAR_REMARK '#'  /* 注释符号 */
+#define MYCONF_CHAR_KEY_PRO_SPLIT ':'  /* 分割Key和属性 */
+#define MYCONF_CHAR_PRO_SPLIT ';'  /* 分割属性 */
+#define MYCONF_CHAR_PRO_VALUE_SPLIT '='  /* 分割属性和Value */
 
 static VOID mcf_ProcLine(IN MCF_HEAD_S *pstHead, IN BOOL_T bSort, IN CHAR *pcLine)
 {
@@ -81,8 +81,7 @@ MCF_HANDLE MCF_Open
 )
 {
     FILE       *fp = NULL;
-    UINT64    uiFileSize;
-    UINT      ulRet;
+    S64       filesize;
     UINT      ulFileNameLen;
     UINT      ulLineLen;
     MCF_HEAD_S *pstHead = NULL;
@@ -105,10 +104,9 @@ MCF_HANDLE MCF_Open
         pszOpenFlag = "rb";
     }
 
-    ulRet = FILE_GetSize(pucFileName, &uiFileSize);
-    if (BS_OK != ulRet)
-    {
-        uiFileSize = 0;
+    filesize = FILE_GetSize(pucFileName);
+    if (filesize < 0) {
+        filesize = 0;
     }
 
     fp = FILE_Open(pucFileName, bIsCreateIfNotExist, pszOpenFlag);
@@ -119,26 +117,25 @@ MCF_HANDLE MCF_Open
 
     ulFileNameLen = strlen(pucFileName);
     
-    pstHead = malloc(sizeof(MCF_HEAD_S) + ulFileNameLen + (UINT)uiFileSize + 2);
+    pstHead = malloc(sizeof(MCF_HEAD_S) + ulFileNameLen + filesize + 2);
     if (NULL == pstHead)
     {
         fclose(fp);
         return NULL;
     }
-    memset(pstHead, 0, (sizeof(MCF_HEAD_S) + ulFileNameLen + (UINT)uiFileSize + 2));
+    memset(pstHead, 0, (sizeof(MCF_HEAD_S) + ulFileNameLen + filesize + 2));
     DLL_INIT(&pstHead->stSecRoot.stSectionDllHead);
     DLL_INIT(&pstHead->stSecRoot.stKeyValueDllHead);
 
     pstHead->bIsSort = bSort;
     pstHead->bReadOnly = bReadOnly;
-    pstHead->uiMemSize = sizeof(MCF_HEAD_S) + ulFileNameLen + (UINT)uiFileSize + 2;
+    pstHead->uiMemSize = sizeof(MCF_HEAD_S) + ulFileNameLen + filesize + 2;
     pstHead->pucFileName = (CHAR*)(pstHead) + sizeof(MCF_HEAD_S);
     pstHead->pucFileContent = (CHAR*)(pstHead) + sizeof(MCF_HEAD_S) + ulFileNameLen + 1;
     TXT_Strlcpy(pstHead->pucFileName, pucFileName, strlen(pucFileName) + 1);
 
-    if (uiFileSize != 0)
-    {
-        if (fread(pstHead->pucFileContent, 1, (UINT)uiFileSize, fp) != uiFileSize) {
+    if (filesize != 0) {
+        if (fread(pstHead->pucFileContent, 1, filesize, fp) != filesize) {
             fclose(fp);
             return NULL;
         }
@@ -146,8 +143,8 @@ MCF_HANDLE MCF_Open
     
     fclose(fp);
 
-    
-    if (uiFileSize >= 3)
+    /* 检测是否UTF8 */
+    if (filesize >= 3)
     {
         if ((pstHead->pucFileContent[0] == (CHAR)0xef)
             && (pstHead->pucFileContent[1] == (CHAR)0xbb)
@@ -158,7 +155,7 @@ MCF_HANDLE MCF_Open
         }
     }
 
-    pstHead->pucFileContent[uiFileSize] = '\0';
+    pstHead->pucFileContent[filesize] = '\0';
     TXT_StrimAndMove(pstHead->pucFileContent);
 
     TXT_SCAN_LINE_BEGIN(pstHead->pucFileContent + ulOffset, pucLineHead, ulLineLen)
@@ -180,7 +177,10 @@ MCF_HANDLE MCF_Open
     return (HANDLE)pstHead;
 }
 
+/*
+找不到Prop,返回NULL; 找到Prop,但是无Value,返回""; 
 
+*/
 CHAR * MCF_GetProp(IN MCF_HANDLE hMcfHandle, IN CHAR *pcKey, IN CHAR *pcProp)
 {
     CHAR *pcValue = NULL;

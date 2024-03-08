@@ -10,8 +10,8 @@
 #include "utl/wasm_utl.h"
 
 
-#define BEGIN(x, y) "\033[" #x ";" #y "m"
-#define CLOSE "\033[0m"                  
+#define BEGIN(x, y) "\033[" #x ";" #y "m"// x: 背景，y: 前景
+#define CLOSE "\033[0m"                  // 关闭所有属性
 
 static void wasmc_usage(char *prog)
 {
@@ -79,14 +79,14 @@ int main(int argc, char **argv)
         return 2;
     }
 
-    bytes = mem->pucFileData;
+    bytes = mem->data;
 
     if (bytes == NULL) {
         BS_PRINT_ERR("Could not load %s", mod_path);
         return 2;
     }
 
-    WASM_MODULE_S * m = WASM_Load(bytes, mem->uiFileLen, NULL);
+    WASM_MODULE_S * m = WASM_Load(bytes, mem->len, NULL);
 
     while (1) {
         line = readline(BEGIN(49, 34) "wasm$ " CLOSE);

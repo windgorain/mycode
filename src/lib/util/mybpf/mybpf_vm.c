@@ -107,7 +107,7 @@ inline static uint64_t
 ubpf_mem_load(uint64_t address, size_t size)
 {
     if (!IS_ALIGNED(address, size)) {
-        
+        // Fill the result with 0 to avoid leaking uninitialized memory.
         uint64_t value = 0;
         memcpy(&value, (void*)address, size);
         return value;
@@ -162,13 +162,25 @@ static inline UINT64 _mybpf_call_sub_prog(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx,
     return ctx->bpf_ret;
 }
 
+static inline UINT64 _mybpf_call_ext_func_ptr(void *ptr, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+{
+    PF_BPF_HELPER_FUNC func = ptr;
+
+    if (! func) {
+        return -1;
+    }
+
+    return func(p1, p2, p3, p4, p5);
+}
+
 static inline UINT64 _mybpf_call_func_ptr(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, 
         void *insn, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
-    ctx->insts = insn;
-    _mybpf_run(vm, ctx, p1, p2, p3, p4, p5);
-
-    return ctx->bpf_ret;
+    if (((char*)insn >= (char*)ctx->begin_addr) && ((char*)insn <= (char*)ctx->end_addr)) {
+        return _mybpf_call_sub_prog(vm, ctx, insn, p1, p2, p3, p4, p5);
+    } else {
+        return _mybpf_call_ext_func_ptr(insn, p1, p2, p3, p4, p5);
+    }
 }
 
 static int _mybpf_run_atomic32(MYBPF_INSN_S *insn, U64 *regs)
@@ -247,12 +259,13 @@ static int _mybpf_run_atomic64(MYBPF_INSN_S *insn, U64 *regs)
 
 static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
 {
-    uint16_t pc = 0;
+    int pc = 0;
+    int pc_off = ((char*)ctx->insts - (char*)ctx->begin_addr) / 8;
     MYBPF_INSN_S *insts = ctx->insts;
     U64 reg[16];
 
     if (!insts) {
-        
+        /* Code must be loaded before we can execute */
         RETURN(BS_ERR);
     }
 
@@ -264,8 +277,9 @@ static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 
     reg[10] = (unsigned long)(ctx->stack + ctx->stack_size);
 
     while (1) {
-        const uint16_t cur_pc = pc;
+        const int cur_pc = pc;
         MYBPF_INSN_S inst = insts[pc++];
+        U8 *c = (void*)&inst;
 
         switch (inst.opcode) {
         case EBPF_OP_ADD_IMM:
@@ -529,7 +543,7 @@ static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 
 
         case EBPF_OP_LDDW:
             if (inst.src_reg == BPF_PSEUDO_FUNC_PTR) {
-                unsigned char *ptr = ctx->start_addr;
+                unsigned char *ptr = ctx->begin_addr;
                 reg[inst.dst_reg] = (unsigned long)(ptr + inst.imm);
                 pc ++;
             } else {
@@ -784,8 +798,11 @@ static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 
         case EPBF_OP_LOCK_STXDW:
             _mybpf_run_atomic64(&inst, reg);
             break;
-        default:
-            PRINTFLM_RED("Not support insn %d, opcode=0x%02x", cur_pc, inst.opcode);
+        default: 
+            {
+                PRINTFLM_RED("Not support insn %d, insn=%02x %02x %02x %02x %02x %02x %02x %02x",
+                        pc_off + cur_pc, c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7]);
+            }
             break;
         }
     }
@@ -890,7 +907,7 @@ BOOL_T MYBPF_Validate(MYBPF_VM_S *vm, void *insn, UINT num_insts)
                 vm->print_func("incomplete lddw at PC %d", i);
                 return false;
             }
-            i++; 
+            i++; /* Skip next instruction */
             break;
 
         case EBPF_OP_JA:
@@ -1005,9 +1022,9 @@ static inline bool _mybpf_bounds_check(
         return true;
 
     if (mem && (addr >= mem && ((char*)addr + size) <= ((char*)mem + mem_len))) {
-        return true; 
+        return true; /* Context access */
     } else if ((char*)addr >= ctx->stack && ((char*)addr + size) <= (ctx->stack + ctx->stack_size)) {
-        return true; 
+        return true; /* Stack access */
     } else {
         vm->print_func("uBPF error: out of bounds memory %s at PC %u, addr %p, size %d\nmem %p/%d stack %p/%d\n",
                 type, cur_pc, addr, size, mem, mem_len, ctx->stack, ctx->stack_size);
@@ -1109,7 +1126,7 @@ static int _mybpf_run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, 
         }
     } else {
         MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_VM, DBG_UTL_FLAG_PROCESS,
-                "call insn_idx:%d, prog_addr:0x%x \n", ((char *)ctx->insts - (char*)ctx->start_addr) / 8, ctx->insts);
+                "call insn_idx:%d \n", ((char *)ctx->insts - (char*)ctx->begin_addr) / 8);
     }
 
     if (stack_size <= 8) {
@@ -1140,11 +1157,11 @@ static int _mybpf_run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, 
 
 int MYBPF_Run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
-    
+    /* 注意: 它需要已经调用过MYBPF_PROG_FixupBpfCalls */
     return _mybpf_run(vm, ctx, p1, p2, p3, p4, p5);
 }
 
-
+/* 以3个ebpf参数方式运行 */
 int MYBPF_RunP3(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3)
 {
     return _mybpf_run(vm, ctx, p1, p2, p3, 0, 0);

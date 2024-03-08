@@ -117,7 +117,7 @@ static BS_STATUS _webcenter_Login(IN WS_TRANS_HANDLE hWsTrans)
             pcCookie = ULM_GetUserCookie(g_hWebCenterUlm, uiUserID);
             snprintf(szCookie, sizeof(szCookie), "userid=%s; path=/", pcCookie);
             HTTP_SetHeadField(hEncap, HTTP_FIELD_SET_COOKIE, szCookie);
-            pcRet = "{\"error\":\"Success\"}";
+            pcRet = "{\"result\":\"Success\"}";
         }
     }
     else if (eLoginRet == LOCALUSER_COMP_NOT_INIT)

@@ -10,7 +10,7 @@
 #include "vnets_web_inner.h"
 
 
-#define VNETS_WEB_VLDCODE_MAX_NUM 10240
+#define VNETS_WEB_VLDCODE_MAX_NUM (1024*8)
 
 static HANDLE g_hVnetsWebVldCode;
 

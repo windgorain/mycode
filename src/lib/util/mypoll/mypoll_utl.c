@@ -17,7 +17,7 @@
 
 static _MYPOLL_CTRL_S * g_mypoll_signal = NULL;
 
-static int mypoll_ProcessUserEvent(_MYPOLL_CTRL_S *pstCtrl)
+static int _mypoll_process_user_event(_MYPOLL_CTRL_S *pstCtrl)
 {
     UINT uiUserEvent;
 
@@ -35,7 +35,7 @@ static int mypoll_ProcessUserEvent(_MYPOLL_CTRL_S *pstCtrl)
     return 0;
 }
 
-static int mypoll_ProcessSignal(_MYPOLL_CTRL_S *pstCtrl)
+static int _mypoll_process_signal(_MYPOLL_CTRL_S *pstCtrl)
 {
     int i;
     int ret;
@@ -54,26 +54,21 @@ static int mypoll_ProcessSignal(_MYPOLL_CTRL_S *pstCtrl)
     return 0;
 }
 
-static int mypoll_NotifyTrigger
-(
-    IN INT iSocketId,
-    IN UINT uiEvent,
-    IN USER_HANDLE_S *pstUserHandle
-)
+static int _mypoll_notify_trigger(int fd, UINT uiEvent, USER_HANDLE_S *uh)
 {
-    _MYPOLL_CTRL_S *pstCtrl = pstUserHandle->ahUserHandle[0];
+    _MYPOLL_CTRL_S *pstCtrl = uh->ahUserHandle[0];
     UCHAR aucData[256];
 	UINT uiReadLen;
     int ret;
 
     (VOID) Socket_Read2(pstCtrl->iSocketDst, aucData, sizeof(aucData), &uiReadLen, 0);
 
-    ret = mypoll_ProcessUserEvent(pstCtrl);
+    ret = _mypoll_process_user_event(pstCtrl);
     if (ret < 0) {
         return ret;
     }
 
-    ret = mypoll_ProcessSignal(pstCtrl);
+    ret = _mypoll_process_signal(pstCtrl);
     if (ret < 0) {
         return ret;
     }
@@ -81,18 +76,12 @@ static int mypoll_NotifyTrigger
     return 0;
 }
 
-STATIC BS_STATUS mypoll_SetFdInfo
-(
-    IN _MYPOLL_CTRL_S *pstCtrl,
-    IN INT iSocketId,
-    IN UINT uiEvent,
-    IN PF_MYPOLL_EV_NOTIFY pfNotifyFunc,
-    IN USER_HANDLE_S *pstUserHandle
-)
+static int _mypoll_set_fd_info(_MYPOLL_CTRL_S *pstCtrl, int fd, UINT uiEvent,
+        PF_MYPOLL_EV_NOTIFY pfNotifyFunc, USER_HANDLE_S *uh)
 {
     MYPOLL_FDINFO_S *pstFdInfo;
 
-    pstFdInfo = DARRAY_Get(pstCtrl->hFdInfoTbl, iSocketId);
+    pstFdInfo = DARRAY_Get(pstCtrl->hFdInfoTbl, fd);
     if (NULL == pstFdInfo)
     {
         pstFdInfo = MEM_ZMalloc(sizeof(MYPOLL_FDINFO_S));
@@ -100,7 +89,7 @@ STATIC BS_STATUS mypoll_SetFdInfo
         {
             return BS_NO_MEMORY;
         }
-        if (BS_OK != DARRAY_Set(pstCtrl->hFdInfoTbl, iSocketId, pstFdInfo))
+        if (BS_OK != DARRAY_Set(pstCtrl->hFdInfoTbl, fd, pstFdInfo))
         {
             MEM_Free(pstFdInfo);
             return BS_ERR;
@@ -109,40 +98,36 @@ STATIC BS_STATUS mypoll_SetFdInfo
 
     pstFdInfo->pfNotifyFunc = pfNotifyFunc;
     pstFdInfo->uiEvent = uiEvent;
+
     if (BIT_ISSET(pstCtrl->uiFlag, _MYPOLL_FLAG_LOOP_ODD)) {
         BIT_SET(pstFdInfo->flag, _MYPOLL_FDINFO_LOOP_ODD);
     } else {
         BIT_CLR(pstFdInfo->flag, _MYPOLL_FDINFO_LOOP_ODD);
     }
-    if (NULL != pstUserHandle)
-    {
-        pstFdInfo->stUserHandle = *pstUserHandle;
+
+    if (uh) {
+        pstFdInfo->stUserHandle = *uh;
     }
 
     return BS_OK;
 }
 
-static inline MYPOLL_FDINFO_S *mypoll_GetFdInfo(IN _MYPOLL_CTRL_S *pstCtrl, IN INT iSocketId)
+static inline MYPOLL_FDINFO_S * _mypoll_get_fd_info(_MYPOLL_CTRL_S *pstCtrl, int fd)
 {
-    return DARRAY_Get(pstCtrl->hFdInfoTbl, iSocketId);
+    return DARRAY_Get(pstCtrl->hFdInfoTbl, fd);
 }
 
-STATIC VOID mypoll_FreeFdInfo
-(
-    IN _MYPOLL_CTRL_S *pstCtrl,
-    IN INT iSocketId
-)
+static void _mypoll_free_fd_info(_MYPOLL_CTRL_S *pstCtrl, int fd)
 {
     MYPOLL_FDINFO_S *pstFdInfo;
 
-    pstFdInfo = DARRAY_Clear(pstCtrl->hFdInfoTbl, iSocketId);
-    if (NULL != pstFdInfo)
-    {
+    pstFdInfo = DARRAY_Clear(pstCtrl->hFdInfoTbl, fd);
+    if (pstFdInfo) {
         MEM_Free(pstFdInfo);
     }
 }
 
-static void mypoll_Signal(IN int iSigno)
+static void _mypoll_signal(int iSigno)
 {
     if (g_mypoll_signal == NULL) {
         return;
@@ -194,7 +179,7 @@ MYPOLL_HANDLE MyPoll_Create(void)
 
     stUserHandle.ahUserHandle[0] = pstCtrl;
     if (BS_OK != MyPoll_SetEvent(pstCtrl, aiFd[1], MYPOLL_EVENT_IN,
-                    mypoll_NotifyTrigger, &stUserHandle))
+                    _mypoll_notify_trigger, &stUserHandle))
     {
         MyPoll_Destory(pstCtrl);
         return NULL;
@@ -205,7 +190,7 @@ MYPOLL_HANDLE MyPoll_Create(void)
     return pstCtrl;
 }
 
-VOID MyPoll_Destory(IN MYPOLL_HANDLE hMypoll)
+VOID MyPoll_Destory(MYPOLL_HANDLE hMypoll)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
 
@@ -233,59 +218,51 @@ VOID MyPoll_Destory(IN MYPOLL_HANDLE hMypoll)
     return;
 }
 
-
-BS_STATUS MyPoll_SetEvent
-(
-    IN MYPOLL_HANDLE hMypoll,
-    IN INT iSocketId,
-    IN UINT uiEvent,
-    IN PF_MYPOLL_EV_NOTIFY pfNotifyFunc,
-    IN USER_HANDLE_S *pstUserHandle
-)
+/* 设置事件位,会覆盖掉已有的事件位 */
+BS_STATUS MyPoll_SetEvent(MYPOLL_HANDLE hMypoll, int fd, UINT uiEvent,
+        PF_MYPOLL_EV_NOTIFY pfNotifyFunc, USER_HANDLE_S *uh /* 可以为NULL */)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
     int add = 0;
 
-    if (NULL == mypoll_GetFdInfo(pstCtrl, iSocketId)) {
+    if (NULL == _mypoll_get_fd_info(pstCtrl, fd)) {
         add = 1;
     }
 
-    if (BS_OK != mypoll_SetFdInfo(pstCtrl, iSocketId, uiEvent, pfNotifyFunc, pstUserHandle))
-    {
+    if (BS_OK != _mypoll_set_fd_info(pstCtrl, fd, uiEvent, pfNotifyFunc, uh)) {
         return BS_ERR;
     }
 
     if (add) {
-        return _Mypoll_Proto_Add(pstCtrl, iSocketId, uiEvent, pfNotifyFunc);
+        return _Mypoll_Proto_Add(pstCtrl, fd, uiEvent, pfNotifyFunc);
     } else {
-        return _Mypoll_Proto_Set(pstCtrl, iSocketId, uiEvent, pfNotifyFunc);
+        return _Mypoll_Proto_Set(pstCtrl, fd, uiEvent, pfNotifyFunc);
     }
 }
 
-BS_STATUS MyPoll_ModifyUserHandle(MYPOLL_HANDLE hMypoll,
-        INT iSocketId, USER_HANDLE_S *pstUserHandle)
+BS_STATUS MyPoll_ModifyUserHandle(MYPOLL_HANDLE hMypoll, int fd, USER_HANDLE_S *uh)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
     MYPOLL_FDINFO_S *info;
 
-    info = mypoll_GetFdInfo(pstCtrl, iSocketId);
+    info = _mypoll_get_fd_info(pstCtrl, fd);
     if (NULL == info) {
         RETURN(BS_NOT_FOUND);
     }
 
-    if (pstUserHandle) {
-        info->stUserHandle = *pstUserHandle;
+    if (uh) {
+        info->stUserHandle = *uh;
     }
 
     return BS_OK;
 }
 
-USER_HANDLE_S * MyPoll_GetUserHandle(MYPOLL_HANDLE hMypoll, INT iSocketId)
+USER_HANDLE_S * MyPoll_GetUserHandle(MYPOLL_HANDLE hMypoll, int fd)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
     MYPOLL_FDINFO_S *info;
 
-    info = mypoll_GetFdInfo(pstCtrl, iSocketId);
+    info = _mypoll_get_fd_info(pstCtrl, fd);
     if (NULL == info) {
         return NULL;
     }
@@ -293,13 +270,13 @@ USER_HANDLE_S * MyPoll_GetUserHandle(MYPOLL_HANDLE hMypoll, INT iSocketId)
     return &info->stUserHandle;
 }
 
-
-BS_STATUS MyPoll_AddEvent(IN MYPOLL_HANDLE hMypoll, IN INT iSocketId, IN UINT uiEvent)
+/* 在原有事件位的基础上, 增加新的事件位 */
+BS_STATUS MyPoll_AddEvent(MYPOLL_HANDLE hMypoll, int fd, UINT uiEvent)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
     MYPOLL_FDINFO_S *pstFdInfo;
 
-    pstFdInfo = mypoll_GetFdInfo(pstCtrl, iSocketId);
+    pstFdInfo = _mypoll_get_fd_info(pstCtrl, fd);
     if (NULL == pstFdInfo)
     {
         return BS_ERR;
@@ -312,16 +289,16 @@ BS_STATUS MyPoll_AddEvent(IN MYPOLL_HANDLE hMypoll, IN INT iSocketId, IN UINT ui
 
     pstFdInfo->uiEvent |= uiEvent;
 
-    return MyPoll_SetEvent(hMypoll, iSocketId, pstFdInfo->uiEvent, pstFdInfo->pfNotifyFunc, &pstFdInfo->stUserHandle);
+    return MyPoll_SetEvent(hMypoll, fd, pstFdInfo->uiEvent, pstFdInfo->pfNotifyFunc, &pstFdInfo->stUserHandle);
 }
 
-
-BS_STATUS MyPoll_DelEvent(IN MYPOLL_HANDLE hMypoll, IN INT iSocketId, IN UINT uiEvent)
+/* 在原有事件位的基础上, 删除一些事件位 */
+BS_STATUS MyPoll_DelEvent(MYPOLL_HANDLE hMypoll, int fd, UINT uiEvent)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
     MYPOLL_FDINFO_S *pstFdInfo;
 
-    pstFdInfo = mypoll_GetFdInfo(pstCtrl, iSocketId);
+    pstFdInfo = _mypoll_get_fd_info(pstCtrl, fd);
     if (NULL == pstFdInfo)
     {
         return BS_ERR;
@@ -334,22 +311,22 @@ BS_STATUS MyPoll_DelEvent(IN MYPOLL_HANDLE hMypoll, IN INT iSocketId, IN UINT ui
 
     pstFdInfo->uiEvent &= (~uiEvent);
 
-    return MyPoll_SetEvent(hMypoll, iSocketId, pstFdInfo->uiEvent, pstFdInfo->pfNotifyFunc, &pstFdInfo->stUserHandle);
+    return MyPoll_SetEvent(hMypoll, fd, pstFdInfo->uiEvent, pstFdInfo->pfNotifyFunc, &pstFdInfo->stUserHandle);
 }
 
-
-BS_STATUS MyPoll_ClearEvent(IN MYPOLL_HANDLE hMypoll, IN INT iSocketId)
+/* 清除所有事件位 */
+BS_STATUS MyPoll_ClearEvent(MYPOLL_HANDLE hMypoll, INT fd)
 {
-    return MyPoll_DelEvent(hMypoll, iSocketId, MYPOLL_EVENT_ALL);
+    return MyPoll_DelEvent(hMypoll, fd, MYPOLL_EVENT_ALL);
 }
 
-
-BS_STATUS MyPoll_ModifyEvent(IN MYPOLL_HANDLE hMypoll, IN INT iSocketId, IN UINT uiEvent)
+/* 修改事件位, 覆盖掉原有事件位 */
+BS_STATUS MyPoll_ModifyEvent(MYPOLL_HANDLE hMypoll, int fd, UINT uiEvent)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
     MYPOLL_FDINFO_S *pstFdInfo;
 
-    pstFdInfo = mypoll_GetFdInfo(pstCtrl, iSocketId);
+    pstFdInfo = _mypoll_get_fd_info(pstCtrl, fd);
     if (NULL == pstFdInfo)
     {
         return BS_ERR;
@@ -362,40 +339,37 @@ BS_STATUS MyPoll_ModifyEvent(IN MYPOLL_HANDLE hMypoll, IN INT iSocketId, IN UINT
 
     pstFdInfo->uiEvent = uiEvent;
 
-    return MyPoll_SetEvent(hMypoll, iSocketId, pstFdInfo->uiEvent, pstFdInfo->pfNotifyFunc, &pstFdInfo->stUserHandle);
+    return MyPoll_SetEvent(hMypoll, fd, pstFdInfo->uiEvent, pstFdInfo->pfNotifyFunc, &pstFdInfo->stUserHandle);
 }
 
-
-VOID MyPoll_Del
-(
-    IN MYPOLL_HANDLE hMypoll,
-    IN INT iSocketId
-)
+/* 不再关注fd */
+void MyPoll_Del(MYPOLL_HANDLE hMypoll, int fd)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
 
-    _Mypoll_Proto_Del(pstCtrl, iSocketId);
+    _Mypoll_Proto_Del(pstCtrl, fd);
 
-    mypoll_FreeFdInfo(pstCtrl, iSocketId);
+    _mypoll_free_fd_info(pstCtrl, fd);
 }
 
-int MyPoll_Run(IN MYPOLL_HANDLE hMypoll)
+int MyPoll_Run(MYPOLL_HANDLE hMypoll)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
     return _Mypoll_Proto_Run(pstCtrl);
 }
 
-
-
-VOID MyPoll_Restart(IN MYPOLL_HANDLE hMypoll)
+/* 可能因为某些原因,当前poll出来的信息可能已经无效,需要重新poll获取数据 */
+/* 比如一对关联的fd1和fd2, 处理fd1时出错, 同时把fd1和fd2关闭. 如果不restart, 则可能导致接下来处理fd2的消息是出错 */
+/* 此函数为pller回调函数中调用 */
+void MyPoll_Restart(MYPOLL_HANDLE hMypoll)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
 
     pstCtrl->uiFlag |= _MYPOLL_FLAG_RESTART;
 }
 
-
-BS_STATUS MyPoll_SetSignalProcessor(IN MYPOLL_HANDLE hMypoll, IN INT signo, IN PF_MYPOLL_SIGNAL_FUNC pfFunc)
+/* 设置遇到Signal处理函数 */
+BS_STATUS MyPoll_SetSignalProcessor(MYPOLL_HANDLE hMypoll, INT signo, PF_MYPOLL_SIGNAL_FUNC pfFunc)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
 
@@ -406,28 +380,29 @@ BS_STATUS MyPoll_SetSignalProcessor(IN MYPOLL_HANDLE hMypoll, IN INT signo, IN P
     g_mypoll_signal = pstCtrl;
     pstCtrl->singal_processers[signo].pfFunc = pfFunc;
 
-    SIGNAL_Set(signo, 0, (void*)mypoll_Signal);
+    SIGNAL_Set(signo, 0, (void*)_mypoll_signal);
 
     return BS_OK;
 }
 
-BS_STATUS MyPoll_SetUserEventProcessor(IN MYPOLL_HANDLE hMypoll,
-        IN PF_MYPOLL_USER_EVENT_FUNC pfFunc,
-        IN USER_HANDLE_S *pstUserHandle  )
+/* 设置user event的响应函数 */
+BS_STATUS MyPoll_SetUserEventProcessor(MYPOLL_HANDLE hMypoll,
+        PF_MYPOLL_USER_EVENT_FUNC pfFunc,
+        USER_HANDLE_S *uh /* 可以为NULL */)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
 
     pstCtrl->pfUserEventFunc = pfFunc;
 
-    if (NULL != pstUserHandle) {
-        pstCtrl->stUserEventUserHandle = *pstUserHandle;
+    if (uh) {
+        pstCtrl->stUserEventUserHandle = *uh;
     }
 
     return BS_OK;
 }
 
-
-BS_STATUS MyPoll_PostUserEvent(IN MYPOLL_HANDLE hMypoll, IN UINT uiEvent)
+/* 触发user event */
+BS_STATUS MyPoll_PostUserEvent(MYPOLL_HANDLE hMypoll, UINT uiEvent)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMypoll;
     int need_trigger = 0;
@@ -448,7 +423,7 @@ BS_STATUS MyPoll_PostUserEvent(IN MYPOLL_HANDLE hMypoll, IN UINT uiEvent)
     return BS_OK;
 }
 
-
+/* 触发mypoller一次 */
 BS_STATUS MyPoll_Trigger(MYPOLL_HANDLE hMyPoll)
 {
     _MYPOLL_CTRL_S *pstCtrl = (_MYPOLL_CTRL_S*)hMyPoll;

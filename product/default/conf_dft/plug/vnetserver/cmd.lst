@@ -1,54 +1,53 @@
 # ◊¢≤·view
-view, config-view, vnet-server-view(Enter the vnet view), vnet-server-view, NULL
-save, vnet-server-view, VNETS_SaveCmd
+view, config-view, vnets-view(Enter the vnet view), vnets-view, NULL
+save, vnets-view, VNETS_SaveCmd
 
 # web√¸¡Ó
-cmd, vnet-server-view, bind ws-service %STRING<1-63>, VNETS_CmdWeb_BindWsService
+cmd, vnets-view, bind ws-service %STRING<1-63>, VNETS_CmdWeb_BindWsService
 
 # ◊¢≤·showœµ¡–√¸¡Ó
-cmd, vnet-server-view, show domain, VNETS_DomainCmd_ShowDomain
-cmd, vnet-server-view, show tp, VNETS_TP_Show
+cmd, vnets-view, show domain, VNETS_DomainCmd_ShowDomain
+cmd, vnets-view, show tp, VNETS_TP_Show
 
 # Session œµ¡–√¸¡Ó
-cmd, vnet-server-view, show session, VNETS_SES_Show
-cmd, vnet-server-view, debug session protocol packet, VNETS_SES_DebugProtocolPacket
-cmd, vnet-server-view, no debug session protocol packet, VNETS_SES_NoDebugProtocolPacket
-cmd, vnet-server-view, debug session data packet, VNETS_SES_DebugDataPacket
-cmd, vnet-server-view, no debug session data packet, VNETS_SES_NoDebugDataPacket
+cmd, vnets-view, show session, VNETS_SES_Show
+cmd, vnets-view, debug session protocol packet, VNETS_SES_DebugProtocolPacket
+cmd, vnets-view, no debug session protocol packet, VNETS_SES_NoDebugProtocolPacket
+cmd, vnets-view, debug session data packet, VNETS_SES_DebugDataPacket
+cmd, vnets-view, no debug session data packet, VNETS_SES_NoDebugDataPacket
 
 # debugœµ¡–√¸¡Ó
-cmd, vnet-server-view, debug udp-phy packet, VNETS_UDP_PHY_DebugPacket
-cmd, vnet-server-view, no debug udp-phy packet, VNETS_UDP_PHY_NoDebugPacket
-cmd, vnet-server-view, debug auth packet, VNETS_AUTH_DebugPacket
-cmd, vnet-server-view, no debug auth packet, VNETS_AUTH_NoDebugPacket
-cmd, vnet-server-view, debug protocol packet, VNETS_Protocol_DebugPacket
-cmd, vnet-server-view, no debug protocol packet, VNETS_Protocol_NoDebugPacket
-cmd, vnet-server-view, debug tp packet, VNETS_TP_DebugPkt
-cmd, vnet-server-view, no debug tp packet, VNETS_TP_NoDebugPkt
+cmd, vnets-view, debug udp-phy packet, VNETS_UDP_PHY_DebugPacket
+cmd, vnets-view, no debug udp-phy packet, VNETS_UDP_PHY_NoDebugPacket
+cmd, vnets-view, debug auth packet, VNETS_AUTH_DebugPacket
+cmd, vnets-view, no debug auth packet, VNETS_AUTH_NoDebugPacket
+cmd, vnets-view, debug protocol packet, VNETS_Protocol_DebugPacket
+cmd, vnets-view, no debug protocol packet, VNETS_Protocol_NoDebugPacket
+cmd, vnets-view, debug tp packet, VNETS_TP_DebugPkt
+cmd, vnets-view, no debug tp packet, VNETS_TP_NoDebugPkt
 
 
 # ◊¢≤·≈‰÷√√¸¡Ó
-cmd, vnet-server-view, broadcast(Broadcast packet except arp.) { permit | deny }, VNETS_SetPermitBroadcast
+cmd, vnets-view, broadcast(Broadcast packet except arp.) { permit | deny }, VNETS_SetPermitBroadcast
 
 # ◊¢≤·udp view“‘º∞viewœ¬µƒ√¸¡Ó
-view, vnet-server-view, service udp, vnets-service-udp, NULL
+view, vnets-view, service udp, vnets-service-udp, NULL
 cmd, vnets-service-udp, port %INT<1-65535>, VNETS_CmdUdp_SetServicePort
 cmd, vnets-service-udp, start, VNETS_CmdUdp_Start
-cmd, vnets-service-udp, show this, VNETS_CmdUdp_ShowThis
 
 # ◊¢≤·domainƒ£∞Âº∞∆‰√¸¡Ó
-view|templet, vnet-server-view, domain %STRING<1-63>, vnets-domain-view, VNETS_DomainCmd_CreateDomainView
+view|templet, vnets-view, domain %STRING<1-63>, vnets-domain-view, VNETS_DomainCmd_CreateDomainView
 cmd, vnets-domain-view, show node, VNETS_DomainCmd_ShowNode
 
 # Nodeœµ¡–√¸¡Ó
-cmd, vnet-server-view, show node, VNETS_NODE_Show
-cmd, vnet-server-view, debug node packet fwd, VNETS_NodeFwd_DebugPacket
-cmd, vnet-server-view, no debug node packet fwd, VNETS_NodeFwd_NoDebugPacket
-cmd, vnet-server-view, debug node packet input, VNETS_NodeInput_DebugPacket
-cmd, vnet-server-view, no debug node packet input, VNETS_NodeInput_NoDebugPacket
+cmd, vnets-view, show node, VNETS_NODE_Show
+cmd, vnets-view, debug node packet fwd, VNETS_NodeFwd_DebugPacket
+cmd, vnets-view, no debug node packet fwd, VNETS_NodeFwd_NoDebugPacket
+cmd, vnets-view, debug node packet input, VNETS_NodeInput_DebugPacket
+cmd, vnets-view, no debug node packet input, VNETS_NodeInput_NoDebugPacket
 
 # Mac Layer√¸¡Ó
-cmd, vnet-server-view, debug mac-layer packet, VNETS_MacLayer_DebugPacket
-cmd, vnet-server-view, no debug mac-layer packet, VNETS_MacLayer_NoDebugPacket
-cmd, vnet-server-view, show mac-table domain-name %STRING<1-63>, VNETS_MACTBL_ShowByDomainName
-cmd, vnet-server-view, show mac-table domain-id %INT<1-65535>, VNETS_MACTBL_ShowByDomainID
+cmd, vnets-view, debug mac-layer packet, VNETS_MacLayer_DebugPacket
+cmd, vnets-view, no debug mac-layer packet, VNETS_MacLayer_NoDebugPacket
+cmd, vnets-view, show mac-table domain-name %STRING<1-63>, VNETS_MACTBL_ShowByDomainName
+cmd, vnets-view, show mac-table domain-id %INT<1-65535>, VNETS_MACTBL_ShowByDomainID

@@ -4,14 +4,14 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif 
+#endif /* __cplusplus */
 
-BS_STATUS VNETS_P_NodeInfo_Input(IN UINT ulIfIndex, IN MBUF_S *pstMbuf);
+BS_STATUS VNETS_P_NodeInfo_Input(IN MIME_HANDLE hMime, IN VNETS_PROTOCOL_PACKET_INFO_S *pstPacketInfo);
 
 #ifdef __cplusplus
     }
-#endif 
+#endif /* __cplusplus */
 
-#endif 
+#endif /*__VNETS_P_NODEINFO_H_*/
 
 

@@ -95,7 +95,7 @@ int EBPF_GetFd(char *pin_filename)
 
 void EBPF_CloseFd(int fd)
 {
-    
+    /* 关闭通过EBPF_GetFd()获取到的fd */
     close(fd);
 }
 
@@ -197,6 +197,21 @@ int EBPF_GetProgFdByName(void *obj, char *name)
     return bpf_program__fd(prog);
 }
 
+int EBPF_GetInfoByFd(int fd, OUT void *info, INOUT U32 *info_len)
+{
+    return bpf_obj_get_info_by_fd(fd, info, info_len);
+}
+
+int EBPF_PinMapByName(void *obj, char *map_name, char *path)
+{
+    void *map = bpf_object__find_map_by_name(obj, map_name);
+    if (! map) {
+        return -1;
+    }
+
+    return bpf_map__pin(map, path);
+}
+
 int EBPF_PinProgs(void *obj, char *path)
 {
     if (0 != FILE_MakePath(path)) {
@@ -261,12 +276,17 @@ int EBPF_GetMapFdById(unsigned int bpf_id)
     return bpf_map_get_fd_by_id(bpf_id);
 }
 
+void * EBPF_GetMapByName(void *obj, const char *name)
+{
+    return bpf_object__find_map_by_name(obj, name);
+}
+
 int EBPF_GetMapFdByName(void *obj, const char *name)
 {
     return bpf_object__find_map_fd_by_name(obj, name);
 }
 
-
+/* 获取attach到ifname上的xdp fd  */
 int EBPF_GetXdpAttachedFd(char *ifname)
 {
     unsigned int fd;

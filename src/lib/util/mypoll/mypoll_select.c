@@ -147,8 +147,7 @@ static int mypoll_select_Run(IN _MYPOLL_CTRL_S *pstMyPoll)
     MYPOLL_FDINFO_S *pstFdInfo;
     int ret = BS_STOP;
 
-    while (1)
-    {
+    while (1) {
         BIT_CLR(pstCtrl->pstMyPollCtrl->uiFlag, _MYPOLL_FLAG_RESTART | _MYPOLL_FLAG_PROCESSING_EVENT);
         ATOM_BARRIER();
         stReadFds = pstCtrl->socketReadFds;
@@ -167,29 +166,24 @@ static int mypoll_select_Run(IN _MYPOLL_CTRL_S *pstMyPoll)
 
         BIT_SET(pstCtrl->pstMyPollCtrl->uiFlag, _MYPOLL_FLAG_PROCESSING_EVENT);
 
-        for (i=0; i<=pstCtrl->iMaxSocketId; i++)
-        {
-            
+        for (i=0; i<=pstCtrl->iMaxSocketId; i++) {
+            /* 检测到ReStart标记,则重新Select */
             if (pstCtrl->pstMyPollCtrl->uiFlag & _MYPOLL_FLAG_RESTART) {
                 break;
             }
 
             uiEvent = 0;
-            if (FD_ISSET(i, &stReadFds))
-            {
+            if (FD_ISSET(i, &stReadFds)) {
                 uiEvent |= MYPOLL_EVENT_IN;
             }
-            if (FD_ISSET(i, &stWriteFds))
-            {
+            if (FD_ISSET(i, &stWriteFds)) {
                 uiEvent |= MYPOLL_EVENT_OUT;
             }
-            if (FD_ISSET(i, &stExecptFds))
-            {
+            if (FD_ISSET(i, &stExecptFds)) {
                 uiEvent |= MYPOLL_EVENT_ERR;
             }
 
-            if (uiEvent == 0)
-            {
+            if (uiEvent == 0) {
                 continue;
             }
 

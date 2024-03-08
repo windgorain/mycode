@@ -31,7 +31,7 @@ static void _bfunc_walk_config(HANDLE cff, char *tag, HANDLE ud)
         return;
     }
 
-    
+    /* sec name 和 func name至少要指定一个 */
     if ((! sec_name) && (! func_name)) {
         return;
     }
@@ -55,7 +55,7 @@ static void _bfunc_walk_config(HANDLE cff, char *tag, HANDLE ud)
 
     MYBPF_LOADER_NODE_S *n = prog->loader_node;
 
-    BFUNC_Set(ctrl, id, n->jitted, prog, prog->insn);
+    BFUNC_Set(ctrl, id, n->jitted, prog, prog->insn, n->insts, (char*)n->insts + n->insts_len);
 }
 
 int BFUNC_Load(BFUNC_S *ctrl, char *conf_file)

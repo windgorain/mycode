@@ -31,7 +31,9 @@ static inline int _mybpf_prog_run_bpf_code(MYBPF_PROG_NODE_S *prog, OUT UINT64 *
 {
     MYBPF_CTX_S ctx = {0};
     MYBPF_LOADER_NODE_S *n = prog->loader_node;
-    ctx.start_addr = n->insts;
+
+    ctx.begin_addr = n->insts;
+    ctx.end_addr = (char*)n->insts + n->insts_len;
     ctx.mybpf_prog = prog;
     ctx.insts = prog->insn;
     ctx.auto_stack = 1;
@@ -69,30 +71,6 @@ static inline int _mybpf_prog_run(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret,
     return _mybpf_prog_run_bpf_code(prog, bpf_ret, p1, p2, p3, p4, p5);
 }
 
-
-MYBPF_PROG_NODE_S * MYBPF_PROG_Alloc(void *insn, int len, char *sec_name, char *prog_name)
-{
-    MYBPF_PROG_NODE_S *node;
-
-    node = MEM_ZMalloc(sizeof(MYBPF_PROG_NODE_S));
-    if (! node) {
-        return NULL;
-    }
-    
-    if (sec_name) {
-        strlcpy(node->sec_name, sec_name, sizeof(node->sec_name));
-    }
-
-    if (prog_name) {
-        strlcpy(node->prog_name, prog_name, sizeof(node->prog_name));
-    }
-
-    node->insn_len = len;
-    node->insn = insn;
-
-    return node;
-}
-
 void MYBPF_PROG_Free(MYBPF_RUNTIME_S *runtime, MYBPF_PROG_NODE_S *prog)
 {
     _mybpf_prog_free_prog(prog);
@@ -115,7 +93,7 @@ void MYBPF_PROG_ShowProg(MYBPF_RUNTIME_S *runtime, PF_PRINT_FUNC print_func)
     }
 }
 
-
+/* 根据instance:func_name 获取prog fd. 找不到则返回<0 */
 MYBPF_PROG_NODE_S * MYBPF_PROG_GetByFuncName(MYBPF_RUNTIME_S *runtime, char *instance, char *func_name)
 {
     int i;
@@ -137,7 +115,7 @@ MYBPF_PROG_NODE_S * MYBPF_PROG_GetByFuncName(MYBPF_RUNTIME_S *runtime, char *ins
     return NULL;
 }
 
-
+/* 根据instance:sec_name 获取prog. 找不到则返回<0 */
 MYBPF_PROG_NODE_S * MYBPF_PROG_GetBySecName(MYBPF_RUNTIME_S *runtime, char *instance, char *sec_name)
 {
     int i;
@@ -231,7 +209,9 @@ static MYBPF_PROG_NODE_S * _mybpf_prog_get_next(MYBPF_RUNTIME_S *runtime,
     return NULL;
 }
 
-
+/* 获取下一个prog, 如果current=NULL,则获取第一个.
+ * sec_name: 匹配sec_name. /结尾表示通配, 否则精确匹配, 例如 xdp/. 如果为NULL则表示不关心
+ */
 MYBPF_PROG_NODE_S * MYBPF_PROG_GetNext(MYBPF_RUNTIME_S *runtime, char *instance, char *sec_name,
         MYBPF_PROG_NODE_S *current)
 {

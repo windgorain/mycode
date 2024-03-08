@@ -33,12 +33,12 @@ BS_STATUS VNETS_DC_Init()
     DC_APP_AddTbl(g_hVnetsDc, _VNETS_USER_TBL_NAME);
     DC_APP_AddTbl(g_hVnetsDc, _VNETS_DOMAIN_TBL_NAME);
 
-#if 0  
+#if 0  /* Test */
     {
         DC_DATA_S stKey;
         CHAR szCipherText[PW_MD5_ENCRYPT_LEN + 1];
 
-        PW_Md5Encrypt("111111", szCipherText);
+        PW_Md5Encrypt("111111", szCipherText, sizeof(szCipherText));
 
         stKey.astKeyValue[0].pcKey = "user";
         stKey.astKeyValue[0].pcValue = "test";
@@ -122,7 +122,7 @@ BOOL_T VNETS_DC_CheckUserPassword
 BS_STATUS VNETS_DC_AddUser(IN CHAR *pcUserName, IN CHAR *pcPassWord)
 {
     DC_DATA_S stKey;
-    CHAR szTmp[VNET_CONF_MAX_USER_NAME_LEN + 2];  
+    CHAR szTmp[VNET_CONF_MAX_USER_NAME_LEN + 2];  /* 要+2, 因为有一个@符号 */
 
     stKey.astKeyValue[0].pcKey = "user";
     stKey.astKeyValue[0].pcValue = pcUserName;
@@ -149,7 +149,7 @@ BS_STATUS VNETS_DC_SetPassword(IN CHAR *pcUserName, IN CHAR *pcPassword)
     DC_DATA_S stKey;
     CHAR szCipherText[PW_MD5_ENCRYPT_LEN + 1];
 
-    PW_Md5Encrypt(pcPassword, szCipherText);
+    PW_Md5Encrypt(pcPassword, szCipherText, sizeof(szCipherText));
 
     stKey.astKeyValue[0].pcKey = "user";
     stKey.astKeyValue[0].pcValue = pcUserName;

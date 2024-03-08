@@ -22,7 +22,7 @@ static UINT vnets_worker_GetWorkerIdByDomainId(IN UINT uiDomainId)
 
 BS_STATUS VNETS_Worker_Init()
 {
-    g_hVnetsTaskWorker = TASK_Worker_Create(_VNETS_WORKER_NUM, VNETS_WORKER_CLOCK_TIME_OF_TICK);
+    g_hVnetsTaskWorker = TASK_Worker_Create("vnets_worker", _VNETS_WORKER_NUM, VNETS_WORKER_CLOCK_TIME_OF_TICK);
 
     if (g_hVnetsTaskWorker == NULL)
     {

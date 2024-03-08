@@ -115,7 +115,7 @@ static BS_STATUS _aclappip_GetListIDByName(IPACL_HANDLE ipacl, IN ACL_NAME_ID_S 
     return BS_OK;
 }
 
-
+/* 增加List引用计数 */
 static BS_STATUS _aclappip_AddListRef(IPACL_HANDLE ipacl, IN CHAR *pcListName)
 {
     return IPACL_AddListRef(ipacl, IPACL_GetListByName(ipacl, pcListName));
@@ -603,7 +603,7 @@ static BS_STATUS _aclappip_LoadRule(int muc_id, IPACL_HANDLE ipacl, IN UINT uiLi
         uiArgc = ARGS_Split(acLine, ppcArgv, IPACL_CMD_RULE_ELEMENT_MAX);
         if (uiArgc == 0)
         {
-            
+            // 将空行去掉
             continue;
         } 
         
@@ -654,9 +654,9 @@ void AclAppIP_DestroyMuc(ACL_MUC_S *acl_muc)
     }
 }
 
+/* CMD */
 
-
-
+/* ip-acl %STRING */
 PLUG_API BS_STATUS AclAppIP_EnterListView(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS eRet;
@@ -677,7 +677,7 @@ PLUG_API BS_STATUS AclAppIP_EnterListView(IN UINT uiArgc, IN CHAR **ppcArgv, IN 
     return BS_OK;
 }
 
-
+/* no ip-acl %STRING */
 PLUG_API BS_STATUS AclAppIP_CmdNoList(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS eRet;
@@ -710,7 +710,7 @@ PLUG_API BS_STATUS AclAppIP_Clear(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pE
     return 0;
 }
 
-
+/* move rule %INT to %INT */
 PLUG_API BS_STATUS AclAppIP_CmdMoveRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName;
@@ -745,7 +745,7 @@ PLUG_API BS_STATUS AclAppIP_CmdMoveRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VO
     return eRet;
 }
 
-
+/* no rule %INT */
 PLUG_API BS_STATUS AclAppIP_CmdNoRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName;
@@ -885,7 +885,7 @@ PLUG_API BS_STATUS AclAppIP_Cmd_IncreaseID(IN UINT uiArgc, IN CHAR **ppcArgv, IN
     return BS_OK;
 }
 
-
+/* default action permit|deny */
 PLUG_API BS_STATUS AclAppIP_CmdSet_DefaultAction(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     CHAR *pcListName = CMD_EXP_GetCurrentModeValue(pEnv);
@@ -920,7 +920,7 @@ PLUG_API BS_STATUS AclAppIP_CmdSet_DefaultAction(IN UINT uiArgc, IN CHAR **ppcAr
     return IPACL_SetDefaultActionByID(ipacl, uiListID, enAction);
 }
 
-
+/* rule %INT<1-10000> action {permit|deny} --sip 10.0.0.0/8 --dip 10.0.0.0/8 --sport 100000-60000 --dport 443,80 --proto 17  */
 PLUG_API BS_STATUS AclAppIP_CmdRule(IN UINT uiArgc, IN CHAR **ppcArgv, IN VOID *pEnv)
 {
     BS_STATUS enRet = BS_OK;
@@ -963,8 +963,8 @@ PLUG_API BS_STATUS AclAppIP_Cmd_LoadFile(IN UINT uiArgc, IN CHAR **ppcArgv, IN V
     CHAR *pcFileName = ppcArgv[1];
     CHAR *pcListName;
     UINT uiListID;
-    BS_STATUS enRet;
-    UINT64 uiSize;
+    S64 filesize;
+    int ret;
 
     IPACL_HANDLE ipacl = _aclappip_get_instance_by_env(pEnv);
     if (! ipacl) {
@@ -986,18 +986,16 @@ PLUG_API BS_STATUS AclAppIP_Cmd_LoadFile(IN UINT uiArgc, IN CHAR **ppcArgv, IN V
         RETURN(BS_NO_SUCH);
     }
 
-    enRet = FILE_GetSize(pcFileName, &uiSize);
-    if (BS_OK != enRet)
-    {
-        EXEC_OutInfo("%s.\r\n", ErrInfo_Get(enRet));
-        RETURN(enRet);
+    filesize = FILE_GetSize(pcFileName);
+    if (filesize < 0) {
+        EXEC_OutInfo("Can't get file %s size \r\n", pcFileName);
+        RETURN(BS_ERR);
     }
 
-    enRet = _aclappip_LoadRule(CmdExp_GetEnvMucID(pEnv), ipacl, uiListID, pcListName, pcFileName);
-    if (BS_OK != enRet)
-    {
-        EXEC_OutInfo("%s \r\n", ErrInfo_Get(enRet));
-        RETURN(enRet);
+    ret = _aclappip_LoadRule(CmdExp_GetEnvMucID(pEnv), ipacl, uiListID, pcListName, pcFileName);
+    if (ret < 0) {
+        EXEC_OutInfo("%s \r\n", ErrInfo_Get(ret));
+        return ret;
     }
 
     return BS_OK;

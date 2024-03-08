@@ -94,12 +94,12 @@ static MBUF_S * drp_file_Rewrite(DRP_CTRL_S *pstDrp, IN CHAR *pcFile, IN HANDLE 
         return NULL;
     }
 
-    pcStatic = (CHAR*)pstFileMMap->pucFileData;
-    uiRemainLen = (UINT)pstFileMMap->uiFileLen;
+    pcStatic = (CHAR*)pstFileMMap->data;
+    uiRemainLen = (UINT)pstFileMMap->len;
 
     while (uiRemainLen > 0)
     {
-        
+        /* 查找标签起始位置 */
         pcStart = (CHAR*)Sunday_SearchFast((UCHAR*)pcStatic, uiRemainLen, (UCHAR*)pstDrp->pcStartTag, pstDrp->uiStartTagLen, &pstDrp->stSundaySkipStart);
 
         if (NULL == pcStart)
@@ -108,7 +108,7 @@ static MBUF_S * drp_file_Rewrite(DRP_CTRL_S *pstDrp, IN CHAR *pcFile, IN HANDLE 
             break;
         }
 
-        
+        /* Copy前面的静态数据 */
         uiStaticLen = pcStart - pcStatic;
         if (uiStaticLen > 0)
         {
@@ -123,7 +123,7 @@ static MBUF_S * drp_file_Rewrite(DRP_CTRL_S *pstDrp, IN CHAR *pcFile, IN HANDLE 
         uiRemainLen -= uiStaticLen;
         uiRemainLen -= pstDrp->uiStartTagLen;
 
-        
+        /* 查找结束标签 */
         pcEnd = (CHAR*)Sunday_SearchFast((UCHAR*)pcKeyStart, uiRemainLen, (UCHAR*)pstDrp->pcEndTag, pstDrp->uiEndTagLen, &pstDrp->stSundaySkipEnd);
         if (NULL == pcEnd)
         {
@@ -138,7 +138,7 @@ static MBUF_S * drp_file_Rewrite(DRP_CTRL_S *pstDrp, IN CHAR *pcFile, IN HANDLE 
             pcStatic = pcEnd + pstDrp->uiEndTagLen;
         }
 
-        
+        /* 根据Key添加动态数据 */
         if (BS_OK != drp_file_AddDynamicData(pstDrp, pcKeyStart, uiKeyLen, pstMBuf, hUserHandle))
         {
             break;

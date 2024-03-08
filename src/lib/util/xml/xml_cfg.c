@@ -5,7 +5,7 @@
 *                  其中a为标记名,key=value为属性;  key为属性名,value为属性值
 * History:     
 ******************************************************************************/
-
+/* retcode所需要的宏 */
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_XMLC
 
 #include "bs.h"
@@ -194,7 +194,7 @@ static BS_STATUS _XMLC_Parse(IN XMLC_HEAD_S *pstXmlHead)
         RETURN(BS_ERR);
     }
 
-    
+    /* 检测是否UTF8 */
     if (pstXmlHead->uiFileSize >= 3)
     {
         if ((pstXmlHead->pucFileContent[0] == (CHAR)0xef)
@@ -319,8 +319,7 @@ HANDLE XMLC_Open
 )
 {
     FILE       *fp = NULL;
-    UINT64    ulFileSize = 0;
-    UINT      ulRet;
+    S64       filesize = 0;
     XMLC_HEAD_S *pstXmlHead = NULL;
     CHAR       *pszOpenFlag = NULL;
     CHAR      *pcFileName = NULL;
@@ -343,10 +342,9 @@ HANDLE XMLC_Open
             return NULL;
         }
 
-        ulRet = FILE_GetSize(pucFileName, &ulFileSize);
-        if (BS_OK != ulRet)
-        {
-            ulFileSize = 0;
+        filesize = FILE_GetSize(pucFileName);
+        if (filesize < 0) {
+            filesize = 0;
         }
 
         fp = FILE_Open(pucFileName, bIsCreateIfNotExist, pszOpenFlag);
@@ -357,7 +355,7 @@ HANDLE XMLC_Open
         }
     }
 
-    ulMemLen = sizeof(XMLC_HEAD_S) + (ULONG)ulFileSize + 1;
+    ulMemLen = sizeof(XMLC_HEAD_S) + (ULONG)filesize + 1;
     pstXmlHead = malloc(ulMemLen);
     if (NULL == pstXmlHead)
     {
@@ -374,16 +372,14 @@ HANDLE XMLC_Open
 
     pstXmlHead->bIsSort = bSort;
     pstXmlHead->bReadOnly = bReadOnly;
-    pstXmlHead->uiFileSize = (UINT)ulFileSize;
+    pstXmlHead->uiFileSize = (UINT)filesize;
     pstXmlHead->ulMemSize = ulMemLen;
     pstXmlHead->pucFileName = pcFileName;
     pstXmlHead->pucFileContent = (CHAR*)(pstXmlHead) + sizeof(XMLC_HEAD_S);
 
-    if (fp != NULL)
-    {
-        if (ulFileSize != 0)
-        {
-            if (fread(pstXmlHead->pucFileContent, 1, (UINT)ulFileSize, fp) != ulFileSize) {
+    if (fp != NULL) {
+        if (filesize != 0) {
+            if (fread(pstXmlHead->pucFileContent, 1, (UINT)filesize, fp) != filesize) {
                 fclose(fp);
                 _XMLC_Close(pstXmlHead);
                 return NULL;
@@ -392,7 +388,7 @@ HANDLE XMLC_Open
         fclose(fp);
     }
 
-    pstXmlHead->pucFileContent[ulFileSize] = '\0';
+    pstXmlHead->pucFileContent[filesize] = '\0';
 
     if (BS_OK != _XMLC_Parse(pstXmlHead))
     {
@@ -434,7 +430,7 @@ BS_STATUS XMLC_DelMark(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections)
     return MKV_DelMark(&pstHead->stSecRoot, pstSections);
 }
 
-
+/* 覆盖已经重复的Mark */
 BS_STATUS XMLC_AddMark(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections)
 {
     XMLC_HEAD_S *pstHead = (XMLC_HEAD_S *)hXmlcHandle;
@@ -442,7 +438,7 @@ BS_STATUS XMLC_AddMark(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections)
     return MKV_AddMark(&pstHead->stSecRoot, pstSections, pstHead->bIsSort);
 }
 
-
+/* 不覆盖已经重复的Mark, 而是生成一个新的 */
 MKV_MARK_S * XMLC_AddMark2Mark(IN HANDLE hXmlcHandle, IN MKV_MARK_S *pstMark, IN CHAR *pcMark)
 {
     return MKV_AddMark2Mark(pstMark, pcMark, TRUE);
@@ -482,7 +478,7 @@ CHAR * XMLC_GetNextMark(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections, IN 
     return MKV_GetNextMark(&pstHead->stSecRoot, pstSections, pcCurSecName);
 }
 
-CHAR * XMLC_GetMarkByIndex(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections, IN UINT uiIndex)
+CHAR * XMLC_GetMarkByIndex(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections, IN UINT uiIndex/* 从0开始计算 */)
 {
     XMLC_HEAD_S *pstHead = (XMLC_HEAD_S*)hXmlcHandle;
 
@@ -556,7 +552,7 @@ BOOL_T XMLC_IsKeyExist(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections, IN C
     return MKV_IsKeyExist(&pstHead->stSecRoot, pstSections, pszKeyName);
 }
 
-
+/* 返回section的个数 */
 UINT XMLC_GetMarkNumInMark(IN MKV_MARK_S *pstMark)
 {
     return MKV_GetMarkNumInMark(pstMark);
@@ -568,7 +564,7 @@ UINT XMLC_GetMarkNum(IN HANDLE hXmlcHandle, IN MKV_X_PARA_S *pstSections)
     return MKV_GetSectionNum(&pstHead->stSecRoot, pstSections);
 }
 
-
+/* 返回section中属性的个数 */
 UINT XMLC_GetKeyNumOfMark(IN MKV_MARK_S *pstMark)
 {
     return MKV_GetKeyNumOfMark(pstMark);

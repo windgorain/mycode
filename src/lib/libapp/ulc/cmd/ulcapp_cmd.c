@@ -20,7 +20,7 @@ static int _ulcapp_cmd_help(GETOPT2_NODE_S *opts)
     return 0;
 }
 
-
+/* load %STRING(instance) file %STRING */
 PLUG_API int ULCAPP_CMD_LoadFile(int argc, char **argv)
 {
     char *instance = argv[1];
@@ -33,7 +33,7 @@ PLUG_API int ULCAPP_CMD_LoadFile(int argc, char **argv)
     return ret;
 }
 
-
+/* replace %STRING(instance) file %STRING %OPTION */
 PLUG_API int ULCAPP_CMD_ReplaceFile(int argc, char **argv)
 {
     char *instance = argv[1];
@@ -62,28 +62,28 @@ PLUG_API int ULCAPP_CMD_ReplaceFile(int argc, char **argv)
     return ret;
 }
 
-
+/* unload %STRING(instance) */
 PLUG_API int ULCAPP_CMD_UnloadInstance(int argc, char **argv)
 {
     ULCAPP_UnloadInstance(argv[1]);
     return 0;
 }
 
-
+/* no load %STRING(instance) */
 PLUG_API int ULCAPP_CMD_NoLoadInstance(int argc, char **argv)
 {
     ULCAPP_UnloadInstance(argv[2]);
     return 0;
 }
 
-
+/* show map */
 PLUG_API int ULCAPP_CMD_ShowMap(int argc, char **argv)
 {
     ULCAPP_ShowMap();
     return 0;
 }
 
-
+/* dump map %INT */
 PLUG_API int ULCAPP_CMD_DumpMap(int argc, char **argv)
 {
     int map_fd;
@@ -95,25 +95,26 @@ PLUG_API int ULCAPP_CMD_DumpMap(int argc, char **argv)
     return 0;
 }
 
-
+/* show prog */
 PLUG_API int ULCAPP_CMD_ShowProg(int argc, char **argv)
 {
     ULCAPP_ShowProg();
     return 0;
 }
 
-
+/* testcmd -- args */
 PLUG_API int ULCAPP_CMD_TestCmd(int argc, char **argv)
 {
     if (argc < 2) {
-        return -1;
+        ULCAPP_Tcmd(0, NULL);
+        return 0; 
     }
 
     ULCAPP_Tcmd(argc-2, argv+2);
     return 0;
 }
 
-
+/* save */
 PLUG_API BS_STATUS ULCAPP_CMD_Save(IN HANDLE hFile)
 {
     ULCAPP_RuntimeSave(hFile);

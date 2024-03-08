@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-
+/* retcode所需要的宏 */
 #define RETCODE_FILE_NUM VNET_RETCODE_FILE_NUM_SERVERINIT
 
 #include "bs.h"
@@ -47,7 +47,7 @@
 
 typedef BS_STATUS (*PF_VNETS_INIT_FUNC)();
 
-
+/* 第一阶段初始化, 放置不需要依赖于任何其他模块初始化的函数 */
 static PF_VNETS_INIT_FUNC g_apfVnetsInit1[] =
 {
     VNETS_NODE_Init,
@@ -67,7 +67,7 @@ static PF_VNETS_INIT_FUNC g_apfVnetsInit1[] =
     VNETS_KF_Init,
 };
 
-
+/* 第二阶段初始化, 放置需要依赖第一阶段已经完成的初始化函数 */
 static PF_VNETS_INIT_FUNC g_apfVnetsInit2[] =
 {
     VNETS_SES_Init,
@@ -84,7 +84,7 @@ static VOID vnets_NoDbgAll()
     VNETS_Protocol_NoDebugAll();
 }
 
-BS_STATUS VNETS_Init ()
+BS_STATUS VNETS_Init()
 {
     MAC_ADDR_S stMac;
     BS_STATUS eRet = BS_OK;
@@ -99,8 +99,7 @@ BS_STATUS VNETS_Init ()
     for (i=0; i<sizeof(g_apfVnetsInit1)/sizeof(PF_VNETS_INIT_FUNC); i++)
     {
         eRet = g_apfVnetsInit1[i]();
-        if (BS_OK != eRet)
-        {
+        if (BS_OK != eRet) {
             EXEC_OutInfo("[1.%d]", i);
             return eRet;
         }
@@ -109,8 +108,7 @@ BS_STATUS VNETS_Init ()
     for (i=0; i<sizeof(g_apfVnetsInit2)/sizeof(PF_VNETS_INIT_FUNC); i++)
     {
         eRet = g_apfVnetsInit2[i]();
-        if (BS_OK != eRet)
-        {
+        if (BS_OK != eRet) {
             EXEC_OutInfo("[2.%d]", i);
             return eRet;
         }

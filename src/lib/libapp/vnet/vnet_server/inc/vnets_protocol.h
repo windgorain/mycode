@@ -8,13 +8,13 @@
     extern "C" {
 #endif /* __cplusplus */
 
-typedef BS_STATUS (*PF_VNETS_PROTOCOL_DO_FUNC)();
-
 typedef struct
 {
     UINT uiTpID;
     MBUF_S *pstMBuf;
 }VNETS_PROTOCOL_PACKET_INFO_S;
+
+typedef BS_STATUS (*PF_VNETS_PROTOCOL_DO_FUNC)(IN MIME_HANDLE hMime, IN VNETS_PROTOCOL_PACKET_INFO_S *pstPacketInfo);
 
 BS_STATUS VNETS_Protocol_Init();
 
@@ -35,8 +35,8 @@ VOID VNETS_Protocol_NoDebugAll();
 
 #ifdef __cplusplus
     }
-#endif 
+#endif /* __cplusplus */
 
-#endif 
+#endif /*__VNETS_PROTOCOL_H_*/
 
 

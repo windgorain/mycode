@@ -20,9 +20,9 @@ cJSON * FILE_LoadJson(const char *filename, bool is_encrypt)
         return NULL;
     }
 
-    int decrypt_len = filemem->uiFileLen/2 + 1;
+    int decrypt_len = filemem->len/2 + 1;
 
-    CHAR *decrypt = (CHAR*)filemem->pucFileData;
+    CHAR *decrypt = (CHAR*)filemem->data;
     CHAR *decrypt_file = MEM_ZMalloc(decrypt_len);
     if (!decrypt_file) {
         FILE_MemFree(filemem);

@@ -36,7 +36,7 @@ int main(int argc, char **argv)
         return 2;
     }
 
-    bytes = mem->pucFileData;
+    bytes = mem->data;
 
     if (bytes == NULL) {
         BS_PRINT_ERR("Could not load %s", mod_path);
@@ -47,11 +47,11 @@ int main(int argc, char **argv)
                      .mangle_table_index    = 1,
                      .dlsym_trim_underscore = 1};
 
-    WASM_MODULE_S * m = WASM_Load(bytes, mem->uiFileLen, &opts);
+    WASM_MODULE_S * m = WASM_Load(bytes, mem->len, &opts);
 
     WASME_InitThunk(m);
 
-    
+    // emscripten initialization
     WASM_BLOCK_S *func = WASM_GetExport(m, "__post_instantiate");
     if (func) {
         WASM_Run(m, func->fidx);

@@ -22,18 +22,20 @@ static const MYBPF_VM_S g_mybpf_default_vm = {
     .print_func = _mybpf_default_vm_print
 };
 
-
+/* 使用默认环境调用 */
 int MYBPF_DefultRun(MYBPF_CTX_S *ctx, U64 r1, U64 r2, U64 r3, U64 r4, U64 r5)
 {
     return MYBPF_Run((void*)&g_mybpf_default_vm, ctx, r1, r2, r3, r4, r5);
 }
 
-
-int MYBPF_DefultRunCode(void *code, OUT UINT64 *bpf_ret, U64 r1, U64 r2, U64 r3, U64 r4, U64 r5)
+/* 使用默认环境调用 */
+int MYBPF_DefultRunCode(void *begin_addr, void *end_addr, void *entry, OUT UINT64 *bpf_ret, U64 r1, U64 r2, U64 r3, U64 r4, U64 r5)
 {
     MYBPF_CTX_S ctx = {0};
-    ctx.insts = code;
-    ctx.start_addr = code;
+
+    ctx.begin_addr = begin_addr;
+    ctx.end_addr = end_addr;
+    ctx.insts = entry;
 
     int ret = MYBPF_Run((void*)&g_mybpf_default_vm, &ctx, r1, r2, r3, r4, r5);
     if (ret < 0) {

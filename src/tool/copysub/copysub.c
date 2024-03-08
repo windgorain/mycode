@@ -35,11 +35,13 @@ static VOID copysub_help()
         );
 }
 
-
+/* 
+    copysub [option] fromFile [toFile].
+*/
 VOID main(IN INT uiArgc, IN CHAR **ppcArgv)
 {
     FILE *pstFrom, *pstTo = NULL;
-    UINT64 uiFileSize;
+    S64 filesize;
     UCHAR ucChar;
     UINT uiStart;
 
@@ -62,12 +64,12 @@ VOID main(IN INT uiArgc, IN CHAR **ppcArgv)
         }
     }
 
-    if (BS_OK != FILE_GetSize(g_pcFromFile, &uiFileSize))
-    {
+    filesize = FILE_GetSize(g_pcFromFile);
+    if (filesize < 0) {
         return;
     }
 
-    if (g_uiStartAddress >= uiFileSize)
+    if (g_uiStartAddress >= filesize)
     {
         return;
     }

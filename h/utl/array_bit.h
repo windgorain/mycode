@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif 
+#endif /* __cplusplus */
 
 #define ARRAYBIT_SCAN_FREE_BEGIN(_data, _bit_size, _index)  do { \
     INT64 _i, _j; \
@@ -45,7 +45,7 @@
 
 typedef int (*PF_ARRAY_BIT_WALK)(INT64 index, void *ud);
 
-
+/* 对UINT数组进行位设置 */
 static inline void ArrayBit_Set(UINT *data, INT64 index)
 {
     data[index>>5] |= ((UINT)1 << (index & 31));
@@ -62,7 +62,7 @@ static inline int ArrayBit_Test(UINT *data, INT64 index)
     return !!ret;
 }
 
-
+/* 获取一个空位 */
 INT64 ArrayBit_GetFree(UINT *data, INT64 bit_size);
 INT64 ArrayBit_GetFreeFrom(UINT *data, INT64 bit_size, INT64 from);
 INT64 ArrayBit_GetFreeAfter(UINT *data, INT64 bit_size, INT64 curr);
@@ -74,8 +74,8 @@ INT64 ArrayBit_GetBusyAfter(UINT *data, INT64 bit_size, INT64 curr);
 void ArrayBit_WalkBusy(UINT *data, INT64 bit_size, PF_ARRAY_BIT_WALK walk_func, void *ud);
 UINT64 ArrayBit_GetBusyCount(UINT *data, INT64 bit_size);
 
-
-static inline INT64 ArrayBit_GetBusy(UINT *data, INT64 bit_size )
+/* 获取一个setted位 */
+static inline INT64 ArrayBit_GetBusy(UINT *data, INT64 bit_size /* 有多少bits */)
 {
     INT64 index;
 
@@ -86,7 +86,7 @@ static inline INT64 ArrayBit_GetBusy(UINT *data, INT64 bit_size )
     return -1;
 }
 
-
+/* 做与操作, data3 = data1 & data2 */
 static inline void ArrayBit_And(UINT *data1, UINT *data2, int uint_count, OUT UINT *data3)
 {
     int i;
@@ -95,7 +95,7 @@ static inline void ArrayBit_And(UINT *data1, UINT *data2, int uint_count, OUT UI
     }
 }
 
-
+/* 做或操作, data3 = data1 | data2 */
 static inline void ArrayBit_Or(UINT *data1, UINT *data2, int uint_count, OUT UINT *data3)
 {
     int i;
@@ -104,7 +104,7 @@ static inline void ArrayBit_Or(UINT *data1, UINT *data2, int uint_count, OUT UIN
     }
 }
 
-
+/* 做异或操作, data3 = data1 ^ data2 */
 static inline void ArrayBit_Xor(UINT *data1, UINT *data2, int uint_count, OUT UINT *data3)
 {
     int i;
@@ -113,8 +113,35 @@ static inline void ArrayBit_Xor(UINT *data1, UINT *data2, int uint_count, OUT UI
     }
 }
 
+/* 做与操作, data3 = data1 & data2 */
+static inline void ArrayBit_And64(U64 *data1, U64 *data2, int u64_count, OUT U64 *data3)
+{
+    int i;
+    for (i=0; i<u64_count; i++) {
+        data3[i] = data1[i] & data2[i];
+    }
+}
+
+/* 做或操作, data3 = data1 | data2 */
+static inline void ArrayBit_Or64(U64 *data1, U64 *data2, int u64_count, OUT U64 *data3)
+{
+    int i;
+    for (i=0; i<u64_count; i++) {
+        data3[i] = data1[i] | data2[i];
+    }
+}
+
+/* 做异或操作, data3 = data1 ^ data2 */
+static inline void ArrayBit_Xor64(U64 *data1, U64 *data2, int u64_count, OUT U64 *data3)
+{
+    int i;
+    for (i=0; i<u64_count; i++) {
+        data3[i] = data1[i] ^ data2[i];
+    }
+}
+
 #ifdef __cplusplus
     }
-#endif 
+#endif /* __cplusplus */
 
-#endif 
+#endif //ARRAY_BIT_H_

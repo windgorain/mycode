@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-
+/* retcode所需要的宏 */
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_PASSWD
 
 #include "bs.h"
@@ -16,7 +16,7 @@
 #include "utl/lvm_utl.h"
 #include "utl/passwd_utl.h"
 
-
+/* 无损加密 */
 BS_STATUS PW_Base64Encrypt(IN CHAR *szClearText, OUT CHAR *szCipher, IN ULONG ulCipherSize)
 {
     ULONG ulLen;
@@ -24,7 +24,7 @@ BS_STATUS PW_Base64Encrypt(IN CHAR *szClearText, OUT CHAR *szCipher, IN ULONG ul
     UCHAR *pucData;
     UINT uiCipherLen;
 
-    ulLen = strlen(szClearText) + 1;  
+    ulLen = strlen(szClearText) + 1;  /* 把最后的结束符也加密, 便于解密后以'\0'结束长度正确 */
 
     if (ulCipherSize <= PW_BASE64_CIPHER_LEN(ulLen)) {
         BS_DBGASSERT(0);
@@ -51,7 +51,7 @@ BS_STATUS PW_Base64Encrypt(IN CHAR *szClearText, OUT CHAR *szCipher, IN ULONG ul
 	return BS_OK;
 }
 
-
+/* 无损解密 */
 BS_STATUS PW_Base64Decrypt(IN CHAR *szCipher, OUT CHAR *szClearText, IN ULONG ulClearSize)
 {
     UINT uiLen;
@@ -83,7 +83,7 @@ BS_STATUS PW_Base64Decrypt(IN CHAR *szCipher, OUT CHAR *szClearText, IN ULONG ul
     return BS_OK;
 }
 
-
+/* 无损加密 */
 BS_STATUS PW_HexEncrypt(IN CHAR *szClearText, OUT CHAR *szCipher, IN ULONG ulCipherSize)
 {
     ULONG ulLen;
@@ -118,7 +118,7 @@ BS_STATUS PW_HexEncrypt(IN CHAR *szClearText, OUT CHAR *szCipher, IN ULONG ulCip
 	return BS_OK;
 }
 
-
+/* 无损解密 */
 BS_STATUS PW_HexDecrypt(IN CHAR *szCipher, OUT CHAR *szClearText, IN ULONG ulClearSize)
 {
     UINT uiLen;
@@ -145,11 +145,15 @@ BS_STATUS PW_HexDecrypt(IN CHAR *szCipher, OUT CHAR *szClearText, IN ULONG ulCle
     return BS_OK;
 }
 
-
-BS_STATUS PW_Md5Encrypt(IN CHAR *szClearText, OUT CHAR szCipherText[PW_MD5_ENCRYPT_LEN + 1])
+/* 有损加密 */
+BS_STATUS PW_Md5Encrypt(IN CHAR *szClearText, OUT CHAR *szCipherText, int cipher_text_size)
 {
     UCHAR aucMd5[MD5_LEN];
-    UCHAR aucCipher[MD5_LEN];
+    UCHAR aucCipher[32];
+
+    if (cipher_text_size <= 32 * 2) {
+        RETURN(BS_BAD_PARA);
+    }
 
     MD5_Create((UCHAR*)szClearText, strlen(szClearText), aucMd5);
 
@@ -163,12 +167,12 @@ BS_STATUS PW_Md5Encrypt(IN CHAR *szClearText, OUT CHAR szCipherText[PW_MD5_ENCRY
     return BS_OK;
 }
 
-
+/* 有损加密的比较 */
 BOOL_T PW_Md5Check(IN CHAR *szClearText, IN CHAR *pcCipherText)
 {
     CHAR szNewCipherText[PW_MD5_ENCRYPT_LEN + 1];
 
-    PW_Md5Encrypt(szClearText, szNewCipherText);
+    PW_Md5Encrypt(szClearText, szNewCipherText, sizeof(szNewCipherText));
 
     if (strcmp(pcCipherText, szNewCipherText) == 0) {
         return TRUE;
