@@ -8,6 +8,20 @@
 #include "utl/mem_utl.h"
 #include "utl/data2hex_utl.h"
 
+static inline void _mem_swap(void *buf1, void *buf2, int len)
+{
+    unsigned char *d1 = buf1;
+    unsigned char *d2 = buf2;
+    unsigned char tmp;
+    int i;
+
+    for (i=0; i<len; i++) {
+        tmp = d1[i];
+        d1[i] = d2[i];
+        d2[i] = tmp;
+    }
+}
+
 void * MEM_FindOneOf(void *mem, UINT mem_len, void *to_finds, UINT to_finds_len)
 {
     UCHAR *data = mem;
@@ -377,15 +391,34 @@ int MEM_ReplaceOneChar(void *data, int len, UCHAR src, UCHAR dst)
 
 void MEM_Swap(void *buf1, void *buf2, int len)
 {
-    unsigned char *d1 = buf1;
-    unsigned char *d2 = buf2;
-    unsigned char tmp;
-    int i;
+    _mem_swap(buf1, buf2, len);
+}
 
-    for (i=0; i<len; i++) {
-        tmp = d1[i];
-        d1[i] = d2[i];
-        d2[i] = tmp;
+
+
+int MEM_SwapByOff(void *buf, int buf_len, int off)
+{
+    if (off >= buf_len) {
+        return 0;
     }
+
+    if (off * 2 == buf_len) { 
+        _mem_swap(buf, (char*)buf + off, off);
+        return 0;
+    }
+
+    void *tmp = MEM_Malloc(off);
+    if (! tmp) {
+        RETURN(BS_NO_MEMORY);
+    }
+
+    memcpy(tmp, buf, off);
+
+    memmove(buf, (char*)buf + off, buf_len - off);
+    memcpy((char*)buf + (buf_len - off), tmp, off);
+
+    MEM_Free(tmp);
+
+    return 0;
 }
 

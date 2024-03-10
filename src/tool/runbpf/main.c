@@ -41,6 +41,7 @@ static int _runbpf_run_file(char *file, char *sec_name, int jit, char *params)
     char *argv[32];
     int argc = 0;
     MYBPF_FILE_CTX_S ctx = {0};
+    MYBPF_PARAM_S p = {0};
 
     if (! sec_name) {
         sec_name = "tcmd/";
@@ -54,7 +55,10 @@ static int _runbpf_run_file(char *file, char *sec_name, int jit, char *params)
     ctx.sec_name = sec_name;
     ctx.jit = jit;
 
-    int ret = MYBPF_RunFileExt(&ctx, argc, (long)argv, 0, 0, 0);
+    p.p[0] = argc;
+    p.p[1] = (long)argv;
+
+    int ret = MYBPF_RunFileExt(&ctx, &p);
     if (ret < 0) {
         printf("Run file failed. \r\n");
         ErrCode_Print();
@@ -150,7 +154,10 @@ static int _runbpf_run_bare(char *file, int aoted, char *params)
     if (aoted) {
         ret = _runbpf_run_bare_aoted(m, argc, argv);
     } else {
-        ret = MYBPF_DefultRunCode(m->data, (char*)m->data + m->len, m->data, NULL, argc, (long)argv, 0, 0, 0);
+        MYBPF_PARAM_S p = {0};
+        p.p[0] = argc;
+        p.p[1] = (long)argv;
+        ret = MYBPF_DefultRunCode(m->data, (char*)m->data + m->len, m->data, NULL, &p);
     }
 
     FILE_MemFree(m);
@@ -167,7 +174,7 @@ static int _runbpf_bare(int argc, char **argv)
         {'P', 0, "filename", GETOPT2_V_STRING, &filename, "bpf file name", 0},
         {'o', 'p', "params", GETOPT2_V_STRING, &params, "params", 0},
         {'o', 'd', "debug", GETOPT2_V_NONE, NULL, "print debug info", 0},
-        {'o', 'a', "aoted", GETOPT2_V_NONE, NULL, "aoted to native arch", 0},
+        {'o', 'j', "jitted", GETOPT2_V_NONE, NULL, "has been jitted to native arch", 0},
         {0} };
 
     if (BS_OK != GETOPT2_Parse(argc, argv, opt)) {
@@ -184,7 +191,7 @@ static int _runbpf_bare(int argc, char **argv)
         MYBPF_DBG_SetAllDebugFlags();
     }
 
-    if (GETOPT2_IsOptSetted(opt, 'a', NULL)) {
+    if (GETOPT2_IsOptSetted(opt, 'j', NULL)) {
         aoted = 1;
     }
 

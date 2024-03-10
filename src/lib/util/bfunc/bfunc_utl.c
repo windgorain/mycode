@@ -7,12 +7,11 @@
 #include "utl/bfunc_utl.h"
 #include "utl/mybpf_vm.h"
 
-static inline int _bfunc_call_raw(BFUNC_S *ctrl, BFUNC_NODE_S *node, UINT64 *bpf_ret,
-        UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+static inline int _bfunc_call_raw(BFUNC_S *ctrl, BFUNC_NODE_S *node, UINT64 *bpf_ret, MYBPF_PARAM_S *p)
 {
     PF_BFUNC_FUNC func = node->func;
 
-    UINT64 ret = func(p1, p2, p3, p4, p5);
+    UINT64 ret = func(p->p[0], p->p[1], p->p[2], p->p[3], p->p[4]);
     if (bpf_ret) {
         *bpf_ret = ret;
     }
@@ -20,15 +19,14 @@ static inline int _bfunc_call_raw(BFUNC_S *ctrl, BFUNC_NODE_S *node, UINT64 *bpf
     return 0;
 }
 
-static inline int _bfunc_call_bpf(BFUNC_S *ctrl, BFUNC_NODE_S *node, UINT64 *bpf_ret,
-        UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+static inline int _bfunc_call_bpf(BFUNC_S *ctrl, BFUNC_NODE_S *node, UINT64 *bpf_ret, MYBPF_PARAM_S *p)
 {
     MYBPF_CTX_S ctx;
 
     if (node->mem_check) {
         
-        ctx.mem = (void*)(long)p1; 
-        ctx.mem_len = p2; 
+        ctx.mem = (void*)(long)p->p[0]; 
+        ctx.mem_len = p->p[1]; 
         ctx.mem_check = 1;
     }
 
@@ -36,7 +34,7 @@ static inline int _bfunc_call_bpf(BFUNC_S *ctrl, BFUNC_NODE_S *node, UINT64 *bpf
     ctx.begin_addr = node->begin_addr;
     ctx.end_addr = node->end_addr;
 
-    int ret = MYBPF_DefultRun(&ctx, p1, p2, p3, p4, p5);
+    int ret = MYBPF_DefultRun(&ctx, p);
     if (ret < 0) {
         return ret;
     }
@@ -90,7 +88,7 @@ int BFUNC_Set(BFUNC_S *ctrl, UINT id, UINT jited, void *prog, void *func, void *
 }
 
 
-int BFUNC_Call(BFUNC_S *ctrl, UINT id, UINT64 *bpf_ret, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+int BFUNC_Call(BFUNC_S *ctrl, UINT id, UINT64 *bpf_ret, MYBPF_PARAM_S *p)
 {
     BFUNC_NODE_S *node;
     int ret;
@@ -105,9 +103,9 @@ int BFUNC_Call(BFUNC_S *ctrl, UINT id, UINT64 *bpf_ret, UINT64 p1, UINT64 p2, UI
     }
 
     if (node->jited) {
-        ret = _bfunc_call_raw(ctrl, node, bpf_ret, p1, p2, p3, p4, p5);
+        ret = _bfunc_call_raw(ctrl, node, bpf_ret, p);
     } else {
-        ret = _bfunc_call_bpf(ctrl, node, bpf_ret, p1, p2, p3, p4, p5);
+        ret = _bfunc_call_bpf(ctrl, node, bpf_ret, p);
     }
 
     return ret;

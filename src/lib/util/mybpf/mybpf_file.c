@@ -15,26 +15,25 @@
 #include "utl/mybpf_insn.h"
 #include "utl/mybpf_simple.h"
 
-static inline int _mybpf_run_file(MYBPF_RUNTIME_S *runtime, MYBPF_FILE_CTX_S *ctx,
-        UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+static inline int _mybpf_run_file(MYBPF_RUNTIME_S *runtime, MYBPF_FILE_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     int ret;
-    MYBPF_LOADER_PARAM_S p = {0};
+    MYBPF_LOADER_PARAM_S d = {0};
 
-    p.instance = "runfile";
-    p.filename = ctx->file;
+    d.instance = "runfile";
+    d.filename = ctx->file;
 
     if (ctx->jit) {
-        p.flag |= MYBPF_LOADER_FLAG_JIT;
+        d.flag |= MYBPF_LOADER_FLAG_JIT;
     }
 
-    if ((ret = MYBPF_LoaderLoad(runtime, &p)) < 0) {
+    if ((ret = MYBPF_LoaderLoad(runtime, &d)) < 0) {
         return ret;
     }
 
     MYBPF_PROG_NODE_S *prog = NULL;
     while ((prog = MYBPF_PROG_GetNext(runtime, "runfile", ctx->sec_name, prog))) {
-        ret = MYBPF_PROG_Run(prog, &ctx->bpf_ret, p1, p2, p3, p4, p5);
+        ret = MYBPF_PROG_Run(prog, &ctx->bpf_ret, p);
         if (ret == MYBPF_HP_RET_STOP) {
             break;
         }
@@ -43,7 +42,7 @@ static inline int _mybpf_run_file(MYBPF_RUNTIME_S *runtime, MYBPF_FILE_CTX_S *ct
     return ret;
 }
 
-int MYBPF_RunFileExt(MYBPF_FILE_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+int MYBPF_RunFileExt(MYBPF_FILE_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     MYBPF_RUNTIME_S runtime;
     int ret;
@@ -52,21 +51,21 @@ int MYBPF_RunFileExt(MYBPF_FILE_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3, UIN
         return ret;
     }
 
-    ret = _mybpf_run_file(&runtime, ctx, p1, p2, p3, p4, p5);
+    ret = _mybpf_run_file(&runtime, ctx, p);
 
     MYBPF_RuntimeFini(&runtime);
 
     return ret;
 }
 
-int MYBPF_RunFile(char *filename, char *sec_name, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+int MYBPF_RunFile(char *filename, char *sec_name, MYBPF_PARAM_S *p)
 {
     MYBPF_FILE_CTX_S ctx = {0};
 
     ctx.file = filename;
     ctx.sec_name = sec_name;
 
-    return MYBPF_RunFileExt(&ctx, p1, p2, p3, p4, p5);
+    return MYBPF_RunFileExt(&ctx, p);
 }
 
 int MYBPF_ShowPcAccessGlobal(char *filename)

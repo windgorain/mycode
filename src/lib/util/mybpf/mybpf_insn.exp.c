@@ -13,6 +13,7 @@ static BPFASM_FUNC_S g_bpfasm_progs[] = {
     {.func_name="MYBPF_INSN_GetStackSize", .insn_offset=259}, 
     {.func_name="MYBPF_INSN_GetStackSizeUntilExit", .insn_offset=320}, 
     {.func_name="MYBPF_INSN_ShowPcAccessGlobal", .insn_offset=345}, 
+    {.func_name="MYBPF_INSN_ModifyTextOff", .insn_offset=559}, 
     {0} }; 
 
 static MYBPF_INSN_S g_bpfasm_insts[] = { 
@@ -90,7 +91,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_IMM(BPF_R3, 0), 
     BPF_MOV64_IMM(BPF_R4, 0), 
     BPF_MOV64_IMM(BPF_R5, 48), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 10006), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000006), 
     BPF_JMP_A(-18), 
     BPF_LDX_MEM(BPF_B, BPF_R9, BPF_R1, 1), 
     BPF_ALU64_IMM(BPF_AND, BPF_R9, 240), 
@@ -255,7 +256,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_IMM(BPF_R3, 0), 
     BPF_MOV64_IMM(BPF_R4, 0), 
     BPF_MOV64_IMM(BPF_R5, 146), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 10006), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000006), 
     BPF_JMP_A(8), 
     BPF_STX_MEM(BPF_W, BPF_R6, BPF_R0, 0), 
     BPF_LD_IMM64_RAW(BPF_R2, BPF_R0, 0x100000000LL), 
@@ -484,12 +485,12 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_IMM(BPF_R3, 0), 
     BPF_MOV64_IMM(BPF_R4, 0), 
     BPF_MOV64_IMM(BPF_R5, 245), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 10006), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000006), 
     BPF_LDX_MEM(BPF_B, BPF_R3, BPF_R6, 0), 
     BPF_MOV64_REG(BPF_R1, BPF_R10), 
     BPF_ALU64_IMM(BPF_ADD, BPF_R1, -48), 
     BPF_MOV64_REG(BPF_R2, BPF_R8), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 10007), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000007), 
     BPF_JMP_A(-105), 
     BPF_LDX_MEM(BPF_B, BPF_R1, BPF_R6, 1), 
     BPF_LD_IMM64_RAW(BPF_R8, BPF_R0, 0x100000000LL), 
@@ -523,7 +524,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_IMM(BPF_R3, 0), 
     BPF_MOV64_IMM(BPF_R4, 0), 
     BPF_MOV64_IMM(BPF_R5, 260), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 10006), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000006), 
     BPF_LDX_MEM(BPF_W, BPF_R5, BPF_R6, 12), 
     BPF_LDX_MEM(BPF_B, BPF_R3, BPF_R6, 0), 
     BPF_LDX_MEM(BPF_B, BPF_R4, BPF_R6, 1), 
@@ -531,16 +532,49 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_REG(BPF_R1, BPF_R10), 
     BPF_ALU64_IMM(BPF_ADD, BPF_R1, -48), 
     BPF_MOV64_REG(BPF_R2, BPF_R7), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 10007), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000007), 
     BPF_JMP_A(-155), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 10006), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000006), 
     BPF_LDX_MEM(BPF_W, BPF_R4, BPF_R6, 4), 
     BPF_LDX_MEM(BPF_B, BPF_R3, BPF_R6, 0), 
     BPF_MOV64_REG(BPF_R1, BPF_R10), 
     BPF_ALU64_IMM(BPF_ADD, BPF_R1, -48), 
     BPF_MOV64_REG(BPF_R2, BPF_R7), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 10007), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000007), 
     BPF_JMP_A(-163), 
+    /* MYBPF_INSN_ModifyTextOff */
+    BPF_ALU64_IMM(BPF_LSH, BPF_R2, 32), 
+    BPF_MOV64_REG(BPF_R4, BPF_R2), 
+    BPF_ALU64_IMM(BPF_ARSH, BPF_R4, 32), 
+    BPF_MOV64_IMM(BPF_R5, 8), 
+    BPF_JMP_REG(BPF_JSGT, BPF_R5, BPF_R4, 18), 
+    BPF_ALU64_IMM(BPF_ARSH, BPF_R2, 35), 
+    BPF_MOV64_IMM(BPF_R4, 0), 
+    BPF_ALU64_IMM(BPF_ADD, BPF_R1, 4), 
+    BPF_MOV64_REG(BPF_R5, BPF_R3), 
+    BPF_ALU64_IMM(BPF_LSH, BPF_R5, 32), 
+    BPF_ALU64_IMM(BPF_ARSH, BPF_R5, 35), 
+    BPF_JMP_A(12), 
+    BPF_LDX_MEM(BPF_B, BPF_R0, BPF_R1, -3), 
+    BPF_ALU64_IMM(BPF_AND, BPF_R0, 240), 
+    BPF_JMP_IMM(BPF_JNE, BPF_R0, 16, 5), 
+    BPF_MOV64_REG(BPF_R0, BPF_R2), 
+    BPF_JMP_REG(BPF_JSGE, BPF_R4, BPF_R5, 3), 
+    BPF_LDX_MEM(BPF_W, BPF_R6, BPF_R1, 0), 
+    BPF_ALU64_REG(BPF_ADD, BPF_R6, BPF_R0), 
+    BPF_STX_MEM(BPF_W, BPF_R1, BPF_R6, 0), 
+    BPF_ALU64_IMM(BPF_ADD, BPF_R1, 8), 
+    BPF_ALU64_IMM(BPF_ADD, BPF_R4, 1), 
+    BPF_JMP_REG(BPF_JSGT, BPF_R2, BPF_R4, 1), 
+    BPF_EXIT_INSN(), 
+    BPF_LDX_MEM(BPF_B, BPF_R0, BPF_R1, -4), 
+    BPF_JMP_IMM(BPF_JEQ, BPF_R0, 133, -14), 
+    BPF_JMP_IMM(BPF_JNE, BPF_R0, 24, -7), 
+    BPF_LDX_MEM(BPF_B, BPF_R6, BPF_R1, -3), 
+    BPF_ALU64_IMM(BPF_AND, BPF_R6, 240), 
+    BPF_MOV64_REG(BPF_R0, BPF_R3), 
+    BPF_JMP_IMM(BPF_JEQ, BPF_R6, 64, -14), 
+    BPF_JMP_A(-12), 
 }; 
 
 static BPFASM_S g_bpfasm_ctrl = { 
@@ -552,7 +586,9 @@ static BPFASM_S g_bpfasm_ctrl = {
 U64 MYBPF_INSN_GetCallsCount(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
     U64 bpf_ret; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_GetCallsCount", &bpf_ret, p1, p2, p3, p4, p5); 
+    MYBPF_PARAM_S p; 
+    p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
+    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_GetCallsCount", &bpf_ret, &p); 
     if (ret < 0) return ret; 
     return bpf_ret; 
 } 
@@ -560,7 +596,9 @@ U64 MYBPF_INSN_GetCallsCount(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
 U64 MYBPF_INSN_GetCallsInfo(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
     U64 bpf_ret; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_GetCallsInfo", &bpf_ret, p1, p2, p3, p4, p5); 
+    MYBPF_PARAM_S p; 
+    p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
+    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_GetCallsInfo", &bpf_ret, &p); 
     if (ret < 0) return ret; 
     return bpf_ret; 
 } 
@@ -568,7 +606,9 @@ U64 MYBPF_INSN_GetCallsInfo(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
 U64 MYBPF_INSN_WalkCalls(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
     U64 bpf_ret; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_WalkCalls", &bpf_ret, p1, p2, p3, p4, p5); 
+    MYBPF_PARAM_S p; 
+    p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
+    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_WalkCalls", &bpf_ret, &p); 
     if (ret < 0) return ret; 
     return bpf_ret; 
 } 
@@ -576,7 +616,9 @@ U64 MYBPF_INSN_WalkCalls(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
 U64 MYBPF_INSN_WalkExternCalls(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
     U64 bpf_ret; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_WalkExternCalls", &bpf_ret, p1, p2, p3, p4, p5); 
+    MYBPF_PARAM_S p; 
+    p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
+    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_WalkExternCalls", &bpf_ret, &p); 
     if (ret < 0) return ret; 
     return bpf_ret; 
 } 
@@ -584,7 +626,9 @@ U64 MYBPF_INSN_WalkExternCalls(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
 U64 MYBPF_INSN_WalkLddw(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
     U64 bpf_ret; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_WalkLddw", &bpf_ret, p1, p2, p3, p4, p5); 
+    MYBPF_PARAM_S p; 
+    p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
+    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_WalkLddw", &bpf_ret, &p); 
     if (ret < 0) return ret; 
     return bpf_ret; 
 } 
@@ -592,7 +636,9 @@ U64 MYBPF_INSN_WalkLddw(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
 U64 MYBPF_INSN_FixupExtCalls(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
     U64 bpf_ret; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_FixupExtCalls", &bpf_ret, p1, p2, p3, p4, p5); 
+    MYBPF_PARAM_S p; 
+    p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
+    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_FixupExtCalls", &bpf_ret, &p); 
     if (ret < 0) return ret; 
     return bpf_ret; 
 } 
@@ -600,7 +646,9 @@ U64 MYBPF_INSN_FixupExtCalls(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
 U64 MYBPF_INSN_GetStackSize(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
     U64 bpf_ret; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_GetStackSize", &bpf_ret, p1, p2, p3, p4, p5); 
+    MYBPF_PARAM_S p; 
+    p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
+    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_GetStackSize", &bpf_ret, &p); 
     if (ret < 0) return ret; 
     return bpf_ret; 
 } 
@@ -608,7 +656,9 @@ U64 MYBPF_INSN_GetStackSize(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
 U64 MYBPF_INSN_GetStackSizeUntilExit(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
     U64 bpf_ret; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_GetStackSizeUntilExit", &bpf_ret, p1, p2, p3, p4, p5); 
+    MYBPF_PARAM_S p; 
+    p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
+    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_GetStackSizeUntilExit", &bpf_ret, &p); 
     if (ret < 0) return ret; 
     return bpf_ret; 
 } 
@@ -616,7 +666,19 @@ U64 MYBPF_INSN_GetStackSizeUntilExit(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
 U64 MYBPF_INSN_ShowPcAccessGlobal(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
     U64 bpf_ret; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_ShowPcAccessGlobal", &bpf_ret, p1, p2, p3, p4, p5); 
+    MYBPF_PARAM_S p; 
+    p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
+    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_ShowPcAccessGlobal", &bpf_ret, &p); 
+    if (ret < 0) return ret; 
+    return bpf_ret; 
+} 
+
+U64 MYBPF_INSN_ModifyTextOff(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
+{ 
+    U64 bpf_ret; 
+    MYBPF_PARAM_S p; 
+    p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
+    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_ModifyTextOff", &bpf_ret, &p); 
     if (ret < 0) return ret; 
     return bpf_ret; 
 } 

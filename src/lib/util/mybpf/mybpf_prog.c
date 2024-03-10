@@ -13,6 +13,7 @@
 #include "utl/mybpf_prog.h"
 #include "utl/mybpf_vm.h"
 #include "utl/mybpf_jit.h"
+#include "mybpf_prog_func.h"
 
 static void _mybpf_prog_free_prog_rcu(void *pstRcuNode)
 {
@@ -26,8 +27,7 @@ static inline void _mybpf_prog_free_prog(void *f)
     RcuEngine_Call(&node->rcu_node, _mybpf_prog_free_prog_rcu);
 }
 
-static inline int _mybpf_prog_run_bpf_code(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret,
-        UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+static inline int _mybpf_prog_run_bpf_code(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret, MYBPF_PARAM_S *p)
 {
     MYBPF_CTX_S ctx = {0};
     MYBPF_LOADER_NODE_S *n = prog->loader_node;
@@ -39,7 +39,7 @@ static inline int _mybpf_prog_run_bpf_code(MYBPF_PROG_NODE_S *prog, OUT UINT64 *
     ctx.auto_stack = 1;
     ctx.helper_fixed = 0;
 
-    int ret = MYBPF_DefultRun(&ctx, p1, p2, p3, p4, p5);
+    int ret = MYBPF_DefultRun(&ctx, p);
     if (ret < 0) {
         return ret;
     }
@@ -51,24 +51,22 @@ static inline int _mybpf_prog_run_bpf_code(MYBPF_PROG_NODE_S *prog, OUT UINT64 *
 
 typedef UINT64 (*PF_BPF_JITTED_FUNC)(UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5);
 
-static inline int _mybpf_prog_run_jitted_code(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret,
-        UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+static inline int _mybpf_prog_run_jitted_code(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret, MYBPF_PARAM_S *p)
 {
     PF_BPF_JITTED_FUNC func = prog->insn;
-    *bpf_ret = func(p1, p2, p3, p4, p5);
+    *bpf_ret = func(p->p[0], p->p[1], p->p[2], p->p[3], p->p[4]);
     return 0;
 }
 
-static inline int _mybpf_prog_run(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret,
-        UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+static inline int _mybpf_prog_run(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret, MYBPF_PARAM_S *p)
 {
     MYBPF_LOADER_NODE_S *n = prog->loader_node;
 
     if (n->jitted) {
-        return _mybpf_prog_run_jitted_code(prog, bpf_ret, p1, p2, p3, p4, p5);
+        return _mybpf_prog_run_jitted_code(prog, bpf_ret, p);
     }
 
-    return _mybpf_prog_run_bpf_code(prog, bpf_ret, p1, p2, p3, p4, p5);
+    return _mybpf_prog_run_bpf_code(prog, bpf_ret, p);
 }
 
 void MYBPF_PROG_Free(MYBPF_RUNTIME_S *runtime, MYBPF_PROG_NODE_S *prog)
@@ -137,92 +135,20 @@ MYBPF_PROG_NODE_S * MYBPF_PROG_GetBySecName(MYBPF_RUNTIME_S *runtime, char *inst
     return NULL;
 }
 
-static MYBPF_PROG_NODE_S * _mybpf_prog_get_first(MYBPF_RUNTIME_S *runtime,
-        MYBPF_LOADER_NODE_S *loader, char *sec_name)
+int MYBPF_PROG_Run(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret, MYBPF_PARAM_S *p)
 {
-    int sec_name_len = 0;
-    int wildcard = 0;
-
-    if (! loader) {
-        return NULL;
-    }
-
-    if (sec_name) {
-        sec_name_len = strlen(sec_name);
-        if (sec_name_len == 0) {
-            sec_name = NULL;
-        } else if (sec_name[sec_name_len - 1] == '/') {
-            wildcard = 1;
-        }
-    }
-
-    for (int i=0; i<loader->main_prog_count; i++) {
-        MYBPF_PROG_NODE_S * prog = loader->main_progs[i];
-        if (! sec_name) {
-            return prog;
-        }
-        if ((wildcard) && (0 == strncmp(sec_name, prog->sec_name, sec_name_len))) {
-            return prog;
-        }
-        if ((! wildcard) && (0 == strcmp(sec_name, prog->sec_name))) {
-            return prog;
-        }
-    }
-
-    return NULL;
-}
-
-static MYBPF_PROG_NODE_S * _mybpf_prog_get_next(MYBPF_RUNTIME_S *runtime,
-        MYBPF_LOADER_NODE_S *loader, char *sec_name, MYBPF_PROG_NODE_S *current)
-{
-    int sec_name_len = 0;
-    int wildcard = 0;
-
-    if (sec_name) {
-        sec_name_len = strlen(sec_name);
-        if (sec_name_len == 0) {
-            sec_name = NULL;
-        } else if (sec_name[sec_name_len - 1] == '/') {
-            wildcard = 1;
-        }
-    }
-
-    int reach_cur = 0;
-
-    for (int i=0; i<loader->main_prog_count; i++) {
-        if (reach_cur) {
-            MYBPF_PROG_NODE_S * prog = loader->main_progs[i];
-            if (!sec_name) {
-                return prog;
-            }
-            if ((wildcard) && (0 == strncmp(sec_name, prog->sec_name, sec_name_len))) {
-                return prog;
-            }
-            if ((! wildcard) && (0 == strcmp(sec_name, prog->sec_name))) {
-                return prog;
-            }
-        } else if (loader->main_progs[i] == current) {
-            reach_cur = 1;
-        }
-    }
-
-    return NULL;
+    return _mybpf_prog_run(prog, bpf_ret, p);
 }
 
 
-MYBPF_PROG_NODE_S * MYBPF_PROG_GetNext(MYBPF_RUNTIME_S *runtime, char *instance, char *sec_name,
-        MYBPF_PROG_NODE_S *current)
+MYBPF_PROG_NODE_S * MYBPF_PROG_GetNext(MYBPF_RUNTIME_S *runtime,
+        char *instance, char *sec_name, MYBPF_PROG_NODE_S *current)
 {
     if (! current) {
-        return _mybpf_prog_get_first(runtime, MYBPF_LoaderGet(runtime, instance), sec_name);
+        void *node = MYBPF_LoaderGet(runtime, instance);
+        return _MYBPF_PROG_GetFirst(runtime, node, sec_name);
     }
 
-    return _mybpf_prog_get_next(runtime, current->loader_node, sec_name, current);
-}
-
-int MYBPF_PROG_Run(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret,
-        UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
-{
-    return _mybpf_prog_run(prog, bpf_ret, p1, p2, p3, p4, p5);
+    return _MYBPF_PROG_GetNext(runtime, current->loader_node, sec_name, current);
 }
 

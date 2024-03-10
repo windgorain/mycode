@@ -701,6 +701,48 @@ static int _mybpf_simple_write_prog_mem(VBUF_S *vbuf, MYBPF_SIMPLE_CONVERT_PARAM
     return ret;
 }
 
+
+static int _mybpf_simple_move_text_sec(ELF_S *elf, void *mem, int mem_size, ELF_PROG_INFO_S *progs_info, int prog_count)
+{
+    ELF_SECTION_S text_sec = {0};
+    int text_progs_count;
+    int text_size;
+    int ret;
+    int i;
+
+    ELF_GetSecByName(elf, ".text", &text_sec);
+
+    
+    if (text_sec.data) {
+        text_size = text_sec.data->d_size;
+        ret = MEM_SwapByOff(mem, mem_size, text_size);
+        if (ret < 0) {
+            return ret;
+        }
+
+        MYBPF_INSN_ModifyTextOff(mem, mem_size, mem_size - text_size);
+
+        text_progs_count = ELF_GetSecProgsInfoCount(progs_info, prog_count, ".text");
+        if (text_progs_count) {
+            ret = MEM_SwapByOff(progs_info, prog_count * sizeof(ELF_PROG_INFO_S), text_progs_count * sizeof(ELF_PROG_INFO_S));
+            if (ret < 0) {
+                return ret;
+            }
+            for (i=0; i<(prog_count - text_progs_count); i++) {
+                progs_info[i].sec_offset -= text_size;
+                progs_info[i].prog_offset -= text_size;
+            }
+            for (; i<prog_count; i++) {
+                progs_info[i].sec_offset += (mem_size - text_size);
+                progs_info[i].prog_offset += (mem_size - text_size);
+            }
+        }
+
+    }
+
+    return 0;
+}
+
 static int _mybpf_simple_write_prog(VBUF_S *vbuf, ELF_S *elf, MYBPF_SIMPLE_CONVERT_PARAM_S *p,
         MYBPF_RELO_MAP_S *relo_maps, int maps_count)
 {
@@ -724,6 +766,10 @@ static int _mybpf_simple_write_prog(VBUF_S *vbuf, ELF_S *elf, MYBPF_SIMPLE_CONVE
     ELF_GetProgsInfo(elf, progs_info, prog_count);
 
     if ((ret = MYBPF_RELO_ProgRelo(elf, mem, relo_maps, maps_count, progs_info, prog_count)) < 0) {
+        goto Out;
+    }
+
+    if ((ret = _mybpf_simple_move_text_sec(elf, mem, mem_size, progs_info, prog_count)) < 0) {
         goto Out;
     }
 

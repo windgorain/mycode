@@ -19,7 +19,7 @@
 #define MYBPF_STACK_SIZE 512
 #define MYBPF_MAX_INSTS 1000000
 
-static int _mybpf_run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5);
+static int _mybpf_run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p);
 static inline bool _mybpf_bounds_check(
         MYBPF_VM_S *vm,
         MYBPF_CTX_S *ctx,
@@ -156,8 +156,17 @@ ubpf_mem_store(uint64_t address, uint64_t value, size_t size)
 static inline UINT64 _mybpf_call_sub_prog(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, 
         void *insn, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
 {
+    MYBPF_PARAM_S p;
+
+    p.p[0] = p1;
+    p.p[1] = p2;
+    p.p[2] = p3;
+    p.p[3] = p4;
+    p.p[4] = p5;
+
     ctx->insts = insn;
-    _mybpf_run(vm, ctx, p1, p2, p3, p4, p5);
+
+    _mybpf_run(vm, ctx, &p);
 
     return ctx->bpf_ret;
 }
@@ -257,7 +266,7 @@ static int _mybpf_run_atomic64(MYBPF_INSN_S *insn, U64 *regs)
     return 0;
 }
 
-static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
+static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     int pc = 0;
     int pc_off = ((char*)ctx->insts - (char*)ctx->begin_addr) / 8;
@@ -269,11 +278,11 @@ static int _mybpf_run_bpf(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 
         RETURN(BS_ERR);
     }
 
-    reg[1] = p1;
-    reg[2] = p2;
-    reg[3] = p3;
-    reg[4] = p4;
-    reg[5] = p5;
+    reg[1] = p->p[0];
+    reg[2] = p->p[1];
+    reg[3] = p->p[2];
+    reg[4] = p->p[3];
+    reg[5] = p->p[4];
     reg[10] = (unsigned long)(ctx->stack + ctx->stack_size);
 
     while (1) {
@@ -1032,87 +1041,87 @@ static inline bool _mybpf_bounds_check(
     }
 }
 
-static int _mybpf_run_stack8(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
+static int _mybpf_run_stack8(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     char stack[8];
     ctx->stack_size = 8;
     ctx->stack = stack;
-    return _mybpf_run_bpf(vm, ctx, p1, p2, p3, p4, p5);
+    return _mybpf_run_bpf(vm, ctx, p);
 }
 
-static int _mybpf_run_stack16(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
+static int _mybpf_run_stack16(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     char stack[16];
     ctx->stack_size = 16;
     ctx->stack = stack;
-    return _mybpf_run_bpf(vm, ctx, p1, p2, p3, p4, p5);
+    return _mybpf_run_bpf(vm, ctx, p);
 }
 
-static int _mybpf_run_stack32(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
+static int _mybpf_run_stack32(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     char stack[32];
     ctx->stack_size = 32;
     ctx->stack = stack;
-    return _mybpf_run_bpf(vm, ctx, p1, p2, p3, p4, p5);
+    return _mybpf_run_bpf(vm, ctx, p);
 }
 
-static int _mybpf_run_stack64(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
+static int _mybpf_run_stack64(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     char stack[64];
     ctx->stack_size = 64;
     ctx->stack = stack;
-    return _mybpf_run_bpf(vm, ctx, p1, p2, p3, p4, p5);
+    return _mybpf_run_bpf(vm, ctx, p);
 }
 
-static int _mybpf_run_stack128(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
+static int _mybpf_run_stack128(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     char stack[128];
     ctx->stack_size = 128;
     ctx->stack = stack;
-    return _mybpf_run_bpf(vm, ctx, p1, p2, p3, p4, p5);
+    return _mybpf_run_bpf(vm, ctx, p);
 }
 
-static noinline int _mybpf_run_stack256(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
+static noinline int _mybpf_run_stack256(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     char stack[256];
     ctx->stack_size = 256;
     ctx->stack = stack;
-    return _mybpf_run_bpf(vm, ctx, p1, p2, p3, p4, p5);
+    return _mybpf_run_bpf(vm, ctx, p);
 }
 
-static noinline int _mybpf_run_stack512(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
+static noinline int _mybpf_run_stack512(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     char stack[512];
     ctx->stack_size = 512;
     ctx->stack = stack;
-    return _mybpf_run_bpf(vm, ctx, p1, p2, p3, p4, p5);
+    return _mybpf_run_bpf(vm, ctx, p);
 }
 
-static noinline int _mybpf_run_stack1024(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
+static noinline int _mybpf_run_stack1024(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     char stack[1024];
     ctx->stack_size = 1024;
     ctx->stack = stack;
-    return _mybpf_run_bpf(vm, ctx, p1, p2, p3, p4, p5);
+    return _mybpf_run_bpf(vm, ctx, p);
 }
 
-static noinline int _mybpf_run_stack2048(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
+static noinline int _mybpf_run_stack2048(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     char stack[2048];
     ctx->stack_size = 2048;
     ctx->stack = stack;
-    return _mybpf_run_bpf(vm, ctx, p1, p2, p3, p4, p5);
+    return _mybpf_run_bpf(vm, ctx, p);
 }
 
-static noinline int _mybpf_run_stack4096(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
+static noinline int _mybpf_run_stack4096(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     char stack[4096];
     ctx->stack_size = 4096;
     ctx->stack = stack;
-    return _mybpf_run_bpf(vm, ctx, p1, p2, p3, p4, p5);
+    return _mybpf_run_bpf(vm, ctx, p);
 }
 
-static int _mybpf_run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, U64 p4, U64 p5)
+static int _mybpf_run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     int stack_size = 512;
     ELF_PROG_INFO_S *info = _mybpf_vm_get_sub_prog(ctx, ctx->insts);
@@ -1130,40 +1139,34 @@ static int _mybpf_run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, U64 p1, U64 p2, U64 p3, 
     }
 
     if (stack_size <= 8) {
-        return _mybpf_run_stack8(vm, ctx, p1, p2, p3, p4, p5);
+        return _mybpf_run_stack8(vm, ctx, p);
     } else if (stack_size <= 16) {
-        return _mybpf_run_stack16(vm, ctx, p1, p2, p3, p4, p5);
+        return _mybpf_run_stack16(vm, ctx, p);
     } else if (stack_size <= 32) {
-        return _mybpf_run_stack32(vm, ctx, p1, p2, p3, p4, p5);
+        return _mybpf_run_stack32(vm, ctx, p);
     } else if (stack_size <= 64) {
-        return _mybpf_run_stack64(vm, ctx, p1, p2, p3, p4, p5);
+        return _mybpf_run_stack64(vm, ctx, p);
     } else if (stack_size <= 128) {
-        return _mybpf_run_stack128(vm, ctx, p1, p2, p3, p4, p5);
+        return _mybpf_run_stack128(vm, ctx, p);
     } else if (stack_size <= 256) {
-        return _mybpf_run_stack256(vm, ctx, p1, p2, p3, p4, p5);
+        return _mybpf_run_stack256(vm, ctx, p);
     } else if (stack_size <= 512) {
-        return _mybpf_run_stack512(vm, ctx, p1, p2, p3, p4, p5);
+        return _mybpf_run_stack512(vm, ctx, p);
     } else if (stack_size <= 1024) {
-        return _mybpf_run_stack1024(vm, ctx, p1, p2, p3, p4, p5);
+        return _mybpf_run_stack1024(vm, ctx, p);
     } else if (stack_size <= 2048) {
-        return _mybpf_run_stack2048(vm, ctx, p1, p2, p3, p4, p5);
+        return _mybpf_run_stack2048(vm, ctx, p);
     } else if (stack_size <= 4096) {
-        return _mybpf_run_stack4096(vm, ctx, p1, p2, p3, p4, p5);
+        return _mybpf_run_stack4096(vm, ctx, p);
     } else {
         BS_DBGASSERT(0);
         RETURN(BS_OUT_OF_RANGE);
     }
 }
 
-int MYBPF_Run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+int MYBPF_Run(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
     
-    return _mybpf_run(vm, ctx, p1, p2, p3, p4, p5);
-}
-
-
-int MYBPF_RunP3(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, UINT64 p1, UINT64 p2, UINT64 p3)
-{
-    return _mybpf_run(vm, ctx, p1, p2, p3, 0, 0);
+    return _mybpf_run(vm, ctx, p);
 }
 

@@ -23,13 +23,13 @@ static const MYBPF_VM_S g_mybpf_default_vm = {
 };
 
 
-int MYBPF_DefultRun(MYBPF_CTX_S *ctx, U64 r1, U64 r2, U64 r3, U64 r4, U64 r5)
+int MYBPF_DefultRun(MYBPF_CTX_S *ctx, MYBPF_PARAM_S *p)
 {
-    return MYBPF_Run((void*)&g_mybpf_default_vm, ctx, r1, r2, r3, r4, r5);
+    return MYBPF_Run((void*)&g_mybpf_default_vm, ctx, p);
 }
 
 
-int MYBPF_DefultRunCode(void *begin_addr, void *end_addr, void *entry, OUT UINT64 *bpf_ret, U64 r1, U64 r2, U64 r3, U64 r4, U64 r5)
+int MYBPF_DefultRunCode(void *begin_addr, void *end_addr, void *entry, OUT UINT64 *bpf_ret, MYBPF_PARAM_S *p)
 {
     MYBPF_CTX_S ctx = {0};
 
@@ -37,7 +37,7 @@ int MYBPF_DefultRunCode(void *begin_addr, void *end_addr, void *entry, OUT UINT6
     ctx.end_addr = end_addr;
     ctx.insts = entry;
 
-    int ret = MYBPF_Run((void*)&g_mybpf_default_vm, &ctx, r1, r2, r3, r4, r5);
+    int ret = MYBPF_Run((void*)&g_mybpf_default_vm, &ctx, p);
     if (ret < 0) {
         return ret;
     }

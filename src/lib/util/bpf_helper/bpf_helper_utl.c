@@ -362,7 +362,7 @@ void * BpfHelper_GetFunc(unsigned int id)
     return NULL;
 }
 
-int BpfHelper_SetUserFunc(UINT id, void *func)
+int BpfHelper_RegUserFunc(UINT id, void *func)
 {
     if ((BPF_USER_HELPER_START <= id) && (id < BPF_USER_HELPER_END)) {
         g_bpfuser_helpers[id - BPF_USER_HELPER_START] = func;

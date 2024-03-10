@@ -62,10 +62,11 @@ PLUG_API int BPFFUNC_RunProg(int argc, char **argv)
 {
     UINT64 bpf_ret;
     UINT id;
+    MYBPF_PARAM_S p = {0};
 
     id = TXT_Str2Ui(argv[2]);
 
-    BFUNC_Call(g_bpffunc_ctx, id, &bpf_ret, 0, 0, 0, 0, 0);
+    BFUNC_Call(g_bpffunc_ctx, id, &bpf_ret, &p);
 
     return 0;
 }
@@ -75,9 +76,8 @@ PLUG_API BFUNC_S * BPFFUNC_GetCtx(void)
     return g_bpffunc_ctx;
 }
 
-PLUG_API int BPFFUNC_Call(UINT id, UINT64 *bpf_ret,
-        UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5)
+PLUG_API int BPFFUNC_Call(UINT id, UINT64 *bpf_ret, MYBPF_PARAM_S *p)
 {
-    return BFUNC_Call(g_bpffunc_ctx, id, bpf_ret, p1, p2, p3, p4, p5);
+    return BFUNC_Call(g_bpffunc_ctx, id, bpf_ret, p);
 }
 

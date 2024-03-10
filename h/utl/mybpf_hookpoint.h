@@ -22,7 +22,7 @@ typedef struct {
 
 int MYBPF_HookPointAttach(MYBPF_RUNTIME_S *runtime, DLL_HEAD_S *list, MYBPF_PROG_NODE_S *prog);
 void MYBPF_HookPointDetach(MYBPF_RUNTIME_S *runtime, DLL_HEAD_S *list, MYBPF_PROG_NODE_S *prog);
-int MYBPF_HookPointCall(MYBPF_RUNTIME_S *runtime, int type, UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5);
+int MYBPF_HookPointCall(MYBPF_RUNTIME_S *runtime, int type, MYBPF_PARAM_S *p);
 
 int MYBPF_XdpInput(MYBPF_RUNTIME_S *runtime, MYBPF_XDP_BUFF_S *xdp_buf);
 

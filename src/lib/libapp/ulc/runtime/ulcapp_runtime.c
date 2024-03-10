@@ -142,6 +142,11 @@ void ULCAPP_ShowProg(void)
 
 void ULCAPP_Tcmd(int argc, char **argv)
 {
-    MYBPF_HookPointCall(&g_ulcapp_runtime, MYBPF_HP_TCMD, argc, (long)argv, 0, 0, 0);
+    MYBPF_PARAM_S p;
+
+    p.p[0] = argc;
+    p.p[1] = (long)argv;
+
+    MYBPF_HookPointCall(&g_ulcapp_runtime, MYBPF_HP_TCMD, &p);
 }
 

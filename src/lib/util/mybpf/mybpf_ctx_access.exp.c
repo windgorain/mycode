@@ -155,7 +155,9 @@ static BPFASM_S g_bpfasm_ctrl = {
 U64 MYBPF_PROG_ConvertCtxAccess(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
     U64 bpf_ret; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_PROG_ConvertCtxAccess", &bpf_ret, p1, p2, p3, p4, p5); 
+    MYBPF_PARAM_S p; 
+    p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
+    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_PROG_ConvertCtxAccess", &bpf_ret, &p); 
     if (ret < 0) return ret; 
     return bpf_ret; 
 } 

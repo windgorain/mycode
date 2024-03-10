@@ -70,7 +70,7 @@ int ELF_GetProgsCount(ELF_S *elf);
 int ELF_CopyProgs(ELF_S *elf, OUT void *mem, int mem_size);
 void * ELF_DupProgs(ELF_S *elf);
 int ELF_GetProgsInfo(ELF_S *elf, OUT ELF_PROG_INFO_S *progs, int max_prog_count);
-
+int ELF_GetSecProgsInfoCount(ELF_PROG_INFO_S *info, int prog_count, char *sec_name);
 typedef int (*PF_ELF_WALK_PROG)(void *data, ELF_PROG_INFO_S *info, void *ud);
 int ELF_WalkProgs(ELF_S *elf, PF_ELF_WALK_PROG walk_func, void *ud);
 

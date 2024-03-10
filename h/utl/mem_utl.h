@@ -186,6 +186,7 @@ int MEM_ReplaceOneChar(void *data, int len, UCHAR src, UCHAR dst);
 
 
 void MEM_Swap(void *buf1, void *buf2, int len);
+int MEM_SwapByOff(void *buf, int buf_len, int off);
 
 #ifdef __cplusplus
 }

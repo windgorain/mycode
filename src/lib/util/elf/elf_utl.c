@@ -218,6 +218,9 @@ int ELF_GetSecByName(ELF_S *elf, char *sec_name, OUT ELF_SECTION_S *sec)
         }
     }
 
+    sec->shname = NULL;
+    sec->data = NULL;
+
     return -1;
 }
 
@@ -541,6 +544,20 @@ int ELF_GetProgsInfo(ELF_S *elf, OUT ELF_PROG_INFO_S *progs, int max_prog_count)
 {
     int count = _elf_get_progs_info(elf, progs, max_prog_count);
     _elf_sort_progs_info(progs, count);
+    return count;
+}
+
+int ELF_GetSecProgsInfoCount(ELF_PROG_INFO_S *info, int prog_count, char *sec_name)
+{
+    int i;
+    int count = 0;
+
+    for (i=0; i<prog_count; i++) {
+        if (strcmp(info[i].sec_name, sec_name) == 0) {
+            count ++;
+        }
+    }
+
     return count;
 }
 
