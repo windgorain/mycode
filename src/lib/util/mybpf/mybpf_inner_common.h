@@ -23,7 +23,7 @@ typedef struct {
 
 typedef struct jit_state {
     uint8_t *buf;
-    IN uint32_t prog_offset; /* 本段prog在整个progs中的偏移 */
+    IN uint32_t prog_offset; 
     uint32_t offset;
     uint32_t size;
     uint32_t *pc_locs;
@@ -35,7 +35,7 @@ typedef struct jit_state {
     int num_calls;
     int max_num_calls;
     uint32_t stack_size;
-    uint32_t is_main_prog: 1; /* 是main prog, 不是sub prog */
+    uint32_t is_main_prog: 1; 
     MYBPF_JIT_CFG_S *jit_cfg;
 }MYBPF_JIT_STATE_S;
 
@@ -102,4 +102,4 @@ out:
 #ifdef __cplusplus
 }
 #endif
-#endif //MYBPF_INNER_COMMON_H_
+#endif 

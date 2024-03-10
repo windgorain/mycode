@@ -12,7 +12,7 @@
 #include "utl/msgque_utl.h"
 #include "utl/event_utl.h"
 #include "utl/timerfd_utl.h"
-
+#include "utl/thread_utl.h"
 
 #define _MTimer_DFT_TIME_PER_TICK 100  
 

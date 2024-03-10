@@ -158,7 +158,7 @@ static int _mybpf_exp_convert(MYBPF_RUNTIME_S *runtime, char *bpf_file, int bina
         RETURN(BS_ERR);
     }
 
-    /* 暂不支持有map的情况 */
+    
     if (n->map_count > 0) {
         RETURNI(BS_NOT_SUPPORT, "This file have maps");
     }

@@ -424,7 +424,7 @@ static int _mybpf_loader_simple_prog_load_jitted(MYBPF_RUNTIME_S *runtime,
 
     prog = MYBPF_SIMPLE_GetProgs(f);
 
-    return _MYBPF_LOADER_MakeExe(node, prog, node->insts_len, MMAP_Map, MMAP_MakeExe);
+    return _MYBPF_LOADER_MakeExe(node, prog, node->insts_len);
 }
 
 static int _mybpf_loader_simple_prog_load_raw(MYBPF_RUNTIME_S *runtime, FILE_MEM_S *f, MYBPF_LOADER_NODE_S *node)

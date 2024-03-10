@@ -10,6 +10,7 @@
 #include "utl/process_utl.h"
 #include "utl/bpf_helper_utl.h"
 #include "utl/umap_utl.h"
+#include "utl/mmap_utl.h"
 
 static void * g_bpfuser_helpers[BPF_USER_HELPER_COUNT];
 
@@ -317,20 +318,38 @@ static int ulc_call_back(UINT_FUNC_4 func, U64 p1, U64 p2, U64 p3, U64 p4)
     return func((void*)(long)p1, (void*)(long)p2, (void*)(long)p3, (void*)(long)p4);
 }
 
+static void * ulc_mmap_map(void *buf, int buf_size, int head_size)
+{
+    return MMAP_Map(buf, buf_size, head_size);
+}
+
+static void ulc_mmap_unmap(void *buf, int size)
+{
+    MMAP_Unmap(buf, size);
+}
+
+static int ulc_mmap_make_exe(void *buf, int size)
+{
+    return MMAP_MakeExe(buf, size);
+}
+
 static const void * g_bpfsys_helpers[BPF_SYS_HELPER_COUNT] = {
     [0] = ulc_sys_malloc, 
     [1] = ulc_sys_calloc,
     [2] = ulc_sys_free,
-    [3] = ulc_sys_strncmp,
-    [4] = ulc_sys_memcpy,
-    [5] = ulc_sys_memset,
-    [6] = ulc_err_code_set,
-    [7] = ulc_err_info_set,
-    [8] = ulc_call_back,
+    [3] = ulc_sys_memcpy,
+    [4] = ulc_sys_memset,
+    [5] = ulc_err_code_set,
+    [6] = ulc_err_info_set,
+    [7] = ulc_call_back,
+    [8] = ulc_sys_strncmp,
     [9] = ulc_sys_strlen,
     [10] = ulc_sys_strnlen,
     [11] = ulc_sys_strcmp,
     [12] = ulc_sys_strlcpy,
+    [13] = ulc_mmap_map,
+    [14] = ulc_mmap_unmap,
+    [15] = ulc_mmap_make_exe,
 };
 
 const void ** BpfHelper_BaseHelper(void)

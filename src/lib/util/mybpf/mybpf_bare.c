@@ -25,12 +25,13 @@
 #include "utl/mybpf_merge.h"
 #include "utl/mybpf_bare.h"
 #include "utl/umap_def.h"
+#include "mybpf_loader_func.h"
 
 #define MYBPF_BARE_MAGIC 0x7781648d
 
 typedef struct {
     U32 magic;
-    U32 size; /* 文件大小,包含此头部 */
+    U32 size; 
     U8 ver;
     U8 jit_arch;
     U8 reserved[6];
@@ -40,7 +41,6 @@ static int _runbpf_run_bare_aoted(void *data, int len, int argc, char **argv)
 {
     MYBPF_AOT_PROG_CTX_S ctx = {0};
     int (*fn)(int argc, char **argv);
-    void *mem;
     int ret;
 
     ctx.agent_func = MYBPF_CallAgent;
@@ -48,19 +48,9 @@ static int _runbpf_run_bare_aoted(void *data, int len, int argc, char **argv)
     ctx.sys_helpers = BpfHelper_SysHelper();
     ctx.user_helpers = BpfHelper_UserHelper();
 
-    mem= MMAP_Map(data, len, sizeof(U64));
-    if (! mem) {
-        RETURNI(BS_ERR, "Can't alloc memory for progs");
-    }
-
-    *(U64*)mem = (unsigned long)&ctx;
-
-    MMAP_MakeExe(mem, len + sizeof(U64));
-
-    fn = (void*)((char*)mem + sizeof(U64));
+    fn = _MYBPF_MakeExe(&ctx, data, len);
     ret = fn(argc, argv);
-
-    MMAP_Unmap(mem, len + sizeof(U64));
+    _MYBPF_UnmapExe(fn, len);
 
     return ret;
 }
@@ -100,7 +90,7 @@ static int _mybpf_bare_convert_file(char *src_filename, char *dst_filename, MYBP
     m.data = VBUF_GetData(vbuf);
     m.len = VBUF_GetDataLength(vbuf);
 
-    /* bare模式不支持map */
+    
     if (MYBPF_SIMPLE_GetMapCount(&m) > 0) {
         RETURNI(BS_OUT_OF_RANGE, "Not support maps");
     }
@@ -158,7 +148,7 @@ static int _mybpf_get_bare_size(void *mem, int mem_len)
     return size;
 }
 
-/* 转换文件为bare file: 整个文件只有header + code部分 */
+
 int MYBPF_BARE_Convert2File(char *src_filename, char *dst_filename, MYBPF_SIMPLE_CONVERT_PARAM_S *p)
 {
     VBUF_S vbuf;
