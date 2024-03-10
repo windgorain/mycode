@@ -186,7 +186,7 @@ long __bpfstrtoul(const char *buf, size_t buf_len, U64 flags, unsigned long *res
     return end - buf;
 }
 
-long __bpf_snprintf(char *str, U32 str_size, const char *fmt, U64 *d, U32 d_len)
+long __bpf_snprintf(char *str, int str_size, const char *fmt, unsigned long long *d, int d_len)
 {
     switch (d_len) {
         case 0: return snprintf(str,str_size,"%s",fmt);

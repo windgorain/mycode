@@ -79,7 +79,7 @@ static unsigned long long (*bpf_get_current_uid_gid)(void) = (void *) 15;
 static long (*bpf_get_current_comm)(void *buf, unsigned int size_of_buf) = (void *) 16;
 static long (*bpf_strtol)(const char *buf, int buf_len, unsigned long long flags, long *res) = (void *) 105;
 static long (*bpf_strtoul)(const char *buf, int buf_len, unsigned long long flags, unsigned long *res) = (void *) 106;
-static long (*bpf_snprintf)(char *str, U32 str_size, const char *fmt, U64 *data, U32 data_len) = (void*)165;
+static long (*bpf_snprintf)(char *str, int str_size, const char *fmt, unsigned long long *data, int data_len) = (void*)165;
 
 #endif
 
