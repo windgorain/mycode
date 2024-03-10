@@ -250,16 +250,28 @@ BS_STATUS VBUF_CutTail(IN VBUF_S *pstVBuf, IN ULONG ulCutLen)
 {
     BS_DBGASSERT(0 != pstVBuf);
 
-    if (ulCutLen < pstVBuf->ulUsedLen)
-    {
+    if (ulCutLen < pstVBuf->ulUsedLen) {
         pstVBuf->ulUsedLen -= ulCutLen;
-    }
-    else
-    {
+    } else {
         pstVBuf->ulUsedLen = 0;
     }
 
     return BS_OK;
+}
+
+int VBUF_AddHead(INOUT VBUF_S *vbuf, ULONG len)
+{
+    if (vbuf->ulOffset < len) {
+        int ret = VBUF_MoveData(vbuf, len);
+        if (ret < 0) {
+            return ret;
+        }
+    }
+
+    vbuf->ulOffset -= len;
+    vbuf->ulUsedLen += len;
+
+    return 0;
 }
 
 BS_STATUS VBUF_CatFromBuf(IN VBUF_S *pstVBuf, IN VOID *buf, IN ULONG ulLen)

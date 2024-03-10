@@ -69,7 +69,7 @@ static int _mybpf_simple_write_header(VBUF_S *vbuf)
 {
     MYBPF_SIMPLE_HDR_S hdr = {0};
 
-    hdr.magic = MYBPF_SIMPLE_MAGIC;
+    hdr.magic = htonl(MYBPF_SIMPLE_MAGIC);
     hdr.ver = MYBPF_SIMPLE_VER;
 
     
@@ -1476,8 +1476,12 @@ int MYBPF_SIMPLE_Convert(FILE_MEM_S *spf, OUT VBUF_S *dst, MYBPF_SIMPLE_CONVERT_
     return ret;
 }
 
+int MYBPF_SIMPLE_Convert2Buf(char *src_filename, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT VBUF_S *vbuf)
+{
+    return _mybpf_simple_convert_file_2_spf_buf(src_filename, p, vbuf);
+}
 
-int MYBPF_SIMPLE_Convert2SpfFile(char *src_filename, char *dst_filename, MYBPF_SIMPLE_CONVERT_PARAM_S *p)
+int MYBPF_SIMPLE_Convert2File(char *src_filename, char *dst_filename, MYBPF_SIMPLE_CONVERT_PARAM_S *p)
 {
     VBUF_S vbuf;
     int ret = 0;
@@ -1489,49 +1493,6 @@ int MYBPF_SIMPLE_Convert2SpfFile(char *src_filename, char *dst_filename, MYBPF_S
         ret = VBUF_WriteFile(dst_filename, &vbuf);
     }
 
-    VBUF_Finit(&vbuf);
-
-    return ret;
-}
-
-
-int MYBPF_SIMPLE_Convert2BareFile(char *src_filename, char *dst_filename, MYBPF_SIMPLE_CONVERT_PARAM_S *p)
-{
-    VBUF_S vbuf;
-    int ret = 0;
-    FILE_MEM_S m;
-
-    VBUF_Init(&vbuf);
-
-    ret = _mybpf_simple_convert_file_2_spf_buf(src_filename, p, &vbuf);
-    if (ret < 0) {
-        goto _OUT;
-    }
-
-    m.data = VBUF_GetData(&vbuf);
-    m.len = VBUF_GetDataLength(&vbuf);
-
-    
-    if (mybpf_simple_get_map_count(&m) > 0) {
-        ret = ERR_Set(BS_OUT_OF_RANGE, "Not support maps");
-        goto _OUT;
-    }
-
-    void *progs = mybpf_simple_get_progs(&m);
-    int progs_size = mybpf_simple_get_progs_size(&m);
-    if (progs_size <= 0) {
-        ret = ERR_Set(BS_OUT_OF_RANGE, "Can't get progs");
-        goto _OUT;
-    }
-
-    int len = (char*)progs - (char*)m.data;
-
-    VBUF_CutHead(&vbuf, len);
-    VBUF_CutTail(&vbuf, (m.len - len) - progs_size);
-
-    ret = VBUF_WriteFile(dst_filename, &vbuf);
-
-_OUT:
     VBUF_Finit(&vbuf);
 
     return ret;
@@ -1570,7 +1531,7 @@ BOOL_T MYBPF_SIMPLE_IsSpfFile(char *simple_file)
         return FALSE;
     }
 
-    if ((hdr.ver != MYBPF_SIMPLE_VER) || (hdr.magic != MYBPF_SIMPLE_MAGIC)) {
+    if ((hdr.ver != MYBPF_SIMPLE_VER) || (hdr.magic != htonl(MYBPF_SIMPLE_MAGIC))) {
         return FALSE;
     }
 

@@ -4,34 +4,55 @@
 #include "utl/bpfasm_utl.h" 
 
 static BPFASM_FUNC_S g_bpfasm_progs[] = { 
-    {.func_name="MYBPF_SIMPLE_GetMapsSection", .insn_offset=0}, 
-    {.func_name="MYBPF_SIMPLE_GetMapName", .insn_offset=48}, 
-    {.func_name="MYBPF_SIMPLE_GetMapIDByName", .insn_offset=106}, 
-    {.func_name="MYBPF_SIMPLE_GetJitArch", .insn_offset=203}, 
-    {.func_name="MYBPF_SIMPLE_GetTypeSecCount", .insn_offset=222}, 
-    {.func_name="MYBPF_SIMPLE_GetSec", .insn_offset=242}, 
-    {.func_name="MYBPF_SIMPLE_GetSecByName", .insn_offset=273}, 
-    {.func_name="MYBPF_SIMPLE_GetSecName", .insn_offset=310}, 
-    {.func_name="MYBPF_SIMPLE_GetSecDataSize", .insn_offset=318}, 
-    {.func_name="MYBPF_SIMPLE_GetSecData", .insn_offset=326}, 
-    {.func_name="MYBPF_SIMPLE_CopySecData", .insn_offset=339}, 
-    {.func_name="MYBPF_SIMPLE_DupSecData", .insn_offset=383}, 
-    {.func_name="MYBPF_SIMPLE_GetProgsCount", .insn_offset=429}, 
-    {.func_name="MYBPF_SIMPLE_GetProgsSize", .insn_offset=449}, 
-    {.func_name="MYBPF_SIMPLE_GetProgs", .insn_offset=472}, 
-    {.func_name="MYBPF_SIMPLE_CopyPorgs", .insn_offset=501}, 
-    {.func_name="MYBPF_SIMPLE_DupProgs", .insn_offset=560}, 
-    {.func_name="MYBPF_SIMPLE_GetProgInfo", .insn_offset=621}, 
-    {.func_name="MYBPF_SIMPLE_GetProgsInfo", .insn_offset=623}, 
-    {.func_name="MYBPF_SIMPLE_GetProgsInfoSize", .insn_offset=882}, 
-    {.func_name="MYBPF_SIMPLE_GetMainProgsCount", .insn_offset=905}, 
-    {.func_name="MYBPF_SIMPLE_GetMainProgInfo", .insn_offset=1045}, 
-    {.func_name="MYBPF_SIMPLE_GetMainProgsInfo", .insn_offset=1331}, 
-    {.func_name="MYBPF_SIMPLE_WalkProg", .insn_offset=1605}, 
-    {.func_name="MYBPF_SIMPLE_GetSimpleSizeByHdr", .insn_offset=1697}, 
+    {.func_name="MYBPF_SIMPLE_GetMapCount", .insn_offset=0}, 
+    {.func_name="MYBPF_SIMPLE_GetMapsSection", .insn_offset=19}, 
+    {.func_name="MYBPF_SIMPLE_GetMapName", .insn_offset=67}, 
+    {.func_name="MYBPF_SIMPLE_GetMapIDByName", .insn_offset=125}, 
+    {.func_name="MYBPF_SIMPLE_GetJitArch", .insn_offset=222}, 
+    {.func_name="MYBPF_SIMPLE_GetTypeSecCount", .insn_offset=241}, 
+    {.func_name="MYBPF_SIMPLE_GetSec", .insn_offset=261}, 
+    {.func_name="MYBPF_SIMPLE_GetSecByName", .insn_offset=292}, 
+    {.func_name="MYBPF_SIMPLE_GetSecName", .insn_offset=329}, 
+    {.func_name="MYBPF_SIMPLE_GetSecDataSize", .insn_offset=337}, 
+    {.func_name="MYBPF_SIMPLE_GetSecData", .insn_offset=345}, 
+    {.func_name="MYBPF_SIMPLE_CopySecData", .insn_offset=358}, 
+    {.func_name="MYBPF_SIMPLE_DupSecData", .insn_offset=402}, 
+    {.func_name="MYBPF_SIMPLE_GetProgsCount", .insn_offset=448}, 
+    {.func_name="MYBPF_SIMPLE_GetProgsSize", .insn_offset=468}, 
+    {.func_name="MYBPF_SIMPLE_GetProgs", .insn_offset=491}, 
+    {.func_name="MYBPF_SIMPLE_CopyPorgs", .insn_offset=520}, 
+    {.func_name="MYBPF_SIMPLE_DupProgs", .insn_offset=579}, 
+    {.func_name="MYBPF_SIMPLE_GetProgInfo", .insn_offset=640}, 
+    {.func_name="MYBPF_SIMPLE_GetProgsInfo", .insn_offset=642}, 
+    {.func_name="MYBPF_SIMPLE_GetProgsInfoSize", .insn_offset=901}, 
+    {.func_name="MYBPF_SIMPLE_GetMainProgsCount", .insn_offset=924}, 
+    {.func_name="MYBPF_SIMPLE_GetMainProgInfo", .insn_offset=1064}, 
+    {.func_name="MYBPF_SIMPLE_GetMainProgsInfo", .insn_offset=1350}, 
+    {.func_name="MYBPF_SIMPLE_WalkProg", .insn_offset=1624}, 
+    {.func_name="MYBPF_SIMPLE_GetSimpleSizeByHdr", .insn_offset=1716}, 
     {0} }; 
 
 static MYBPF_INSN_S g_bpfasm_insts[] = { 
+    /* MYBPF_SIMPLE_GetMapCount */
+    BPF_MOV64_IMM(BPF_R2, 0), 
+    BPF_MOV64_IMM(BPF_R0, 0), 
+    BPF_JMP_A(11), 
+    BPF_LDX_MEM(BPF_W, BPF_R3, BPF_R2, 0), 
+    BPF_ENDIAN(BPF_TO_BE, BPF_R3, 32), 
+    BPF_ALU64_REG(BPF_ADD, BPF_R2, BPF_R3), 
+    BPF_LDX_MEM(BPF_DW, BPF_R3, BPF_R1, 8), 
+    BPF_LDX_MEM(BPF_DW, BPF_R4, BPF_R1, 0), 
+    BPF_ALU64_REG(BPF_ADD, BPF_R4, BPF_R3), 
+    BPF_JMP_REG(BPF_JGE, BPF_R2, BPF_R4, 8), 
+    BPF_LDX_MEM(BPF_B, BPF_R3, BPF_R2, 4), 
+    BPF_JMP_IMM(BPF_JNE, BPF_R3, 1, 2), 
+    BPF_LDX_MEM(BPF_B, BPF_R0, BPF_R2, 6), 
+    BPF_JMP_A(4), 
+    BPF_JMP_IMM(BPF_JNE, BPF_R2, 0, -12), 
+    BPF_LDX_MEM(BPF_DW, BPF_R2, BPF_R1, 0), 
+    BPF_ALU64_IMM(BPF_ADD, BPF_R2, 12), 
+    BPF_JMP_A(-8), 
+    BPF_EXIT_INSN(), 
     /* MYBPF_SIMPLE_GetMapsSection */
     BPF_MOV64_IMM(BPF_R3, 0), 
     BPF_STX_MEM(BPF_W, BPF_R2, BPF_R3, 0), 
@@ -384,7 +405,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_IMM(BPF_R2, 0), 
     BPF_MOV64_IMM(BPF_R3, 0), 
     BPF_MOV64_IMM(BPF_R4, 0), 
-    BPF_MOV64_IMM(BPF_R5, 200), 
+    BPF_MOV64_IMM(BPF_R5, 206), 
     BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000006), 
     BPF_JMP_A(31), 
     BPF_LDX_MEM(BPF_B, BPF_R4, BPF_R1, 5), 
@@ -595,7 +616,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_IMM(BPF_R2, 0), 
     BPF_MOV64_IMM(BPF_R3, 0), 
     BPF_MOV64_IMM(BPF_R4, 0), 
-    BPF_MOV64_IMM(BPF_R5, 200), 
+    BPF_MOV64_IMM(BPF_R5, 206), 
     BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000006), 
     BPF_MOV64_REG(BPF_R0, BPF_R7), 
     BPF_EXIT_INSN(), 
@@ -1731,7 +1752,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     /* MYBPF_SIMPLE_GetSimpleSizeByHdr */
     BPF_MOV64_IMM(BPF_R0, 0), 
     BPF_LDX_MEM(BPF_W, BPF_R2, BPF_R1, 0), 
-    BPF_JMP_IMM(BPF_JNE, BPF_R2, 1718645631, 4), 
+    BPF_JMP_IMM(BPF_JNE, BPF_R2, 2138271846, 4), 
     BPF_LDX_MEM(BPF_B, BPF_R2, BPF_R1, 4), 
     BPF_JMP_IMM(BPF_JNE, BPF_R2, 0, 2), 
     BPF_LDX_MEM(BPF_W, BPF_R0, BPF_R1, 8), 
@@ -1999,6 +2020,16 @@ static BPFASM_S g_bpfasm_ctrl = {
     .begin_addr = g_bpfasm_insts, 
     .end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts)
 }; 
+
+U64 MYBPF_SIMPLE_GetMapCount(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
+{ 
+    U64 bpf_ret; 
+    MYBPF_PARAM_S p; 
+    p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
+    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetMapCount", &bpf_ret, &p); 
+    if (ret < 0) return ret; 
+    return bpf_ret; 
+} 
 
 U64 MYBPF_SIMPLE_GetMapsSection(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 

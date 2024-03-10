@@ -49,6 +49,7 @@ extern BS_STATUS VBUF_CutHead(IN VBUF_S *pstVBuf, IN ULONG ulCutLen);
 extern BS_STATUS VBUF_EarseHead(IN VBUF_S *pstVBuf, IN ULONG ulCutLen);
 extern VOID VBUF_CutAll(IN VBUF_S *pstVBuf);
 extern BS_STATUS VBUF_CutTail(IN VBUF_S *pstVBuf, IN ULONG ulCutLen);
+int VBUF_AddHead(INOUT VBUF_S *vbuf, ULONG len);
 extern BS_STATUS VBUF_CatFromBuf(IN VBUF_S *pstVBuf, IN void *buf, IN ULONG ulLen);
 extern BS_STATUS VBUF_CatFromVBuf(IN VBUF_S *pstVBufDst, IN VBUF_S *pstVBufSrc);
 extern BS_STATUS VBUF_CpyFromBuf(IN VBUF_S *pstVBuf, IN void *buf, IN ULONG ulLen);

@@ -289,7 +289,7 @@ int MYBPF_JIT_GetJitTypeByName(char *jit_arch_name)
 
 int MYBPF_JIT_LocalArch(void)
 {
-#ifdef __ARM64__
+#ifdef __aarch64__
     return MYBPF_JIT_ARCH_ARM64;
 #endif
 

@@ -9,7 +9,6 @@
 #include "utl/time_utl.h"
 #include "utl/subcmd_utl.h"
 #include "utl/getopt2_utl.h"
-#include "utl/mmap_utl.h"
 #include "utl/mybpf_loader.h"
 #include "utl/mybpf_prog.h"
 #include "utl/mybpf_vm.h"
@@ -21,6 +20,7 @@
 #include "utl/mybpf_dbg.h"
 #include "utl/mybpf_asm.h"
 #include "utl/mybpf_asmexp.h"
+#include "utl/mybpf_bare.h"
 #include "utl/ubpf_utl.h"
 #include "utl/file_utl.h"
 #include "utl/mybpf_merge.h"
@@ -104,77 +104,14 @@ static int _runbpf_file(int argc, char **argv)
     return _runbpf_run_file(filename, sec_name, jit, params);
 }
 
-static int _runbpf_run_bare_aoted(FILE_MEM_S *m, int argc, char **argv)
-{
-    MYBPF_AOT_PROG_CTX_S ctx = {0};
-    typedef int (*PF_PF_RUN_FUNC)(int argc, char **argv);
-    PF_PF_RUN_FUNC fn;
-    void *mem;
-    void *insn;
-    int ret;
-
-    ctx.agent_func = MYBPF_CallAgent;
-    ctx.base_helpers = BpfHelper_BaseHelper();
-    ctx.sys_helpers = BpfHelper_SysHelper();
-    ctx.user_helpers = BpfHelper_UserHelper();
-
-    mem= MMAP_Map(m->data, m->len, sizeof(U64));
-    if (! mem) {
-        FILE_MemFree(m);
-        RETURNI(BS_ERR, "Can't alloc memory for progs");
-    }
-
-    *(U64*)mem = (unsigned long)&ctx;
-    insn = (char*)mem + sizeof(U64);
-
-    MMAP_MakeExe(mem, m->len + sizeof(U64));
-    fn = insn;
-    ret = fn(argc, argv);
-
-    MMAP_Unmap(mem, m->len + sizeof(U64));
-
-    return ret;
-}
-
-static int _runbpf_run_bare(char *file, int aoted, char *params)
-{
-    char *argv[32];
-    int argc = 0;
-    int ret;
-
-    if (params) {
-        argc = ARGS_Split(params, argv, ARRAY_SIZE(argv));
-    }
-
-    FILE_MEM_S *m = FILE_Mem(file);
-    if (! m) {
-        RETURNI(BS_CAN_NOT_OPEN, "Can't open file");
-    }
-
-    if (aoted) {
-        ret = _runbpf_run_bare_aoted(m, argc, argv);
-    } else {
-        MYBPF_PARAM_S p = {0};
-        p.p[0] = argc;
-        p.p[1] = (long)argv;
-        ret = MYBPF_DefultRunCode(m->data, (char*)m->data + m->len, m->data, NULL, &p);
-    }
-
-    FILE_MemFree(m);
-
-    return ret;
-}
-
 static int _runbpf_bare(int argc, char **argv)
 {
     char *filename=NULL;
     char *params = NULL;
-    int aoted = 0;
     GETOPT2_NODE_S opt[] = {
         {'P', 0, "filename", GETOPT2_V_STRING, &filename, "bpf file name", 0},
         {'o', 'p', "params", GETOPT2_V_STRING, &params, "params", 0},
         {'o', 'd', "debug", GETOPT2_V_NONE, NULL, "print debug info", 0},
-        {'o', 'j', "jitted", GETOPT2_V_NONE, NULL, "has been jitted to native arch", 0},
         {0} };
 
     if (BS_OK != GETOPT2_Parse(argc, argv, opt)) {
@@ -191,11 +128,7 @@ static int _runbpf_bare(int argc, char **argv)
         MYBPF_DBG_SetAllDebugFlags();
     }
 
-    if (GETOPT2_IsOptSetted(opt, 'j', NULL)) {
-        aoted = 1;
-    }
-
-    return _runbpf_run_bare(filename, aoted, params);
+    return MYBPF_BARE_RunFile(filename, params);
 }
 
 static void _walk_prog_dump_mem(void *data, int len)
@@ -732,7 +665,7 @@ static int _convert_simple(int argc, char **argv)
         return ret;
     }
 
-    ret = MYBPF_SIMPLE_Convert2SpfFile(filename, simple_file, &p);
+    ret = MYBPF_SIMPLE_Convert2File(filename, simple_file, &p);
     if (ret < 0) {
         ErrCode_Print();
     }
@@ -778,7 +711,7 @@ static int _convert_bare(int argc, char **argv)
         return ret;
     }
 
-    ret = MYBPF_SIMPLE_Convert2BareFile(filename, bare_file, &p);
+    ret = MYBPF_BARE_Convert2File(filename, bare_file, &p);
     if (ret < 0) {
         ErrCode_Print();
     }

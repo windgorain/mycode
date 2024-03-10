@@ -38,7 +38,7 @@ target_link_libraries(runlua sutil unixlike_util static_bs dl pthread m lua)
 
 aux_source_directory(./runbpf RUNBPF_SRC)
 add_executable(runbpf ${RUNBPF_SRC})
-target_link_libraries(runbpf sutil unixlike_util static_bs sutil static_bs dl pthread m elf)
+target_link_libraries(runbpf sutil static_bs sutil static_bs dl pthread m elf)
 
 aux_source_directory(./json JSON_SRC)
 add_executable(json_tool ${JSON_SRC})
