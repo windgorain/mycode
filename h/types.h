@@ -8,6 +8,7 @@
 #ifndef __INCazHead_h
 #define __INCazHead_h
 
+#include "int_types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif 
@@ -143,28 +144,7 @@ extern "C" {
 
 #define STR(x)  #x
 
-typedef short		        SHORT;
-typedef unsigned short		USHORT;
-typedef unsigned int 		UINT; 
-typedef unsigned long long  UINT64;
-typedef long long           INT64;
-typedef int 				INT; 
-typedef unsigned char 		UCHAR;
-typedef char			    CHAR;
-typedef char                BOOL_T;
-typedef void*               HANDLE;
-typedef unsigned long       ULONG;  
-typedef long                LONG;   
-typedef UINT                VRF_INDEX;
 
-typedef unsigned char       U8;
-typedef unsigned short      U16;
-typedef unsigned int        U32;
-typedef unsigned long long  U64;
-typedef char S8;
-typedef short S16;
-typedef int S32;
-typedef long long S64;
 
 typedef struct {
     char *pcData;

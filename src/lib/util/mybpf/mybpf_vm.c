@@ -50,6 +50,10 @@ static inline void * _mybpf_get_helper(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, int imm
         return BpfHelper_BaseHelper + imm;
     }
 
+    if (imm >= BPF_TMP_HELPER_START) {
+        return ctx->tmp_helpers[imm - BPF_TMP_HELPER_START];
+    }
+
     return BpfHelper_GetFunc(imm);
 }
 

@@ -615,6 +615,7 @@ static MYBPF_LOADER_NODE_S * _mybpf_loader_create_node(MYBPF_RUNTIME_S *runtime,
     node->aot_ctx.base_helpers = BpfHelper_BaseHelper();
     node->aot_ctx.sys_helpers = BpfHelper_SysHelper();
     node->aot_ctx.user_helpers = BpfHelper_UserHelper();
+    node->aot_ctx.tmp_helpers = NULL;
     node->aot_ctx.maps = node->maps;
     node->aot_ctx.global_map_data = node->global_data;
     node->aot_ctx.loader_node = node;

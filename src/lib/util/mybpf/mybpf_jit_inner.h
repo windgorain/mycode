@@ -34,18 +34,18 @@ typedef struct {
 }MYBPF_JIT_CTX_S;
 
 int MYBPF_JitArm64_Jit(MYBPF_JIT_VM_S *vm, OUT MYBPF_JIT_CTX_S *jit_ctx);
-int MYBPF_JitArm64_FixBpfCall(void *to_fix, void *func);
-int MYBPF_JitArm64_FixLoadFuncPtr(void *to_fix, UINT64 func);
+int MYBPF_JitArm64_FixBpfCall(MYBPF_JIT_CFG_S *jit_cfg, void *to_fix, void *func);
+int MYBPF_JitArm64_FixLoadFuncPtr(MYBPF_JIT_CFG_S *jit_cfg, void *to_fix, UINT64 func);
 
 int MYBPF_JitX64_Jit(MYBPF_JIT_VM_S *vm, OUT MYBPF_JIT_CTX_S *jit_ctx);
-int MYBPF_JitX64_FixBpfCall(void *to_fix, void *func);
-int MYBPF_JitX64_FixLoadFuncPtr(void *to_fix, UINT64 func);
+int MYBPF_JitX64_FixBpfCall(MYBPF_JIT_CFG_S *jit_cfg, void *to_fix, void *func);
+int MYBPF_JitX64_FixLoadFuncPtr(MYBPF_JIT_CFG_S *jit_cfg, void *to_fix, UINT64 func);
 
 typedef int (*PF_MYBPF_ARCH_Jit)(MYBPF_JIT_VM_S *vm, OUT MYBPF_JIT_CTX_S *jit_ctx);
 
-typedef int (*PF_MYBPF_ARCH_FixBpfCall)(void *to_fix, void *func);
+typedef int (*PF_MYBPF_ARCH_FixBpfCall)(MYBPF_JIT_CFG_S *jit_cfg, void *to_fix, void *func);
 
-typedef int (*PF_MYBPF_ARCH_FixLoadFuncPtr)(void *to_fix, UINT64 func);
+typedef int (*PF_MYBPF_ARCH_FixLoadFuncPtr)(MYBPF_JIT_CFG_S *jit_cfg, void *to_fix, UINT64 func);
 
 typedef struct {
     PF_MYBPF_ARCH_Jit jit_func;

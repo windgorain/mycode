@@ -232,6 +232,7 @@ extern VOID FILE_WriteStr(IN FILE *fp, IN CHAR *pszString);
 extern int FILE_MemTo(IN CHAR *pszFilePath, OUT void *buf, int buf_size);
 
 
+extern int FILE_Mem2(IN CHAR *filename, OUT FILE_MEM_S *m);
 extern FILE_MEM_S * FILE_Mem(IN CHAR *pszFilePath);
 extern FILE_MEM_S * FILE_MemByData(void *data, int data_len);
 extern VOID FILE_MemFree(IN FILE_MEM_S *pstMemMap);

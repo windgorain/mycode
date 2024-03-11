@@ -507,6 +507,7 @@ static int _mybpf_simple_jit_progs(void *insts, int insts_len, void *progs, int 
 
     cfg.translate_mode_aot = p->translate_mode_aot;
     cfg.aot_map_index_to_ptr = p->aot_map_index_to_ptr;
+    cfg.param_6th = p->param_6th;
     cfg.helper_mode = p->helper_mode;
     cfg.jit_arch = p->jit_arch;
 
@@ -1476,10 +1477,12 @@ int MYBPF_SIMPLE_Convert(FILE_MEM_S *spf, OUT VBUF_S *dst, MYBPF_SIMPLE_CONVERT_
     return ret;
 }
 
+
 int MYBPF_SIMPLE_Convert2Buf(char *src_filename, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT VBUF_S *vbuf)
 {
     return _mybpf_simple_convert_file_2_spf_buf(src_filename, p, vbuf);
 }
+
 
 int MYBPF_SIMPLE_Convert2File(char *src_filename, char *dst_filename, MYBPF_SIMPLE_CONVERT_PARAM_S *p)
 {

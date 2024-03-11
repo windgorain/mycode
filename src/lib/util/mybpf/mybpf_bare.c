@@ -37,19 +37,20 @@ typedef struct {
     U8 reserved[6];
 }MYBPF_BARE_HDR_S;
 
-static int _runbpf_run_bare_aoted(void *data, int len, int argc, char **argv)
+static int _runbpf_run_bare_aoted(void *data, int len, void **tmp_helpers, MYBPF_PARAM_S *p)
 {
     MYBPF_AOT_PROG_CTX_S ctx = {0};
-    int (*fn)(int argc, char **argv);
+    int (*fn)(U64, U64, U64, U64, U64, void*);
     int ret;
 
     ctx.agent_func = MYBPF_CallAgent;
     ctx.base_helpers = BpfHelper_BaseHelper();
     ctx.sys_helpers = BpfHelper_SysHelper();
     ctx.user_helpers = BpfHelper_UserHelper();
+    ctx.tmp_helpers = NULL;
 
     fn = _MYBPF_MakeExe(&ctx, data, len);
-    ret = fn(argc, argv);
+    ret = fn(p->p[0], p->p[1], p->p[2], p->p[3], p->p[4], &ctx);
     _MYBPF_UnmapExe(fn, len);
 
     return ret;
@@ -118,14 +119,11 @@ static int _mybpf_bare_convert_file(char *src_filename, char *dst_filename, MYBP
     return 0;
 }
 
-static inline int _mybpf_bare_run_byte_code(void *begin, void *end, int argc, char **argv)
+static inline int _mybpf_bare_run_byte_code(void *begin, void *end, void **tmp_helpers, MYBPF_PARAM_S *p)
 {
-    MYBPF_PARAM_S p = {0};
-
-    p.p[0] = argc;
-    p.p[1] = (long)argv;
-
-    return MYBPF_DefultRunCode(begin, end, begin, NULL, &p);
+    U64 ret = -1;
+    MYBPF_DefultRunCode(begin, end, begin, &ret, tmp_helpers, p);
+    return ret;
 }
 
 static int _mybpf_get_bare_size(void *mem, int mem_len)
@@ -162,7 +160,7 @@ int MYBPF_BARE_Convert2File(char *src_filename, char *dst_filename, MYBPF_SIMPLE
     return ret;
 }
 
-int MYBPF_BARE_RunBare(void *mem, int mem_len, int argc, char **argv)
+int MYBPF_RunBare(void *mem, int mem_len, void **tmp_helpers, MYBPF_PARAM_S *p)
 {
     int ret;
     int size;
@@ -178,9 +176,9 @@ int MYBPF_BARE_RunBare(void *mem, int mem_len, int argc, char **argv)
     end = (char*)mem + size;
 
     if (! hdr->jit_arch) {
-        ret = _mybpf_bare_run_byte_code(begin, end, argc, argv);
+        ret = _mybpf_bare_run_byte_code(begin, end, tmp_helpers, p);
     } else if (hdr->jit_arch == MYBPF_JIT_LocalArch()) {
-        ret = _runbpf_run_bare_aoted(begin, size - sizeof(MYBPF_BARE_HDR_S), argc, argv);
+        ret = _runbpf_run_bare_aoted(begin, size - sizeof(MYBPF_BARE_HDR_S), tmp_helpers, p);
     } else {
         RETURNI(BS_NOT_SUPPORT, "Jit arch not matched");
     }
@@ -188,11 +186,12 @@ int MYBPF_BARE_RunBare(void *mem, int mem_len, int argc, char **argv)
     return ret;
 }
 
-int MYBPF_BARE_RunFile(char *file, char *params)
+int MYBPF_RunBareFile(char *file, void **tmp_helpers, char *params)
 {
     int ret;
     char *argv[32];
     int argc = 0;
+    MYBPF_PARAM_S p = {0};
 
     if (params) {
         argc = ARGS_Split(params, argv, ARRAY_SIZE(argv));
@@ -203,7 +202,9 @@ int MYBPF_BARE_RunFile(char *file, char *params)
         RETURNI(BS_CAN_NOT_OPEN, "Can't open file");
     }
 
-    ret = MYBPF_BARE_RunBare(m->data, m->len, argc, argv);
+    p.p[0] = argc;
+    p.p[1] = (long)argv;
+    ret = MYBPF_RunBare(m->data, m->len, tmp_helpers, &p);
 
     FILE_MemFree(m);
 

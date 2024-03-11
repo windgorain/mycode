@@ -12,8 +12,6 @@
 #include "utl/umap_utl.h"
 #include "utl/mmap_utl.h"
 
-static void * g_bpfuser_helpers[BPF_USER_HELPER_COUNT];
-
 void * __bpfmap_lookup_elem(void *map, const void *key)
 {
     return UMAP_LookupElem(map, key);
@@ -112,15 +110,15 @@ long __bpfclone_redirect(void *skb, U32 ifindex, U64 flags)
 
 U64 __bpfget_current_pid_tgid(void)
 {
-    UINT64 tgid = PROCESS_GetPid();
-    UINT64 tid = PROCESS_GetTid();
+    U64 tgid = PROCESS_GetPid();
+    U64 tid = PROCESS_GetTid();
     return (tgid << 32) | tid;
 }
 
 U64 __bpfget_current_uid_gid(void)
 {
-    UINT64 gid = getgid();
-    UINT64 uid = getuid();
+    U64 gid = getgid();
+    U64 uid = getuid();
     return (gid << 32) | uid;
 }
 
@@ -186,7 +184,7 @@ long __bpfstrtoul(const char *buf, size_t buf_len, U64 flags, unsigned long *res
     return end - buf;
 }
 
-long __bpf_snprintf(char *str, int str_size, const char *fmt, unsigned long long *d, int d_len)
+long __bpf_snprintf(char *str, U32 str_size, const char *fmt, U64 *d, U32 d_len)
 {
     switch (d_len) {
         case 0: return snprintf(str,str_size,"%s",fmt);
@@ -204,34 +202,6 @@ long __bpf_snprintf(char *str, int str_size, const char *fmt, unsigned long long
     }
 }
 
-static const void * g_bpfbase_helpers[BPF_BASE_HELPER_END] = {
-    [0] = NULL,
-    [1] = UMAP_LookupElem,
-    [2] = UMAP_UpdateElem,
-    [3] = UMAP_DeleteElem,
-    [4] = __bpfprobe_read,
-    [5] = __bpfktime_get_ns,
-    [6] = __bpftrace_printk,
-    [7] = __bpfget_prandom_u32,
-    [8] = __bpfget_smp_processor_id,
-    [9] = __bpfskb_store_bytes,
-    [10] = __bpfl3_csum_replace,
-    [11] = __bpfl4_csum_replace,
-    [12] = __bpftail_call,
-    [13] = __bpfclone_redirect,
-    [14] = __bpfget_current_pid_tgid,
-    [15] = __bpfget_current_uid_gid,
-    [16] = __bpfget_current_comm,
-    [17] = __bpfget_cgroup_classid,
-    [18] = __bpfskb_vlan_push,
-    [19] = __bpfskb_vlan_pop,
-    [20] = __bpfskb_get_tunnel_key,
-    [21] = __bpfskb_set_tunnel_key,
-    [22] = __bpfperf_event_read,
-    [105] = __bpfstrtol,
-    [106] = __bpfstrtoul,
-    [165] = __bpf_snprintf,
-};
 
 void * ulc_sys_malloc(int size)
 {
@@ -333,7 +303,35 @@ static int ulc_mmap_make_exe(void *buf, int size)
     return MMAP_MakeExe(buf, size);
 }
 
-static const void * g_bpfsys_helpers[BPF_SYS_HELPER_COUNT] = {
+static const void * g_bpf_base_helpers[BPF_BASE_HELPER_END] = {
+    [0] = NULL,
+    [1] = UMAP_LookupElem,
+    [2] = UMAP_UpdateElem,
+    [3] = UMAP_DeleteElem,
+    [4] = __bpfprobe_read,
+    [5] = __bpfktime_get_ns,
+    [6] = __bpftrace_printk,
+    [7] = __bpfget_prandom_u32,
+    [8] = __bpfget_smp_processor_id,
+    [9] = __bpfskb_store_bytes,
+    [10] = __bpfl3_csum_replace,
+    [11] = __bpfl4_csum_replace,
+    [12] = __bpftail_call,
+    [13] = __bpfclone_redirect,
+    [14] = __bpfget_current_pid_tgid,
+    [15] = __bpfget_current_uid_gid,
+    [16] = __bpfget_current_comm,
+    [17] = __bpfget_cgroup_classid,
+    [18] = __bpfskb_vlan_push,
+    [19] = __bpfskb_vlan_pop,
+    [20] = __bpfskb_get_tunnel_key,
+    [21] = __bpfskb_set_tunnel_key,
+    [22] = __bpfperf_event_read,
+    [105] = __bpfstrtol,
+    [106] = __bpfstrtoul,
+    [165] = __bpf_snprintf,
+};
+static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
     [0] = ulc_sys_malloc, 
     [1] = ulc_sys_calloc,
     [2] = ulc_sys_free,
@@ -352,39 +350,44 @@ static const void * g_bpfsys_helpers[BPF_SYS_HELPER_COUNT] = {
     [15] = ulc_mmap_make_exe,
 };
 
+static const void * g_bpf_user_helpers[BPF_USER_HELPER_COUNT];
 const void ** BpfHelper_BaseHelper(void)
 {
-    return g_bpfbase_helpers;
+    return g_bpf_base_helpers;
 }
 
 const void ** BpfHelper_SysHelper(void)
 {
-    return g_bpfsys_helpers;
+    return g_bpf_sys_helpers;
 }
 
 const void ** BpfHelper_UserHelper(void)
 {
-    return (const void **)g_bpfuser_helpers;
+    return (const void **)g_bpf_user_helpers;
 }
 
 
 void * BpfHelper_GetFunc(unsigned int id)
 {
     if (id < BPF_BASE_HELPER_END) {
-        return (void*)g_bpfbase_helpers[id];
+        return (void*)g_bpf_base_helpers[id];
     } else if ((id >= BPF_SYS_HELPER_START) && (id < BPF_SYS_HELPER_END)) {
-        return (void*)g_bpfsys_helpers[id - BPF_SYS_HELPER_START];
+        return (void*)g_bpf_sys_helpers[id - BPF_SYS_HELPER_START];
     } else if ((id >= BPF_USER_HELPER_START) && (id < BPF_USER_HELPER_END)) {
-        return (void*)g_bpfuser_helpers[id - BPF_USER_HELPER_START];
+        return (void*)g_bpf_user_helpers[id - BPF_USER_HELPER_START];
     }
 
     return NULL;
 }
 
-int BpfHelper_RegUserFunc(UINT id, void *func)
+int BpfHelper_RegFunc(U32 id, void *func)
 {
-    if ((BPF_USER_HELPER_START <= id) && (id < BPF_USER_HELPER_END)) {
-        g_bpfuser_helpers[id - BPF_USER_HELPER_START] = func;
+    if (id < BPF_BASE_HELPER_END) {
+        g_bpf_base_helpers[id] = func;
+    } else if ((id >= BPF_SYS_HELPER_START) && (id < BPF_SYS_HELPER_END)) {
+        g_bpf_sys_helpers[id - BPF_SYS_HELPER_START] = func;
+    } else if ((BPF_USER_HELPER_START <= id) && (id < BPF_USER_HELPER_END)) {
+        g_bpf_user_helpers[id - BPF_USER_HELPER_START] = func;
     } else {
         RETURN(BS_BAD_PARA);
     }

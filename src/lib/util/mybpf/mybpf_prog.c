@@ -49,12 +49,11 @@ static inline int _mybpf_prog_run_bpf_code(MYBPF_PROG_NODE_S *prog, OUT UINT64 *
     return 0;
 }
 
-typedef UINT64 (*PF_BPF_JITTED_FUNC)(UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5);
-
 static inline int _mybpf_prog_run_jitted_code(MYBPF_PROG_NODE_S *prog, OUT UINT64 *bpf_ret, MYBPF_PARAM_S *p)
 {
-    PF_BPF_JITTED_FUNC func = prog->insn;
-    *bpf_ret = func(p->p[0], p->p[1], p->p[2], p->p[3], p->p[4]);
+    MYBPF_LOADER_NODE_S *n = prog->loader_node;
+    U64 (*func)(U64,U64,U64,U64,U64,void*) = prog->insn;
+    *bpf_ret = func(p->p[0], p->p[1], p->p[2], p->p[3], p->p[4], &n->aot_ctx);
     return 0;
 }
 

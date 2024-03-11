@@ -128,7 +128,7 @@ static int _runbpf_bare(int argc, char **argv)
         MYBPF_DBG_SetAllDebugFlags();
     }
 
-    return MYBPF_BARE_RunFile(filename, params);
+    return MYBPF_RunBareFile(filename, NULL, params);
 }
 
 static void _walk_prog_dump_mem(void *data, int len)
@@ -577,6 +577,13 @@ static int _porcess_mode(int mode, char *raw_map_file, OUT MYBPF_SIMPLE_CONVERT_
             return -1;
         }
         p->helper_mode = MYBPF_JIT_HELPER_MODE_RAW;
+    } else if (mode == 3) {
+        p->helper_mode = MYBPF_JIT_HELPER_MODE_AGENT;
+        p->param_6th = 1;
+    } else if (mode == 4) {
+        p->helper_mode = MYBPF_JIT_HELPER_MODE_ARRAY;
+        p->aot_map_index_to_ptr = 1;
+        p->param_6th = 1;
     } else {
         p->helper_mode = MYBPF_JIT_HELPER_MODE_AGENT;
     }
@@ -639,7 +646,7 @@ static int _convert_simple(int argc, char **argv)
         {'P', 0, "filename", GETOPT2_V_STRING, &filename, "bpf file name", 0},
         {'o', 'j', "jit", GETOPT2_V_NONE, NULL, "jit/aot", 0},
         {'o', 't', "target", GETOPT2_V_STRING, &jit_arch_name, "select target arch: arm64,x86_64", 0},
-        {'o', 'm', "mode", GETOPT2_V_U32, &mode, "for aot mode, default 0:agent, 1:array, 2:raw", 0},
+        {'o', 'm', "mode", GETOPT2_V_U32, &mode, "for aot mode,0:agent(default),1:array,2:raw,3:ragent,4:rarray", 0},
         {'o', 'f', "mapfile", GETOPT2_V_STRING, &convert_map_file, "for aot raw mode", 0},
         {'o', 'o', "output-name", GETOPT2_V_STRING, &output_name, "output name", 0},
         {'o', 'd', "debug", GETOPT2_V_NONE, NULL, "print debug info", 0},
@@ -687,7 +694,7 @@ static int _convert_bare(int argc, char **argv)
         {'P', 0, "filename", GETOPT2_V_STRING, &filename, "bpf file name", 0},
         {'o', 'j', "jit", GETOPT2_V_NONE, NULL, "jit/aot", 0},
         {'o', 't', "target", GETOPT2_V_STRING, &jit_arch_name, "select target arch: arm64,x86_64", 0},
-        {'o', 'm', "mode", GETOPT2_V_U32, &mode, "for aot mode, default 0:agent, 1:array, 2:raw", 0},
+        {'o', 'm', "mode", GETOPT2_V_U32, &mode, "for aot mode,0:agent(default),1:array,2:raw,3:ragent,4:rarray", 0},
         {'o', 'f', "mapfile", GETOPT2_V_STRING, &convert_map_file, "for aot raw mode", 0},
         {'o', 'o', "output-name", GETOPT2_V_STRING, &output_name, "output name", 0},
         {'o', 'd', "debug", GETOPT2_V_NONE, NULL, "print debug info", 0},

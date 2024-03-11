@@ -149,6 +149,7 @@ static int _mybpf_fixup_bpf_call(void *insts, int insn_index, void *ud)
     USER_HANDLE_S *uh = ud;
     MYBPF_JIT_ARCH_S *arch = uh->ahUserHandle[0];
     MYBPF_JIT_RES_S *res = uh->ahUserHandle[1];
+    MYBPF_JIT_CFG_S *cfg = uh->ahUserHandle[2];
     char *jitted_code = uh->ahUserHandle[3];
 
     
@@ -165,7 +166,7 @@ static int _mybpf_fixup_bpf_call(void *insts, int insn_index, void *ud)
             "Fix bpf call, code_insn:%d, func_insn:%d, func_off:%d, to_fix:%p, bpf_func:%p \n",
             insn_index, dst_func, dst, to_fix, bpf_func);
 
-    arch->fix_bpf_call(to_fix, bpf_func);
+    arch->fix_bpf_call(cfg, to_fix, bpf_func);
     
 
     return 0;
@@ -183,6 +184,7 @@ static int _mybpf_fixup_funcptr_lddw(void *insts, int insn_index, void *ud)
     USER_HANDLE_S *uh = ud;
     MYBPF_JIT_ARCH_S *arch = uh->ahUserHandle[0];
     MYBPF_JIT_RES_S *res = uh->ahUserHandle[1];
+    MYBPF_JIT_CFG_S *cfg = uh->ahUserHandle[2];
     char *jitted_code = uh->ahUserHandle[3];
 
     
@@ -194,7 +196,7 @@ static int _mybpf_fixup_funcptr_lddw(void *insts, int insn_index, void *ud)
     
     void * to_fix = jitted_code + res->locs[insn_index];
 
-    arch->fix_load_func_ptr(to_fix, func);
+    arch->fix_load_func_ptr(cfg, to_fix, func);
     
 
     return 0;
