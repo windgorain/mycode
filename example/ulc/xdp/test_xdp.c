@@ -11,7 +11,7 @@ typedef struct {
     unsigned int bytes;
 }MLB_CFG_S;
 
-/* 配置项 */
+
 struct bpf_map_def SEC("maps") g_test_cfg_tbl = {
     .type = BPF_MAP_TYPE_ARRAY,
     .key_size = sizeof(int),
@@ -33,7 +33,7 @@ static inline int _test_input(struct xdp_md *ctx, char *data, char *data_end)
     cfg->bytes += (data_end - data);
 
     printf("Bytes: %u, Count: %u \n", cfg->bytes, cfg->count);
-//    printf("Count: %u, Bytes: %u \n", cfg->count, cfg->bytes);
+
 
     return XDP_PASS;
 }

@@ -3,15 +3,6 @@
 #include "utl/mybpf_asmdef.h" 
 #include "utl/bpfasm_utl.h" 
 
-static BPFASM_FUNC_S g_bpfasm_progs[] = { 
-    {.func_name="_MYBPF_LOADER_CopyMapsFd", .insn_offset=0}, 
-    {.func_name="_MYBPF_LOADER_LoadProgs", .insn_offset=27}, 
-    {.func_name="_MYBPF_LOADER_CheckMayKeepMap", .insn_offset=178}, 
-    {.func_name="_MYBPF_LOADER_MakeExe", .insn_offset=227}, 
-    {.func_name="_MYBPF_MakeExe", .insn_offset=277}, 
-    {.func_name="_MYBPF_UnmapExe", .insn_offset=294}, 
-    {0} }; 
-
 static MYBPF_INSN_S g_bpfasm_insts[] = { 
     /* _MYBPF_LOADER_CopyMapsFd */
     BPF_MOV64_REG(BPF_R6, BPF_R1), 
@@ -301,69 +292,87 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_EXIT_INSN(), 
 }; 
 
-static BPFASM_S g_bpfasm_ctrl = { 
-    .funcs = g_bpfasm_progs, 
-    .begin_addr = g_bpfasm_insts, 
-    .end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts)
-}; 
-
 U64 _MYBPF_LOADER_CopyMapsFd(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "_MYBPF_LOADER_CopyMapsFd", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 _MYBPF_LOADER_LoadProgs(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 216; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "_MYBPF_LOADER_LoadProgs", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 _MYBPF_LOADER_CheckMayKeepMap(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 1424; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "_MYBPF_LOADER_CheckMayKeepMap", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 _MYBPF_LOADER_MakeExe(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 1816; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "_MYBPF_LOADER_MakeExe", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 _MYBPF_MakeExe(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 2216; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "_MYBPF_MakeExe", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 _MYBPF_UnmapExe(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 2352; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "_MYBPF_UnmapExe", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 

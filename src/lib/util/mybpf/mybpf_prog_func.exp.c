@@ -3,11 +3,6 @@
 #include "utl/mybpf_asmdef.h" 
 #include "utl/bpfasm_utl.h" 
 
-static BPFASM_FUNC_S g_bpfasm_progs[] = { 
-    {.func_name="_MYBPF_PROG_GetFirst", .insn_offset=0}, 
-    {.func_name="_MYBPF_PROG_GetNext", .insn_offset=70}, 
-    {0} }; 
-
 static MYBPF_INSN_S g_bpfasm_insts[] = { 
     /* _MYBPF_PROG_GetFirst */
     BPF_MOV64_REG(BPF_R9, BPF_R3), 
@@ -161,29 +156,31 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_JMP_A(-23), 
 }; 
 
-static BPFASM_S g_bpfasm_ctrl = { 
-    .funcs = g_bpfasm_progs, 
-    .begin_addr = g_bpfasm_insts, 
-    .end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts)
-}; 
-
 U64 _MYBPF_PROG_GetFirst(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "_MYBPF_PROG_GetFirst", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 _MYBPF_PROG_GetNext(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 560; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "_MYBPF_PROG_GetNext", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 

@@ -3,10 +3,6 @@
 #include "utl/mybpf_asmdef.h" 
 #include "utl/bpfasm_utl.h" 
 
-static BPFASM_FUNC_S g_bpfasm_progs[] = { 
-    {.func_name="MYBPF_PROG_ConvertCtxAccess", .insn_offset=0}, 
-    {0} }; 
-
 static MYBPF_INSN_S g_bpfasm_insts[] = { 
     /* MYBPF_PROG_ConvertCtxAccess */
     BPF_LDX_MEM(BPF_DW, BPF_R2, BPF_R1, 224), 
@@ -146,19 +142,17 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_JMP_A(-99), 
 }; 
 
-static BPFASM_S g_bpfasm_ctrl = { 
-    .funcs = g_bpfasm_progs, 
-    .begin_addr = g_bpfasm_insts, 
-    .end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts)
-}; 
-
 U64 MYBPF_PROG_ConvertCtxAccess(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_PROG_ConvertCtxAccess", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 

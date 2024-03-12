@@ -3,19 +3,6 @@
 #include "utl/mybpf_asmdef.h" 
 #include "utl/bpfasm_utl.h" 
 
-static BPFASM_FUNC_S g_bpfasm_progs[] = { 
-    {.func_name="MYBPF_INSN_GetCallsCount", .insn_offset=0}, 
-    {.func_name="MYBPF_INSN_GetCallsInfo", .insn_offset=24}, 
-    {.func_name="MYBPF_INSN_WalkCalls", .insn_offset=84}, 
-    {.func_name="MYBPF_INSN_WalkExternCalls", .insn_offset=119}, 
-    {.func_name="MYBPF_INSN_WalkLddw", .insn_offset=156}, 
-    {.func_name="MYBPF_INSN_FixupExtCalls", .insn_offset=193}, 
-    {.func_name="MYBPF_INSN_GetStackSize", .insn_offset=259}, 
-    {.func_name="MYBPF_INSN_GetStackSizeUntilExit", .insn_offset=320}, 
-    {.func_name="MYBPF_INSN_ShowPcAccessGlobal", .insn_offset=345}, 
-    {.func_name="MYBPF_INSN_ModifyTextOff", .insn_offset=559}, 
-    {0} }; 
-
 static MYBPF_INSN_S g_bpfasm_insts[] = { 
     /* MYBPF_INSN_GetCallsCount */
     BPF_MOV64_IMM(BPF_R0, 0), 
@@ -577,109 +564,143 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_JMP_A(-12), 
 }; 
 
-static BPFASM_S g_bpfasm_ctrl = { 
-    .funcs = g_bpfasm_progs, 
-    .begin_addr = g_bpfasm_insts, 
-    .end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts)
-}; 
-
 U64 MYBPF_INSN_GetCallsCount(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_GetCallsCount", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_INSN_GetCallsInfo(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 192; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_GetCallsInfo", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_INSN_WalkCalls(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 672; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_WalkCalls", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_INSN_WalkExternCalls(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 952; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_WalkExternCalls", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_INSN_WalkLddw(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 1248; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_WalkLddw", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_INSN_FixupExtCalls(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 1544; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_FixupExtCalls", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_INSN_GetStackSize(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 2072; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_GetStackSize", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_INSN_GetStackSizeUntilExit(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 2560; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_GetStackSizeUntilExit", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_INSN_ShowPcAccessGlobal(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 2760; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_ShowPcAccessGlobal", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_INSN_ModifyTextOff(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 4472; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_INSN_ModifyTextOff", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 

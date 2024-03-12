@@ -3,35 +3,6 @@
 #include "utl/mybpf_asmdef.h" 
 #include "utl/bpfasm_utl.h" 
 
-static BPFASM_FUNC_S g_bpfasm_progs[] = { 
-    {.func_name="MYBPF_SIMPLE_GetMapCount", .insn_offset=0}, 
-    {.func_name="MYBPF_SIMPLE_GetMapsSection", .insn_offset=19}, 
-    {.func_name="MYBPF_SIMPLE_GetMapName", .insn_offset=67}, 
-    {.func_name="MYBPF_SIMPLE_GetMapIDByName", .insn_offset=125}, 
-    {.func_name="MYBPF_SIMPLE_GetJitArch", .insn_offset=222}, 
-    {.func_name="MYBPF_SIMPLE_GetTypeSecCount", .insn_offset=241}, 
-    {.func_name="MYBPF_SIMPLE_GetSec", .insn_offset=261}, 
-    {.func_name="MYBPF_SIMPLE_GetSecByName", .insn_offset=292}, 
-    {.func_name="MYBPF_SIMPLE_GetSecName", .insn_offset=329}, 
-    {.func_name="MYBPF_SIMPLE_GetSecDataSize", .insn_offset=337}, 
-    {.func_name="MYBPF_SIMPLE_GetSecData", .insn_offset=345}, 
-    {.func_name="MYBPF_SIMPLE_CopySecData", .insn_offset=358}, 
-    {.func_name="MYBPF_SIMPLE_DupSecData", .insn_offset=402}, 
-    {.func_name="MYBPF_SIMPLE_GetProgsCount", .insn_offset=448}, 
-    {.func_name="MYBPF_SIMPLE_GetProgsSize", .insn_offset=468}, 
-    {.func_name="MYBPF_SIMPLE_GetProgs", .insn_offset=491}, 
-    {.func_name="MYBPF_SIMPLE_CopyPorgs", .insn_offset=520}, 
-    {.func_name="MYBPF_SIMPLE_DupProgs", .insn_offset=579}, 
-    {.func_name="MYBPF_SIMPLE_GetProgInfo", .insn_offset=640}, 
-    {.func_name="MYBPF_SIMPLE_GetProgsInfo", .insn_offset=642}, 
-    {.func_name="MYBPF_SIMPLE_GetProgsInfoSize", .insn_offset=901}, 
-    {.func_name="MYBPF_SIMPLE_GetMainProgsCount", .insn_offset=924}, 
-    {.func_name="MYBPF_SIMPLE_GetMainProgInfo", .insn_offset=1064}, 
-    {.func_name="MYBPF_SIMPLE_GetMainProgsInfo", .insn_offset=1350}, 
-    {.func_name="MYBPF_SIMPLE_WalkProg", .insn_offset=1624}, 
-    {.func_name="MYBPF_SIMPLE_GetSimpleSizeByHdr", .insn_offset=1716}, 
-    {0} }; 
-
 static MYBPF_INSN_S g_bpfasm_insts[] = { 
     /* MYBPF_SIMPLE_GetMapCount */
     BPF_MOV64_IMM(BPF_R2, 0), 
@@ -47,6 +18,26 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_LDX_MEM(BPF_B, BPF_R3, BPF_R2, 4), 
     BPF_JMP_IMM(BPF_JNE, BPF_R3, 1, 2), 
     BPF_LDX_MEM(BPF_B, BPF_R0, BPF_R2, 6), 
+    BPF_JMP_A(4), 
+    BPF_JMP_IMM(BPF_JNE, BPF_R2, 0, -12), 
+    BPF_LDX_MEM(BPF_DW, BPF_R2, BPF_R1, 0), 
+    BPF_ALU64_IMM(BPF_ADD, BPF_R2, 12), 
+    BPF_JMP_A(-8), 
+    BPF_EXIT_INSN(), 
+    /* MYBPF_SIMPLE_GetMapFlags */
+    BPF_MOV64_IMM(BPF_R2, 0), 
+    BPF_MOV64_IMM(BPF_R0, 0), 
+    BPF_JMP_A(11), 
+    BPF_LDX_MEM(BPF_W, BPF_R3, BPF_R2, 0), 
+    BPF_ENDIAN(BPF_TO_BE, BPF_R3, 32), 
+    BPF_ALU64_REG(BPF_ADD, BPF_R2, BPF_R3), 
+    BPF_LDX_MEM(BPF_DW, BPF_R3, BPF_R1, 8), 
+    BPF_LDX_MEM(BPF_DW, BPF_R4, BPF_R1, 0), 
+    BPF_ALU64_REG(BPF_ADD, BPF_R4, BPF_R3), 
+    BPF_JMP_REG(BPF_JGE, BPF_R2, BPF_R4, 8), 
+    BPF_LDX_MEM(BPF_B, BPF_R3, BPF_R2, 4), 
+    BPF_JMP_IMM(BPF_JNE, BPF_R3, 1, 2), 
+    BPF_LDX_MEM(BPF_B, BPF_R0, BPF_R2, 7), 
     BPF_JMP_A(4), 
     BPF_JMP_IMM(BPF_JNE, BPF_R2, 0, -12), 
     BPF_LDX_MEM(BPF_DW, BPF_R2, BPF_R1, 0), 
@@ -100,6 +91,57 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_REG(BPF_R0, BPF_R3), 
     BPF_STX_MEM(BPF_W, BPF_R2, BPF_R4, 4), 
     BPF_STX_MEM(BPF_DW, BPF_R2, BPF_R0, 16), 
+    BPF_MOV64_IMM(BPF_R0, 0), 
+    BPF_EXIT_INSN(), 
+    /* MYBPF_SIMPLE_GetMap */
+    BPF_MOV64_IMM(BPF_R3, 0), 
+    BPF_MOV64_IMM(BPF_R5, 0), 
+    BPF_MOV64_IMM(BPF_R0, 0), 
+    BPF_JMP_A(18), 
+    BPF_LDX_MEM(BPF_W, BPF_R4, BPF_R3, 0), 
+    BPF_ENDIAN(BPF_TO_BE, BPF_R4, 32), 
+    BPF_ALU64_REG(BPF_ADD, BPF_R3, BPF_R4), 
+    BPF_LDX_MEM(BPF_DW, BPF_R4, BPF_R1, 8), 
+    BPF_LDX_MEM(BPF_DW, BPF_R6, BPF_R1, 0), 
+    BPF_ALU64_REG(BPF_ADD, BPF_R6, BPF_R4), 
+    BPF_MOV64_IMM(BPF_R4, 0), 
+    BPF_JMP_REG(BPF_JGE, BPF_R3, BPF_R6, 29), 
+    BPF_LDX_MEM(BPF_B, BPF_R4, BPF_R3, 4), 
+    BPF_JMP_IMM(BPF_JNE, BPF_R4, 1, 8), 
+    BPF_LDX_MEM(BPF_W, BPF_R1, BPF_R3, 0), 
+    BPF_LDX_MEM(BPF_B, BPF_R4, BPF_R3, 6), 
+    BPF_JMP_IMM(BPF_JNE, BPF_R4, 0, 9), 
+    BPF_MOV64_IMM(BPF_R5, 0), 
+    BPF_LDX_MEM(BPF_B, BPF_R6, BPF_R3, 5), 
+    BPF_ENDIAN(BPF_TO_BE, BPF_R1, 32), 
+    BPF_ALU64_IMM(BPF_ADD, BPF_R1, -8), 
+    BPF_JMP_A(12), 
+    BPF_JMP_IMM(BPF_JNE, BPF_R3, 0, -19), 
+    BPF_LDX_MEM(BPF_DW, BPF_R3, BPF_R1, 0), 
+    BPF_ALU64_IMM(BPF_ADD, BPF_R3, 12), 
+    BPF_JMP_A(-14), 
+    BPF_LDX_MEM(BPF_B, BPF_R6, BPF_R3, 5), 
+    BPF_ENDIAN(BPF_TO_BE, BPF_R1, 32), 
+    BPF_ALU64_IMM(BPF_ADD, BPF_R1, -8), 
+    BPF_MOV64_REG(BPF_R5, BPF_R1), 
+    BPF_ALU64_REG(BPF_SUB, BPF_R5, BPF_R6), 
+    BPF_ALU64_IMM(BPF_LSH, BPF_R5, 32), 
+    BPF_ALU64_IMM(BPF_RSH, BPF_R5, 32), 
+    BPF_ALU64_REG(BPF_DIV, BPF_R5, BPF_R4), 
+    BPF_ALU64_IMM(BPF_LSH, BPF_R1, 32), 
+    BPF_ALU64_IMM(BPF_RSH, BPF_R1, 32), 
+    BPF_MOV64_IMM(BPF_R0, 0), 
+    BPF_JMP_REG(BPF_JEQ, BPF_R1, BPF_R6, 3), 
+    BPF_ALU64_REG(BPF_ADD, BPF_R3, BPF_R6), 
+    BPF_ALU64_IMM(BPF_ADD, BPF_R3, 8), 
+    BPF_MOV64_REG(BPF_R0, BPF_R3), 
+    BPF_ALU64_REG(BPF_MUL, BPF_R5, BPF_R2), 
+    BPF_ALU64_IMM(BPF_LSH, BPF_R5, 32), 
+    BPF_ALU64_IMM(BPF_ARSH, BPF_R5, 32), 
+    BPF_ALU64_REG(BPF_ADD, BPF_R0, BPF_R5), 
+    BPF_ALU64_IMM(BPF_LSH, BPF_R2, 32), 
+    BPF_ALU64_IMM(BPF_ARSH, BPF_R2, 32), 
+    BPF_JMP_REG(BPF_JSGT, BPF_R4, BPF_R2, 1), 
     BPF_MOV64_IMM(BPF_R0, 0), 
     BPF_EXIT_INSN(), 
     /* MYBPF_SIMPLE_GetMapName */
@@ -405,7 +447,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_IMM(BPF_R2, 0), 
     BPF_MOV64_IMM(BPF_R3, 0), 
     BPF_MOV64_IMM(BPF_R4, 0), 
-    BPF_MOV64_IMM(BPF_R5, 206), 
+    BPF_MOV64_IMM(BPF_R5, 235), 
     BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000005), 
     BPF_JMP_A(31), 
     BPF_LDX_MEM(BPF_B, BPF_R4, BPF_R1, 5), 
@@ -616,7 +658,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_IMM(BPF_R2, 0), 
     BPF_MOV64_IMM(BPF_R3, 0), 
     BPF_MOV64_IMM(BPF_R4, 0), 
-    BPF_MOV64_IMM(BPF_R5, 206), 
+    BPF_MOV64_IMM(BPF_R5, 235), 
     BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000005), 
     BPF_MOV64_REG(BPF_R0, BPF_R7), 
     BPF_EXIT_INSN(), 
@@ -2015,269 +2057,395 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_JMP_A(-13), 
 }; 
 
-static BPFASM_S g_bpfasm_ctrl = { 
-    .funcs = g_bpfasm_progs, 
-    .begin_addr = g_bpfasm_insts, 
-    .end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts)
-}; 
-
 U64 MYBPF_SIMPLE_GetMapCount(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetMapCount", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
+} 
+
+U64 MYBPF_SIMPLE_GetMapFlags(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
+{ 
+    MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 152; 
+    p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
+    if (ret < 0) return ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetMapsSection(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 304; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetMapsSection", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
+} 
+
+U64 MYBPF_SIMPLE_GetMap(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
+{ 
+    MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 688; 
+    p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
+    if (ret < 0) return ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetMapName(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 1088; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetMapName", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetMapIDByName(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 1552; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetMapIDByName", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetJitArch(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 2328; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetJitArch", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetTypeSecCount(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 2480; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetTypeSecCount", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetSec(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 2640; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetSec", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetSecByName(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 2888; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetSecByName", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetSecName(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 3184; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetSecName", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetSecDataSize(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 3248; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetSecDataSize", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetSecData(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 3312; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetSecData", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_CopySecData(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 3416; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_CopySecData", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_DupSecData(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 3768; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_DupSecData", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetProgsCount(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 4136; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetProgsCount", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetProgsSize(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 4296; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetProgsSize", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetProgs(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 4480; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetProgs", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_CopyPorgs(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 4712; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_CopyPorgs", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_DupProgs(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 5184; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_DupProgs", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetProgInfo(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 5672; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetProgInfo", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetProgsInfo(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 5688; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetProgsInfo", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetProgsInfoSize(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 7760; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetProgsInfoSize", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetMainProgsCount(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 7944; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetMainProgsCount", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetMainProgInfo(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 9064; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetMainProgInfo", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetMainProgsInfo(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 11352; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetMainProgsInfo", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_WalkProg(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 13544; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_WalkProg", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 
 U64 MYBPF_SIMPLE_GetSimpleSizeByHdr(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5) 
 { 
-    U64 bpf_ret; 
     MYBPF_PARAM_S p; 
+    MYBPF_CTX_S ctx = {0}; 
+
+    ctx.begin_addr = g_bpfasm_insts; 
+    ctx.end_addr = (char*)(void*)g_bpfasm_insts + sizeof(g_bpfasm_insts); 
+    ctx.insts = (char*)g_bpfasm_insts + 14280; 
     p.p[0]=p1; p.p[1]=p2; p.p[2]=p3; p.p[3]=p4; p.p[4]=p5; 
-    int ret = BPFASM_Run(&g_bpfasm_ctrl, "MYBPF_SIMPLE_GetSimpleSizeByHdr", &bpf_ret, &p); 
+    int ret = MYBPF_DefultRun(&ctx, &p); 
     if (ret < 0) return ret; 
-    return bpf_ret; 
+    return ctx.bpf_ret; 
 } 
 

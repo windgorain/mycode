@@ -144,13 +144,14 @@ static int _mybpf_simpe_add_map(OUT VBUF_S *vbuf, MYBPF_MAPS_SEC_S *s, int paddi
 }
 
 
-static int _mybpf_simple_add_map_sec_hdr(VBUF_S *vbuf, int map_count, int map_def_size)
+static int _mybpf_simple_add_map_sec_hdr(VBUF_S *vbuf, int map_count, int map_def_size, U8 flags)
 {
     MYBPF_SIMPLE_MAP_HDR_S hdr = {0};
 
     hdr.sec_type = MYBPF_SIMPLE_SEC_TYPE_MAP;
     hdr.sec_size = sizeof(MYBPF_SIMPLE_MAP_HDR_S) + (map_count * map_def_size);
     hdr.map_count = map_count;
+    hdr.flags = flags;
     hdr.sec_size = htonl(hdr.sec_size);
 
     
@@ -164,6 +165,7 @@ static int _mybpf_simple_write_maps_sec(VBUF_S *vbuf, ELF_S *elf,
     int map_count;
     int padding = 0;
     int map_def_size = map_sec->map_def_size;
+    U8 flags = 0;
 
     if (map_def_size < UMAP_ELF_MAP_MIN_SIZE) {
         map_def_size = UMAP_ELF_MAP_MIN_SIZE;
@@ -172,8 +174,18 @@ static int _mybpf_simple_write_maps_sec(VBUF_S *vbuf, ELF_S *elf,
 
     map_count = global_data->sec_count + map_sec->map_count;
 
+    if (global_data->have_bss) {
+        flags |= MYBPF_SIMPLE_MAP_FLAG_BSS;
+    }
+    if (global_data->have_data) {
+        flags |= MYBPF_SIMPLE_MAP_FLAG_DATA;
+    }
+    if (global_data->rodata_count) {
+        flags |= MYBPF_SIMPLE_MAP_FLAG_RODATA;
+    }
+
     
-    ret |= _mybpf_simple_add_map_sec_hdr(vbuf, map_count, map_def_size);
+    ret |= _mybpf_simple_add_map_sec_hdr(vbuf, map_count, map_def_size, flags);
 
     
     ret |= _mybpf_simple_write_global_data(vbuf, global_data, map_def_size);
@@ -1170,14 +1182,26 @@ static int _mybpf_simple_merge_map_name(FILE_MEM_S *m1, FILE_MEM_S *m2, OUT VBUF
 static int _mybpf_simple_merge_maps(FILE_MEM_S *m1, FILE_MEM_S *m2, OUT VBUF_S *vbuf, int with_map_name)
 {
     MYBPF_MAPS_SEC_S map1 = {0}, map2 = {0};
+    MYBPF_SIMPLE_MAP_HDR_S *map_hdr;
     int ret = 0;
     int map_count;
     int map_size_def;
+    U8 flags = 0;
 
     MYBPF_SIMPLE_GetMapsSection(m1, &map1);
 
+    map_hdr = mybpf_simple_get_type_sec(m1, MYBPF_SIMPLE_SEC_TYPE_MAP, 0);
+    if (map_hdr) {
+        flags = map_hdr->flags;
+    }
+
     if (m2) {
         MYBPF_SIMPLE_GetMapsSection(m2, &map2);
+
+        map_hdr = mybpf_simple_get_type_sec(m2, MYBPF_SIMPLE_SEC_TYPE_MAP, 0);
+        if (map_hdr) {
+            flags |= map_hdr->flags;
+        }
     }
 
     map_count = map1.map_count + map2.map_count;
@@ -1188,7 +1212,7 @@ static int _mybpf_simple_merge_maps(FILE_MEM_S *m1, FILE_MEM_S *m2, OUT VBUF_S *
     map_size_def = MAX(map1.map_def_size, map2.map_def_size);
 
     
-    ret |= _mybpf_simple_add_map_sec_hdr(vbuf, map_count, map_size_def);
+    ret |= _mybpf_simple_add_map_sec_hdr(vbuf, map_count, map_size_def, flags);
 
     
     ret |= _mybpf_simpe_add_map(vbuf, &map1, map_size_def - map1.map_def_size);
