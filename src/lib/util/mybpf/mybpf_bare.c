@@ -39,8 +39,31 @@ static void _mybpf_bare_free_bss(void **bss)
     }
 }
 
+static int _mybpf_bare_check_depends(MYBPF_BARE_HDR_S *hdr, const void **tmp_helpers)
+{
+    int *helpers;
+    int depend_count;
+    int i;
+    void *fn;
 
-static int _mybpf_bare_check(void *mem, int mem_len)
+    depend_count = ntohs(hdr->depends_count);
+    if (depend_count == 0) {
+        return 0;
+    }
+
+    helpers = (void*)(hdr + 1);
+    for (i=0; i<depend_count; i++) {
+        fn = BpfHelper_GetFuncExt(ntohl(helpers[i]), tmp_helpers);
+        if (! fn) {
+            RETURN(BS_NOT_SUPPORT);
+        }
+    }
+
+    return 0;
+}
+
+
+static int _mybpf_bare_check(void *mem, int mem_len, const void **tmp_helpers)
 {
     MYBPF_BARE_HDR_S *hdr = mem;
 
@@ -64,15 +87,15 @@ static int _mybpf_bare_check(void *mem, int mem_len)
         RETURNI(BS_NOT_SUPPORT, "Jit arch not matched");
     }
 
-    return 0;
+    return _mybpf_bare_check_depends(hdr, tmp_helpers);
 }
 
-static int _mybpf_bare_load(void *data, int len, OUT MYBPF_BARE_S *bare)
+static int _mybpf_bare_load(void *data, int len, const void **tmp_helpers, OUT MYBPF_BARE_S *bare)
 {
     MYBPF_BARE_HDR_S *hdr = data;
     void **bss = NULL;
 
-    int ret = _mybpf_bare_check(data, len);
+    int ret = _mybpf_bare_check(data, len, tmp_helpers);
     if (ret < 0) {
         return ret;
     }
@@ -85,8 +108,9 @@ static int _mybpf_bare_load(void *data, int len, OUT MYBPF_BARE_S *bare)
         }
     }
 
-    void *prog_begin = (char*)data + sizeof(*hdr);
-    int prog_size = ntohl(hdr->size) - sizeof(*hdr);
+    int offset = sizeof(*hdr) + (sizeof(int) * ntohs(hdr->depends_count));
+    void *prog_begin = (char*)data + offset;
+    int prog_size = ntohl(hdr->size) - offset;
 
     void *fn = MMAP_Map(prog_begin, prog_size, 0);
     if (! fn) {
@@ -138,9 +162,9 @@ BOOL_T MYBPF_IsBareFile(char *filename)
     return TRUE;
 }
 
-int MYBPF_LoadBare(void *data, int len, OUT MYBPF_BARE_S *bare)
+int MYBPF_LoadBare(void *data, int len, const void **tmp_helpers, OUT MYBPF_BARE_S *bare)
 {
-    return _mybpf_bare_load(data, len, bare);
+    return _mybpf_bare_load(data, len, tmp_helpers, bare);
 }
 
 void MYBPF_UnloadBare(MYBPF_BARE_S *bare)
@@ -152,7 +176,7 @@ void MYBPF_UnloadBare(MYBPF_BARE_S *bare)
     }
 }
 
-int MYBPF_LoadBareFile(char *file, OUT MYBPF_BARE_S *bare)
+int MYBPF_LoadBareFile(char *file, const void **tmp_helpers, OUT MYBPF_BARE_S *bare)
 {
     int ret;
     FILE_MEM_S m = {0};
@@ -162,7 +186,7 @@ int MYBPF_LoadBareFile(char *file, OUT MYBPF_BARE_S *bare)
         RETURNI(BS_CAN_NOT_OPEN, "Can't open file");
     }
 
-    ret = _mybpf_bare_load(m.data, m.len, bare);
+    ret = _mybpf_bare_load(m.data, m.len, tmp_helpers, bare);
 
     FILE_FreeMem(&m);
 
@@ -181,7 +205,7 @@ U64 MYBPF_RunBareFile(char *file, const void **tmp_helpers, MYBPF_PARAM_S *p)
     int ret;
     U64 ret64;
 
-    ret = MYBPF_LoadBareFile(file, &bare);
+    ret = MYBPF_LoadBareFile(file, tmp_helpers, &bare);
     if (ret < 0) {
         return ret;
     }

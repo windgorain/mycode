@@ -127,7 +127,7 @@ static int _quit(int argc, char **argv)
     exit(0);
 }
 
-static int _run(int argc, char **argv)
+static int _run_spf(int argc, char **argv)
 {
     static SUB_CMD_NODE_S subcmds[] = {
         {"load file", _load_spf, "load spf file"},
@@ -141,9 +141,9 @@ static int _run(int argc, char **argv)
     return SUBCMD_DoParams(subcmds, argc, argv);
 }
 
-static int _load_spf_loader(void)
+static int _load_spf_loader(char *spf_loader)
 {
-    int ret = MYBPF_LoadBareFile("spf_loader.bare", &g_mybpf_bare);
+    int ret = MYBPF_LoadBareFile(spf_loader, NULL, &g_mybpf_bare);
     if (ret < 0) {
         ErrCode_PrintErrInfo();
         return ret;
@@ -154,13 +154,13 @@ static int _load_spf_loader(void)
     return 0;
 }
 
-int main(void)
+static int _run(char *spf_loader)
 {
     char line[256];
     char *argv[32];
     int argc = 0;
 
-    if (_load_spf_loader()) {
+    if (_load_spf_loader(spf_loader)) {
         return -1;
     }
 
@@ -169,11 +169,22 @@ int main(void)
     while(NULL != fgets(line, sizeof(line), stdin)){
         argc = ARGS_Split(line, argv, ARRAY_SIZE(argv));
         if (argc > 0) {
-            _run(argc, argv);
+            _run_spf(argc, argv);
         }
         printf("> ");
     }
 
     return 0;
+}
+
+
+int main(int argc, char **argv)
+{
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s spf_loader \n", argv[0]);
+        return -1;
+    }
+
+    return _run(argv[1]);
 }
 

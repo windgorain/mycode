@@ -32,34 +32,6 @@
 #include "mybpf_osbase.h"
 #include "mybpf_loader_func.h"
 
-
-static UINT64 _mybpf_loader_agent_fix_p1(MYBPF_AOT_PROG_CTX_S *ctx, UINT64 p1)
-{
-    MYBPF_LOADER_NODE_S *n = ctx->loader_node;
-    if (p1 >= n->map_count) {
-        return 0;
-    }
-    return (long)n->maps[p1];
-}
-
-static U64 _mybpf_loader_call_agent(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5, U64 fid, void *ud)
-{
-    PF_BPF_HELPER_FUNC func = BpfHelper_GetFunc(fid);
-    if (! func) {
-        return -1;
-    }
-
-    if (fid <= 3) {
-        
-        p1 = _mybpf_loader_agent_fix_p1(ud, p1);
-        if (! p1) {
-            return (fid == 1) ? 0 : -1;
-        }
-    }
-
-    return func(p1, p2, p3, p4, p5);
-}
-
 static void * _mybpf_loader_map_fd_2_ptr(int is_direct, int imm, int off, void *ud)
 {
     MYBPF_LOADER_NODE_S *node = ud;
@@ -88,13 +60,7 @@ static int _mybpf_loader_fixup(MYBPF_LOADER_NODE_S *node)
     }
 
     
-    
-#if 0
-    ret = MYBPF_PROG_FixupExtCalls(node->insts, node->insts_len);
-    if (ret < 0) {
-        return ret;
-    }
-#endif
+
 
     return 0;
 }
@@ -413,7 +379,7 @@ static int _mybpf_loader_open_simple_maps(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER
     return 0;
 }
 
-static int _mybpf_loader_check_helpers_exist(FILE_MEM_S *f)
+static int _mybpf_loader_check_helpers_exist(FILE_MEM_S *f, const void **tmp_helpers)
 {
     int i;
 
@@ -427,7 +393,7 @@ static int _mybpf_loader_check_helpers_exist(FILE_MEM_S *f)
 
     for (i=0; i<count; i++) {
         int helper_id = ntohl(helpers[i]);
-        if (! BpfHelper_GetFunc(helper_id)) {
+        if (! BpfHelper_GetFuncExt(helper_id, tmp_helpers)) {
             RETURNI(BS_NOT_SUPPORT, "Helper %d is not support", helper_id);
         }
     }
@@ -442,10 +408,6 @@ static int _mybpf_loader_simple_prog_load_jitted(MYBPF_RUNTIME_S *runtime,
 
     MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_LOADER, DBG_UTL_FLAG_PROCESS,
             "Prog has been jitted, arch=%s\n", ARCH_GetArchName(jit_arch));
-
-    if (_mybpf_loader_check_helpers_exist(f) < 0) {
-        return BS_ERR;
-    }
 
     if (jit_arch != ARCH_LocalArch()) {
         RETURNI(BS_NOT_SUPPORT, "Can't support jitted arch %s", ARCH_GetArchName(jit_arch));
@@ -491,7 +453,8 @@ static int _mybpf_loader_simple_prog_load(MYBPF_RUNTIME_S *runtime, FILE_MEM_S *
     return ret;
 }
 
-static int _mybpf_loader_load_simple_progs(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_NODE_S *node, MYBPF_LOADER_PARAM_S *p)
+static int _mybpf_loader_load_simple_progs(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_NODE_S *node,
+        MYBPF_LOADER_PARAM_S *p)
 {
     int ret = 0;
     FILE_MEM_S *f = &p->simple_mem;
@@ -530,8 +493,8 @@ static int _mybpf_loader_load_simple_progs(MYBPF_RUNTIME_S *runtime, MYBPF_LOADE
     return _MYBPF_LOADER_LoadProgs(runtime, node);
 }
 
-static int _mybpf_loader_load_simple(MYBPF_RUNTIME_S *runtime,
-        MYBPF_LOADER_NODE_S *node, MYBPF_LOADER_NODE_S *old, MYBPF_LOADER_PARAM_S *p)
+static int _mybpf_loader_load_simple(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_NODE_S *node,
+        MYBPF_LOADER_NODE_S *old, MYBPF_LOADER_PARAM_S *p)
 {
     int ret;
 
@@ -634,10 +597,10 @@ static MYBPF_LOADER_NODE_S * _mybpf_loader_create_node(MYBPF_RUNTIME_S *runtime,
         return NULL;
     }
 
-    node->aot_ctx.agent_func = _mybpf_loader_call_agent;
     node->aot_ctx.base_helpers = BpfHelper_BaseHelper();
     node->aot_ctx.sys_helpers = BpfHelper_SysHelper();
     node->aot_ctx.user_helpers = BpfHelper_UserHelper();
+    node->aot_ctx.tmp_helpers = p->tmp_helpers;
     node->aot_ctx.maps = node->maps;
     node->aot_ctx.global_map_data = node->global_data;
     node->aot_ctx.loader_node = node;
@@ -670,6 +633,11 @@ static int _mybpf_loader_load(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_PARAM_S *p)
 {
     int ret;
     MYBPF_LOADER_NODE_S *old_node;
+
+    ret = _mybpf_loader_check_helpers_exist(&p->simple_mem, p->tmp_helpers);
+    if (ret < 0) {
+        return ret;
+    }
 
     old_node = _mybpf_loader_get_node(runtime, p->instance);
     if (old_node) {

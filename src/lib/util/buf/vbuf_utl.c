@@ -90,19 +90,35 @@ void VBUF_ClearData(IN VBUF_S *pstVBuf)
 }
 
 
-VOID VBUF_SetDataLength(IN VBUF_S *pstVBuf, IN ULONG ulDataLength)
+int VBUF_SetDataLength(INOUT VBUF_S *vbuf, ULONG ulDataLength)
 {
-    BS_DBGASSERT(0 != pstVBuf);
+    BS_DBGASSERT(NULL != vbuf);
 
-    pstVBuf->ulUsedLen = ulDataLength;
+    ULONG new_len = vbuf->ulOffset + ulDataLength;
+
+    if (unlikely(new_len > vbuf->ulTotleLen)) {
+        RETURN(BS_OUT_OF_RANGE);
+    }
+
+    vbuf->ulUsedLen = ulDataLength;
+
+    return 0;
 }
 
 
-VOID VBUF_AddDataLength(IN VBUF_S *pstVBuf, IN ULONG ulAddDataLength)
+int VBUF_AddDataLength(INOUT VBUF_S *vbuf, ULONG add_len)
 {
-    BS_DBGASSERT(0 != pstVBuf);
+    BS_DBGASSERT(0 != vbuf);
 
-    pstVBuf->ulUsedLen += ulAddDataLength;
+    ULONG new_len = (vbuf->ulOffset + vbuf->ulUsedLen) + add_len;
+
+    if (unlikely(new_len > vbuf->ulTotleLen)) {
+        RETURN(BS_OUT_OF_RANGE);
+    }
+
+    vbuf->ulUsedLen += add_len;
+
+    return 0;
 }
 
 
@@ -259,6 +275,7 @@ BS_STATUS VBUF_CutTail(IN VBUF_S *pstVBuf, IN ULONG ulCutLen)
     return BS_OK;
 }
 
+
 int VBUF_AddHead(INOUT VBUF_S *vbuf, ULONG len)
 {
     if (vbuf->ulOffset < len) {
@@ -274,7 +291,23 @@ int VBUF_AddHead(INOUT VBUF_S *vbuf, ULONG len)
     return 0;
 }
 
-BS_STATUS VBUF_CatFromBuf(IN VBUF_S *pstVBuf, IN VOID *buf, IN ULONG ulLen)
+
+int VBUF_AddHeadBuf(INOUT VBUF_S *vbuf, void *buf, ULONG len)
+{
+    int ret;
+
+    ret = VBUF_AddHead(vbuf, len);
+    if (ret < 0) {
+        return ret;
+    }
+
+    void *d = VBUF_GetData(vbuf);
+    memcpy(d, buf, len);
+
+    return 0;
+}
+
+BS_STATUS VBUF_CatFromBuf(INOUT VBUF_S *pstVBuf, IN VOID *buf, IN ULONG ulLen)
 {
     int ret;
 

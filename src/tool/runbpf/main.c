@@ -268,103 +268,8 @@ static int _show_file(int argc, char **argv)
     return _show_simple_file(filename);
 }
 
-static MYBPF_SIMPLE_CONVERT_CALL_MAP_S * _build_convert_calls_map(char *file)
-{
-    char *line;
-    char buf[64];
-
-    FILE *fp = fopen(file, "r");
-    if (! fp) {
-        printf("Can't open file %s \n", file);
-        return NULL;
-    }
-
-    int count = 0;
-    while ((line = fgets(buf, sizeof(buf), fp)) != NULL) {
-        count ++;
-    }
-
-    MYBPF_SIMPLE_CONVERT_CALL_MAP_S * map = MEM_ZMalloc((count + 1) * sizeof(MYBPF_SIMPLE_CONVERT_CALL_MAP_S));
-    if (! map) {
-        printf("Can't malloc memory \n");
-        fclose(fp);
-        return NULL;
-    }
-
-    int index = 0;
-    int ele_index = 0;
-    int base_offset = 0;
-    int ele_size = 0;
-
-    fseek(fp, 0, SEEK_SET);
-    while ((line = fgets(buf, sizeof(buf), fp)) != NULL) {
-        char *split = strchr(buf, ':');
-        if (split ) {
-            *split = '\0';
-        }
-
-        if (strcmp(buf, "ele_size") == 0) {
-            ele_size = strtol(split + 1, NULL, 10);
-            continue;
-        }
-
-        if (strcmp(buf, "offset") == 0) {
-            ele_index = 0; 
-            base_offset = strtol(split + 1, NULL, 16);
-            continue;
-        }
-
-        int imm = strtol(buf, NULL, 10);
-        if (imm) {
-            
-            map[index].imm = imm;
-            map[index].new_imm = base_offset + ele_index * ele_size;
-            index ++;
-        }
-
-        ele_index ++;
-    }
-
-    
-    map[index].imm = 0;
-
-    fclose(fp);
-
-    return map;
-}
-
-static int _porcess_mode(int mode, char *raw_map_file, OUT MYBPF_SIMPLE_CONVERT_PARAM_S *p)
-{
-    p->aot_mode = mode;
-
-    if (mode == 1) {
-        p->helper_mode = MYBPF_JIT_HELPER_MODE_ARRAY;
-        p->aot_map_index_to_ptr = 1;
-    } else if (mode == 2) {
-        if (! raw_map_file) {
-            PRINTLN_HYELLOW("Need --mapfile");
-            return -1;
-        }
-        if (! (p->helper_map = _build_convert_calls_map(raw_map_file))) {
-            return -1;
-        }
-        p->helper_mode = MYBPF_JIT_HELPER_MODE_RAW;
-    } else if (mode == 3) {
-        p->helper_mode = MYBPF_JIT_HELPER_MODE_AGENT;
-        p->param_6th = 1;
-    } else if (mode == 4) {
-        p->helper_mode = MYBPF_JIT_HELPER_MODE_ARRAY;
-        p->aot_map_index_to_ptr = 1;
-        p->param_6th = 1;
-    } else {
-        p->helper_mode = MYBPF_JIT_HELPER_MODE_AGENT;
-    }
-
-    return 0;
-}
-
-static int _init_convert_param(OUT MYBPF_SIMPLE_CONVERT_PARAM_S *p,
-        GETOPT2_NODE_S *opt, char *jit_arch, int mode, char *map_file)
+static int _init_convert_spf_param(OUT MYBPF_SIMPLE_CONVERT_PARAM_S *p,
+        GETOPT2_NODE_S *opt, char *jit_arch, char *map_file)
 {
     if (GETOPT2_IsOptSetted(opt, 'j', NULL)) {
         if (jit_arch) {
@@ -380,6 +285,7 @@ static int _init_convert_param(OUT MYBPF_SIMPLE_CONVERT_PARAM_S *p,
 
     if (p->jit_arch) {
         p->translate_mode_aot = 1;
+        p->helper_mode = MYBPF_JIT_HELPER_MODE_ARRAY;
     }
 
     if (GETOPT2_IsOptSetted(opt, 0, "with-map-name")) {
@@ -388,10 +294,6 @@ static int _init_convert_param(OUT MYBPF_SIMPLE_CONVERT_PARAM_S *p,
 
     if (GETOPT2_IsOptSetted(opt, 0, "with-func-name")) {
         p->with_func_name = 1;
-    }
-
-    if (_porcess_mode(mode, map_file, p) < 0) {
-        return -1;
     }
 
     return 0;
@@ -412,14 +314,11 @@ static int _convert_simple(int argc, char **argv)
     char *output_name=NULL;
     char *jit_arch_name =NULL;
     char *convert_map_file=NULL;
-    U32 mode = 0;
     int ret;
     GETOPT2_NODE_S opt[] = {
         {'P', 0, "filename", GETOPT2_V_STRING, &filename, "bpf file name", 0},
         {'o', 'j', "jit", GETOPT2_V_NONE, NULL, "jit/aot", 0},
-        {'o', 't', "target", GETOPT2_V_STRING, &jit_arch_name, "select target arch: arm64,x86_64", 0},
-        {'o', 'm', "mode", GETOPT2_V_U32, &mode, "for aot mode,0:agent(default),1:array,2:raw,3:ragent,4:rarray", 0},
-        {'o', 'f', "mapfile", GETOPT2_V_STRING, &convert_map_file, "for aot raw mode", 0},
+        {'o', 't', "target", GETOPT2_V_STRING, &jit_arch_name, "select target arch: arm64,x64", 0},
         {'o', 'o', "output-name", GETOPT2_V_STRING, &output_name, "output name", 0},
         {'o', 'd', "debug", GETOPT2_V_NONE, NULL, "print debug info", 0},
         {'o', 0, "with-map-name", GETOPT2_V_NONE, NULL, "with map name ", 0},
@@ -439,7 +338,7 @@ static int _convert_simple(int argc, char **argv)
 
     _build_simple_file_name(filename, output_name, "spf", simple_file, sizeof(simple_file));
 
-    ret = _init_convert_param(&p, opt, jit_arch_name, mode, convert_map_file);
+    ret = _init_convert_spf_param(&p, opt, jit_arch_name, convert_map_file);
     if (ret < 0) {
         return ret;
     }
@@ -495,10 +394,7 @@ static int _convert_bare(int argc, char **argv)
 
     
     p.translate_mode_aot = 1;
-
-    
     p.helper_mode = MYBPF_JIT_HELPER_MODE_ARRAY;
-    p.aot_map_index_to_ptr = 1;
     p.param_6th = 1;
 
     p.app_ver = app_ver;

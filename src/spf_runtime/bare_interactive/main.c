@@ -36,7 +36,7 @@ static int _load_bare(int argc, char **argv)
         return -1;
     }
 
-    int ret = MYBPF_LoadBareFile(filename, &g_mybpf_bare);
+    int ret = MYBPF_LoadBareFile(filename, NULL, &g_mybpf_bare);
     if (ret < 0) {
         ErrCode_PrintErrInfo();
         return ret;

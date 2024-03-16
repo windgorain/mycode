@@ -514,6 +514,21 @@ void * BpfHelper_GetFunc(unsigned int id)
     return NULL;
 }
 
+void * BpfHelper_GetFuncExt(unsigned int id, const void **tmp_helpers)
+{
+    if (id < BPF_BASE_HELPER_END) {
+        return (void*)g_bpf_base_helpers[id];
+    } else if ((id >= BPF_SYS_HELPER_START) && (id < BPF_SYS_HELPER_END)) {
+        return (void*)g_bpf_sys_helpers[id - BPF_SYS_HELPER_START];
+    } else if ((id >= BPF_USER_HELPER_START) && (id < BPF_USER_HELPER_END)) {
+        return (void*)g_bpf_user_helpers[id - BPF_USER_HELPER_START];
+    } else if ((id >= BPF_TMP_HELPER_START) && (id < BPF_TMP_HELPER_END) && (tmp_helpers)) {
+        return (void*)tmp_helpers[id - BPF_TMP_HELPER_START];
+    }
+
+    return NULL;
+}
+
 int BpfHelper_RegFunc(U32 id, void *func)
 {
     if (id < BPF_BASE_HELPER_END) {

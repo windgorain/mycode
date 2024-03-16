@@ -61,7 +61,7 @@ static int _mybpf_simple_write(VBUF_S *vbuf, void *mem, int size)
     return 0;
 }
 
-static int _mybpf_simple_write_header(U8 aot_mode, U16 app_ver, VBUF_S *vbuf)
+static int _mybpf_simple_write_header(U16 app_ver, VBUF_S *vbuf)
 {
     MYBPF_SIMPLE_HDR_S hdr = {0};
 
@@ -70,7 +70,6 @@ static int _mybpf_simple_write_header(U8 aot_mode, U16 app_ver, VBUF_S *vbuf)
     hdr.app_ver = htons(app_ver);
     hdr.utc_sec = TM_SecondsFromUTC();
     hdr.utc_sec = htonl(hdr.utc_sec);
-    hdr.aot_mode = aot_mode;
 
     
     return _mybpf_simple_write(vbuf, &hdr, sizeof(hdr));
@@ -448,7 +447,6 @@ static int _mybpf_simple_jit_progs(void *insts, int insts_len, void *progs, int 
     int ret;
 
     cfg.translate_mode_aot = p->translate_mode_aot;
-    cfg.aot_map_index_to_ptr = p->aot_map_index_to_ptr;
     cfg.param_6th = p->param_6th;
     cfg.helper_mode = p->helper_mode;
     cfg.jit_arch = p->jit_arch;
@@ -777,7 +775,7 @@ static int _mybpf_simple_elf2spfbuf(void *elf, MYBPF_SIMPLE_CONVERT_PARAM_S *p, 
     MYBPF_RELO_MAP_S maps_relo[MYBPF_LOADER_MAX_MAPS];
     ELF_S *pelf = elf;
 
-    if (_mybpf_simple_write_header(p->aot_mode, p->app_ver, vbuf) < 0) {
+    if (_mybpf_simple_write_header(p->app_ver, vbuf) < 0) {
         return -1;
     }
 
@@ -1154,14 +1152,10 @@ int MYBPF_SIMPLE_Merge(VBUF_S *src1, VBUF_S *src2, OUT VBUF_S *dst)
     h1 = (void*)m1.data;
     h2 = (void*)m2.data;
 
-    if (h1->aot_mode != h2->aot_mode) {
-        RETURNI(BS_NOT_MATCH, "aot mode not matched");
-    }
-
     app_ver1 = ntohs(h1->app_ver);
     app_ver2 = ntohs(h2->app_ver);
 
-    ret |= _mybpf_simple_write_header(h1->aot_mode, MAX(app_ver1, app_ver2), dst);
+    ret |= _mybpf_simple_write_header(MAX(app_ver1, app_ver2), dst);
     ret |= _mybpf_simple_merge_maps(&m1, &m2, dst, 1);
     ret |= _mybpf_simple_merge_progs(&m1, &m2, dst);
     ret |= _mybpf_simple_merge_depends(&m1, &m2, dst);
@@ -1176,7 +1170,7 @@ int MYBPF_SIMPLE_Convert(FILE_MEM_S *spf, OUT VBUF_S *dst, MYBPF_SIMPLE_CONVERT_
 {
     int ret = 0;
 
-    ret |= _mybpf_simple_write_header(p->aot_mode, p->app_ver, dst);
+    ret |= _mybpf_simple_write_header(p->app_ver, dst);
     ret |= _mybpf_simple_merge_maps(spf, NULL, dst, p->with_map_name);
     ret |= _mybpf_simple_convert_prog(spf, p, dst);
     ret |= _mybpf_simple_merge_depends(spf, NULL, dst);
