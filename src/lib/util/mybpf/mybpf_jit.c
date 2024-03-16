@@ -8,6 +8,7 @@
 #include "utl/mmap_utl.h"
 #include "utl/ufd_utl.h"
 #include "utl/umap_utl.h"
+#include "utl/arch_utl.h"
 #include "utl/bpf_helper_utl.h"
 #include "utl/mybpf_loader.h"
 #include "utl/mybpf_prog.h"
@@ -20,19 +21,13 @@
 #include "mybpf_jit_inner.h"
 #include "mybpf_osbase.h"
 
-static char * g_mybpf_jit_arch_name[] = {
-    [MYBPF_JIT_ARCH_NONE] = "none",
-    [MYBPF_JIT_ARCH_ARM64] = "arm64",
-    [MYBPF_JIT_ARCH_X86_64] = "x86_64",
-};
-
 static MYBPF_JIT_ARCH_S g_mybpf_jit_arch[] = {
-    [MYBPF_JIT_ARCH_ARM64] = {
+    [ARCH_TYPE_ARM64] = {
         .jit_func = MYBPF_JitArm64_Jit,
         .fix_bpf_call = MYBPF_JitArm64_FixBpfCall,
         .fix_load_func_ptr = MYBPF_JitArm64_FixLoadFuncPtr,
     },
-    [MYBPF_JIT_ARCH_X86_64] = {
+    [ARCH_TYPE_X86_64] = {
         .jit_func = MYBPF_JitX64_Jit,
         .fix_bpf_call = MYBPF_JitX64_FixBpfCall,
         .fix_load_func_ptr = MYBPF_JitX64_FixLoadFuncPtr,
@@ -42,7 +37,7 @@ static MYBPF_JIT_ARCH_S g_mybpf_jit_arch[] = {
 
 static MYBPF_JIT_ARCH_S * _mybpf_jit_get_arch(int arch_type)
 {
-    if ((arch_type <= 0) || (arch_type >= MYBPF_JIT_ARCH_MAX)) {
+    if ((arch_type <= 0) || (arch_type >= ARCH_TYPE_MAX)) {
         return NULL;
     }
 
@@ -270,55 +265,15 @@ static int _mybpf_prog_jit(MYBPF_JIT_ARCH_S *arch, MYBPF_JIT_INSN_S *jit_insn, M
     return ret;
 }
 
-
-int MYBPF_JIT_GetJitTypeByName(char *jit_arch_name)
-{
-    int i;
-
-    if (! jit_arch_name) {
-        return MYBPF_JIT_ARCH_NONE;
-    }
-
-    for (i=0; i< MYBPF_JIT_ARCH_MAX; i++) {
-        if (strcmp(jit_arch_name, g_mybpf_jit_arch_name[i]) == 0) {
-            return i;
-        }
-    }
-
-    return MYBPF_JIT_ARCH_NONE;
-}
-
-
-int MYBPF_JIT_LocalArch(void)
-{
-#ifdef __aarch64__
-    return MYBPF_JIT_ARCH_ARM64;
-#endif
-
-#ifdef __x86_64__
-    return MYBPF_JIT_ARCH_X86_64;
-#endif
-
-    return MYBPF_JIT_ARCH_NONE;
-}
-
-char * MYBPF_JIT_GetArchName(int arch_type)
-{
-    if ((arch_type <= 0) || (arch_type >= MYBPF_JIT_ARCH_MAX)) {
-        return g_mybpf_jit_arch_name[MYBPF_JIT_ARCH_NONE];
-    }
-    return g_mybpf_jit_arch_name[arch_type];
-}
-
 int MYBPF_Jit(MYBPF_JIT_INSN_S *jit_insn, MYBPF_JIT_CFG_S *cfg)
 {
     int arch_type = cfg->jit_arch;
 
-    if (arch_type == MYBPF_JIT_ARCH_NONE) {
-        arch_type = MYBPF_JIT_LocalArch();
+    if (arch_type == ARCH_TYPE_NONE) {
+        arch_type = ARCH_LocalArch();
     }
 
-    if ((arch_type <= 0) || (arch_type >= MYBPF_JIT_ARCH_MAX)) {
+    if ((arch_type <= 0) || (arch_type >= ARCH_TYPE_MAX)) {
         RETURN(BS_BAD_PARA);
     }
 

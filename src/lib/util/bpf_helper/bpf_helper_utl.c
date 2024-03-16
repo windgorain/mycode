@@ -5,12 +5,17 @@
 *
 ******************************************************************************/
 #include "bs.h"
+#include "utl/arch_utl.h"
 #include "utl/time_utl.h"
 #include "utl/rand_utl.h"
 #include "utl/process_utl.h"
 #include "utl/bpf_helper_utl.h"
 #include "utl/umap_utl.h"
 #include "utl/mmap_utl.h"
+
+const void ** ulc_get_base_helpers(void);
+const void ** ulc_get_sys_helpers(void);
+const void ** ulc_get_user_helpers(void);
 
 void * __bpfmap_lookup_elem(void *map, const void *key)
 {
@@ -217,6 +222,16 @@ void ulc_sys_free(void *m)
     free(m);
 }
 
+void * ulc_sys_rcu_malloc(int size)
+{
+    return malloc(size);
+}
+
+void ulc_sys_rcu_free(void *m)
+{
+    free(m);
+}
+
 int ulc_sys_strcmp(void *a, void *b)
 {
     return strcmp(a, b);
@@ -242,7 +257,12 @@ int ulc_sys_strnlen(void *a, int max_len)
     return strnlen(a, max_len);
 }
 
-void ulc_sys_memcpy(void *d, void *s, int len)
+char * ulc_sys_strdup(void *s)
+{
+    return strdup(s);
+}
+
+void ulc_sys_memcpy(void *d, const void *s, int len)
 {
     memcpy(d, s, len);
 }
@@ -250,6 +270,54 @@ void ulc_sys_memcpy(void *d, void *s, int len)
 void ulc_sys_memset(void *d, int c, int len)
 {
     memset(d, c, len);
+}
+
+int ulc_sys_fprintf(FILE *fp, char *fmt, U64 *d, int count)
+{
+    switch (count) {
+        case 0: return fprintf(fp,"%s",fmt);
+        case 1: return fprintf(fp,fmt,d[0]);
+        case 2: return fprintf(fp,fmt,d[0],d[1]);
+        case 3: return fprintf(fp,fmt,d[0],d[1],d[2]);
+        case 4: return fprintf(fp,fmt,d[0],d[1],d[2],d[3]);
+        case 5: return fprintf(fp,fmt,d[0],d[1],d[2],d[3],d[4]);
+        case 6: return fprintf(fp,fmt,d[0],d[1],d[2],d[3],d[4],d[5]);
+        case 7: return fprintf(fp,fmt,d[0],d[1],d[2],d[3],d[4],d[5],d[6]);
+        case 8: return fprintf(fp,fmt,d[0],d[1],d[2],d[3],d[4],d[5],d[6],d[7]);
+        case 9: return fprintf(fp,fmt,d[0],d[1],d[2],d[3],d[4],d[5],d[6],d[7],d[8]);
+        case 10: return fprintf(fp,fmt,d[0],d[1],d[2],d[3],d[4],d[5],d[6],d[7],d[8],d[9]);
+        default: return -1;
+    }
+}
+
+long ulc_sys_ftell(void *fp)
+{
+    return ftell(fp);
+}
+
+int ulc_sys_fseek(void *fp, long int offset, int whence)
+{
+    return fseek(fp, offset, whence);
+}
+
+void * ulc_sys_fopen(const char *filename, const char *mode)
+{
+    return fopen(filename, mode);
+}
+
+long ulc_sys_fread(void *ptr, long size, long nmemb, void *stream)
+{
+    return fread(ptr, size, nmemb, stream);
+}
+
+int ulc_sys_fclose(void *stream)
+{
+    return fclose(stream);
+}
+
+int ulc_sys_access(const char *pathname, int mode)
+{
+    return access(pathname, mode);
 }
 
 static void ulc_err_code_set(int err_code, char *info, const char *file_name, const char *func_name, int line)
@@ -321,6 +389,16 @@ static void * ulc_get_trusteeship(unsigned int id)
     return g_bpf_helper_trusteeship[id];
 }
 
+void * ulc_get_helper(unsigned int id)
+{
+    return BpfHelper_GetFunc(id);
+}
+
+int ulc_get_local_arch(void)
+{
+    return ARCH_LocalArch();
+}
+
 
 static const void * g_bpf_base_helpers[BPF_BASE_HELPER_END] = {
     [0] = NULL,
@@ -356,25 +434,56 @@ static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
     [0] = ulc_sys_malloc, 
     [1] = ulc_sys_calloc,
     [2] = ulc_sys_free,
-    [3] = ulc_sys_memcpy,
-    [4] = ulc_sys_memset,
-    [5] = ulc_err_code_set,
-    [6] = ulc_err_info_set,
-    [7] = ulc_call_back,
+    [3] = ulc_sys_rcu_malloc,
+    [4] = ulc_sys_rcu_free,
     [8] = ulc_sys_strncmp,
     [9] = ulc_sys_strlen,
     [10] = ulc_sys_strnlen,
     [11] = ulc_sys_strcmp,
     [12] = ulc_sys_strlcpy,
-    [13] = ulc_mmap_map,
-    [14] = ulc_mmap_unmap,
-    [15] = ulc_mmap_make_exe,
-    [16] = ulc_set_trusteeship,
-    [17] = ulc_get_trusteeship,
+    [13] = ulc_sys_strdup,
+    [40] = ulc_sys_memcpy,
+    [41] = ulc_sys_memset,
+    [100] = ulc_sys_access,
+    [101] = ulc_sys_fprintf,
+    [102] = ulc_sys_ftell,
+    [103] = ulc_sys_fseek,
+    [104] = ulc_sys_fopen,
+    [105] = ulc_sys_fread,
+    [106] = ulc_sys_fclose,
+    [400] = ulc_set_trusteeship,
+    [401] = ulc_get_trusteeship,
+    [500] = ulc_mmap_map,
+    [501] = ulc_mmap_unmap,
+    [502] = ulc_mmap_make_exe,
+    [507] = ulc_get_local_arch,
+    [508] = ulc_get_helper,
+    [509] = ulc_get_base_helpers,
+    [510] = ulc_get_sys_helpers,
+    [511] = ulc_get_user_helpers,
 };
 
 
-static const void * g_bpf_user_helpers[BPF_USER_HELPER_COUNT];
+static const void * g_bpf_user_helpers[BPF_USER_HELPER_COUNT] = {
+    [0] = ulc_err_code_set, 
+    [1] = ulc_err_info_set,
+    [2] = ulc_call_back,
+};
+
+const void ** ulc_get_base_helpers(void)
+{
+    return g_bpf_base_helpers;
+}
+
+const void ** ulc_get_sys_helpers(void)
+{
+    return g_bpf_sys_helpers;
+}
+
+const void ** ulc_get_user_helpers(void)
+{
+    return g_bpf_user_helpers;
+}
 
 const void ** BpfHelper_BaseHelper(void)
 {

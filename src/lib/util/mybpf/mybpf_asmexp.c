@@ -4,6 +4,7 @@
 *
 ********************************************************/
 #include "bs.h"
+#include "utl/file_utl.h"
 #include "utl/mybpf_loader.h"
 #include "utl/mybpf_prog.h"
 #include "utl/mybpf_asm.h"
@@ -65,7 +66,7 @@ static int _mybpf_exp_write_exps(MYBPF_LOADER_NODE_S *n, FILE *fp)
     while (insn_idx < insn_count) {
         ELF_PROG_INFO_S *prog = _mybpf_exp_is_prog_begin(n, insn_idx);
         if (prog) {
-            fprintf(fp, "    /* %s */\n", prog->func_name);
+            fprintf(fp, "\n");
         }
 
         insn_consume = MYBPF_ASM_Insn2Exp(insn, insn_count, insn_idx, exp_string, sizeof(exp_string));

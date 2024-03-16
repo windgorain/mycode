@@ -10,6 +10,7 @@
 #include "utl/mmap_utl.h"
 #include "utl/elf_utl.h"
 #include "utl/bit_opt.h"
+#include "utl/arch_utl.h"
 #include "utl/mybpf_utl.h"
 #include "utl/mybpf_loader.h"
 #include "utl/mybpf_prog.h"
@@ -30,6 +31,34 @@
 #include "mybpf_def_inner.h"
 #include "mybpf_osbase.h"
 #include "mybpf_loader_func.h"
+
+
+static UINT64 _mybpf_loader_agent_fix_p1(MYBPF_AOT_PROG_CTX_S *ctx, UINT64 p1)
+{
+    MYBPF_LOADER_NODE_S *n = ctx->loader_node;
+    if (p1 >= n->map_count) {
+        return 0;
+    }
+    return (long)n->maps[p1];
+}
+
+static U64 _mybpf_loader_call_agent(U64 p1, U64 p2, U64 p3, U64 p4, U64 p5, U64 fid, void *ud)
+{
+    PF_BPF_HELPER_FUNC func = BpfHelper_GetFunc(fid);
+    if (! func) {
+        return -1;
+    }
+
+    if (fid <= 3) {
+        
+        p1 = _mybpf_loader_agent_fix_p1(ud, p1);
+        if (! p1) {
+            return (fid == 1) ? 0 : -1;
+        }
+    }
+
+    return func(p1, p2, p3, p4, p5);
+}
 
 static void * _mybpf_loader_map_fd_2_ptr(int is_direct, int imm, int off, void *ud)
 {
@@ -304,7 +333,7 @@ static int _mybpf_loader_load_simple_maps(MYBPF_LOADER_NODE_S *node, MYBPF_MAPS_
     node->map_count = 0;
 
     for (i=0; i<map_sec->map_count; i++) {
-        char *map_name = MYBPF_SIMPLE_GetMapName(p->simple_mem, i);
+        char *map_name = MYBPF_SIMPLE_GetMapName(&p->simple_mem, i);
 
         if (! map_name) {
             map_name = "";
@@ -332,10 +361,10 @@ static int _mybpf_loader_load_globle_data(MYBPF_LOADER_NODE_S *node, MYBPF_LOADE
     int map_data_count;
 
     
-    map_data_count = MYBPF_SIMPLE_GetTypeSecCount(p->simple_mem, MYBPF_SIMPLE_SEC_TYPE_GLOBAL_DATA);
+    map_data_count = MYBPF_SIMPLE_GetTypeSecCount(&p->simple_mem, MYBPF_SIMPLE_SEC_TYPE_GLOBAL_DATA);
 
     for (i=0; i<map_data_count; i++) {
-        MYBPF_SIMPLE_MAP_DATA_S *sec = MYBPF_SIMPLE_GetSec(p->simple_mem, MYBPF_SIMPLE_SEC_TYPE_GLOBAL_DATA, i);
+        MYBPF_SIMPLE_MAP_DATA_S *sec = MYBPF_SIMPLE_GetSec(&p->simple_mem, MYBPF_SIMPLE_SEC_TYPE_GLOBAL_DATA, i);
         if (sec)  {
             int key = 0;
             void *data = MYBPF_SIMPLE_GetSecData(sec);
@@ -355,7 +384,7 @@ static int _mybpf_loader_open_simple_maps(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER
     int ret;
     MYBPF_MAPS_SEC_S map_sec;
 
-    ret = MYBPF_SIMPLE_GetMapsSection(p->simple_mem, &map_sec);
+    ret = MYBPF_SIMPLE_GetMapsSection(&p->simple_mem, &map_sec);
     if (ret < 0) {
         return ret;
     }
@@ -412,14 +441,14 @@ static int _mybpf_loader_simple_prog_load_jitted(MYBPF_RUNTIME_S *runtime,
     void *prog;
 
     MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_LOADER, DBG_UTL_FLAG_PROCESS,
-            "Prog has been jitted, arch=%s\n", MYBPF_JIT_GetArchName(jit_arch));
+            "Prog has been jitted, arch=%s\n", ARCH_GetArchName(jit_arch));
 
     if (_mybpf_loader_check_helpers_exist(f) < 0) {
         return BS_ERR;
     }
 
-    if (jit_arch != MYBPF_JIT_LocalArch()) {
-        RETURNI(BS_NOT_SUPPORT, "Can't support jitted arch %s", MYBPF_JIT_GetArchName(jit_arch));
+    if (jit_arch != ARCH_LocalArch()) {
+        RETURNI(BS_NOT_SUPPORT, "Can't support jitted arch %s", ARCH_GetArchName(jit_arch));
     }
 
     prog = MYBPF_SIMPLE_GetProgs(f);
@@ -465,7 +494,7 @@ static int _mybpf_loader_simple_prog_load(MYBPF_RUNTIME_S *runtime, FILE_MEM_S *
 static int _mybpf_loader_load_simple_progs(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_NODE_S *node, MYBPF_LOADER_PARAM_S *p)
 {
     int ret = 0;
-    FILE_MEM_S *f = p->simple_mem;
+    FILE_MEM_S *f = &p->simple_mem;
     int size = MYBPF_SIMPLE_GetProgsSize(f);
 
     node->insts_len = size;
@@ -539,7 +568,7 @@ static int _mybpf_loader_check_may_replace_simple(MYBPF_RUNTIME_S *r, MYBPF_LOAD
 {
     BOOL_T check = TRUE;
 
-    FILE_MEM_S *f = p->simple_mem;
+    FILE_MEM_S *f = &p->simple_mem;
 
     BS_DBGASSERT(f);
 
@@ -557,7 +586,7 @@ static int _mybpf_loader_check_may_replace_simple(MYBPF_RUNTIME_S *r, MYBPF_LOAD
 
 static int _mybpf_loader_check_may_replace(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_PARAM_S *p, MYBPF_LOADER_NODE_S *old)
 {
-    if (p->simple_mem) {
+    if (p->simple_mem.data) {
         return _mybpf_loader_check_may_replace_simple(runtime, p, old);
     }
 
@@ -574,14 +603,6 @@ static MYBPF_LOADER_NODE_S * _mybpf_loader_get_first_node(MYBPF_RUNTIME_S *runti
     return MAP_GetFirst(runtime->loader_map);
 }
 
-static UINT64 _mybpf_loader_agent_fix_p1(MYBPF_AOT_PROG_CTX_S *ctx, UINT64 p1)
-{
-    MYBPF_LOADER_NODE_S *n = ctx->loader_node;
-    if (p1 >= n->map_count) {
-        return 0;
-    }
-    return (long)n->maps[p1];
-}
 
 static MYBPF_LOADER_NODE_S * _mybpf_loader_create_node(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_PARAM_S *p)
 {
@@ -597,11 +618,13 @@ static MYBPF_LOADER_NODE_S * _mybpf_loader_create_node(MYBPF_RUNTIME_S *runtime,
 
     node->param.simple_mem = p->simple_mem;
 
-    node->param.filename = TXT_Strdup(p->filename);
-    if (node->param.filename == NULL) {
-        ERR_VSet(BS_NO_MEMORY, "Can't alloc memory");
-        _mybpf_loader_free_node(runtime, node);
-        return NULL;
+    if (node->param.filename) {
+        node->param.filename = TXT_Strdup(p->filename);
+        if (node->param.filename == NULL) {
+            ERR_VSet(BS_NO_MEMORY, "Can't alloc memory");
+            _mybpf_loader_free_node(runtime, node);
+            return NULL;
+        }
     }
 
     node->param.instance = TXT_Strdup(p->instance);
@@ -611,11 +634,10 @@ static MYBPF_LOADER_NODE_S * _mybpf_loader_create_node(MYBPF_RUNTIME_S *runtime,
         return NULL;
     }
 
-    node->aot_ctx.agent_func = MYBPF_CallAgent;
+    node->aot_ctx.agent_func = _mybpf_loader_call_agent;
     node->aot_ctx.base_helpers = BpfHelper_BaseHelper();
     node->aot_ctx.sys_helpers = BpfHelper_SysHelper();
     node->aot_ctx.user_helpers = BpfHelper_UserHelper();
-    node->aot_ctx.tmp_helpers = NULL;
     node->aot_ctx.maps = node->maps;
     node->aot_ctx.global_map_data = node->global_data;
     node->aot_ctx.loader_node = node;
@@ -664,16 +686,14 @@ static int _mybpf_loader_load_file(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_PARAM_
 {
     int ret;
 
-    p->simple_mem = MYBPF_SIMPLE_OpenFile(p->filename);
-    if (! p->simple_mem) {
-        RETURNI(BS_CAN_NOT_OPEN, "Can't open file %s", p->filename);
+    ret = MYBPF_SIMPLE_OpenFile(p->filename, &p->simple_mem);
+    if (ret < 0) {
+        return ret;
     }
 
     ret = _mybpf_loader_load(runtime, p);
 
-    MYBPF_SIMPLE_Close(p->simple_mem);
-
-    p->simple_mem = NULL;
+    MYBPF_SIMPLE_Close(&p->simple_mem);
 
     return ret;
 }
@@ -684,7 +704,7 @@ int MYBPF_LoaderLoad(MYBPF_RUNTIME_S *runtime, MYBPF_LOADER_PARAM_S *p)
         p->filename = "";
     }
 
-    if (p->simple_mem) {
+    if (p->simple_mem.data) {
         return _mybpf_loader_load(runtime, p);
     } else {
         return _mybpf_loader_load_file(runtime, p);
@@ -777,23 +797,5 @@ void MYBPF_LoaderShowMaps(MYBPF_RUNTIME_S *r, PF_PRINT_FUNC print_func)
                     map->size_value, map->max_elem, map->map_name);
         }
     }
-}
-
-UINT64 MYBPF_CallAgent(UINT64 p1, UINT64 p2, UINT64 p3, UINT64 p4, UINT64 p5, UINT64 fid, void *ud)
-{
-    PF_BPF_HELPER_FUNC func = BpfHelper_GetFunc(fid);
-    if (! func) {
-        return -1;
-    }
-
-    if (fid <= 3) {
-        
-        p1 = _mybpf_loader_agent_fix_p1(ud, p1);
-        if (! p1) {
-            return (fid == 1) ? 0 : -1;
-        }
-    }
-
-    return func(p1, p2, p3, p4, p5);
 }
 

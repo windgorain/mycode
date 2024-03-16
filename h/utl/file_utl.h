@@ -8,8 +8,8 @@
 #ifndef __FILE_UTL_H_
 #define __FILE_UTL_H_
 
-#include <stdbool.h>
 #include "utl/cjson.h"
+#include "utl/file_func.h"
 
 #ifdef __cplusplus
     extern "C" {
@@ -170,7 +170,6 @@ typedef enum
 
 
 extern S64 FILE_GetSize(char *pszFileName);
-extern S64 FILE_GetFileSize(void *fp);
 extern BOOL_T FILE_IsFileExist(IN CHAR *pcFilePath);
 extern BOOL_T FILE_IsDirExist(IN CHAR *pcDirName);
 extern BOOL_T FILE_IsDir(IN CHAR *pcPath);
@@ -232,10 +231,9 @@ extern VOID FILE_WriteStr(IN FILE *fp, IN CHAR *pszString);
 extern int FILE_MemTo(IN CHAR *pszFilePath, OUT void *buf, int buf_size);
 
 
-extern int FILE_Mem2(IN CHAR *filename, OUT FILE_MEM_S *m);
 extern FILE_MEM_S * FILE_Mem(IN CHAR *pszFilePath);
-extern FILE_MEM_S * FILE_MemByData(void *data, int data_len);
-extern VOID FILE_MemFree(IN FILE_MEM_S *pstMemMap);
+extern int FILE_MemByData(void *data, int data_len, OUT FILE_MEM_S *m);
+VOID FILE_MemFree(IN FILE_MEM_S *pstMemMap);
 
 typedef VOID (*PF_ScanFile_Output)
 (
@@ -256,7 +254,7 @@ int FILE_ReadLine(FILE *fp, char *line, int size, char end_char);
 
 int FILE_WriteFile(char *filename, void *data, U32 data_len);
 
-cJSON *FILE_LoadJson(const char *filename, bool is_encrypted);
+cJSON * FILE_LoadJson(const char *filename, BOOL_T is_encrypt);
 
 #ifdef __cplusplus
     }

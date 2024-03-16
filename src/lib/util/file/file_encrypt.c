@@ -11,9 +11,8 @@
 #include "utl/txt_utl.h"
 #include "utl/cjson.h"
 #include "utl/passwd_utl.h"
-#include <stdbool.h>
 
-cJSON * FILE_LoadJson(const char *filename, bool is_encrypt)
+cJSON * FILE_LoadJson(const char *filename, BOOL_T is_encrypt)
 {
     FILE_MEM_S *filemem = FILE_Mem((char*)filename);
     if (! filemem) {

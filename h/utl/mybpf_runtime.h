@@ -8,18 +8,12 @@
 
 #include "utl/ufd_utl.h"
 #include "utl/map_utl.h"
+#include "utl/mybpf_hookpoint_def.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-enum {
-    MYBPF_HP_TCMD = 0, 
-    MYBPF_HP_XDP,
-
-    MYBPF_HP_MAX
-};
 
 typedef struct {
     MAP_HANDLE loader_map;

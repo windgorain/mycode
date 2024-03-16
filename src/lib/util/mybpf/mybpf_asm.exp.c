@@ -4,13 +4,13 @@
 #include "utl/bpfasm_utl.h" 
 
 static MYBPF_INSN_S g_bpfasm_insts[] = { 
-    /* MYBPF_ASM_Insn2Exp */
+
     BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 1, 0, 197), 
     BPF_EXIT_INSN(), 
-    /* MYBPF_ASM_Insn2Asm */
+
     BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 1, 0, 2053), 
     BPF_EXIT_INSN(), 
-    /* MYBPF_ASM_DumpAsm */
+
     BPF_MOV64_REG(BPF_R7, BPF_R2), 
     BPF_STX_MEM(BPF_DW, BPF_R10, BPF_R1, -296), 
     BPF_ALU64_IMM(BPF_LSH, BPF_R7, 32), 
@@ -203,7 +203,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_IMM(BPF_R2, 4), 
     BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 6), 
     BPF_JMP_A(-172), 
-    /* _mybpf_asm_insn2exp */
+
     BPF_MOV64_REG(BPF_R0, BPF_R3), 
     BPF_ALU64_IMM(BPF_LSH, BPF_R0, 32), 
     BPF_ALU64_IMM(BPF_ARSH, BPF_R0, 32), 
@@ -1698,7 +1698,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_STX_MEM(BPF_DW, BPF_R10, BPF_R3, -136), 
     BPF_LD_IMM64_RAW(BPF_R3, BPF_R0, 0x49444e455f465042LL), 
     BPF_JMP_A(-109), 
-    /* _mybpf_asm_insn_2_asm */
+
     BPF_MOV64_REG(BPF_R8, BPF_R5), 
     BPF_MOV64_REG(BPF_R0, BPF_R3), 
     BPF_ALU64_IMM(BPF_LSH, BPF_R0, 32), 

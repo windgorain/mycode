@@ -62,6 +62,7 @@
 
 #ifdef IN_UNIXLIKE
     #include   <stdio.h>
+    #include   <stdbool.h>
     #include   <netinet/in.h>
     #include   <netinet/tcp.h>
     #include   <netdb.h>  

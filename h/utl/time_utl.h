@@ -32,6 +32,8 @@ UINT64 TM_MsFromInit(void);
 UINT64 TM_UsFromInit(void);
 
 UINT64 TM_NsFromInit(void);
+U64 TM_SecondsFromUTC(void);
+
 
 VOID TM_Utc2String(IN time_t ulUtcTime, OUT CHAR *szStringTime);
 

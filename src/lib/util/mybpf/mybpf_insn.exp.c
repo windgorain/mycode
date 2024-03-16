@@ -4,7 +4,7 @@
 #include "utl/bpfasm_utl.h" 
 
 static MYBPF_INSN_S g_bpfasm_insts[] = { 
-    /* MYBPF_INSN_GetCallsCount */
+
     BPF_MOV64_IMM(BPF_R0, 0), 
     BPF_ALU64_IMM(BPF_LSH, BPF_R2, 32), 
     BPF_MOV64_REG(BPF_R3, BPF_R2), 
@@ -28,7 +28,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_JMP_IMM(BPF_JEQ, BPF_R6, 133, -10), 
     BPF_MOV64_IMM(BPF_R5, 0), 
     BPF_JMP_A(-12), 
-    /* MYBPF_INSN_GetCallsInfo */
+
     BPF_STX_MEM(BPF_DW, BPF_R10, BPF_R3, -8), 
     BPF_MOV64_IMM(BPF_R6, 0), 
     BPF_ALU64_IMM(BPF_LSH, BPF_R2, 32), 
@@ -78,7 +78,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_IMM(BPF_R3, 0), 
     BPF_MOV64_IMM(BPF_R4, 0), 
     BPF_MOV64_IMM(BPF_R5, 48), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000005), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 2000000), 
     BPF_JMP_A(-18), 
     BPF_LDX_MEM(BPF_B, BPF_R9, BPF_R1, 1), 
     BPF_ALU64_IMM(BPF_AND, BPF_R9, 240), 
@@ -86,7 +86,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_JMP_IMM(BPF_JEQ, BPF_R9, 16, -42), 
     BPF_MOV64_IMM(BPF_R8, 0), 
     BPF_JMP_A(-44), 
-    /* MYBPF_INSN_WalkCalls */
+
     BPF_STX_MEM(BPF_DW, BPF_R10, BPF_R4, -8), 
     BPF_STX_MEM(BPF_DW, BPF_R10, BPF_R3, -16), 
     BPF_MOV64_REG(BPF_R8, BPF_R2), 
@@ -120,7 +120,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_ALU64_IMM(BPF_ARSH, BPF_R6, 32), 
     BPF_JMP_REG(BPF_JSGT, BPF_R8, BPF_R6, -19), 
     BPF_EXIT_INSN(), 
-    /* MYBPF_INSN_WalkExternCalls */
+
     BPF_STX_MEM(BPF_DW, BPF_R10, BPF_R4, -16), 
     BPF_STX_MEM(BPF_DW, BPF_R10, BPF_R3, -24), 
     BPF_MOV64_REG(BPF_R8, BPF_R2), 
@@ -157,7 +157,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_ALU64_IMM(BPF_ARSH, BPF_R6, 32), 
     BPF_JMP_REG(BPF_JSGT, BPF_R8, BPF_R6, -20), 
     BPF_EXIT_INSN(), 
-    /* MYBPF_INSN_WalkLddw */
+
     BPF_STX_MEM(BPF_DW, BPF_R10, BPF_R4, -8), 
     BPF_STX_MEM(BPF_DW, BPF_R10, BPF_R3, -16), 
     BPF_MOV64_REG(BPF_R8, BPF_R2), 
@@ -193,7 +193,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_ALU64_IMM(BPF_ARSH, BPF_R6, 32), 
     BPF_JMP_REG(BPF_JSGT, BPF_R8, BPF_R6, -21), 
     BPF_EXIT_INSN(), 
-    /* MYBPF_INSN_FixupExtCalls */
+
     BPF_STX_MEM(BPF_DW, BPF_R10, BPF_R4, -32), 
     BPF_STX_MEM(BPF_DW, BPF_R10, BPF_R3, -40), 
     BPF_MOV64_REG(BPF_R9, BPF_R2), 
@@ -243,7 +243,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_IMM(BPF_R3, 0), 
     BPF_MOV64_IMM(BPF_R4, 0), 
     BPF_MOV64_IMM(BPF_R5, 146), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000005), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 2000000), 
     BPF_JMP_A(8), 
     BPF_STX_MEM(BPF_W, BPF_R6, BPF_R0, 0), 
     BPF_LD_IMM64_RAW(BPF_R2, BPF_R0, 0x100000000LL), 
@@ -254,7 +254,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_JMP_REG(BPF_JSGT, BPF_R9, BPF_R8, -48), 
     BPF_MOV64_REG(BPF_R0, BPF_R7), 
     BPF_EXIT_INSN(), 
-    /* MYBPF_INSN_GetStackSize */
+
     BPF_MOV64_IMM(BPF_R0, 0), 
     BPF_ALU64_IMM(BPF_LSH, BPF_R2, 32), 
     BPF_ALU64_IMM(BPF_ARSH, BPF_R2, 32), 
@@ -316,7 +316,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_JMP_IMM(BPF_JNE, BPF_R1, 0, -32), 
     BPF_LDX_MEM(BPF_W, BPF_R1, BPF_R2, 4), 
     BPF_JMP_A(-42), 
-    /* MYBPF_INSN_GetStackSizeUntilExit */
+
     BPF_MOV64_IMM(BPF_R0, 0), 
     BPF_LDX_MEM(BPF_B, BPF_R2, BPF_R1, 0), 
     BPF_JMP_IMM(BPF_JEQ, BPF_R2, 149, 6), 
@@ -342,7 +342,7 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_JMP_REG(BPF_JSGE, BPF_R3, BPF_R2, -17), 
     BPF_MOV64_REG(BPF_R0, BPF_R2), 
     BPF_JMP_A(-19), 
-    /* MYBPF_INSN_ShowPcAccessGlobal */
+
     BPF_MOV64_REG(BPF_R6, BPF_R1), 
     BPF_MOV64_IMM(BPF_R9, 0), 
     BPF_ALU64_IMM(BPF_LSH, BPF_R2, 32), 
@@ -472,12 +472,12 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_IMM(BPF_R3, 0), 
     BPF_MOV64_IMM(BPF_R4, 0), 
     BPF_MOV64_IMM(BPF_R5, 245), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000005), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 2000000), 
     BPF_LDX_MEM(BPF_B, BPF_R3, BPF_R6, 0), 
     BPF_MOV64_REG(BPF_R1, BPF_R10), 
     BPF_ALU64_IMM(BPF_ADD, BPF_R1, -48), 
     BPF_MOV64_REG(BPF_R2, BPF_R8), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000006), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 2000001), 
     BPF_JMP_A(-105), 
     BPF_LDX_MEM(BPF_B, BPF_R1, BPF_R6, 1), 
     BPF_LD_IMM64_RAW(BPF_R8, BPF_R0, 0x100000000LL), 
@@ -510,8 +510,8 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_IMM(BPF_R2, 0), 
     BPF_MOV64_IMM(BPF_R3, 0), 
     BPF_MOV64_IMM(BPF_R4, 0), 
-    BPF_MOV64_IMM(BPF_R5, 260), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000005), 
+    BPF_MOV64_IMM(BPF_R5, 257), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 2000000), 
     BPF_LDX_MEM(BPF_W, BPF_R5, BPF_R6, 12), 
     BPF_LDX_MEM(BPF_B, BPF_R3, BPF_R6, 0), 
     BPF_LDX_MEM(BPF_B, BPF_R4, BPF_R6, 1), 
@@ -519,17 +519,17 @@ static MYBPF_INSN_S g_bpfasm_insts[] = {
     BPF_MOV64_REG(BPF_R1, BPF_R10), 
     BPF_ALU64_IMM(BPF_ADD, BPF_R1, -48), 
     BPF_MOV64_REG(BPF_R2, BPF_R7), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000006), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 2000001), 
     BPF_JMP_A(-155), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000005), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 2000000), 
     BPF_LDX_MEM(BPF_W, BPF_R4, BPF_R6, 4), 
     BPF_LDX_MEM(BPF_B, BPF_R3, BPF_R6, 0), 
     BPF_MOV64_REG(BPF_R1, BPF_R10), 
     BPF_ALU64_IMM(BPF_ADD, BPF_R1, -48), 
     BPF_MOV64_REG(BPF_R2, BPF_R7), 
-    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 1000006), 
+    BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, 2000001), 
     BPF_JMP_A(-163), 
-    /* MYBPF_INSN_ModifyTextOff */
+
     BPF_ALU64_IMM(BPF_LSH, BPF_R2, 32), 
     BPF_MOV64_REG(BPF_R4, BPF_R2), 
     BPF_ALU64_IMM(BPF_ARSH, BPF_R4, 32), 

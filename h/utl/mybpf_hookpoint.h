@@ -5,20 +5,13 @@
 ================================================================*/
 #ifndef _MYBPF_HOOKPOINT_H
 #define _MYBPF_HOOKPOINT_H
+
+#include "utl/mybpf_hookpoint_def.h"
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-enum {
-    MYBPF_HP_RET_CONTINUE = 0,
-    MYBPF_HP_RET_STOP
-};
-
-typedef struct {
-    DLL_NODE_S link_node;
-    void *prog;
-}MYBPF_HOOKPOINT_NODE_S;
 
 int MYBPF_HookPointAttach(MYBPF_RUNTIME_S *runtime, DLL_HEAD_S *list, MYBPF_PROG_NODE_S *prog);
 void MYBPF_HookPointDetach(MYBPF_RUNTIME_S *runtime, DLL_HEAD_S *list, MYBPF_PROG_NODE_S *prog);

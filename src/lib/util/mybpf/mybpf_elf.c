@@ -8,7 +8,7 @@
 #include "utl/mybpf_elf.h"
 #include "utl/mybpf_relo.h"
 #include "utl/mybpf_dbg.h"
-#include "utl/ulc_user_sys.h"
+#include "utl/ulc_user.h"
 
 ELF_SECTION_S * MYBPF_ELF_GetProg(ELF_S *elf, char *func_name, OUT ELF_SECTION_S *sec)
 {

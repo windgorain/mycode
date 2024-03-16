@@ -799,6 +799,12 @@ ULONG TM_SecondsFromInit(void)
     return TM_UsFromInit()/1000000;
 }
 
+
+U64 TM_SecondsFromUTC(void)
+{
+    return time(NULL);
+}
+
 unsigned long TM_GetTickPerSec(void)
 {
     unsigned long clocks;

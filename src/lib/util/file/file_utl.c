@@ -8,6 +8,7 @@
 
 #include "sys/stat.h"
 #include "utl/mem_utl.h"
+#include "utl/file_func.h"
 #include "utl/file_utl.h"
 #include "utl/txt_utl.h"
 #include "utl/cjson.h"
@@ -332,26 +333,7 @@ S64 FILE_GetSize(char *pszFileName)
     return (long)f_stat.st_size;
 }
 
-
-S64 FILE_GetFileSize(void *fp)
-{
-    S64 cur = ftell(fp);
-    if (cur < 0) {
-        return -1;
-    }
-
-    if (fseek(fp, 0, SEEK_END) < 0) {
-        return -1;
-    }
-
-    S64 size = ftell(fp);
-
-    fseek(fp, cur, SEEK_SET);
-
-    return size;
-}
-
-    BS_STATUS FILE_GetUtcTime
+BS_STATUS FILE_GetUtcTime
 (
  IN CHAR *pszFileName,
  OUT time_t *pulCreateTime,   
@@ -800,91 +782,37 @@ VOID FILE_WriteStr(IN FILE *fp, IN CHAR *pszString)
 }
 
 
-int FILE_Mem2(IN CHAR *filename, OUT FILE_MEM_S *m)
-{
-    FILE *fp;
-    S64 filesize;
-
-    fp = FILE_Open(filename, FALSE, "rb");
-    if (! fp) {
-        goto _ERR;
-    }
-
-    filesize = FILE_GetFileSize(fp);
-    if (filesize < 0) {
-        goto _ERR;
-    }
-
-
-    m->len = filesize;
-
-    m->data = MEM_Malloc(filesize + 1);
-    if (! m->data) {
-        goto _ERR;
-    }
-
-    if (filesize != fread(m->data, 1, filesize, fp)) {
-        goto _ERR;
-    }
-
-    m->data[filesize] = '\0';
-
-    fclose(fp);
-
-    return 0;
-
-_ERR:
-    if (fp) {
-        fclose(fp);
-    }
-    if (m->data) {
-        MEM_Free(m->data);
-    }
-    RETURN(BS_ERR);
-}
 FILE_MEM_S * FILE_Mem(IN CHAR *pszFilePath)
 {
     FILE_MEM_S *m = NULL;
+
     m = MEM_ZMalloc(sizeof(FILE_MEM_S));
     if (! m) {
         return NULL;
     }
-    if (FILE_Mem2(pszFilePath, m) < 0) {
+
+    if (FILE_Mem2m(pszFilePath, m) < 0) {
         MEM_Free(m);
         return NULL;
     }
+    
     return m;
 }
 
-FILE_MEM_S * FILE_MemByData(void *data, int data_len)
+int FILE_MemByData(void *data, int data_len, OUT FILE_MEM_S *m)
 {
-    FILE_MEM_S *m = NULL;
-
-    m = MEM_ZMalloc(sizeof(FILE_MEM_S));
-    if (! m) {
-        goto _ERR;
-    }
-
     m->len = data_len;
 
     m->data = MEM_Malloc(data_len + 1);
     if (! m->data) {
-        goto _ERR;
+        RETURN(BS_NO_MEMORY);
     }
 
     memcpy(m->data, data, data_len);
 
     m->data[data_len] = '\0';
 
-    return m;
-
-_ERR:
-    if (m) {
-        MEM_SafeFree(m->data);
-        MEM_Free(m);
-    }
-    return NULL;
-
+    return 0;
 }
 
 VOID FILE_MemFree(IN FILE_MEM_S *pstMemMap)

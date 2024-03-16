@@ -4,6 +4,7 @@
 *
 ********************************************************/
 #include "bs.h"
+#include "utl/file_utl.h"
 #include "utl/mybpf_vm.h"
 #include "utl/bpf_helper_utl.h"
 #include "utl/mybpf_runtime.h"
@@ -70,13 +71,19 @@ int MYBPF_RunFile(char *filename, char *sec_name, MYBPF_PARAM_S *p)
 
 int MYBPF_ShowPcAccessGlobal(char *filename)
 {
-    FILE_MEM_S *m = MYBPF_SIMPLE_OpenFile(filename);
-    if (! m) {
-        RETURN(BS_ERR);
+    FILE_MEM_S m;
+
+    int ret = MYBPF_SIMPLE_OpenFileRaw(filename, &m);
+    if (ret < 0) {
+        return ret;
     }
 
-    void *insn = MYBPF_SIMPLE_GetProgs(m);
-    int insn_len = MYBPF_SIMPLE_GetProgsSize(m);
+    void *insn = MYBPF_SIMPLE_GetProgs(&m);
+    int insn_len = MYBPF_SIMPLE_GetProgsSize(&m);
 
-    return MYBPF_INSN_ShowPcAccessGlobal(insn, insn_len);
+    MYBPF_INSN_ShowPcAccessGlobal(insn, insn_len);
+
+    FILE_FreeMem(&m);
+
+    return 0;
 }

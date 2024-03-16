@@ -4,7 +4,7 @@
 #include "utl/bpfasm_utl.h" 
 
 static MYBPF_INSN_S g_bpfasm_insts[] = { 
-    /* MYBPF_PROG_ConvertCtxAccess */
+
     BPF_LDX_MEM(BPF_DW, BPF_R2, BPF_R1, 224), 
     BPF_LDX_MEM(BPF_W, BPF_R1, BPF_R1, 220), 
     BPF_MOV64_IMM(BPF_R3, 0), 

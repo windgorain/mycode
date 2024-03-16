@@ -21,6 +21,7 @@ typedef struct {
 }SUB_CMD_NODE_S;
 
 int SUBCMD_Do(SUB_CMD_NODE_S *subcmd, int argc, char **argv);
+int SUBCMD_DoParams(SUB_CMD_NODE_S *subcmd, int argc, char **argv);
 int SUBCMD_DoExt(SUB_CMD_NODE_S *subcmd, int argc, char **argv, int flag);
 
 #ifdef __cplusplus

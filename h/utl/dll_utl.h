@@ -42,8 +42,8 @@ typedef struct tagDLL_HEAD_S
 #define DLL_HEAD_INIT_VALUE(pstDllHead)  {(VOID*)(pstDllHead), (VOID*)(pstDllHead), 0}
 
 static inline void DLL_INIT(DLL_HEAD_S *pstDllHead) {
-    memset((pstDllHead), 0, sizeof(DLL_HEAD_S));
     pstDllHead->prev = pstDllHead->next = (void*)pstDllHead;
+    pstDllHead->ulCount = 0;
 }
 
 #define DLL_NODE_INIT(pstNode) \

@@ -93,7 +93,9 @@ extern "C"
 
 
 
+#ifndef PRINTFL
 #define PRINTFL() PRINTLN_GREEN("%s(%d)", __FILE__, __LINE__)
+#endif
 
 
 #define PRINTFLM_COLOR(_color, _fmt, ...) PRINT_COLOR(_color, "[%s:%d] " _fmt, __FILE__, __LINE__, ##__VA_ARGS__)

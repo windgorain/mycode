@@ -14,7 +14,7 @@
 
 static inline int _mybpf_hookpoint_process(void *prog, MYBPF_PARAM_S *p)
 {
-    UINT64 bpf_ret;
+    U64 bpf_ret;
 
     int ret = MYBPF_PROG_Run(prog, &bpf_ret, p);
     if (ret < 0) {
