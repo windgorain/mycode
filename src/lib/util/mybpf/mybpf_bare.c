@@ -13,9 +13,7 @@
 
 static void ** _mybpf_bare_malloc_bss(int bss_size)
 {
-    void **bss;
-
-    bss = MEM_Malloc(sizeof(void*));
+    void **bss = MEM_Malloc(sizeof(void*));
     if (! bss) {
         return NULL;
     }
@@ -41,19 +39,15 @@ static void _mybpf_bare_free_bss(void **bss)
 
 static int _mybpf_bare_check_depends(MYBPF_BARE_HDR_S *hdr, const void **tmp_helpers)
 {
-    int *helpers;
-    int depend_count;
-    int i;
-    void *fn;
-
-    depend_count = ntohs(hdr->depends_count);
+    int depend_count = ntohs(hdr->depends_count);
     if (depend_count == 0) {
         return 0;
     }
 
-    helpers = (void*)(hdr + 1);
-    for (i=0; i<depend_count; i++) {
-        fn = BpfHelper_GetFuncExt(ntohl(helpers[i]), tmp_helpers);
+    int *helpers = (void*)(hdr + 1);
+
+    for (int i=0; i<depend_count; i++) {
+        void *fn = BpfHelper_GetFuncExt(ntohl(helpers[i]), tmp_helpers);
         if (! fn) {
             RETURN(BS_NOT_SUPPORT);
         }
@@ -136,7 +130,6 @@ static U64 _mybpf_bare_run(MYBPF_BARE_S *bare, const void **tmp_helpers, MYBPF_P
         RETURN(BS_ERR);
     }
 
-    
     ctx.base_helpers = BpfHelper_BaseHelper();
     ctx.sys_helpers = BpfHelper_SysHelper();
     ctx.user_helpers = BpfHelper_UserHelper();

@@ -362,7 +362,7 @@ static int _convert_bare(int argc, char **argv)
     U32 app_ver = 0;
     GETOPT2_NODE_S opt[] = {
         {'P', 0, "filename", GETOPT2_V_STRING, &filename, "bpf file name", 0},
-        {'o', 't', "target", GETOPT2_V_STRING, &jit_arch_name, "select target arch: arm64,x86_64", 0},
+        {'o', 't', "target", GETOPT2_V_STRING, &jit_arch_name, "select target arch: arm64,x64", 0},
         {'o', 'o', "output-name", GETOPT2_V_STRING, &output_name, "output name", 0},
         {'o', 'd', "debug", GETOPT2_V_NONE, NULL, "print debug info", 0},
         {'o', 'v', "version", GETOPT2_V_U32, &app_ver, "app version", 0},
@@ -388,7 +388,7 @@ static int _convert_bare(int argc, char **argv)
     }
 
     if (! p.jit_arch) {
-        PRINTLN_HYELLOW("Can't AOT to this target");
+        PRINTLN_HYELLOW("Can't compile to this target");
         return -1;
     }
 

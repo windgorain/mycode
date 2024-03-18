@@ -581,7 +581,7 @@ static MYBPF_LOADER_NODE_S * _mybpf_loader_create_node(MYBPF_RUNTIME_S *runtime,
 
     node->param.simple_mem = p->simple_mem;
 
-    if (node->param.filename) {
+    if (p->filename) {
         node->param.filename = TXT_Strdup(p->filename);
         if (node->param.filename == NULL) {
             ERR_VSet(BS_NO_MEMORY, "Can't alloc memory");

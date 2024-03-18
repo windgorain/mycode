@@ -22,7 +22,7 @@ static void _runbpf_opt_help(GETOPT2_NODE_S *opt)
     return;
 }
 
-static int _do_spf_cmd(int cmd, U64 p1, U64 p2, U64 p3, U64 p4)
+static U64 _do_spf_cmd(int cmd, U64 p1, U64 p2, U64 p3, U64 p4)
 {
     MYBPF_PARAM_S p;
 
@@ -37,13 +37,7 @@ static int _do_spf_cmd(int cmd, U64 p1, U64 p2, U64 p3, U64 p4)
     p.p[3] = p3;
     p.p[4] = p4;
 
-    int ret = MYBPF_RunBare(&g_mybpf_bare, NULL, &p);
-    if (ret < 0) {
-        fprintf(stderr, "Failed \n");
-        return ret;
-    }
-
-    return 0;
+    return MYBPF_RunBare(&g_mybpf_bare, NULL, &p);
 }
 
 static int _load_spf(int argc, char **argv)
@@ -65,7 +59,18 @@ static int _load_spf(int argc, char **argv)
     p.filename = filename;
     p.flag = MYBPF_LOADER_FLAG_AUTO_ATTACH;
 
-    return _do_spf_cmd(SPF_CMD_LOAD, (long)&p, 0, 0, 0);
+    int ret = _do_spf_cmd(SPF_CMD_LOAD, (long)&p, 0, 0, 0);
+    if (ret < 0) {
+        printf("Load failed \n");
+        return ret;
+    }
+
+    return 0;
+}
+
+static int _show_spf(int argc, char **argv)
+{
+    return _do_spf_cmd(SPF_CMD_SHOW, 0, 0, 0, 0);
 }
 
 static int _unload_spf(int argc, char **argv)
@@ -131,6 +136,7 @@ static int _run_spf(int argc, char **argv)
 {
     static SUB_CMD_NODE_S subcmds[] = {
         {"load file", _load_spf, "load spf file"},
+        {"show instance", _show_spf, "load spf file"},
         {"unload instance", _unload_spf, "unload spf"},
         {"unload all", _unload_all_spf, "unload all spf"},
         {"testcmd", _test_spf_cmd, "test spf cmd"},
@@ -145,13 +151,11 @@ static int _load_spf_loader(char *spf_loader)
 {
     int ret = MYBPF_LoadBareFile(spf_loader, NULL, &g_mybpf_bare);
     if (ret < 0) {
-        ErrCode_PrintErrInfo();
+        printf("Load loader failed \n");
         return ret;
     }
 
-    _do_spf_cmd(SPF_CMD_INIT, 0, 0, 0, 0);
-
-    return 0;
+    return _do_spf_cmd(SPF_CMD_INIT, 0, 0, 0, 0);
 }
 
 static int _run(char *spf_loader)

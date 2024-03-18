@@ -83,36 +83,6 @@ U32 __bpfget_smp_processor_id(void)
 #endif
 }
 
-long __bpfskb_store_bytes(void *skb, U32 offset, const void *from, U32 len, U64 flags)
-{
-    BS_WARNNING(("TODO"));
-    return -1;
-}
-
-long __bpfl3_csum_replace(void *skb, U32 offset, U64 from, U64 to, U64 size)
-{
-    BS_WARNNING(("TODO"));
-    return -1;
-}
-
-long __bpfl4_csum_replace(void *skb, U32 offset, U64 from, U64 to, U64 flags)
-{
-    BS_WARNNING(("TODO"));
-    return -1;
-}
-
-long __bpftail_call(void *ctx, void *prog_array_map, U32 index)
-{
-    BS_WARNNING(("TODO"));
-    return -1;
-}
-
-long __bpfclone_redirect(void *skb, U32 ifindex, U64 flags)
-{
-    BS_WARNNING(("TODO"));
-    return -1;
-}
-
 U64 __bpfget_current_pid_tgid(void)
 {
     U64 tgid = PROCESS_GetPid();
@@ -137,42 +107,6 @@ long __bpfget_current_comm(void *buf, U32 size_of_buf)
     strlcpy(buf, self_name, size_of_buf);
 
     return 0;
-}
-
-U32 __bpfget_cgroup_classid(void *skb)
-{
-    BS_WARNNING(("TODO"));
-    return -1;
-}
-
-long __bpfskb_vlan_push(void *skb, U16 vlan_proto, U16 vlan_tci)
-{
-    BS_WARNNING(("TODO"));
-    return -1;
-}
-
-long __bpfskb_vlan_pop(void *skb)
-{
-    BS_WARNNING(("TODO"));
-    return -1;
-}
-
-long __bpfskb_get_tunnel_key(void *skb, void *key, U32 size, U64 flags)
-{
-    BS_WARNNING(("TODO"));
-    return -1;
-}
-
-long __bpfskb_set_tunnel_key(void *skb, void *key, U32 size, U64 flags)
-{
-    BS_WARNNING(("TODO"));
-    return -1;
-}
-
-U64 __bpfperf_event_read(void *map, U64 flags)
-{
-    BS_WARNNING(("TODO"));
-    return -1;
 }
 
 long __bpfstrtol(const char *buf, size_t buf_len, U64 flags, long *res)
@@ -272,7 +206,7 @@ void ulc_sys_memset(void *d, int c, int len)
     memset(d, c, len);
 }
 
-int ulc_sys_fprintf(FILE *fp, char *fmt, U64 *d, int count)
+int ulc_sys_fprintf(void *fp, char *fmt, U64 *d, int count)
 {
     switch (count) {
         case 0: return fprintf(fp,"%s",fmt);
@@ -400,7 +334,7 @@ int ulc_get_local_arch(void)
 }
 
 
-static const void * g_bpf_base_helpers[BPF_BASE_HELPER_END] = {
+static const void * g_bpf_base_helpers[BPF_BASE_HELPER_COUNT] = {
     [0] = NULL,
     [1] = UMAP_LookupElem,
     [2] = UMAP_UpdateElem,
@@ -410,20 +344,9 @@ static const void * g_bpf_base_helpers[BPF_BASE_HELPER_END] = {
     [6] = __bpftrace_printk,
     [7] = __bpfget_prandom_u32,
     [8] = __bpfget_smp_processor_id,
-    [9] = __bpfskb_store_bytes,
-    [10] = __bpfl3_csum_replace,
-    [11] = __bpfl4_csum_replace,
-    [12] = __bpftail_call,
-    [13] = __bpfclone_redirect,
     [14] = __bpfget_current_pid_tgid,
     [15] = __bpfget_current_uid_gid,
     [16] = __bpfget_current_comm,
-    [17] = __bpfget_cgroup_classid,
-    [18] = __bpfskb_vlan_push,
-    [19] = __bpfskb_vlan_pop,
-    [20] = __bpfskb_get_tunnel_key,
-    [21] = __bpfskb_set_tunnel_key,
-    [22] = __bpfperf_event_read,
     [105] = __bpfstrtol,
     [106] = __bpfstrtoul,
     [165] = __bpf_snprintf,
