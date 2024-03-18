@@ -5,6 +5,7 @@
 * History:     
 ******************************************************************************/
 #include "bs.h"
+#include "utl/mem_inline.h"
 #include "utl/stack_utl.h"
 
 #define _HSTACK_DFT_STEP_SIZE 128

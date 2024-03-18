@@ -6,6 +6,7 @@
 #include "bs.h"
 #include <math.h>
 #include <inttypes.h>
+#include "utl/mem_inline.h"
 #include "utl/leb_utl.h"
 #include "utl/wasm_utl.h"
 #include "wasm_def.h"

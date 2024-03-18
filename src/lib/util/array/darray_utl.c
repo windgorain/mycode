@@ -7,6 +7,7 @@
 
 #include "bs.h"
 
+#include "utl/mem_inline.h"
 #include "utl/darray_utl.h"
 
 #define _DARRAY_DFT_STEP_SIZE 128

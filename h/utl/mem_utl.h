@@ -49,22 +49,6 @@ void * _mem_Malloc(IN UINT uiSize, const char *pcFileName, IN UINT uiLine);
 void _mem_Free(IN VOID *pMem, const char *pcFileName, IN UINT uiLine);
 void * _mem_Realloc(void *old_mem, UINT old_size, UINT new_size, char *filename, UINT line);
 
-static inline VOID MEM_Copy(IN VOID *pucDest, IN VOID *pucSrc, IN UINT ulLen)
-{
-#ifdef IN_DEBUG
-    {
-        char *d1_min = pucDest;
-        char *d1_max = (d1_min + ulLen) - 1;
-        char *d2_min = pucSrc;
-        char *d2_max = (d2_min + ulLen) - 1;
-        if (NUM_AREA_IS_OVERLAP(d1_min, d1_max, d2_min, d2_max) != FALSE) {
-            BS_DBGASSERT(0);
-        }
-    }
-#endif
-    memcpy(pucDest, pucSrc, ulLen);
-}
-
 static inline VOID * _mem_MallocWithZero(IN UINT uiSize, const char *pszFileName, IN UINT ulLine)
 {
     VOID *pMem;
@@ -80,35 +64,20 @@ static inline VOID * _mem_MallocWithZero(IN UINT uiSize, const char *pszFileName
     return pMem;
 }
 
-static inline VOID * _mem_MallocAndCopy
-(
-    IN VOID *pSrc,
-    IN UINT uiSrcLen,
-    IN UINT uiMallocLen,
-    const CHAR *pcFileName,
-    IN UINT uiLine
-)
+static inline VOID MEM_Copy(IN VOID *pucDest, IN VOID *pucSrc, IN UINT ulLen)
 {
-    VOID *pMem;
-    UINT uiCopyLen;
-
-    (VOID)pcFileName;
-    (VOID)uiLine;
-
-    uiCopyLen = MIN(uiSrcLen, uiMallocLen);
-
-    pMem = _mem_Malloc(uiMallocLen, pcFileName, uiLine);
-    if (NULL == pMem)
+#ifdef IN_DEBUG
     {
-        return NULL;
+        char *d1_min = pucDest;
+        char *d1_max = (d1_min + ulLen) - 1;
+        char *d2_min = pucSrc;
+        char *d2_max = (d2_min + ulLen) - 1;
+        if (NUM_AREA_IS_OVERLAP(d1_min, d1_max, d2_min, d2_max) != FALSE) {
+            BS_DBGASSERT(0);
+        }
     }
-
-    if (uiCopyLen != 0)
-    {
-        MEM_Copy(pMem, pSrc, uiCopyLen);
-    }
-
-    return pMem;
+#endif
+    memcpy(pucDest, pucSrc, ulLen);
 }
 
 static inline int MEM_Cmp(IN UCHAR *pucMem1, IN UINT uiMem1Len, IN UCHAR *pucMem2, IN UINT uiMem2Len)

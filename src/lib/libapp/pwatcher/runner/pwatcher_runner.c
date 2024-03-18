@@ -4,6 +4,7 @@
 *
 ================================================================*/
 #include "bs.h"
+#include "utl/mem_inline.h"
 #include "utl/txt_utl.h"
 #include "utl/jhash_utl.h"
 #include "utl/msgque_utl.h"

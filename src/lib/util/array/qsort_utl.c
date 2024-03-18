@@ -4,6 +4,7 @@
 *
 ********************************************************/
 #include "bs.h"
+#include "utl/mem_utl.h"
 #include "utl/qsort_utl.h"
 
 #define CUTOFF 8

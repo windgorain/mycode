@@ -6,6 +6,7 @@
 ******************************************************************************/
 #include "bs.h"
 #include "utl/mem_utl.h"
+#include "utl/mem_inline.h"
 
 VOID * _mem_Malloc(IN UINT uiSize, const char *pcFileName, IN UINT uiLine)
 {

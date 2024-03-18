@@ -3,6 +3,7 @@
 
 #include "bs.h"
 
+#include "utl/mem_utl.h"
 #include "utl/avllib_utl.h"
 
 

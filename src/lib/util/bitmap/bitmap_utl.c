@@ -5,6 +5,7 @@
 * History:     
 ******************************************************************************/
 #include "bs.h"
+#include "utl/mem_utl.h"
 #include "utl/num_utl.h"
 #include "utl/array_bit.h"
 #include "utl/bitmap_utl.h"

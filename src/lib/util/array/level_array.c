@@ -4,6 +4,7 @@
 *                一开始只有一级,随着数目增多,变为两级,再增多变为三级...
 ================================================================*/
 #include "bs.h"
+#include "utl/mem_utl.h"
 #include "utl/bitmap_utl.h"
 #include "utl/level_array.h"
 

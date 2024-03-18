@@ -4,6 +4,7 @@
 *
 ================================================================*/
 #include "bs.h"
+#include "utl/mem_utl.h"
 #include "utl/map_utl.h"
 #include "utl/maps_utl.h"
 

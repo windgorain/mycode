@@ -4,6 +4,7 @@
 *
 ================================================================*/
 #include "bs.h"
+#include "utl/mem_utl.h"
 #include "utl/que_utl.h"
 #include "utl/case_convert.h"
 #include "utl/ac_smx.h"

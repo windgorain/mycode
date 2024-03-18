@@ -6,6 +6,7 @@
 ******************************************************************************/
 #include "bs.h"
 
+#include "utl/mem_utl.h"
 #include "utl/eth_utl.h"
 #include "utl/eth_mbuf.h"
 #include "utl/arp_utl.h"

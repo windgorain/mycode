@@ -6,6 +6,7 @@
 ================================================================*/
 #include "bs.h"
 
+#include "utl/mem_utl.h"
 #include "utl/txt_utl.h"
 #include "utl/acl_string.h"
 #include "utl/hostname_acl.h"

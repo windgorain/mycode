@@ -6,6 +6,7 @@
 ******************************************************************************/
 #include "bs.h"
 
+#include "utl/mem_utl.h"
 #include "utl/atomic_utl.h"
 #include "utl/list_rule.h"
 #include "utl/rule_list.h"

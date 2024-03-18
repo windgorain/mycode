@@ -5,6 +5,7 @@
 *
 ********************************************************/
 #include "bs.h"
+#include "utl/mem_inline.h"
 #include "utl/mmap_utl.h"
 #include "utl/ufd_utl.h"
 #include "utl/umap_utl.h"

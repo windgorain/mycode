@@ -206,6 +206,11 @@ void ulc_sys_memset(void *d, int c, int len)
     memset(d, c, len);
 }
 
+void * ulc_sys_memmove(void *str1, const void *str2, int n)
+{
+    return memmove(str1, str2, n);
+}
+
 int ulc_sys_fprintf(void *fp, char *fmt, U64 *d, int count)
 {
     switch (count) {
@@ -252,6 +257,16 @@ int ulc_sys_fclose(void *stream)
 int ulc_sys_access(const char *pathname, int mode)
 {
     return access(pathname, mode);
+}
+
+U64 ulc_sys_time(U64 *seconds)
+{
+    time_t s;
+    time(&s);
+    if(seconds) {
+        *seconds = s;
+    }
+    return s;
 }
 
 static void ulc_err_code_set(int err_code, char *info, const char *file_name, const char *func_name, int line)
@@ -367,12 +382,14 @@ static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
     [13] = ulc_sys_strdup,
     [40] = ulc_sys_memcpy,
     [41] = ulc_sys_memset,
+    [42] = ulc_sys_memmove,
     [100] = ulc_sys_access,
     [101] = ulc_sys_fprintf,
     [102] = ulc_sys_ftell,
     [103] = ulc_sys_fseek,
     [104] = ulc_sys_fopen,
     [105] = ulc_sys_fread,
+    [130] = ulc_sys_time,
     [106] = ulc_sys_fclose,
     [400] = ulc_set_trusteeship,
     [401] = ulc_get_trusteeship,

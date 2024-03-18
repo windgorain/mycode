@@ -4,6 +4,7 @@
 *
 ================================================================*/
 #include "bs.h"
+#include "utl/mem_utl.h"
 #include "utl/segment_bitmap.h"
 #include "utl/segmentx_bitmap.h"
 

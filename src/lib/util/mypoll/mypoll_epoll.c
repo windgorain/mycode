@@ -5,15 +5,16 @@
 ================================================================*/
 #include "bs.h"
 
-#ifdef IN_LINUX
-
-#include <sys/epoll.h>
 #include "utl/bit_opt.h"
 #include "utl/darray_utl.h"
 #include "utl/mypoll_utl.h"
 
 #include "mypoll_inner.h"
 #include "mypoll_proto.h"
+
+#ifdef IN_LINUX
+
+#include <sys/epoll.h>
 
 typedef struct
 {
@@ -233,4 +234,10 @@ MYPOLL_PROTO_S * Mypoll_Epoll_GetProtoTbl()
     return &g_stMypollEpollProto;
 }
 
+#else
+
+MYPOLL_PROTO_S * Mypoll_Epoll_GetProtoTbl()
+{
+    return NULL;
+}
 #endif

@@ -8,6 +8,7 @@
 
 #include "pcre.h"
 
+#include "utl/mem_utl.h"
 #include "utl/txt_utl.h"
 #include "utl/socket_utl.h"
 #include "utl/eth_utl.h"

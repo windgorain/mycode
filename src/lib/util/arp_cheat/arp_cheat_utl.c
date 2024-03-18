@@ -6,6 +6,7 @@
 ******************************************************************************/
 #include "bs.h"
 
+#include "utl/mem_utl.h"
 #include "utl/mbuf_utl.h"
 #include "utl/arp_utl.h"
 #include "utl/arp_cheat_utl.h"

@@ -9,6 +9,7 @@
     
 #include "bs.h"
 
+#include "utl/mem_utl.h"
 #include "utl/sif_utl.h"
 #include "utl/sem_utl.h"
 #include "utl/arp_utl.h"
