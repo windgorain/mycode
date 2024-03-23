@@ -9,6 +9,7 @@
 #define __INCazHead_h
 
 #include "int_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif 
@@ -144,17 +145,17 @@ extern "C" {
 
 #define STR(x)  #x
 
-
-
 typedef struct {
     char *pcData;
     UINT uiLen;
 }LSTR_S;
 
+
 typedef struct {
     UCHAR *data;
     UINT len;
 }LDATA_S;
+
 
 typedef struct {
     UCHAR *data; 
@@ -268,9 +269,12 @@ typedef enum
 #define BS_END_OFFSET(type,item) (BS_OFFSET(type,item) + sizeof(((type *)0)->item))
 #define BS_ENTRY(pAddr, item, type) ((type *) ((UCHAR*)(pAddr) - BS_OFFSET (type, item)))
 
+
 #ifndef offsetof
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 #endif
+
+
 #ifndef offsetofend
 # define offsetofend(TYPE, FIELD) (offsetof(TYPE, FIELD) + sizeof(((TYPE *)0)->FIELD))
 #endif
@@ -299,12 +303,14 @@ typedef enum
 #define BS_DBG_OUTPUT(_ulFlag,_ulSwitch,_X)  \
     do {if ((_ulFlag) & (_ulSwitch)){IC_DbgInfo _X;}}while(0)
 
+#ifndef BS_WARNNING
 #define BS_WARNNING(X)  \
     do {    \
         PRINTLN_HYELLOW("Warnning:%s(%d): ", __FILE__, __LINE__); \
         printf X;   \
         printf ("\n");    \
     }while(0)
+#endif
 
 #ifdef IN_DEBUG
 #define BS_DBG_WARNNING(X) BS_WARNNING(X)

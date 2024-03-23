@@ -4,15 +4,14 @@
 ********************************************************/
 #include "utl/ulc_user.h"
 
-SEC("tcmd/main")
-int main(int argc, char **argv)
-{
-    int i;
+static int g_count1 = 0;
 
-    BPF_Print("argc=%d \n", argc);
-    for (i=0; i<argc; i++) {
-        BPF_Print("%d: %s \n", i, argv[i]);
-    }
+SEC("tcmd/main")
+int main()
+{
+    g_count1 ++;
+
+    printf("count1:%d \n", g_count1);
 
     return 0;
 }
