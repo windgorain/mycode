@@ -90,7 +90,7 @@ static BS_STATUS _mwm_CreateMenuList()
 
 BS_STATUS _mwm_RegMenu(IN CHAR *pszWebMenuFilePath)
 {
-    FILE_MEM_S *pstMemMap;
+    FILE_MEM_S m;
     CHAR *pszLineHead;
     UINT ulLineLen;
     CHAR *pcSplit;
@@ -98,25 +98,23 @@ BS_STATUS _mwm_RegMenu(IN CHAR *pszWebMenuFilePath)
 
     BS_DBGASSERT(g_pstMkWebMenuPathTree != NULL);
 
-    pstMemMap = FILE_Mem(pszWebMenuFilePath);
-    if (NULL == pstMemMap)
-    {
+    if (0 != FILE_Mem(pszWebMenuFilePath, &m)) {
         return BS_ERR;
     }
 
-    TXT_SCAN_LINE_BEGIN(pstMemMap->pucFileData, pszLineHead, ulLineLen)
-    {
+    TXT_SCAN_LINE_BEGIN(m.data, pszLineHead, ulLineLen) {
         
         pszLineHead[ulLineLen] = '\0';
         pcSplit = strchr(pszLineHead, ':');
-        if (NULL == pcSplit)
-        {
+        if (NULL == pcSplit) {
             continue;
         }
         *pcSplit = '\0';
         pszHerf = pcSplit + 1;
         PathTree_AddPath(g_pstMkWebMenuPathTree, pszLineHead, pszHerf);        
     }TXT_SCAN_LINE_END();
+
+    FILE_FreeMem(&m);
 
     return BS_OK;
 }

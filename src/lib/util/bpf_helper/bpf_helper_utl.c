@@ -83,6 +83,7 @@ static long __bpfget_current_comm(void *buf, U32 size_of_buf)
 static long __bpfstrtol(const char *buf, size_t buf_len, U64 flags, long *res)
 {
     char *end;
+    (void)buf_len;
     *res = strtol(buf, &end, flags);
     return end - buf;
 }
@@ -90,6 +91,7 @@ static long __bpfstrtol(const char *buf, size_t buf_len, U64 flags, long *res)
 static long __bpfstrtoul(const char *buf, size_t buf_len, U64 flags, unsigned long *res)
 {
     char *end;
+    (void)buf_len;
     *res = strtoul(buf, &end, flags);
     return end - buf;
 }
@@ -270,7 +272,6 @@ static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
 
 static const void * g_bpf_user_helpers[BPF_USER_HELPER_COUNT] = {
     [0] = NULL, 
-    [1] = NULL,
 };
 
 static const void ** ulc_get_base_helpers(void)

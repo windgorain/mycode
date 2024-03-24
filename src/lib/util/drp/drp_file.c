@@ -70,7 +70,7 @@ static BS_STATUS drp_file_AddDynamicData
 
 static MBUF_S * drp_file_Rewrite(DRP_CTRL_S *pstDrp, IN CHAR *pcFile, IN HANDLE hUserHandle)
 {
-    FILE_MEM_S *pstFileMMap;
+    FILE_MEM_S m;
     CHAR *pcStatic;
     UINT uiStaticLen;
     UINT uiRemainLen;
@@ -81,21 +81,19 @@ static MBUF_S * drp_file_Rewrite(DRP_CTRL_S *pstDrp, IN CHAR *pcFile, IN HANDLE 
     MBUF_S *pstMBuf;
     BS_STATUS eRet = BS_OK;
 
-    pstFileMMap = FILE_Mem(pcFile);
-    if (NULL == pstFileMMap)
-    {
+    if (0 != FILE_Mem(pcFile, &m)) {
         return NULL;
     }
 
     pstMBuf = MBUF_Create(MBUF_DATA_DATA, 0);
     if (NULL == pstMBuf)
     {
-        FILE_MemFree(pstFileMMap);
+        FILE_FreeMem(&m);
         return NULL;
     }
 
-    pcStatic = (CHAR*)pstFileMMap->data;
-    uiRemainLen = (UINT)pstFileMMap->len;
+    pcStatic = (CHAR*)m.data;
+    uiRemainLen = (UINT)m.len;
 
     while (uiRemainLen > 0)
     {
@@ -151,7 +149,7 @@ static MBUF_S * drp_file_Rewrite(DRP_CTRL_S *pstDrp, IN CHAR *pcFile, IN HANDLE 
         pstMBuf = NULL;
     }
 
-    FILE_MemFree(pstFileMMap);
+    FILE_FreeMem(&m);
 
     return pstMBuf;
 }

@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 {
     char *mod_path;
     UCHAR *bytes = NULL;
-    FILE_MEM_S *mem;
+    FILE_MEM_S fm;
     int ret = 0;
 
     if (argc < 2) {
@@ -30,14 +30,12 @@ int main(int argc, char **argv)
 
     WASME_Init();
 
-    mem = FILE_Mem(mod_path);
-    if (! mem) {
+    if (0 != FILE_Mem(mod_path, &fm)) {
         BS_PRINT_ERR("Could not load %s", mod_path);
         return 2;
     }
 
-    bytes = mem->data;
-
+    bytes = fm.data;
     if (bytes == NULL) {
         BS_PRINT_ERR("Could not load %s", mod_path);
         return 2;
@@ -47,7 +45,7 @@ int main(int argc, char **argv)
                      .mangle_table_index    = 1,
                      .dlsym_trim_underscore = 1};
 
-    WASM_MODULE_S * m = WASM_Load(bytes, mem->len, &opts);
+    WASM_MODULE_S * m = WASM_Load(bytes, fm.len, &opts);
 
     WASME_InitThunk(m);
 
@@ -84,7 +82,7 @@ int main(int argc, char **argv)
     }
 
     WASM_Free(m);
-    FILE_MemFree(mem);
+    FILE_FreeMem(&fm);
 
     return ret;
 }

@@ -14,17 +14,18 @@
 
 cJSON * FILE_LoadJson(const char *filename, BOOL_T is_encrypt)
 {
-    FILE_MEM_S *filemem = FILE_Mem((char*)filename);
-    if (! filemem) {
+    FILE_MEM_S m;
+
+    if (0 != FILE_Mem((char*)filename, &m)) {
         return NULL;
     }
 
-    int decrypt_len = filemem->len/2 + 1;
+    int decrypt_len = m.len/2 + 1;
 
-    CHAR *decrypt = (CHAR*)filemem->data;
+    CHAR *decrypt = (CHAR*)m.data;
     CHAR *decrypt_file = MEM_ZMalloc(decrypt_len);
     if (!decrypt_file) {
-        FILE_MemFree(filemem);
+        FILE_FreeMem(&m);
         return NULL;
     }
 
@@ -35,7 +36,7 @@ cJSON * FILE_LoadJson(const char *filename, BOOL_T is_encrypt)
 
     cJSON *rule = cJSON_Parse(decrypt);
 
-    FILE_MemFree(filemem);
+    FILE_FreeMem(&m);
     MEM_Free(decrypt_file);
 
     return rule;

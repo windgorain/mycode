@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     UCHAR *bytes = NULL;
     char *line = NULL;
     char *string;
-    FILE_MEM_S *mem;
+    FILE_MEM_S fm;
 
     if (argc != 2) {
         wasmc_usage(argv[0]);
@@ -73,20 +73,18 @@ int main(int argc, char **argv)
     }
 
     mod_path = argv[1];
-    mem = FILE_Mem(mod_path);
-    if (! mem) {
+    if (0 != FILE_Mem(mod_path, &fm)) {
         BS_PRINT_ERR("Could not load %s", mod_path);
         return 2;
     }
 
-    bytes = mem->data;
-
+    bytes = fm.data;
     if (bytes == NULL) {
         BS_PRINT_ERR("Could not load %s", mod_path);
         return 2;
     }
 
-    WASM_MODULE_S * m = WASM_Load(bytes, mem->len, NULL);
+    WASM_MODULE_S * m = WASM_Load(bytes, fm.len, NULL);
 
     while (1) {
         line = readline(BEGIN(49, 34) "wasm$ " CLOSE);
@@ -114,7 +112,7 @@ int main(int argc, char **argv)
     }
 
     WASM_Free(m);
-    FILE_MemFree(mem);
+    FILE_FreeMem(&fm);
 
     return 0;
 }
