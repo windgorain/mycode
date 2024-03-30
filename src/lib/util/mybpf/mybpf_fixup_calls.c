@@ -17,7 +17,7 @@
 
 static int _mybpf_prog_get_helper_offset(int imm, void *ud)
 {
-    PF_BPF_HELPER_FUNC helper_func = BpfHelper_GetFuncExt(imm, ud);
+    PF_BPF_HELPER_FUNC helper_func = BpfHelper_GetFunc(imm, ud);
     if (! helper_func) {
         return 0;
     }

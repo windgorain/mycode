@@ -8,6 +8,7 @@
 
 #include "utl/int_types.h"
 #include "utl/ulc_def.h"
+#include "utl/ulc_user_def.h"
 #include "utl/ulc_user_base.h"
 #include "utl/ulc_user_sys.h"
 #include "utl/ulc_user_user.h"

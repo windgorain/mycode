@@ -98,3 +98,7 @@ aux_source_directory(./tcprelay SRC)
 add_executable(tcprelay ${SRC})
 target_link_libraries(tcprelay sutil unixlike_util dl pthread)
 
+set(SRC "")
+aux_source_directory(./elftool SRC)
+add_executable(elftool ${SRC})
+target_link_libraries(elftool sutil static_bs sutil static_bs)

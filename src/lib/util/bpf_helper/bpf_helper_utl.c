@@ -135,6 +135,11 @@ static int ulc_sys_strnlen(void *a, int max_len)
     return end ? end - (char*)a : max_len;
 }
 
+static int ulc_sys_puts(const char *str)
+{
+    return printf("%s\n", str);
+}
+
 static int ulc_sys_fprintf(void *fp, char *fmt, U64 *d, int count)
 {
     switch (count) {
@@ -174,7 +179,7 @@ static void * ulc_get_trusteeship(unsigned int id)
 
 static void * ulc_get_helper(unsigned int id, const void **tmp_helpers)
 {
-    return BpfHelper_GetFuncExt(id, tmp_helpers);
+    return BpfHelper_GetFunc(id, tmp_helpers);
 }
 
 static int ulc_get_local_arch(void)
@@ -237,6 +242,8 @@ static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
     [40] = memcpy,
     [41] = memset,
     [42] = memmove,
+    [70] = printf,
+    [71] = ulc_sys_puts,
     [100] = access,
     [101] = ulc_sys_fprintf,
     [102] = ftell,
@@ -304,7 +311,8 @@ const void ** BpfHelper_UserHelper(void)
     return (const void **)g_bpf_user_helpers;
 }
 
-void * BpfHelper_GetFuncExt(unsigned int id, const void **tmp_helpers)
+
+void * BpfHelper_GetFunc(unsigned int id, const void **tmp_helpers)
 {
     if (id < BPF_BASE_HELPER_END) {
         return (void*)g_bpf_base_helpers[id];
@@ -314,7 +322,7 @@ void * BpfHelper_GetFuncExt(unsigned int id, const void **tmp_helpers)
         return (void*)g_bpf_user_helpers[id - BPF_USER_HELPER_START];
     } else if ((id >= BPF_TMP_HELPER_START) && (id < BPF_TMP_HELPER_END) && (tmp_helpers)) {
         int idx = id - BPF_TMP_HELPER_START;
-        if ((idx <= 0) || (idx >= *(U32*)tmp_helpers)) {
+        if ((idx <= 0) || (idx >= *(U32*)tmp_helpers)) { 
             return NULL;
         }
         return (void*)tmp_helpers[idx];

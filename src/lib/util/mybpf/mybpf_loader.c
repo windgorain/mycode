@@ -246,7 +246,7 @@ static void _mybpf_load_and_jit(MYBPF_LOADER_NODE_S *node)
 
     cfg.mmap_exe = 1;
     cfg.helper_mode = MYBPF_JIT_HELPER_MODE_ID;
-    cfg.get_helper_by_id = BpfHelper_GetFuncExt;
+    cfg.get_helper_by_id = BpfHelper_GetFunc;
     cfg.tail_call_func = 12;
 
     if (MYBPF_Jit(&jit_insn, &cfg) < 0) {
@@ -446,7 +446,7 @@ static int _mybpf_loader_check_helpers_exist(FILE_MEM_S *f, const void **tmp_hel
 
     for (i=0; i<count; i++) {
         int helper_id = ntohl(helpers[i]);
-        if (! BpfHelper_GetFuncExt(helper_id, tmp_helpers)) {
+        if (! BpfHelper_GetFunc(helper_id, tmp_helpers)) {
             RETURNI(BS_NOT_SUPPORT, "Helper %d is not support", helper_id);
         }
     }

@@ -16,8 +16,8 @@ struct bpf_map_def SEC("maps") g_test_cfg_tbl = {
     .max_entries = 1,
 };
 
-SEC("tcmd/main")
-int main()
+SEC("tcmd/testmap")
+int test_map()
 {
     int id = 0;
 

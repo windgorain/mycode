@@ -54,7 +54,7 @@ static int _mybpf_relo_map(MYBPF_INSN_S *insn, int cur_pc,
         }
     }
 
-    return BS_ERR;
+    RETURN(BS_ERR);
 }
 
 static BOOL_T _mybpf_is_text_sec(ELF_S *elf, int sec_id)
@@ -76,17 +76,17 @@ static BOOL_T _mybpf_is_text_sec(ELF_S *elf, int sec_id)
 static int _mybpf_relo_sub_prog(ELF_S *elf, MYBPF_INSN_S *insn, int cur_pc, GElf_Sym *sym)
 {
     if (insn->src_reg != BPF_PSEUDO_CALL) {
-        return BS_ERR;
+        MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_RELO, DBG_UTL_FLAG_PROCESS, "Err: not call \n");
+        RETURN(BS_ERR);
     }
 
     if (! _mybpf_is_text_sec(elf, sym->st_shndx)) {
-        return BS_ERR;
+        RETURN(BS_ERR);
     }
 
     
     
     
-
     int new_imm = (insn->imm + sym->st_value/8) - cur_pc;
 
     MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_RELO, DBG_UTL_FLAG_PROCESS, 
@@ -97,13 +97,53 @@ static int _mybpf_relo_sub_prog(ELF_S *elf, MYBPF_INSN_S *insn, int cur_pc, GElf
     return 0;
 }
 
+static int _mybpf_relo_ext_call(ELF_S *elf, MYBPF_INSN_S *insn, int cur_pc, GElf_Sym *sym)
+{
+    if (insn->src_reg != BPF_PSEUDO_CALL) {
+        MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_RELO, DBG_UTL_FLAG_PROCESS, "Err: not call \n");
+        RETURN(BS_ERR);
+    }
+
+    char *name = ELF_GetSymbolName(elf, sym);
+    if (! name) {
+        MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_RELO, DBG_UTL_FLAG_PROCESS, "Err: Can't get func name \n");
+        RETURN(BS_ERR);
+    }
+
+#if 1
+    RETURNI(BS_NOT_SUPPORT, "Not support extern call");
+#else
+    if (strcmp(name, "printf") == 0) {
+        insn->imm = 1000070;
+    } else if (strcmp(name, "puts") == 0) {
+        insn->imm = 1000071;
+    } else {
+        BS_WARNNING(("Err: Can't find func %s \n", name));
+        RETURN(BS_ERR);
+    }
+
+    insn->src_reg = 0;
+
+    return 0;
+#endif
+}
+
+static int _mybpf_relo_call(ELF_S *elf, MYBPF_INSN_S *insn, int cur_pc, GElf_Sym *sym)
+{
+    if (sym->st_shndx) {
+        return _mybpf_relo_sub_prog(elf, insn, cur_pc, sym);
+    } else {
+        return _mybpf_relo_ext_call(elf, insn, cur_pc, sym);
+    }
+}
+
 static int _mybpf_relo_func_ptr(ELF_S *elf, MYBPF_INSN_S *insn, int cur_pc, GElf_Sym *sym)
 {
     if (! _mybpf_is_text_sec(elf, sym->st_shndx)) {
-        return BS_ERR;
+        RETURN(BS_ERR);
     }
 
-    insn->imm += sym->st_value;
+    insn->imm += sym->st_value; 
     insn->src_reg = BPF_PSEUDO_FUNC_PTR;
 
     MYBPF_DBG_OUTPUT(MYBPF_DBG_ID_RELO, DBG_UTL_FLAG_PROCESS, 
@@ -151,12 +191,12 @@ static int _mybpf_relo_and_apply(ELF_S *elf, MYBPF_INSN_S *insn, MYBPF_RELO_MAP_
         if (insn[cur_pc].opcode == (BPF_LD | BPF_IMM | BPF_DW)) {
             ret = _mybpf_relo_load(elf, &insn[cur_pc], cur_pc, sym, relo_maps, maps_count);
         } else if (insn[cur_pc].opcode == (BPF_JMP | BPF_CALL)) {
-            ret = _mybpf_relo_sub_prog(elf, &insn[cur_pc], cur_pc, sym);
+            ret = _mybpf_relo_call(elf, &insn[cur_pc], cur_pc, sym);
         }
 
         if (ret < 0) {
-            BS_WARNNING(("Can't process relo: insn:%d, sec_id=%d, value=%ld",
-                    cur_pc, sym->st_shndx, (long)sym->st_value));
+            BS_WARNNING(("Can't process relo: insn:%d, sec_id=%d, sym_name=%s",
+                    cur_pc, sym->st_shndx, ELF_GetSymbolName(elf, sym)));
             RETURN(BS_ERR);
         }
 	}

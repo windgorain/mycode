@@ -43,7 +43,7 @@ static int _mybpf_bare_check_depends(MYBPF_BARE_HDR_S *hdr, const void **tmp_hel
     int *helpers = (void*)(shdr + 1);
 
     for (int i=0; i<depend_count; i++) {
-        void *fn = BpfHelper_GetFuncExt(ntohl(helpers[i]), tmp_helpers);
+        void *fn = BpfHelper_GetFunc(ntohl(helpers[i]), tmp_helpers);
         if (! fn) {
             RETURN(BS_NOT_SUPPORT);
         }

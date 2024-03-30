@@ -54,7 +54,7 @@ static inline void * _mybpf_get_helper(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, int imm
         return (void*)ctx->tmp_helpers[imm - BPF_TMP_HELPER_START];
     }
 
-    return BpfHelper_GetFuncExt(imm, tmp_helpers);
+    return BpfHelper_GetFunc(imm, tmp_helpers);
 }
 
 static inline UINT64 _mybpf_call(MYBPF_VM_S *vm, MYBPF_CTX_S *ctx, int imm,

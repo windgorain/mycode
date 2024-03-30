@@ -136,7 +136,25 @@ static inline void VBUF_Finit(IN VBUF_S *pstVBuf)
 {
     if (pstVBuf->pucData) {
         MEM_Free(pstVBuf->pucData);
+        Mem_Zero(pstVBuf, sizeof(VBUF_S));
     }
+}
+
+
+static inline void * VBUF_Steal(INOUT VBUF_S *vbuf)
+{
+    _vbuf_move_data(vbuf, 0);
+    void *mem = vbuf->pucData;
+    Mem_Zero(vbuf, sizeof(VBUF_S));
+    return mem;
+}
+
+static inline void VBUF_SetData(INOUT VBUF_S *pstVBuf, void *data, int data_len)
+{
+    VBUF_Finit(pstVBuf);
+    pstVBuf->pucData = data;
+    pstVBuf->ulTotleLen = data_len;
+    pstVBuf->ulUsedLen = data_len;
 }
 
 static inline void * VBUF_GetData(IN VBUF_S *pstVBuf)

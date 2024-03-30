@@ -397,6 +397,7 @@ static int _mybpf_simple_del_sec(VBUF_S *vbuf, int type, int id)
     return 0;
 }
 
+
 static int _mybpf_simple_elf2spfbuf(void *elf, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT VBUF_S *vbuf)
 {
     int maps_count;
@@ -605,6 +606,22 @@ static int _mybpf_simple_convert_prog(FILE_MEM_S *m, MYBPF_SIMPLE_CONVERT_PARAM_
 }
 
 
+static int _mybpf_simple_bpf_2_spf_buf(char *bpf_file, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT VBUF_S *vbuf)
+{
+    ELF_S elf = {0};
+
+    if (ELF_Open(bpf_file, &elf) < 0) {
+        RETURNI(BS_ERR, "Can't open file %s", bpf_file);
+    }
+
+    int ret = _mybpf_simple_elf2spfbuf(&elf, p, vbuf);
+
+    ELF_Close(&elf);
+
+    return ret;
+}
+
+
 static int _mybpf_simple_open_elf_file(char *elf_file, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT FILE_MEM_S *m)
 {
     int ret = 0;
@@ -612,9 +629,10 @@ static int _mybpf_simple_open_elf_file(char *elf_file, MYBPF_SIMPLE_CONVERT_PARA
 
     VBUF_Init(&vbuf);
 
-    ret = MYBPF_SIMPLE_Bpf2SpfBuf(elf_file, p, &vbuf);
+    ret = _mybpf_simple_bpf_2_spf_buf(elf_file, p, &vbuf);
     if (ret == 0) {
-        ret = FILE_MemByData(VBUF_GetData(&vbuf), VBUF_GetDataLength(&vbuf), m);
+        m->len = VBUF_GetDataLength(&vbuf);
+        m->data = VBUF_Steal(&vbuf);
     }
 
     VBUF_Finit(&vbuf);
@@ -636,28 +654,6 @@ static int _mybpf_simple_convert_file_2_spf_buf(char *src_filename, MYBPF_SIMPLE
     ret = MYBPF_SIMPLE_Convert(&m, vbuf, p);
 
     MYBPF_SIMPLE_Close(&m);
-
-    return ret;
-}
-
-
-int MYBPF_SIMPLE_Elf2SpfBuf(void *elf, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT VBUF_S *vbuf)
-{
-    return _mybpf_simple_elf2spfbuf(elf, p, vbuf);
-}
-
-
-int MYBPF_SIMPLE_Bpf2SpfBuf(char *bpf_file, MYBPF_SIMPLE_CONVERT_PARAM_S *p, OUT VBUF_S *vbuf)
-{
-    ELF_S elf = {0};
-
-    if (ELF_Open(bpf_file, &elf) < 0) {
-        RETURNI(BS_ERR, "Can't open file %s", bpf_file);
-    }
-
-    int ret = _mybpf_simple_elf2spfbuf(&elf, p, vbuf);
-
-    ELF_Close(&elf);
 
     return ret;
 }
