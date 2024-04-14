@@ -21,7 +21,7 @@ noinline int test2(void)
     return 0;
 }
 
-SEC("tcmd/hello_test")
+SEC(".spf.cmd/main")
 int main()
 {
     g_test2 = test2;

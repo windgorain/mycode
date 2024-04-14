@@ -9,7 +9,7 @@
 #include "utl/vbuf_utl.h"
 
 
-
+/* 在头部添加一段空白数据 */
 int VBUF_AddHead(INOUT VBUF_S *vbuf, ULONG len)
 {
     if (vbuf->ulOffset < len) {
@@ -25,7 +25,7 @@ int VBUF_AddHead(INOUT VBUF_S *vbuf, ULONG len)
     return 0;
 }
 
-
+/* 向头部添加一段空间, 并拷贝数据 */
 int VBUF_AddHeadBuf(INOUT VBUF_S *vbuf, void *buf, ULONG len)
 {
     int ret;
@@ -41,12 +41,25 @@ int VBUF_AddHeadBuf(INOUT VBUF_S *vbuf, void *buf, ULONG len)
     return 0;
 }
 
+/* 向尾部添加空白数据 */
+int VBUF_AddTail(INOUT VBUF_S *vbuf, ULONG len)
+{
+    int ret = _vbuf_pre_cat(vbuf, len);
+    if (ret < 0) {
+        return ret;
+    }
+
+    vbuf->ulUsedLen += len;
+
+    return 0;
+}
+
 BS_STATUS VBUF_CatFromVBuf(IN VBUF_S *pstVBufDst, IN VBUF_S *pstVBufSrc)
 {
     BS_DBGASSERT(0 != pstVBufDst);
     BS_DBGASSERT(0 != pstVBufSrc);
 
-    return VBUF_CatFromBuf(pstVBufDst, pstVBufSrc->pucData, pstVBufSrc->ulUsedLen);
+    return VBUF_CatBuf(pstVBufDst, pstVBufSrc->pucData, pstVBufSrc->ulUsedLen);
 }
 
 BS_STATUS VBUF_CpyFromVBuf(IN VBUF_S *pstVBufDst, IN VBUF_S *pstVBufSrc)
@@ -54,7 +67,7 @@ BS_STATUS VBUF_CpyFromVBuf(IN VBUF_S *pstVBufDst, IN VBUF_S *pstVBufSrc)
     BS_DBGASSERT(0 != pstVBufDst);
     BS_DBGASSERT(0 != pstVBufSrc);
 
-    return VBUF_CpyFromBuf(pstVBufDst, pstVBufSrc->pucData, pstVBufSrc->ulUsedLen);
+    return VBUF_CpyBuf(pstVBufDst, pstVBufSrc->pucData, pstVBufSrc->ulUsedLen);
 }
 
 INT VBUF_CmpByBuf(IN VBUF_S *pstVBuf, IN void *buf, IN ULONG ulLen)
@@ -84,7 +97,49 @@ INT VBUF_CmpByVBuf(IN VBUF_S *pstVBuf1, IN VBUF_S *pstVBuf2)
     return VBUF_CmpByBuf(pstVBuf1, pstVBuf2->pucData, pstVBuf2->ulUsedLen);
 }
 
+/* 在数据的中间,插入一块空白区域 */
+int VBUF_Insert(VBUF_S *vbuf, U64 data_offset, U64 len)
+{
+    if (data_offset > vbuf->ulUsedLen) {
+        RETURNI(BS_ERR, "Insert out of range");
+    }
 
+    if (data_offset == 0) {
+        return VBUF_AddHead(vbuf, len);
+    }
+
+    if (data_offset == vbuf->ulUsedLen) {
+        return VBUF_AddTail(vbuf, len);
+    }
+
+    int ret = VBUF_AddTail(vbuf, len);
+    if (ret < 0) {
+        return ret;
+    }
+
+    char *src = (char*)vbuf->pucData + vbuf->ulOffset + data_offset;
+    char *dst = src + len;
+
+    memmove(dst, src, vbuf->ulUsedLen - data_offset);
+
+    return 0;
+}
+
+/* 在数据的中间,插入一块空白区域 */
+int VBUF_InsertBuf(VBUF_S *vbuf, U64 data_offset, void *buf, U64 buf_len)
+{
+    int ret = VBUF_Insert(vbuf, data_offset, buf_len);
+    if (ret < 0) {
+        return ret;
+    }
+
+    char *data = VBUF_GetData(vbuf);
+    memcpy(data + data_offset, buf, buf_len);
+
+    return 0;
+}
+
+/* 根据vbuf内的ptr地址, 返回其在vbuf内的offset */
 long VBUF_Ptr2Offset(VBUF_S *vbuf, void *ptr)
 {
     long offset;

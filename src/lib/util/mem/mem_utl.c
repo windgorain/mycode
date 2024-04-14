@@ -7,6 +7,7 @@
 #include "bs.h"
 #include "utl/mem_utl.h"
 #include "utl/data2hex_utl.h"
+#include "utl/ulc_user.h"
 
 static inline void _mem_swap(void *buf1, void *buf2, int len)
 {
@@ -145,7 +146,8 @@ int MEM_CaseCmp(UCHAR *pucMem1, UINT uiMem1Len, UCHAR *pucMem2, UINT uiMem2Len)
     return -1;
 }
 
-
+/* 按照C输入格式打印内存字面值到buf中.
+return: 实际打印了多少字节内存的字面值 */
 int MEM_SprintCFromat(void *mem, UINT mem_len, OUT char *buf, int buf_size)
 {
     UCHAR *d = mem;
@@ -155,7 +157,7 @@ int MEM_SprintCFromat(void *mem, UINT mem_len, OUT char *buf, int buf_size)
     int copyed_len = 0;
     int print_len = 0;
 
-    
+    /* 6: length("0xaa,\n") */
     while ((mem_len > print_len) && (reserved_size > 6)) {
         sprintf(info, "0x%02x,", *d);
         len = strlcpy(buf + copyed_len, info, reserved_size);
@@ -177,7 +179,8 @@ int MEM_SprintCFromat(void *mem, UINT mem_len, OUT char *buf, int buf_size)
     return print_len;
 }
 
-
+/* 打印内存字面值到buf中.
+return: 实际打印了多少字节内存的字面值 */
 int MEM_Sprint(void *mem, UINT mem_len, OUT char *buf, int buf_size)
 {
     UCHAR *d = mem;
@@ -187,7 +190,7 @@ int MEM_Sprint(void *mem, UINT mem_len, OUT char *buf, int buf_size)
     int copyed_len = 0;
     int print_len = 0;
 
-    
+    /* 3: length("aa ") */
     while ((mem_len > print_len) && (reserved_size > 3)) {
         sprintf(info, "%02x ", *d);
         len = strlcpy(buf + copyed_len, info, reserved_size);
@@ -207,35 +210,33 @@ int MEM_Sprint(void *mem, UINT mem_len, OUT char *buf, int buf_size)
     return print_len;
 }
 
-void MEM_Print(void *mem, int len, PF_MEM_PRINT_FUNC print_func)
+void MEM_Print(void *mem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */)
 {
     char info[3*16+1];
-    PF_MEM_PRINT_FUNC func = print_func;
     int print_len = 0;
-
-    if (! func) {
-        func = (void*)printf;
-    }
 
     while (len > print_len) {
         print_len += MEM_Sprint(mem + print_len, len - print_len, info, sizeof(info));
-        func(info);
+        if (print_func) {
+            print_func(info);
+        } else {
+            printf("%s", info);
+        }
     }
 }
 
-void MEM_PrintCFormat(void *mem, int len, PF_MEM_PRINT_FUNC print_func)
+void MEM_PrintCFormat(void *mem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */)
 {
     char info[5*16+2];
-    PF_MEM_PRINT_FUNC func = print_func;
     int print_len = 0;
-
-    if (! func) {
-        func = (void*)printf;
-    }
 
     while (len > print_len) {
         print_len += MEM_SprintCFromat(mem + print_len, len - print_len, info, sizeof(info));
-        func(info);
+        if (print_func) {
+            print_func(info);
+        } else {
+            printf("%s", info);
+        }
     }
 }
 
@@ -247,7 +248,7 @@ VOID MEM_DiscreteFindInit(INOUT MEM_FIND_INFO_S *pstFindInfo, IN UCHAR *pucPatte
     pstFindInfo->uiPatternLen = uiPatternLen;
 }
 
-
+/* 在不连续缓冲区中查找数据 */
 BS_STATUS MEM_DiscreteFind
 (
     INOUT MEM_FIND_INFO_S *pstFindInfo,
@@ -299,7 +300,7 @@ BS_STATUS MEM_DiscreteFind
     return BS_NOT_FOUND;
 }
 
-
+/* 将内存中的内容反序 */
 void MEM_Invert(void *in, int len, void *out)
 {
     int i;
@@ -313,7 +314,7 @@ void MEM_Invert(void *in, int len, void *out)
     }
 }
 
-
+/* 是否全0 */
 int MEM_IsZero(void *data, int size)
 {
     int i;
@@ -328,7 +329,7 @@ int MEM_IsZero(void *data, int size)
     return 1;
 }
 
-
+/* 是否全部是0xff */
 int MEM_IsFF(void *data, int size)
 {
     int i;
@@ -343,19 +344,7 @@ int MEM_IsFF(void *data, int size)
     return 1;
 }
 
-
-void MEM_ZeroByUlong(void *data, int count)
-{
-    ULONG *a = data;
-    int i;
-
-    for (i=0; i<count; i++) {
-        *a = 0;
-        a++;
-    }
-}
-
-
+/* 将内存中的src字符替换为dst, 返回替换了多少个字符 */
 int MEM_ReplaceChar(void *data, int len, UCHAR src, UCHAR dst)
 {
     int i;
@@ -372,7 +361,7 @@ int MEM_ReplaceChar(void *data, int len, UCHAR src, UCHAR dst)
     return count;
 }
 
-
+/* 将内存中的src字符替换为dst, 只替换一个. 返回替换了多少个字符 */
 int MEM_ReplaceOneChar(void *data, int len, UCHAR src, UCHAR dst)
 {
     int i;
@@ -388,21 +377,21 @@ int MEM_ReplaceOneChar(void *data, int len, UCHAR src, UCHAR dst)
     return 0;
 }
 
-
+/* 交换两块内存的内容, 交换双方长度相等 */
 void MEM_Swap(void *buf1, void *buf2, int len)
 {
     _mem_swap(buf1, buf2, len);
 }
 
-
-
+/* 根据off, 交换一块连续内存内的两片内存的位置. 比如: 1 | 2 3 交换为 2 3 | 1, |为off位置 */
+/* off: 第二块内存的offset */
 int MEM_SwapByOff(void *buf, int buf_len, int off)
 {
     if (off >= buf_len) {
         return 0;
     }
 
-    if (off * 2 == buf_len) { 
+    if (off * 2 == buf_len) { /* 需要交换的两块内存大小相等 */
         _mem_swap(buf, (char*)buf + off, off);
         return 0;
     }
@@ -420,5 +409,59 @@ int MEM_SwapByOff(void *buf, int buf_len, int off)
     MEM_Free(tmp);
 
     return 0;
+}
+
+/* move buf to (buf + offset) */
+/* 移动一块连续内存中的数据到这块连续内存的新位置. 周围的数据会被合上之后再挤进新位置去 */
+/* 使用者需要确保移动的起始和终止位置之间的内存合法连续的 */
+int MEM_MoveData(void *data, S64 len, S64 offset)
+{
+    if (offset == 0) {
+        return 0;
+    }
+
+    void *tmp = MEM_Malloc(len);
+    if (! tmp) {
+        RETURN(BS_NO_MEMORY);
+    }
+
+    memcpy(tmp, data, len);
+
+    if (offset < 0) { /* 往前移动数据的情况 */
+        char *d = (char*)data + offset;
+        memmove(d + len, d, -offset);
+    } else { /* 向后移动的情况 */
+        char *d = (char*)data + len;
+        memmove(data, d, offset);
+    }
+
+    memcpy((char*)data + offset, tmp, len);
+
+    MEM_Free(tmp);
+
+    return 0;
+}
+
+/* move buf to dst */
+/* 移动一块连续内存中的数据到这块连续内存的新位置. 周围的数据会被合上之后再挤进新位置去 */
+/* 使用者需要确保移动的起始和终止位置之间的内存合法连续的 */
+int MEM_MoveDataTo(void *data, U64 len, void *dst)
+{
+    return MEM_MoveData(data, len, (S64)dst - (S64)data);
+}
+
+void MEM_CopyWithCheck(void *dst, void *src, U32 len)
+{
+    /* check是否重叠, 重叠了的话,告警,应该使用memmove */
+    {
+        char *d1_min = dst;
+        char *d1_max = (d1_min + len) - 1;
+        char *d2_min = src;
+        char *d2_max = (d2_min + len) - 1;
+        if (NUM_AREA_IS_OVERLAP(d1_min, d1_max, d2_min, d2_max) != FALSE) {
+            BS_DBGASSERT(0);
+        }
+    }
+    memcpy(dst, src, len);
 }
 

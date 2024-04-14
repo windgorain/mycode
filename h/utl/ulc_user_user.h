@@ -14,7 +14,7 @@ extern "C" {
 
 #undef RETURNI
 #define RETURNI(_x, _fmt, ...)  do { \
-    printf(_fmt, ##__VA_ARGS__); \
+    printf(_fmt"\n", ##__VA_ARGS__); \
     return(_x); \
 } while(0)
 
@@ -26,4 +26,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#endif 
+#endif //ULC_USER_USER_H_

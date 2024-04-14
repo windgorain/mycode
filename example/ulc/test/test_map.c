@@ -8,7 +8,7 @@ typedef struct {
     unsigned int count;
 }CFG_S;
 
-
+/* 配置项 */
 struct bpf_map_def SEC("maps") g_test_cfg_tbl = {
     .type = BPF_MAP_TYPE_ARRAY,
     .key_size = sizeof(int),
@@ -16,7 +16,7 @@ struct bpf_map_def SEC("maps") g_test_cfg_tbl = {
     .max_entries = 1,
 };
 
-SEC("tcmd/testmap")
+SEC(".spf.cmd/main")
 int test_map()
 {
     int id = 0;

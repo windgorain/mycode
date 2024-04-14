@@ -10,15 +10,15 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif 
+#endif /* __cplusplus */
 
 struct printf_spec {
-	UCHAR	type;		
-	UCHAR	flags;		
-	UCHAR	base;		
+	UCHAR	type;		/* format_type enum */
+	UCHAR	flags;		/* flags to number() */
+	UCHAR	base;		/* number base, 8, 10 or 16 only */
 	UCHAR	qualifier;
     SHORT	field_width;
-	SHORT	precision;	
+	SHORT	precision;	/* # of digits/chars */
 };
 
 typedef struct {
@@ -37,36 +37,17 @@ INT BS_Printf(const char *fmt, ...);
 INT BS_Sprintf(char * buf, const char *fmt, ...);
 INT BS_Snprintf(char * buf, IN INT iLen, const char *fmt, ...);
 INT BS_Vsnprintf(char *buf, size_t size, const char *fmt, va_list args);
+int BS_Scnprintf(char *buf, int size, const char *fmt, ...);
 
 int BS_FormatCompile(FormatCompile_S *fc, char *fmt);
 int BS_VFormat(FormatCompile_S *fc, char *buf, size_t size, va_list args);
 int BS_Format(FormatCompile_S *fc, char * buf, ...);
 int BS_FormatN(FormatCompile_S *fc, char *buf, int size, ...);
 
-static inline int BS_Scnprintf(char *buf, int size, const char *fmt, ...)
-{
-	va_list args;
-	int ret_len;
-
-    if ((! buf) || (size <= 1)){
-        return 0;
-    }
-
-	va_start(args, fmt);
-	ret_len = vsnprintf(buf, size, fmt, args);
-	va_end(args);
-
-    if (ret_len >= size) {
-        return size - 1;
-    }
-
-    return ret_len;
-}
-
-
+/* 溢出则返回size-1, 即实际输出的长度(不包含\0), 可用于不判断返回值连续拼装 */
 #define scnprintf BS_Scnprintf
 
-
+/* 溢出返回-1. 不能用于不判断返回值的连续拼装 */
 #define SNPRINTF(buf,size, ...) ({ \
         int _nlen = snprintf((buf), (size), ##__VA_ARGS__); \
         if (_nlen >= (size)) _nlen = -1; \
@@ -74,8 +55,8 @@ static inline int BS_Scnprintf(char *buf, int size, const char *fmt, ...)
 
 #ifdef __cplusplus
     }
-#endif 
+#endif /* __cplusplus */
 
-#endif 
+#endif /*__SPRINTF_UTL_H_*/
 
 

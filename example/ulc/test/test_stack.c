@@ -18,7 +18,7 @@ static noinline void _output(void)
     printf("test OK \n");
 }
 
-SEC("tcmd/test")
+SEC(".spf.cmd/main")
 int main()
 {
     char c[256];

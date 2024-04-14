@@ -7,7 +7,7 @@
 
 static unsigned long long g_test_count = 1;
 
-SEC("tcmd/hello_test")
+SEC(".spf.cmd/hello_test")
 int main()
 {
     unsigned long long ret;

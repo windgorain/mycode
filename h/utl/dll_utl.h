@@ -11,18 +11,16 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif /* __cplusplus */
 
 typedef struct tagDLL_HEAD_S _DLL_HEAD_S;
 
-typedef struct tagDLL_NODE_S
-{
+typedef struct tagDLL_NODE_S {
     struct tagDLL_NODE_S    *prev, *next;
     _DLL_HEAD_S * pstHead;
 }DLL_NODE_S;
 
-typedef struct tagDLL_HEAD_S
-{
+typedef struct tagDLL_HEAD_S {
     DLL_NODE_S *prev, *next;
     UINT       ulCount;
 }DLL_HEAD_S;
@@ -55,8 +53,7 @@ static inline UINT DLL_COUNT(void *dll_head) {
 
 #define DLL_GET_HEAD(pstNode) (((DLL_NODE_S*)(pstNode))->pstHead)
 
-static inline void * DLL_FIRST(DLL_HEAD_S *pstDllHead)
-{
+static inline void * DLL_FIRST(DLL_HEAD_S *pstDllHead) {
     if (DLL_COUNT(pstDllHead) == 0) {
         return NULL;
     }
@@ -73,18 +70,19 @@ static inline void * DLL_FIRST(DLL_HEAD_S *pstDllHead)
 #define DLL_LOOPPREV(pstDllHead,pstNode) ((void*)((pstNode) == NULL ? NULL : (((DLL_NODE_S*)(pstNode))->prev == (DLL_NODE_S*)pstDllHead ? DLL_LAST(pstDllHead) : ((DLL_NODE_S*)(pstNode))->prev)))
 
 
+/* 添加到链表的头 */
+#define DLL_ADD_TO_HEAD_RCU(pstDllHead, new_node) do { \
+    DLL_NODE_S *pstNewNode = new_node; \
+    pstNewNode->pstHead = pstDllHead; \
+    pstNewNode->next = pstDllHead->next; \
+    pstNewNode->prev = (void*)pstDllHead; \
+    ATOM_BARRIER(); \
+    pstDllHead->next->prev = pstNewNode; \
+    pstDllHead->next = pstNewNode; \
+    pstDllHead->ulCount++; \
+}while(0)
 
-static inline void DLL_ADD_TO_HEAD_RCU(DLL_HEAD_S *pstDllHead, void *new_node) {
-    DLL_NODE_S *pstNewNode = new_node;
-    pstNewNode->pstHead = pstDllHead;
-    pstNewNode->next = pstDllHead->next;
-    pstNewNode->prev = (void*)pstDllHead;
-    ATOM_BARRIER();
-    pstDllHead->next->prev = pstNewNode;
-    pstDllHead->next = pstNewNode;
-    pstDllHead->ulCount++;
-}
-
+/* 添加到链表的头 */
 static inline void DLL_ADD_TO_HEAD(DLL_HEAD_S *pstDllHead, void *new_node) {
     DLL_NODE_S *pstNewNode = new_node;
     pstNewNode->pstHead = pstDllHead;
@@ -95,19 +93,19 @@ static inline void DLL_ADD_TO_HEAD(DLL_HEAD_S *pstDllHead, void *new_node) {
     pstDllHead->ulCount++;
 }
 
+/* 添加到链表的最后 */
+#define DLL_ADD_RCU(pstDllHead, new_node) do { \
+    DLL_NODE_S *_pstNewNode = (new_node); \
+    _pstNewNode->pstHead = (pstDllHead); \
+    _pstNewNode->next = (void*)(pstDllHead); \
+    _pstNewNode->prev = (pstDllHead)->prev; \
+    ATOM_BARRIER(); \
+    (pstDllHead)->prev->next = _pstNewNode; \
+    (pstDllHead)->prev = _pstNewNode; \
+    (pstDllHead)->ulCount++; \
+}while(0)
 
-static inline void DLL_ADD_RCU(DLL_HEAD_S *pstDllHead, void *new_node) {
-    DLL_NODE_S *pstNewNode = new_node;
-    pstNewNode->pstHead = pstDllHead;
-    pstNewNode->next = (void*)pstDllHead;
-    pstNewNode->prev = pstDllHead->prev;
-    ATOM_BARRIER();
-    pstDllHead->prev->next = pstNewNode;
-    pstDllHead->prev = pstNewNode;
-    pstDllHead->ulCount++;
-}
-
-
+/* 添加到链表的最后 */
 static inline void DLL_ADD(DLL_HEAD_S *pstDllHead, void *new_node) {
     DLL_NODE_S *pstNewNode = new_node;
     pstNewNode->pstHead = pstDllHead;
@@ -237,7 +235,7 @@ static inline void DLL_DelIfInList(IN DLL_NODE_S *pstNode)
 }
 
 extern void DLL_Sort(IN DLL_HEAD_S *pstDllHead, IN PF_DLL_CMP_FUNC pfFunc, IN HANDLE hUserHandle);
-
+/* 插入有序链表并保证唯一性 */
 extern int DLL_UniqueSortAdd(DLL_HEAD_S *head, DLL_NODE_S *node, PF_DLL_CMP_FUNC cmp_func, void *user_data);
 
 extern void DLL_SortAdd
@@ -254,7 +252,7 @@ extern void * DLL_Find(IN DLL_HEAD_S *pstDllHead, IN PF_DLL_CMP_FUNC pfCmpFunc, 
 
 #ifdef __cplusplus
 }
-#endif 
+#endif /* __cplusplus */
 
-#endif 
+#endif /*__DLL_H_*/
 

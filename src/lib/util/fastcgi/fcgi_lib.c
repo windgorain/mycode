@@ -10,7 +10,7 @@
 #include "utl/ssltcp_utl.h"
 #include "utl/vbuf_utl.h"
 
-#define FCGI_MAX_SEGMENT_SIZE (64 * 1024 - 1)   
+#define FCGI_MAX_SEGMENT_SIZE (64 * 1024 - 1)   /* 最大的分段长度为65535 */
 
 typedef enum
 {
@@ -30,19 +30,22 @@ typedef enum
 
 typedef enum
 {
-    FCGI_RECV_SEG_HEADER = 0,   
-    FCGI_RECV_SEG_DATA,         
-    FCGI_RECV_TYPE_END,         
-    FCGI_RECV_END               
+    FCGI_RECV_SEG_HEADER = 0,   /* 正在接收分段头 */
+    FCGI_RECV_SEG_DATA,         /* 正在接收数据 */
+    FCGI_RECV_TYPE_END,         /* 接收到了数据长度为0表示某参数结束的报文. 
+                                   只有Param.stdin,stdout,stderr会走到这里 */
+    FCGI_RECV_END               /* 收到了End Request */
 }_FCGI_RECV_SEG_TYPE_E;
 
-
+/*
+ * Values for role component of FCGI_BeginRequestBody
+ */
 #define FCGI_RESPONDER  1
 #define FCGI_AUTHORIZER 2
 #define FCGI_FILTER     3
 
 typedef struct {
-    UCHAR ucVersion;    
+    UCHAR ucVersion;    /* 01 */
     UCHAR ucType;       
     USHORT usRequestId;
     USHORT usContentLen;
@@ -52,7 +55,7 @@ typedef struct {
 
 typedef struct {
     USHORT usRole;
-    UCHAR ucFlags;    
+    UCHAR ucFlags;    /* FCGI_KEEP_CONN表示保持长连接. 0表示服务完成后关闭连接 */
     UCHAR aucReserved[5];
 } FCGI_BEGIN_REQUEST_BODY_S;
 
@@ -74,8 +77,8 @@ typedef struct {
 
 typedef struct
 {
-    UCHAR aucSegData[32];        
-    UINT  uiDataLen;                 
+    UCHAR aucSegData[32];        /* 用于接收分段头/BeginRequest等协议数据的缓冲区 */
+    UINT  uiDataLen;                 /* 缓冲区中的数据长度 */
 }_FCGI_SEG_DATA_S;
 
 typedef struct
@@ -83,16 +86,16 @@ typedef struct
     BOOL_T bIsServer;
     USHORT usRequestId;
     UINT  uiFlag;
-    FCGI_STATUS_E eStatus;  
-    _FCGI_RECV_SEG_TYPE_E eRecvSegType;
-    FCGI_TYPE_E eDataType;  
+    FCGI_STATUS_E eStatus;  /* FCGI状态 */
+    _FCGI_RECV_SEG_TYPE_E eRecvSegType;/* 当处于正在接收数据状态时,具体的数据类型由eDataType指定 */
+    FCGI_TYPE_E eDataType;  /* 正在接收的数据类型 */
     UINT uiSslTcpId;
-    DLL_HEAD_S stRequestParams;    
-    DLL_HEAD_S stResponseParams;   
+    DLL_HEAD_S stRequestParams;    /* FCGI_PARAM_S */
+    DLL_HEAD_S stResponseParams;   /* FCGI_PARAM_S */
     VBUF_S stVbuf;
-    UINT uiRemainDataLen;         
-    UCHAR ucReaminPaddingLen;      
-    UCHAR ucFlag;                  
+    UINT uiRemainDataLen;         /* 剩余的数据 */
+    UCHAR ucReaminPaddingLen;      /* 剩余的Padding */
+    UCHAR ucFlag;                  /* 是否保持长连接 */
 
     _FCGI_SEG_DATA_S stSegHeadData;
 }_FCGI_CTRL_S;
@@ -100,7 +103,7 @@ typedef struct
 
 
 
-
+/* 创建FCGI通道, 要求SsltcpId的模式和eMode必须匹配 */
 static _FCGI_CTRL_S * fcgi_Create(IN UINT uiSsltcpId, IN UINT uiFlag, IN BOOL_T bIsServer)
 {
     _FCGI_CTRL_S *pstFcgi;
@@ -124,7 +127,7 @@ static _FCGI_CTRL_S * fcgi_Create(IN UINT uiSsltcpId, IN UINT uiFlag, IN BOOL_T 
     return pstFcgi;
 }
 
-
+/* Description  : 释放一个Param Node */
 static VOID fcgi_FreeParamNode(IN FCGI_PARAM_S *pstParamNode)
 {
     if (NULL != pstParamNode->pcName)
@@ -138,7 +141,7 @@ static VOID fcgi_FreeParamNode(IN FCGI_PARAM_S *pstParamNode)
     MEM_Free(pstParamNode);
 }
 
-
+/* 设置头参数 */
 static BS_STATUS fcgi_SetParam
 (
     IN DLL_HEAD_S *pstListHead,
@@ -198,12 +201,12 @@ static BS_STATUS fcgi_FillParamLen(IN VBUF_S *pstVbuf, IN ULONG ulLen)
         aucBuf[2] = (UCHAR)((ulLen >> 8) & 0xff);
         aucBuf[3] = (UCHAR)(ulLen & 0xff);
 
-        return VBUF_CatFromBuf(pstVbuf, aucBuf, 4);
+        return VBUF_CatBuf(pstVbuf, aucBuf, 4);
     }
 
     aucBuf[0] = (UCHAR)(ulLen & 0xff);
 
-    return VBUF_CatFromBuf(pstVbuf, aucBuf, 1);
+    return VBUF_CatBuf(pstVbuf, aucBuf, 1);
 }
 
 static VOID fcgi_MakeHeader
@@ -236,7 +239,7 @@ static VOID fcgi_MakeEndRequestBody(IN FCGI_END_REQUEST_BODY_S *pstBody)
 
 
 
-
+/* 将Param构建成数据 */
 static BS_STATUS fcgi_BuildRequestParams(IN _FCGI_CTRL_S *pstFcgi)
 {
     FCGI_PARAM_S *pstNode;
@@ -251,51 +254,51 @@ static BS_STATUS fcgi_BuildRequestParams(IN _FCGI_CTRL_S *pstFcgi)
     UCHAR *pucPadding = (UCHAR*)"\0\0\0\0\0\0\0\0";
     DLL_HEAD_S *pstParamList = &pstFcgi->stRequestParams;
 
-    
+    /* 构造Param头 */
     fcgi_MakeHeader(&stHeader, FCGI_PARAMS, 1, 0);
-    if (BS_OK != VBUF_CatFromBuf(hVbuf, (UCHAR*)&stHeader, sizeof(FCGI_HEADER_S)))
+    if (BS_OK != VBUF_CatBuf(hVbuf, (UCHAR*)&stHeader, sizeof(FCGI_HEADER_S)))
     {
         return BS_ERR;
     }
 
     ulDataLen = VBUF_GetDataLength(hVbuf);
 
-    
+    /* 构造Param */
     DLL_SCAN(pstParamList, pstNode)
     {
         ulNameLen = strlen(pstNode->pcName);
         ulValueLen = strlen(pstNode->pcValue);
         if ((BS_OK != fcgi_FillParamLen(hVbuf, ulNameLen)) ||
             (BS_OK != fcgi_FillParamLen(hVbuf, ulValueLen)) ||
-            (BS_OK != VBUF_CatFromBuf(hVbuf, pstNode->pcName, ulNameLen)) ||
-            (BS_OK != VBUF_CatFromBuf(hVbuf, pstNode->pcValue, ulValueLen)))
+            (BS_OK != VBUF_CatBuf(hVbuf, pstNode->pcName, ulNameLen)) ||
+            (BS_OK != VBUF_CatBuf(hVbuf, pstNode->pcValue, ulValueLen)))
         {
             return BS_ERR;
         }
     }
 
-    uiParamsLen = VBUF_GetDataLength(hVbuf) - ulDataLen;     
+    uiParamsLen = VBUF_GetDataLength(hVbuf) - ulDataLen;     /* 得到Param段中携带的载荷长度 */
 
-    
+    /* 暂不支持Params大于64K的情况 */
     if (uiParamsLen > FCGI_MAX_SEGMENT_SIZE)
     {
         return BS_ERR;
     }
 
-    
+    /* 将Param头中的长度字段填上 */
     pstRecod = VBUF_GetData(hVbuf);
     pstHeader = (FCGI_HEADER_S*)(pstRecod + 1);
     fcgi_MakeHeader(pstHeader, FCGI_PARAMS, pstFcgi->usRequestId, (USHORT)uiParamsLen);
 
-    
-    if (BS_OK != VBUF_CatFromBuf(hVbuf, pucPadding, pstHeader->ucPaddingLen))
+    /* 填充Padding */
+    if (BS_OK != VBUF_CatBuf(hVbuf, pucPadding, pstHeader->ucPaddingLen))
     {
         return BS_ERR;
     }
 
-    
+    /* 构造PARAMS结束标志 */
     fcgi_MakeHeader(&stHeader, FCGI_PARAMS, pstFcgi->usRequestId, 0);
-    if (BS_OK != VBUF_CatFromBuf(hVbuf, (UCHAR*)&stHeader, sizeof(FCGI_HEADER_S)))
+    if (BS_OK != VBUF_CatBuf(hVbuf, (UCHAR*)&stHeader, sizeof(FCGI_HEADER_S)))
     {
         return BS_ERR;
     }
@@ -304,7 +307,7 @@ static BS_STATUS fcgi_BuildRequestParams(IN _FCGI_CTRL_S *pstFcgi)
 }
 
 
-
+/* 构造请求Header */
 static BS_STATUS fcgi_BuildRequestHeader(IN _FCGI_CTRL_S *pstFcgi)
 {
     FCGI_BEGIN_REQUEST_RECORD_S stBeginRecord;
@@ -312,7 +315,7 @@ static BS_STATUS fcgi_BuildRequestHeader(IN _FCGI_CTRL_S *pstFcgi)
     fcgi_MakeHeader(&stBeginRecord.stHeader, FCGI_BEGIN_REQUEST,
         1, sizeof(FCGI_BEGIN_REQUEST_BODY_S));
     fcgi_MakeBeginRequestBody(&stBeginRecord.stBody, FCGI_RESPONDER, FCGI_NO_KEEP_CONN);
-    if (BS_OK != VBUF_CatFromBuf(&pstFcgi->stVbuf,
+    if (BS_OK != VBUF_CatBuf(&pstFcgi->stVbuf,
                     (UCHAR*)&stBeginRecord, sizeof(FCGI_BEGIN_REQUEST_RECORD_S)))
     {
         return BS_ERR;
@@ -326,7 +329,7 @@ static BS_STATUS fcgi_BuildRequestHeader(IN _FCGI_CTRL_S *pstFcgi)
     return BS_OK;
 }
 
-
+/* 构造应答Header */
 static BS_STATUS fcgi_BuildResponseHeader(IN _FCGI_CTRL_S *pstFcgi)
 {
     FCGI_HEADER_S stHeader;
@@ -338,46 +341,46 @@ static BS_STATUS fcgi_BuildResponseHeader(IN _FCGI_CTRL_S *pstFcgi)
     UCHAR *pucPadding = (UCHAR*)"\0\0\0\0\0\0\0\0";
     
     fcgi_MakeHeader(&stHeader, FCGI_STDOUT, pstFcgi->usRequestId, 0);
-    if (BS_OK != VBUF_CatFromBuf(hVbuf, (UCHAR*)&stHeader, sizeof(FCGI_HEADER_S)))
+    if (BS_OK != VBUF_CatBuf(hVbuf, (UCHAR*)&stHeader, sizeof(FCGI_HEADER_S)))
     {
         return BS_ERR;
     }
 
-    
+    /* 添加Params */
     if (DLL_COUNT(pstParamList) > 0)
     {
         DLL_SCAN(pstParamList, pstNode)
         {
-            if (BS_OK != VBUF_CatFromBuf(hVbuf, pstNode->pcName, strlen(pstNode->pcName)))
+            if (BS_OK != VBUF_CatBuf(hVbuf, pstNode->pcName, strlen(pstNode->pcName)))
             {
                 return BS_ERR;
             }
 
-            if (BS_OK != VBUF_CatFromBuf(hVbuf, ": ", 2))
+            if (BS_OK != VBUF_CatBuf(hVbuf, ": ", 2))
             {
                 return BS_ERR;
             }
 
-            if (BS_OK != VBUF_CatFromBuf(hVbuf, pstNode->pcValue, strlen(pstNode->pcValue)))
+            if (BS_OK != VBUF_CatBuf(hVbuf, pstNode->pcValue, strlen(pstNode->pcValue)))
             {
                 return BS_ERR;
             }
 
-            if (BS_OK != VBUF_CatFromBuf(hVbuf, "\r\n", 2))
+            if (BS_OK != VBUF_CatBuf(hVbuf, "\r\n", 2))
             {
                 return BS_ERR;
             }
         }
 
         
-        if (BS_OK != VBUF_CatFromBuf(hVbuf, "\r\n", 2))
+        if (BS_OK != VBUF_CatBuf(hVbuf, "\r\n", 2))
         {
             return BS_ERR;
         }
     }
     else
     {
-        if (BS_OK != VBUF_CatFromBuf(hVbuf, "\r\n\r\n", 4))
+        if (BS_OK != VBUF_CatBuf(hVbuf, "\r\n\r\n", 4))
         {
             return BS_ERR;
         }
@@ -387,15 +390,15 @@ static BS_STATUS fcgi_BuildResponseHeader(IN _FCGI_CTRL_S *pstFcgi)
     pstHeader = VBUF_GetData(hVbuf);
     fcgi_MakeHeader(&stHeader, FCGI_STDOUT, pstFcgi->usRequestId, (USHORT)ulParamLen);
 
-    
-    if (BS_OK != VBUF_CatFromBuf(hVbuf, pucPadding, pstHeader->ucPaddingLen))
+    /* 填充Padding */
+    if (BS_OK != VBUF_CatBuf(hVbuf, pucPadding, pstHeader->ucPaddingLen))
     {
         return BS_ERR;
     }
 
-    
+    /* 构造PARAMS结束标志 */
     fcgi_MakeHeader(&stHeader, FCGI_STDOUT, pstFcgi->usRequestId, 0);
-    if (BS_OK != VBUF_CatFromBuf(hVbuf, (UCHAR*)&stHeader, sizeof(FCGI_HEADER_S)))
+    if (BS_OK != VBUF_CatBuf(hVbuf, (UCHAR*)&stHeader, sizeof(FCGI_HEADER_S)))
     {
         return BS_ERR;
     }
@@ -404,7 +407,7 @@ static BS_STATUS fcgi_BuildResponseHeader(IN _FCGI_CTRL_S *pstFcgi)
 }
 
 
-
+/* 获取Param */
 static CHAR * fcgi_GetParam(IN DLL_HEAD_S *pstDllHead, IN CHAR *pcParamName)
 {
     FCGI_PARAM_S *pstNode;
@@ -420,7 +423,7 @@ static CHAR * fcgi_GetParam(IN DLL_HEAD_S *pstDllHead, IN CHAR *pcParamName)
     return NULL;
 }
 
-
+/* 获取Next Param, pstParam: 当前Param. 如果是NULL, 则表示取第一个Param */ 
 static FCGI_PARAM_S * fcgi_GetNextParam(IN DLL_HEAD_S *pstDllHead, IN FCGI_PARAM_S *pstParam)
 {
     return DLL_NEXT(pstDllHead, pstParam);
@@ -462,13 +465,13 @@ static BS_STATUS fcgi_WriteDataOnce
     
     for(;;)
     {
-        
+        /* 发送缓冲区中的数据 */
         if (BS_OK != fcgi_WriteDataInBuf(pstFcgi))
         {
             return BS_ERR;
         }
 
-        
+        /* 如果缓冲区数据发送未完成,则返回等待下次发送 */
         if (VBUF_GetDataLength(&pstFcgi->stVbuf) > 0)
         {
             break;
@@ -497,7 +500,7 @@ static BS_STATUS fcgi_WriteDataOnce
 
         if (pstFcgi->ucReaminPaddingLen > 0)
         {
-            if (BS_OK != VBUF_CatFromBuf(&pstFcgi->stVbuf, pucPadding,
+            if (BS_OK != VBUF_CatBuf(&pstFcgi->stVbuf, pucPadding,
                 pstFcgi->ucReaminPaddingLen))
             {
                 return BS_ERR;
@@ -507,10 +510,10 @@ static BS_STATUS fcgi_WriteDataOnce
 
         if (uiDataLen > uiTotleSendLen)
         {
-            
+            /* 构造分段头 */
             uiSegLen = MIN(FCGI_MAX_SEGMENT_SIZE, uiDataLen - uiTotleSendLen);
             fcgi_MakeHeader(&stHeader, FCGI_STDIN, pstFcgi->usRequestId, (USHORT)uiSegLen);
-            if (BS_OK != VBUF_CatFromBuf(&pstFcgi->stVbuf, (UCHAR*)&stHeader, sizeof(FCGI_HEADER_S)))
+            if (BS_OK != VBUF_CatBuf(&pstFcgi->stVbuf, (UCHAR*)&stHeader, sizeof(FCGI_HEADER_S)))
             {
                 return BS_ERR;
             }
@@ -518,7 +521,7 @@ static BS_STATUS fcgi_WriteDataOnce
             pstFcgi->ucReaminPaddingLen = stHeader.ucPaddingLen;
         }
 
-        
+        /* 如果没有Padding和分段头需要发送, 则退出循环 */
         if (VBUF_GetDataLength(&pstFcgi->stVbuf) == 0)
         {
             break;
@@ -530,7 +533,7 @@ static BS_STATUS fcgi_WriteDataOnce
     return BS_OK;        
 }
 
-
+/* 发送用户数据. 阻塞式循环发送,非阻塞式发送一次 */
 static BS_STATUS fcgi_WriteData
 (
     IN _FCGI_CTRL_S *pstFcgi,
@@ -561,7 +564,7 @@ static BS_STATUS fcgi_WriteData
     return BS_OK;
 }
 
-
+/* Description  : 创建Server端通道 */
 FCGI_HANDLE FCGI_ServerCreate(IN UINT uiSsltcpId, IN UINT uiFlag)
 {
     _FCGI_CTRL_S *pstFcgi;
@@ -575,7 +578,7 @@ FCGI_HANDLE FCGI_ServerCreate(IN UINT uiSsltcpId, IN UINT uiFlag)
     return pstFcgi;
 }
 
-
+/* 创建Client端通道 */
 FCGI_HANDLE FCGI_ClientCreate(IN UINT uiSsltcpId, IN UINT uiFlag)
 {
     _FCGI_CTRL_S *pstFcgi;
@@ -590,7 +593,7 @@ FCGI_HANDLE FCGI_ClientCreate(IN UINT uiSsltcpId, IN UINT uiFlag)
 }
 
 
-
+/* 销毁FCGI通道 */
 VOID FCGI_Destory(IN FCGI_HANDLE hFcgiChannel)
 {
     _FCGI_CTRL_S *pstFcgi = hFcgiChannel;
@@ -612,7 +615,7 @@ VOID FCGI_Destory(IN FCGI_HANDLE hFcgiChannel)
 }
 
 
-
+/* 得到和FCGI通道绑定在一起的SSLTCP ID */
 UINT FCGI_GetSsltcpId(IN FCGI_HANDLE hFcgiChannel)
 {
     _FCGI_CTRL_S *pstFcgi = hFcgiChannel;
@@ -620,13 +623,13 @@ UINT FCGI_GetSsltcpId(IN FCGI_HANDLE hFcgiChannel)
     return pstFcgi->uiSslTcpId;
 }
 
-
+/* 接收Seg Header */
 static BS_STATUS fcgi_RecvSegHeader(IN _FCGI_CTRL_S *pstFcgi)
 {
     UINT uiReadLen;
     FCGI_HEADER_S *pstHeader;
     
-    
+    /* 如果待接收的数据是0，说明是第一次调用这个函数,还没有接收到任何数据 */
     if (pstFcgi->uiRemainDataLen == 0)
     {
         pstFcgi->uiRemainDataLen = sizeof(FCGI_HEADER_S);
@@ -641,7 +644,7 @@ static BS_STATUS fcgi_RecvSegHeader(IN _FCGI_CTRL_S *pstFcgi)
     pstFcgi->uiRemainDataLen -= uiReadLen;
     pstFcgi->stSegHeadData.uiDataLen += uiReadLen;
 
-    
+    /* 如果接收完成,则进行处理并切换状态 */
     if (pstFcgi->uiRemainDataLen == 0)
     {
         pstHeader = (FCGI_HEADER_S*)pstFcgi->stSegHeadData.aucSegData;
@@ -662,7 +665,7 @@ static BS_STATUS fcgi_RecvSegHeader(IN _FCGI_CTRL_S *pstFcgi)
     return BS_OK;    
 }
 
-
+/* 接收Seg Data */
 static BS_STATUS fcgi_RecvBegineRequestData(IN _FCGI_CTRL_S *pstFcgi)
 {
     UINT uiReadLen;
@@ -677,7 +680,7 @@ static BS_STATUS fcgi_RecvBegineRequestData(IN _FCGI_CTRL_S *pstFcgi)
     pstFcgi->uiRemainDataLen -= uiReadLen;
     pstFcgi->stSegHeadData.uiDataLen += uiReadLen;
 
-    
+    /* 如果接收完成,则进行处理并切换状态 */
     if (pstFcgi->uiRemainDataLen == 0)
     {
         pstRequestBody = (FCGI_BEGIN_REQUEST_BODY_S*)(pstFcgi->stSegHeadData.aucSegData);
@@ -688,7 +691,7 @@ static BS_STATUS fcgi_RecvBegineRequestData(IN _FCGI_CTRL_S *pstFcgi)
     return BS_OK;
 }
 
-
+/* 接收Seg Data */
 static BS_STATUS fcgi_RecvEndRequestData(IN _FCGI_CTRL_S *pstFcgi)
 {
     UINT uiReadLen;
@@ -702,7 +705,7 @@ static BS_STATUS fcgi_RecvEndRequestData(IN _FCGI_CTRL_S *pstFcgi)
     pstFcgi->uiRemainDataLen -= uiReadLen;
     pstFcgi->stSegHeadData.uiDataLen += uiReadLen;
 
-    
+    /* 如果接收完成,则进行处理并切换状态 */
     if (pstFcgi->uiRemainDataLen == 0)
     {
         pstFcgi->eStatus = FCGI_STATUS_DONE;
@@ -712,7 +715,7 @@ static BS_STATUS fcgi_RecvEndRequestData(IN _FCGI_CTRL_S *pstFcgi)
     return BS_OK;
 }
 
-
+/* 接收Padding */
 static BS_STATUS fcgi_RecvPadding(IN _FCGI_CTRL_S *pstFcgi)
 {
     CHAR acPadding[8];
@@ -721,7 +724,7 @@ static BS_STATUS fcgi_RecvPadding(IN _FCGI_CTRL_S *pstFcgi)
     return SSLTCP_Read(pstFcgi->uiSslTcpId, acPadding, pstFcgi->ucReaminPaddingLen, &ulReadLen);
 }
 
-
+/* 接收Seg Data */
 static BS_STATUS fcgi_RecvParamData(IN _FCGI_CTRL_S *pstFcgi)
 {
     CHAR szParams[1024];
@@ -741,7 +744,7 @@ static BS_STATUS fcgi_RecvParamData(IN _FCGI_CTRL_S *pstFcgi)
 
         pstFcgi->uiRemainDataLen -= uiReadLen;
 
-        VBUF_CatFromBuf(&pstFcgi->stVbuf, szParams, uiReadLen);
+        VBUF_CatBuf(&pstFcgi->stVbuf, szParams, uiReadLen);
     }
 
     if (pstFcgi->ucReaminPaddingLen > 0)
@@ -760,7 +763,7 @@ static BS_STATUS fcgi_RecvParamData(IN _FCGI_CTRL_S *pstFcgi)
     return BS_OK;
 }
 
-
+/* 接收用户数据 */
 static BS_STATUS fcgi_RecvUserData
 (
     IN _FCGI_CTRL_S *pstFcgi,
@@ -818,7 +821,7 @@ static BS_STATUS fcgi_RecvUserData
     return BS_OK;
 }
 
-
+/* 接收Err数据 */
 static BS_STATUS fcgi_RecvErrData
 (
     IN _FCGI_CTRL_S *pstFcgi,
@@ -863,7 +866,7 @@ static BS_STATUS fcgi_RecvErrData
 }
 
 
-
+/* 接收Seg Data */
 static BS_STATUS fcgi_RecvSegData
 (
     IN _FCGI_CTRL_S *pstFcgi,
@@ -915,7 +918,7 @@ static BS_STATUS fcgi_RecvSegData
     return eRet;
 }
 
-
+/* 接收Seg Data */
 static BS_STATUS fcgi_RecvedParamEnd(IN _FCGI_CTRL_S *pstFcgi)
 {
     HANDLE hVbuf = &pstFcgi->stVbuf;
@@ -924,13 +927,13 @@ static BS_STATUS fcgi_RecvedParamEnd(IN _FCGI_CTRL_S *pstFcgi)
     UINT uiParamNamelen;
     UINT uiParamValueLen;
     
-    
+    /* 开始解析Param */
     pucParam = VBUF_GetData(hVbuf);
     ulParamLen = VBUF_GetDataLength(hVbuf);
 
     if ((NULL == pucParam) || (0 == ulParamLen))
     {
-        return BS_OK;   
+        return BS_OK;   /* 不存在Param是正常的 */
     }
 
     while (ulParamLen > 0)
@@ -1000,7 +1003,7 @@ static BS_STATUS fcgi_RecvedParamEnd(IN _FCGI_CTRL_S *pstFcgi)
     return BS_OK;
 }
 
-
+/* 接收Type End消息 */
 static BS_STATUS fcgi_RecvedTypeEnd(IN _FCGI_CTRL_S *pstFcgi)
 {
     BS_STATUS eRet = BS_ERR;
@@ -1021,7 +1024,7 @@ static BS_STATUS fcgi_RecvedTypeEnd(IN _FCGI_CTRL_S *pstFcgi)
     return eRet;
 }
 
-
+/* 解析FCGI请求头 */
 static BS_STATUS fcgi_ParseRequestHead(IN _FCGI_CTRL_S *pstFcgi)
 {
     _FCGI_RECV_SEG_TYPE_E eOldRecvSegType;
@@ -1065,7 +1068,7 @@ static BS_STATUS fcgi_ParseRequestHead(IN _FCGI_CTRL_S *pstFcgi)
     return eRet;
 }
 
-
+/* 解析FCGI应答头 */
 static BS_STATUS fcgi_ParseResponseHead(IN _FCGI_CTRL_S *pstFcgi)
 {
     _FCGI_RECV_SEG_TYPE_E eOldRecvSegType;
@@ -1109,7 +1112,7 @@ static BS_STATUS fcgi_ParseResponseHead(IN _FCGI_CTRL_S *pstFcgi)
     return eRet;
 }
 
-
+/* 解析FCGI头 */
 BS_STATUS FCGI_ParseHead(IN FCGI_HANDLE hFcgiChannel)
 {
     _FCGI_CTRL_S *pstFcgi = hFcgiChannel;
@@ -1124,7 +1127,7 @@ BS_STATUS FCGI_ParseHead(IN FCGI_HANDLE hFcgiChannel)
     }
 }
 
-
+/* 解析FCGI头是否完成 */
 BOOL_T FCGI_IsParseHeadOk(IN FCGI_HANDLE hFcgiChannel)
 {
     _FCGI_CTRL_S *pstFcgi = hFcgiChannel;
@@ -1137,7 +1140,7 @@ BOOL_T FCGI_IsParseHeadOk(IN FCGI_HANDLE hFcgiChannel)
     return TRUE;
 }
 
-
+/* 设置头参数 */
 BS_STATUS FCGI_SetParam(IN FCGI_HANDLE hFcgiChannel, IN CHAR *pcParamName, IN CHAR *pcParamValue)
 {
     _FCGI_CTRL_S *pstFcgi = hFcgiChannel;
@@ -1163,7 +1166,7 @@ BS_STATUS FCGI_SetParam(IN FCGI_HANDLE hFcgiChannel, IN CHAR *pcParamName, IN CH
                 pcValue, strlen(pcValue));
 }
 
-
+/* 设置头参数完成 */
 BS_STATUS FCGI_SetParamFinish(IN FCGI_HANDLE hFcgiChannel)
 {
     _FCGI_CTRL_S *pstFcgi = hFcgiChannel;
@@ -1187,7 +1190,7 @@ BS_STATUS FCGI_SetParamFinish(IN FCGI_HANDLE hFcgiChannel)
     return BS_OK;
 }
 
-
+/* 获取Request Param */
 CHAR * FCGI_GetRequestParam(IN FCGI_HANDLE hFcgiChannel, IN CHAR *pcParamName)
 {
     
@@ -1196,7 +1199,7 @@ CHAR * FCGI_GetRequestParam(IN FCGI_HANDLE hFcgiChannel, IN CHAR *pcParamName)
     return fcgi_GetParam(&pstFcgi->stRequestParams, pcParamName);
 }
 
-
+/* 获取Response Param */
 CHAR * FCGI_GetResponseParam(IN FCGI_HANDLE hFcgiChannel, IN CHAR *pcParamName)
 {
     _FCGI_CTRL_S *pstFcgi = hFcgiChannel;
@@ -1204,7 +1207,7 @@ CHAR * FCGI_GetResponseParam(IN FCGI_HANDLE hFcgiChannel, IN CHAR *pcParamName)
     return fcgi_GetParam(&pstFcgi->stResponseParams, pcParamName);
 }
 
-
+/* 获取下一个Request Param, pstParam: 当前Param. 如果是NULL, 则表示取第一个Param */
 FCGI_PARAM_S * FCGI_GetNextRequestParam(IN FCGI_HANDLE hFcgiChannel, IN FCGI_PARAM_S *pstParam)
 {
     _FCGI_CTRL_S *pstFcgi = hFcgiChannel;
@@ -1212,7 +1215,7 @@ FCGI_PARAM_S * FCGI_GetNextRequestParam(IN FCGI_HANDLE hFcgiChannel, IN FCGI_PAR
     return fcgi_GetNextParam(&pstFcgi->stRequestParams, pstParam);
 }
 
-
+/* 获取下一个Response Param, pstParam: 当前Param. 如果是NULL, 则表示取第一个Param */
 FCGI_PARAM_S * FCGI_GetNextResponseParam(IN FCGI_HANDLE hFcgiChannel, IN FCGI_PARAM_S *pstParam)
 {
     _FCGI_CTRL_S *pstFcgi = hFcgiChannel;
@@ -1220,7 +1223,7 @@ FCGI_PARAM_S * FCGI_GetNextResponseParam(IN FCGI_HANDLE hFcgiChannel, IN FCGI_PA
     return fcgi_GetNextParam(&pstFcgi->stResponseParams, pstParam);
 }
 
-
+/* 读取FCGI数据 */
 static BS_STATUS fcgi_Read
 (
     IN _FCGI_CTRL_S *pstFcgi,
@@ -1266,7 +1269,7 @@ static BS_STATUS fcgi_Read
 }
 
 
-
+/* 读取FCGI数据 */
 BS_STATUS FCGI_Read
 (
     IN FCGI_HANDLE hFcgiChannel,
@@ -1278,7 +1281,7 @@ BS_STATUS FCGI_Read
     return fcgi_Read(hFcgiChannel, pucData, uiDataLen, puiReadLen);
 }
 
-
+/* 是否读取FCGI数据结束 */
 BOOL_T FCGI_IsReadEOF(IN FCGI_HANDLE hFcgiChannel)
 {
     _FCGI_CTRL_S *pstFcgi = hFcgiChannel;
@@ -1301,7 +1304,7 @@ BOOL_T FCGI_IsReadEOF(IN FCGI_HANDLE hFcgiChannel)
     return FALSE;
 }
 
-
+/* 发送数据 */
 BS_STATUS FCGI_Write
 (
     IN FCGI_HANDLE hFcgiChannel,
@@ -1315,7 +1318,7 @@ BS_STATUS FCGI_Write
     return fcgi_WriteData(pstFcgi, pucData, uiDataLen, puiWriteLen);
 }
 
-
+/* 发送数据结束 */
 BS_STATUS FCGI_WriteFinish(IN FCGI_HANDLE hFcgiChannel)
 {
     _FCGI_CTRL_S *pstFcgi = hFcgiChannel;
@@ -1329,7 +1332,7 @@ BS_STATUS FCGI_WriteFinish(IN FCGI_HANDLE hFcgiChannel)
             pstFcgi->usRequestId, sizeof(FCGI_END_REQUEST_BODY_S));
         fcgi_MakeEndRequestBody(&stEndRequest.stBody);
 
-        if (BS_OK != VBUF_CatFromBuf(&pstFcgi->stVbuf, (UCHAR*)&stEndRequest, sizeof(FCGI_END_REQUEST_RECORD_S)))
+        if (BS_OK != VBUF_CatBuf(&pstFcgi->stVbuf, (UCHAR*)&stEndRequest, sizeof(FCGI_END_REQUEST_RECORD_S)))
         {
             return BS_ERR;
         }
@@ -1337,7 +1340,7 @@ BS_STATUS FCGI_WriteFinish(IN FCGI_HANDLE hFcgiChannel)
     else
     {
         fcgi_MakeHeader(&stHeader, FCGI_STDIN, pstFcgi->usRequestId, 0);
-        if (BS_OK != VBUF_CatFromBuf(&pstFcgi->stVbuf, (UCHAR*)&stHeader, sizeof(FCGI_HEADER_S)))
+        if (BS_OK != VBUF_CatBuf(&pstFcgi->stVbuf, (UCHAR*)&stHeader, sizeof(FCGI_HEADER_S)))
         {
             return BS_ERR;
         }
@@ -1346,7 +1349,7 @@ BS_STATUS FCGI_WriteFinish(IN FCGI_HANDLE hFcgiChannel)
     return fcgi_WriteData(hFcgiChannel, NULL, 0, &uiWriteLen);
 }
 
-
+/* 得到发送缓冲区中数据长度 */
 ULONG FCGI_GetDataLenInSendBuf(IN FCGI_HANDLE hFcgiChannel)
 {
     _FCGI_CTRL_S *pstFcgi = hFcgiChannel;
@@ -1354,7 +1357,7 @@ ULONG FCGI_GetDataLenInSendBuf(IN FCGI_HANDLE hFcgiChannel)
     return VBUF_GetDataLength(&pstFcgi->stVbuf);
 }
 
-
+/* 发送FCGI缓冲区中的数据 */
 BS_STATUS FCGI_Flush(IN FCGI_HANDLE hFcgiChannel)
 {
     UINT uiWriteLen;
@@ -1362,7 +1365,7 @@ BS_STATUS FCGI_Flush(IN FCGI_HANDLE hFcgiChannel)
     return fcgi_WriteData(hFcgiChannel, NULL, 0, &uiWriteLen);
 }
 
-
+/* 得到FCGI通道状态 */
 FCGI_STATUS_E FCGI_GetStatus(IN FCGI_HANDLE hFcgiChannel)
 {
     _FCGI_CTRL_S *pstFcgi = hFcgiChannel;
@@ -1370,7 +1373,7 @@ FCGI_STATUS_E FCGI_GetStatus(IN FCGI_HANDLE hFcgiChannel)
     return pstFcgi->eStatus;
 }
 
-
+/* 是否保持长连接 */
 BOOL_T FCGI_IsKeepAlive(IN FCGI_HANDLE hFcgiChannel)
 {
     _FCGI_CTRL_S *pstFcgi = hFcgiChannel;

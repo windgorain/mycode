@@ -4,7 +4,7 @@
 ********************************************************/
 #include "utl/ulc_user.h"
 
-SEC("tcmd/main")
+SEC(".spf.cmd/")
 int main(int argc, char **argv)
 {
     int i;

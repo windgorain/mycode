@@ -15,7 +15,7 @@
 #include "utl/passwd_utl.h"
 #include <stdbool.h>
 
-
+/* funcs */
 #ifdef IN_WINDOWS
 static BOOL_T _OS_FILE_IsAbsolutePath(IN CHAR *pszPath)
 {
@@ -64,9 +64,9 @@ char * FILE_ToAbsPath(char *base_dir, char *path, OUT char *dst, int dst_size)
     } else {
         base_dir_len = strlen(base_dir);
         if ((base_dir[base_dir_len - 1] == '/') || (base_dir[base_dir_len - 1] == '\\')) {
-            iRet = scnprintf(dst, dst_size, "%s%s", base_dir, path);
+            iRet = snprintf(dst, dst_size, "%s%s", base_dir, path);
         } else {
-            iRet = scnprintf(dst, dst_size, "%s/%s", base_dir, path);
+            iRet = snprintf(dst, dst_size, "%s/%s", base_dir, path);
         }
     }
 
@@ -90,7 +90,7 @@ char * FILE_Dup2AbsPath(IN char *base_dir, IN char *path)
     return strdup(new_filename);
 }
 
-
+/* 从路径中获取文件名 */
 CHAR * FILE_GetFileNameFromPath(IN CHAR *pszPath)
 {
     UINT ulLen;
@@ -140,7 +140,7 @@ BS_STATUS FILE_GetFileNameWithOutExtFromPath(IN CHAR *pszPath, OUT LSTR_S *pstFi
     return BS_OK;
 }
 
-
+/* 从携带文件名的路径中,把路径取出来,路径以"/"结束 */
 VOID FILE_GetPathFromFilePath(IN CHAR *pszFilePath, OUT CHAR *szPath)
 {
     CHAR *pszFileName;
@@ -168,7 +168,7 @@ VOID FILE_GetPathFromFilePath(IN CHAR *pszFilePath, OUT CHAR *szPath)
     return;
 }
 
-
+/* 不包含. */
 CHAR * FILE_GetExternNameFromPath(IN CHAR *pszPath, IN UINT uiPathLen)
 {
     UINT ulLen = uiPathLen;
@@ -188,7 +188,7 @@ CHAR * FILE_GetExternNameFromPath(IN CHAR *pszPath, IN UINT uiPathLen)
     return NULL;
 }
 
-
+/* 抹去扩展名 */
 CHAR * FILE_EarseExternName(IN CHAR *pcFilePath)
 {
     CHAR *pcExtName;
@@ -200,7 +200,7 @@ CHAR * FILE_EarseExternName(IN CHAR *pcFilePath)
         return pcFilePath;
     }
 
-    pcExtName --; 
+    pcExtName --; /* 移动到'.'的位置 */
     *pcExtName = '\0';
 
     return pcFilePath;
@@ -224,14 +224,14 @@ CHAR * FILE_ChangeExternName(CHAR *file_name, CHAR *ext_name)
     return file_name;
 }
 
-
+/* 根据文件路径获取深度, 要求Unix体系的路径格式 */
 UINT FILE_GetPathDeep(IN CHAR *pcFilePath, IN UINT uiPathLen)
 {
     UINT uiDeep = 0;
     CHAR *pcEnd = pcFilePath + uiPathLen;
     CHAR *pcPtr = pcFilePath;
 
-    if (*pcPtr == '/') 
+    if (*pcPtr == '/') /* 根不做计数 */
     {
         pcPtr ++;
     }
@@ -249,11 +249,24 @@ UINT FILE_GetPathDeep(IN CHAR *pcFilePath, IN UINT uiPathLen)
     return uiDeep;
 }
 
-
+/***************************************************
+ Description  : 判断文件是否存在
+ Return       : 存在: TRUE
+                不存在: FALSE
+****************************************************/
 BOOL_T FILE_IsFileExist(IN CHAR *pcFilePath)
 {
 
-    
+    /*
+        access函数的Mode参数:
+        06     检查读写权限
+        04     检查读权限
+        02     检查写权限
+        01     检查执行权限
+        00     检查文件的存在性
+
+        amode参数为0时表示检查文件的存在性，如果文件存在，返回0，不存在，返回-1
+    */
     if (0 == access(pcFilePath, 0))
     {
         return TRUE;
@@ -262,23 +275,25 @@ BOOL_T FILE_IsFileExist(IN CHAR *pcFilePath)
     return FALSE;
 }
 
-
+/*****************************************************************************
+  判断一个指定路径的目录是否存在
+*****************************************************************************/
 BOOL_T FILE_IsDirExist(IN CHAR *pcDirName)
 {
-    
+    /* 局部变量定义 */
     struct stat stBuf;
     BOOL_T bRet;
     INT iRet;
 
     BS_DBGASSERT(NULL != pcDirName);
 
-    
+    /* 以只读方式打开pcDirName指向的目录 */
     iRet = stat(pcDirName, &stBuf);
     if (0 == iRet)
     {
         bRet = S_ISDIR(stBuf.st_mode);
     }
-    else 
+    else /* 打开文件失败 */
     {
         bRet = FALSE;
     }
@@ -287,7 +302,9 @@ BOOL_T FILE_IsDirExist(IN CHAR *pcDirName)
 }
 
 
-
+/***************************************************
+ 判断给定路径是否目录
+****************************************************/
 BOOL_T FILE_IsDir(IN CHAR *pcPath)
 {
     struct stat f_stat;
@@ -298,7 +315,7 @@ BOOL_T FILE_IsDir(IN CHAR *pcPath)
         return FALSE;
     }
 
-    TXT_Strlcpy(szPath, pcPath, sizeof(szPath));
+    strlcpy(szPath, pcPath, sizeof(szPath));
     FILE_PATH_TO_HOST(szPath);
 
     if (stat (szPath, &f_stat ) == -1)
@@ -323,7 +340,7 @@ S64 FILE_GetSize(char *pszFileName)
         return -1;
     }
 
-    TXT_Strlcpy(szPath, pszFileName, sizeof(szPath));
+    strlcpy(szPath, pszFileName, sizeof(szPath));
     FILE_PATH_TO_HOST(szPath);
 
     if (stat (szPath, &f_stat ) == -1) {
@@ -336,9 +353,9 @@ S64 FILE_GetSize(char *pszFileName)
 BS_STATUS FILE_GetUtcTime
 (
  IN CHAR *pszFileName,
- OUT time_t *pulCreateTime,   
-    OUT time_t *pulModifyTime,   
-    OUT time_t *pulAccessTime    
+ OUT time_t *pulCreateTime,   /* NULL表示不关心 */
+    OUT time_t *pulModifyTime,   /* NULL表示不关心 */
+    OUT time_t *pulAccessTime    /* NULL表示不关心 */
 )
 {
     struct stat f_stat; 
@@ -349,7 +366,7 @@ BS_STATUS FILE_GetUtcTime
         RETURN(BS_NULL_PARA);
     }
 
-    TXT_Strlcpy(szPath, pszFileName, sizeof(szPath));
+    strlcpy(szPath, pszFileName, sizeof(szPath));
     FILE_PATH_TO_HOST(szPath);
 
     if (stat (szPath, &f_stat ) == -1)
@@ -392,7 +409,7 @@ BS_STATUS FILE_SetUtcTime
     time_t ulNewAccessTime;
     time_t ulNewModifyTime;
 
-    
+    /* 如果有不需要更改的,则现得到原来的信息,用于一会儿再设置回去. */
     if ((eAccessTimeMode == FILE_TIME_MODE_NOTMODIFY) || (eModifyTimeMode == FILE_TIME_MODE_NOTMODIFY))
     {
         if ((eAccessTimeMode == FILE_TIME_MODE_NOTMODIFY) && (eModifyTimeMode == FILE_TIME_MODE_NOTMODIFY))
@@ -468,7 +485,7 @@ BS_STATUS FILE_SetUtcTime
     return BS_OK;
 }
 
-
+/* 创建目录, 如果已经存在, BS_ALREADY_EXIST*/
 BS_STATUS FILE_MakeDir(char *path)
 {
     int ret = mkdir(path, 0777);
@@ -481,7 +498,7 @@ BS_STATUS FILE_MakeDir(char *path)
     return ret;
 }
 
-
+/* 创建目录, 如果已经存在, 返回OK */
 BS_STATUS FILE_MakeDir2(char *path)
 {
     int ret = mkdir(path, 0777);
@@ -494,8 +511,8 @@ BS_STATUS FILE_MakeDir2(char *path)
     return ret;
 }
 
-
-
+/* 创建路径上的所有目录, 如果已经存在，则返回BS_ALREADY_EXIST */
+/* pszPath:  以'/'或'\\'结尾的一个路径, 如果不是,则自动忽略最后一个'/'或'\\'之后的字符 */
 BS_STATUS FILE_MakeDirs(IN CHAR *pszPath)
 {
     CHAR *pcSplit, *pszDir;
@@ -509,7 +526,7 @@ BS_STATUS FILE_MakeDirs(IN CHAR *pszPath)
         RETURN(BS_TOO_LONG);
     }
 
-    TXT_Strlcpy(szPath, pszPath, sizeof(szPath));
+    strlcpy(szPath, pszPath, sizeof(szPath));
 
     FILE_PATH_TO_UNIX(szPath);
 
@@ -530,7 +547,7 @@ BS_STATUS FILE_MakeDirs(IN CHAR *pszPath)
     return BS_OK;
 }
 
-
+/* 创建路径上的所有目录, 如果已经存在，也返回OK */
 BS_STATUS FILE_MakePath(IN CHAR *pszPath)
 {
     CHAR *pcSplit, *pszDir;
@@ -543,7 +560,7 @@ BS_STATUS FILE_MakePath(IN CHAR *pszPath)
         RETURN(BS_TOO_LONG);
     }
 
-    TXT_Strlcpy(szPath, pszPath, sizeof(szPath));
+    strlcpy(szPath, pszPath, sizeof(szPath));
 
     FILE_PATH_TO_UNIX(szPath);
 
@@ -594,7 +611,7 @@ BS_STATUS FILE_DelDir(IN CHAR *pszPath)
     CHAR *pszName;
     CHAR szSubPath[FILE_MAX_PATH_LEN + 1];
 
-    TXT_Strlcpy(szPath, pszPath, sizeof(szPath));
+    strlcpy(szPath, pszPath, sizeof(szPath));
 
     ulLen = strlen(szPath);
 
@@ -614,7 +631,7 @@ BS_STATUS FILE_DelDir(IN CHAR *pszPath)
 
     DIR_SCAN_START(szPath, pszName)
     {
-        TXT_Strlcpy(szSubPath, szPath, sizeof(szSubPath));
+        strlcpy(szSubPath, szPath, sizeof(szSubPath));
 #ifdef IN_WINDOWS
         szSubPath[strlen(szSubPath)-1] = '\0';
 #endif
@@ -625,7 +642,7 @@ BS_STATUS FILE_DelDir(IN CHAR *pszPath)
 
     FILE_SCAN_START(szPath, pszName)
     {
-        TXT_Strlcpy(szSubPath, szPath, sizeof(szSubPath));
+        strlcpy(szSubPath, szPath, sizeof(szSubPath));
 #ifdef IN_WINDOWS
 		szSubPath[strlen(szSubPath)-1] = '\0';
 #endif
@@ -634,7 +651,7 @@ BS_STATUS FILE_DelDir(IN CHAR *pszPath)
     }
     FILE_SCAN_END();
 
-    TXT_Strlcpy(szPath, pszPath, sizeof(szPath));
+    strlcpy(szPath, pszPath, sizeof(szPath));
     FILE_PATH_TO_HOST(szPath);
 
     if (0 != rmdir(pszPath))
@@ -645,7 +662,7 @@ BS_STATUS FILE_DelDir(IN CHAR *pszPath)
     return BS_OK;
 }
 
-
+/* 先创建文件所在目录路径，再打开文件 */
 FILE * FILE_Open(IN CHAR *pszFilePath, IN BOOL_T bIsCreateDirIfNotExist, IN CHAR *pszOpenMode)
 {
     CHAR szPath[FILE_MAX_PATH_LEN + 1];
@@ -660,7 +677,7 @@ FILE * FILE_Open(IN CHAR *pszFilePath, IN BOOL_T bIsCreateDirIfNotExist, IN CHAR
         FILE_MakeDirs (pszFilePath);
     }
 
-    TXT_Strlcpy(szPath, pszFilePath, sizeof(szPath));
+    strlcpy(szPath, pszFilePath, sizeof(szPath));
     FILE_PATH_TO_HOST(szPath);
     
     return FOPEN(szPath, pszOpenMode);
@@ -697,7 +714,7 @@ BOOL_T FILE_IsHaveUtf8Bom(IN FILE *fp)
     return FALSE;
 }
 
-
+/* copy 文件 */
 BS_STATUS FILE_CopyTo(IN CHAR *pszSrcFileName, IN CHAR *pszDstFileName)
 {
     FILE *fp, *fq;
@@ -735,7 +752,7 @@ BS_STATUS FILE_CopyTo(IN CHAR *pszSrcFileName, IN CHAR *pszDstFileName)
     return BS_OK;
 }
 
-
+/* 移动文件 */
 BS_STATUS FILE_MoveTo(IN CHAR *pszSrcFileName, IN CHAR *pszDstFileName, IN BOOL_T bOverWrite)
 {
     CHAR szBakFileName[FILE_MAX_PATH_LEN + 1];
@@ -749,19 +766,19 @@ BS_STATUS FILE_MoveTo(IN CHAR *pszSrcFileName, IN CHAR *pszDstFileName, IN BOOL_
 
     if (bOverWrite == TRUE)
     {
-        
-        TXT_Strlcpy(szBakFileName, pszDstFileName, sizeof(szBakFileName));
+        /* 保存备份 */
+        strlcpy(szBakFileName, pszDstFileName, sizeof(szBakFileName));
         TXT_Strlcat(szBakFileName, ".cnjia1", sizeof(szBakFileName));
         FILE_DelFile(szBakFileName);
         rename(pszDstFileName, szBakFileName);
     }
 
-    
+    /* 移动文件 */
     if (0 != rename(pszSrcFileName, pszDstFileName))
     {
         if (bOverWrite == TRUE)
         {
-            
+            /* 失败,恢复原来的文件 */
             rename(szBakFileName, pszDstFileName);
         }
 
@@ -797,43 +814,13 @@ int FILE_MemByData(void *data, int data_len, OUT FILE_MEM_S *m)
     return 0;
 }
 
-
-int FILE_MemTo(IN CHAR *pszFilePath, OUT void *buf, int buf_size)
-{
-    FILE *fp;
-    S64 filesize;
-    int read_len;
-
-    filesize = FILE_GetSize(pszFilePath);
-    if (filesize < 0) {
-        RETURN(BS_CAN_NOT_OPEN);
-    }
-
-    read_len = MIN(buf_size, filesize);
-
-    fp = FILE_Open(pszFilePath, FALSE, "rb");
-    if (NULL == fp) {
-        RETURN(BS_CAN_NOT_OPEN);
-    }
-
-    if (read_len != fread(buf, 1, read_len, fp)) {
-        fclose(fp);
-        RETURN(BS_ERR);
-    }
-
-    fclose(fp);
-
-    return read_len;
-}
-
-typedef struct
-{
-    CHAR szUserScanDir[FILE_MAX_PATH_LEN + 1];    
-    CHAR *pcPattern; 
+typedef struct {
+    CHAR szUserScanDir[FILE_MAX_PATH_LEN + 1];    /* 用户要扫描的目录 */
+    CHAR *pcPattern; /* NULL表示所有文件类型 */
     PF_ScanFile_Output pfOutput;
     VOID *pUserData;
-    CHAR szCurrentScanDir[FILE_MAX_PATH_LEN + 1]; 
-    CHAR szScanPattern[FILE_MAX_PATH_LEN + 1]; 
+    CHAR szCurrentScanDir[FILE_MAX_PATH_LEN + 1]; /* 当前正在扫描的目录, 相对于UserScanDir的相对路径 */
+    CHAR szScanPattern[FILE_MAX_PATH_LEN + 1]; /* 当前正在扫描的目录, 包含UserScanDir, 包含模式 */
 }FILE_SCANFILE_S;
 
 static VOID file_ScanFile(IN FILE_SCANFILE_S *pstScanFile)
@@ -891,7 +878,7 @@ static VOID file_ScanFile(IN FILE_SCANFILE_S *pstScanFile)
 VOID FILE_ScanFile
 (
     IN CHAR *pcScanDir,
-    IN CHAR *pcPattern, 
+    IN CHAR *pcPattern, /* NULL表示所有文件类型 */
     IN PF_ScanFile_Output pfOutput,
     IN VOID *pUserData
 )
@@ -928,7 +915,9 @@ VOID FILE_ScanFile
     return;
 }
 
-
+/* 返回line以\0结尾
+   返回应该读取多长,当ret >= size时表示了截断,且下次读取下一行,这和fgets是有区别的
+   返回<=0则表示结束 */
 int FILE_ReadLine(FILE *fp, char *line, int size, char end_char)
 {
     char *tmp = line;
@@ -956,28 +945,5 @@ int FILE_ReadLine(FILE *fp, char *line, int size, char end_char)
     }
 
     return count;
-}
-
-int FILE_WriteFile(char *filename, void *data, U32 data_len)
-{
-    FILE *fp = NULL;
-    int ret = 0;
-
-    fp = FILE_Open(filename, TRUE, "wb+");
-    if (! fp) {
-        RETURNI(BS_ERR, "Can't open file %s", filename);
-    }
-
-    if (data_len) {
-        ret = fwrite(data, 1, data_len, fp);
-    }
-
-    FILE_Close(fp);
-
-    if (ret < 0) {
-        RETURNI(BS_CAN_NOT_WRITE, "Can't wiret to file %s", filename);
-    }
-
-    return ret;
 }
 

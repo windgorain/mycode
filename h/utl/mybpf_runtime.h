@@ -16,7 +16,7 @@ extern "C"
 #endif
 
 typedef struct {
-    MAP_HANDLE loader_map;
+    DLL_HEAD_S list;
     DLL_HEAD_S hp_list[MYBPF_HP_MAX];
 }MYBPF_RUNTIME_S;
 
@@ -29,4 +29,4 @@ MYBPF_RUNTIME_S * MYBPF_GetDftRuntime(void);
 #ifdef __cplusplus
 }
 #endif
-#endif 
+#endif //MYBPF_RUNTIME_H_

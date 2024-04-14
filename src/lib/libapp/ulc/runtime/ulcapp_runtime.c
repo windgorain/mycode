@@ -105,12 +105,11 @@ int ULCAPP_UnloadInstance(char *instance)
 
 int ULCAPP_RuntimeSave(HANDLE hFile)
 {
-    void *iter = NULL;
     MYBPF_LOADER_PARAM_S *p;
-    MYBPF_LOADER_NODE_S *n;
+    MYBPF_LOADER_NODE_S *n = NULL;
 
     ULCAPP_CfgLock();
-    while ((n = MYBPF_LoaderGetNext(&g_ulcapp_runtime, &iter))) {
+    while ((n = MYBPF_LoaderGetNext(&g_ulcapp_runtime, n))) {
         p = &n->param;
         CMD_EXP_OutputCmd(hFile, "load %s file %s", p->instance, p->filename);
     }
@@ -129,7 +128,7 @@ void ULCAPP_ShowMap(void)
 void ULCAPP_DumpMap(int map_fd)
 {
     ULCAPP_CfgLock();
-    
+    //UMAP_DumpMap(g_ulcapp_runtime.ufd_ctx, map_fd, EXEC_OutInfo);
     ULCAPP_CfgUnlock();
 }
 

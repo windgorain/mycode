@@ -6,6 +6,7 @@
 #include "bs.h"
 #include "utl/subcmd_utl.h"
 #include "utl/txt_utl.h"
+#include "utl/ulc_user.h"
 
 #define SUBCMD_MATCH_NUM 128
 
@@ -108,13 +109,13 @@ static char * subcmd_build_help_info(SUBCMD_MATCHED_S *matched, OUT char *buf, i
 
     buf[0] = '\0';
 
-    len += scnprintf(buf, buf_size-len, "Commands:\r\n");
+    len += snprintf(buf, buf_size-len, "Commands:\r\n");
 
     for (i=0; i<matched->matched_count; i++) {
         node = matched->matched[i];
-        len += scnprintf(buf+len, buf_size-len, " ");
-        len += scnprintf(buf+len, buf_size-len, "%-32s    ", node->subcmd);
-        len += scnprintf(buf+len, buf_size-len, "- %s\r\n", node->help == NULL ? "": node->help);
+        len += snprintf(buf+len, buf_size-len, " ");
+        len += snprintf(buf+len, buf_size-len, "%-32s    ", node->subcmd);
+        len += snprintf(buf+len, buf_size-len, "- %s\r\n", node->help == NULL ? "": node->help);
     }
 
     return buf;
@@ -126,12 +127,14 @@ static void subcmd_help(SUBCMD_MATCHED_S *matched)
     printf("%s", subcmd_build_help_info(matched, buf, sizeof(buf)));
 }
 
-
+/* app_name don't exist, argv[0...]: params */
 int SUBCMD_DoExt(SUB_CMD_NODE_S *subcmd, int argc, char **argv, int flag)
 {
     PF_SUBCMD_FUNC func;
     int tok_num;
-    SUBCMD_MATCHED_S matched = {0};
+    SUBCMD_MATCHED_S matched;
+
+    memset(&matched, 0, sizeof(matched));
 
     if (argc < 0) {
         subcmd_help(&matched);
@@ -155,13 +158,13 @@ int SUBCMD_DoExt(SUB_CMD_NODE_S *subcmd, int argc, char **argv, int flag)
     return func((argc + 1) - tok_num, argv + (tok_num - 1));
 }
 
-
+/* argv[0]: app_name, argv[1...]: params */
 int SUBCMD_Do(SUB_CMD_NODE_S *subcmd, int argc, char **argv)
 {
     return SUBCMD_DoExt(subcmd, argc - 1, argv + 1, 0);
 }
 
-
+/* app_name don't exist, argv[0...]: params */
 int SUBCMD_DoParams(SUB_CMD_NODE_S *subcmd, int argc, char **argv)
 {
     return SUBCMD_DoExt(subcmd, argc, argv, 0);

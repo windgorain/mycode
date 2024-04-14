@@ -36,7 +36,7 @@ void * _mem_rcu_malloc(IN UINT uiSize, const char *file, int line)
 
 void * _mem_rcu_zmalloc(IN UINT uiSize, const char *file, int line)
 {
-    void *pMem = MEM_RcuMalloc(uiSize);
+    void *pMem = _mem_rcu_malloc(uiSize, file, line);
     if (pMem) {
         Mem_Zero(pMem, uiSize);
     }

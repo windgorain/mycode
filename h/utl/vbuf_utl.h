@@ -12,23 +12,26 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif 
+#endif /* __cplusplus */
 
 typedef struct {
     ULONG ulTotleLen;
     ULONG ulUsedLen;
-    ULONG ulOffset;  
-    UINT  double_mem: 1; 
+    ULONG ulOffset;  /* 数据的起始偏移 */
+    UINT  double_mem: 1; /* 0: 节省内存模式, 用多少申请多少. 1: 按照*2来自动扩展 */
     UCHAR *pucData;
 }VBUF_S;
 
 int VBUF_AddHead(INOUT VBUF_S *vbuf, ULONG len);
 int VBUF_AddHeadBuf(INOUT VBUF_S *vbuf, void *buf, ULONG len);
+int VBUF_AddTail(INOUT VBUF_S *vbuf, ULONG len);
 BS_STATUS VBUF_CatFromVBuf(IN VBUF_S *pstVBufDst, IN VBUF_S *pstVBufSrc);
 BS_STATUS VBUF_CpyFromVBuf(IN VBUF_S *pstVBufDst, IN VBUF_S *pstVBufSrc);
 INT VBUF_CmpByBuf(IN VBUF_S *pstVBuf, IN void *buf, IN ULONG ulLen);
 INT VBUF_CmpByVBuf(IN VBUF_S *pstVBuf1, IN VBUF_S *pstVBuf2);
 long VBUF_Ptr2Offset(VBUF_S *vbuf, void *ptr);
+int VBUF_Insert(VBUF_S *vbuf, U64 data_offset, U64 len);
+int VBUF_InsertBuf(VBUF_S *vbuf, U64 data_offset, void *buf, U64 buf_len);
 int VBUF_WriteFile(char *filename, VBUF_S *vbuf);
 int VBUF_ReadFP(void *fp, OUT VBUF_S *vbuf);
 int VBUF_ReadFile(char *filename, OUT VBUF_S *vbuf);
@@ -58,7 +61,7 @@ static inline int _vbuf_expand_to(IN VBUF_S *pstVBuf, IN ULONG ulLen)
     return BS_OK;
 }
 
-static inline int _vbuf_resize_double_up_to(VBUF_S *pstVBuf, ULONG min)
+static inline int _vbuf_resize_double_up_to(VBUF_S *pstVBuf, ULONG min/* 最少扩展到的长度 */)
 {
     ULONG new_size = pstVBuf->ulTotleLen;
 
@@ -74,7 +77,7 @@ static inline int _vbuf_resize_double_up_to(VBUF_S *pstVBuf, ULONG min)
 }
 
 
-static inline int _vbuf_resize_up_to(VBUF_S *pstVBuf, ULONG len)
+static inline int _vbuf_resize_up_to(VBUF_S *pstVBuf, ULONG len/* 扩展到的长度 */)
 {
     if (pstVBuf->double_mem) {
         return _vbuf_resize_double_up_to(pstVBuf, len);
@@ -82,12 +85,12 @@ static inline int _vbuf_resize_up_to(VBUF_S *pstVBuf, ULONG len)
     return _vbuf_expand_to(pstVBuf, len);
 }
 
-static inline int _vbuf_resize_up(VBUF_S *pstVBuf, ULONG len)
+static inline int _vbuf_resize_up(VBUF_S *pstVBuf, ULONG len/* 增加这么多 */)
 {
     return _vbuf_resize_up_to(pstVBuf, pstVBuf->ulTotleLen + len);
 }
 
-
+/* 将数据移动到Offset位置 */
 static inline int _vbuf_move_data(IN VBUF_S *pstVBuf, IN ULONG ulOffset)
 {
     if (pstVBuf->ulOffset == ulOffset) {
@@ -140,12 +143,12 @@ static inline void VBUF_Finit(IN VBUF_S *pstVBuf)
     }
 }
 
-
+/* 偷掉vbuf的mem */
 static inline void * VBUF_Steal(INOUT VBUF_S *vbuf)
 {
     _vbuf_move_data(vbuf, 0);
     void *mem = vbuf->pucData;
-    Mem_Zero(vbuf, sizeof(VBUF_S));
+    VBUF_Init(vbuf);
     return mem;
 }
 
@@ -168,27 +171,42 @@ static inline void * VBUF_GetTailFreeBuf(IN VBUF_S *pstVBuf)
     return pstVBuf->pucData + pstVBuf->ulOffset + pstVBuf->ulUsedLen;
 }
 
-
+/* 获取数据长度 */
 static inline ULONG VBUF_GetDataLength(IN VBUF_S *pstVBuf)
 {
     BS_DBGASSERT(0 != pstVBuf);
     return pstVBuf->ulUsedLen;
 }
 
+/* 将vbuf的mem移动到m中 */
+static inline void VBUF_ToM(INOUT VBUF_S *vbuf, OUT LLDATA_S *m)
+{
+    m->len = VBUF_GetDataLength(vbuf);
+    m->data = VBUF_Steal(vbuf);
+}
 
+/* 将m中mem move到vbuf */
+static inline void VBUF_FromM(OUT VBUF_S *vbuf, INOUT LLDATA_S *m)
+{
+    VBUF_SetData(vbuf, m->data, m->len);
+    m->data = NULL;
+    m->len = 0;
+}
+
+/* 获取头部的空闲区长度 */
 static inline ULONG VBUF_GetHeadFreeLength(IN VBUF_S *pstVBuf)
 {
     return pstVBuf->ulOffset;
 }
 
-
+/* 获取尾部的空闲区长度 */
 static inline ULONG VBUF_GetTailFreeLength(IN VBUF_S *pstVBuf)
 {
     BS_DBGASSERT(pstVBuf->ulTotleLen >= (pstVBuf->ulOffset + pstVBuf->ulUsedLen));
     return (pstVBuf->ulTotleLen - pstVBuf->ulOffset) - pstVBuf->ulUsedLen;
 }
 
-static inline int VBUF_CpyFromBuf(IN VBUF_S *pstVBuf, IN void *buf, IN ULONG ulLen)
+static inline int VBUF_CpyBuf(IN VBUF_S *pstVBuf, IN void *buf, IN ULONG ulLen)
 {
     BS_DBGASSERT(0 != pstVBuf);
 
@@ -213,8 +231,7 @@ static inline int VBUF_CpyFromBuf(IN VBUF_S *pstVBuf, IN void *buf, IN ULONG ulL
     return BS_OK;
 }
 
-
-static inline int VBUF_CatFromBuf(INOUT VBUF_S *pstVBuf, IN VOID *buf, IN ULONG ulLen)
+static inline int VBUF_CatBuf(INOUT VBUF_S *pstVBuf, IN VOID *buf, IN ULONG ulLen)
 {
     int ret;
 
@@ -222,7 +239,7 @@ static inline int VBUF_CatFromBuf(INOUT VBUF_S *pstVBuf, IN VOID *buf, IN ULONG 
     BS_DBGASSERT(NULL != buf);
 
     if (pstVBuf->ulUsedLen == 0) {
-        return VBUF_CpyFromBuf(pstVBuf, buf, ulLen);
+        return VBUF_CpyBuf(pstVBuf, buf, ulLen);
     }
 
     ret = _vbuf_pre_cat(pstVBuf, ulLen);
@@ -236,13 +253,13 @@ static inline int VBUF_CatFromBuf(INOUT VBUF_S *pstVBuf, IN VOID *buf, IN ULONG 
     return BS_OK;
 }
 
-
+/* 扩展空间,将空间加大到ulLen字节, 但是不改变data大小 */
 static inline int VBUF_ExpandTo(IN VBUF_S *pstVBuf, IN ULONG ulLen)
 {
     return _vbuf_expand_to(pstVBuf, ulLen);
 }
 
-
+/* 扩展空间,将空间加大ulLen字节, 数据长度不变 */
 static inline int VBUF_Expand(IN VBUF_S *pstVBuf, IN ULONG ulLen)
 {
     UINT uiNewTotleLen;
@@ -250,7 +267,7 @@ static inline int VBUF_Expand(IN VBUF_S *pstVBuf, IN ULONG ulLen)
     return VBUF_ExpandTo(pstVBuf, uiNewTotleLen);
 }
 
-
+/* 将数据移动到Offset位置 */
 static inline int VBUF_MoveData(IN VBUF_S *pstVBuf, IN ULONG ulOffset)
 {
     return _vbuf_move_data(pstVBuf, ulOffset);
@@ -261,7 +278,7 @@ static inline void VBUF_SetMemDouble(OUT VBUF_S *pstVBuf, BOOL_T enable)
     pstVBuf->double_mem = enable;
 }
 
-
+/* 清空数据并释放对应内存 */
 static inline void VBUF_Clear(IN VBUF_S *pstVBuf)
 {
     if (! pstVBuf) {
@@ -275,14 +292,14 @@ static inline void VBUF_Clear(IN VBUF_S *pstVBuf)
     Mem_Zero(pstVBuf, sizeof(VBUF_S));
 }
 
-
+/* 仅清空数据,但不释放内存 */
 static inline void VBUF_ClearData(IN VBUF_S *pstVBuf)
 {
     pstVBuf->ulUsedLen = 0;
     pstVBuf->ulOffset = 0;
 }
 
-
+/* 设置VBuf中的数据区长度, 并不扩展空间 */
 static inline int VBUF_SetDataLength(INOUT VBUF_S *vbuf, ULONG ulDataLength)
 {
     BS_DBGASSERT(NULL != vbuf);
@@ -298,7 +315,7 @@ static inline int VBUF_SetDataLength(INOUT VBUF_S *vbuf, ULONG ulDataLength)
     return 0;
 }
 
-
+/* 增加VBuf中的数据区长度, 并不扩展空间 */
 static inline int VBUF_AddDataLength(INOUT VBUF_S *vbuf, ULONG add_len)
 {
     BS_DBGASSERT(0 != vbuf);
@@ -314,7 +331,7 @@ static inline int VBUF_AddDataLength(INOUT VBUF_S *vbuf, ULONG add_len)
     return 0;
 }
 
-
+/* cut掉offset开始的cut_len长度的数据, 尾部的数据自动向前填充 */
 static inline int VBUF_Cut(VBUF_S *vbuf, ULONG offset, ULONG cut_len)
 {
     if (offset + cut_len >= vbuf->ulUsedLen) {
@@ -334,7 +351,7 @@ static inline int VBUF_Cut(VBUF_S *vbuf, ULONG offset, ULONG cut_len)
     return 0;
 }
 
-
+/* 砍掉头部,并且将数据移动到头部位置 */
 static inline int VBUF_CutHead(IN VBUF_S *pstVBuf, IN ULONG ulCutLen)
 {
     if (ulCutLen < pstVBuf->ulUsedLen) {
@@ -349,7 +366,7 @@ static inline int VBUF_CutHead(IN VBUF_S *pstVBuf, IN ULONG ulCutLen)
     return 0;
 }
 
-
+/* 和CutHead不同的是,它不会移动数据 */
 static inline int VBUF_EarseHead(IN VBUF_S *pstVBuf, IN ULONG ulCutLen)
 {
     BS_DBGASSERT(0 != pstVBuf);
@@ -389,8 +406,8 @@ static inline int VBUF_CutTail(IN VBUF_S *pstVBuf, IN ULONG ulCutLen)
 
 #ifdef __cplusplus
     }
-#endif 
+#endif /* __cplusplus */
 
-#endif 
+#endif /*__VBUF_UTL_H_*/
 
 

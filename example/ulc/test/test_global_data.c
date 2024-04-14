@@ -8,7 +8,7 @@ static U64 g_count1 = 0;
 static int g_count2 = 1000;
 static char *g_string = "global-test";
 
-SEC("tcmd/main")
+SEC(".spf.cmd/main")
 int main()
 {
     g_count1 ++;

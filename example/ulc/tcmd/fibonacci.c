@@ -25,7 +25,7 @@ static long long fibonacci(long x)
     return ret;
 }
 
-SEC("tcmd/main")
+SEC(".spf.cmd/")
 int main(int argc, char **argv)
 {
     long count;

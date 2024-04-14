@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif 
+#endif /* __cplusplus */
 
 #ifdef IN_WINDOWS
     #include <share.h>
@@ -75,6 +75,7 @@
     #include   <sys/ioctl.h>  
     #include   <sys/select.h>  
     #include   <errno.h>   
+    #include   <sys/mman.h>
 #ifndef IN_MAC
     #include   <asm/ioctls.h>
 #endif
@@ -102,7 +103,7 @@
 
     #define DeleteFile(x)  remove(x)
 
-    #define Sleep(x)    usleep((x)*1000)
+    #define Sleep(x/*ms*/)    usleep((x)*1000)
 #endif
 
 #if !defined(__GNUC__) || (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
@@ -117,8 +118,8 @@
 
 #ifdef __cplusplus
     }
-#endif 
+#endif /* __cplusplus */
 
-#endif 
+#endif /*__BASEOS_H_*/
 
 

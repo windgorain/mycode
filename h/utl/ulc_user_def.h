@@ -12,6 +12,9 @@ extern "C" {
 
 #ifdef IN_ULC_USER
 
+#undef THREAD_LOCAL 
+#define THREAD_LOCAL 
+
 #undef PRINTFL
 #define PRINTFL() do { \
     char _file[] = __FILE__; \
@@ -25,6 +28,10 @@ extern "C" {
 #define fread(a,b,c,d) ulc_sys_fread(a,b,c,d)
 #define fclose(a) ulc_sys_fclose(a)
 #define fgets(a,b,c) ulc_sys_fgets(a,b,c)
+#define fwrite(a,b,c,d) ulc_sys_fwrite(a,b,c,d)
+#define stat(a,b) ulc_sys_stat(a,b)
+#undef stderr 
+#define stderr ((void*)2)
 
 #define fprintf(fp,fmt, ...) ({ \
     char _fmt[] = fmt; \
@@ -58,6 +65,21 @@ extern "C" {
 #undef BS_WARNNING
 #define BS_WARNNING(X) BPF_Print X
 
+#define IC_Print(level,fmt,...) ulc_sys_printf(fmt, ##__VA_ARGS__)
+
+#undef ATOM_BARRIER
+#define ATOM_BARRIER() ulc_do_nothing()
+
+#define BpfHelper_GetFunc(a,b) ulc_get_helper(a,b)
+#define BpfHelper_BaseHelper() ulc_get_base_helpers()
+#define BpfHelper_SysHelper() ulc_get_sys_helpers()
+#define BpfHelper_UserHelper() ulc_get_user_helpers()
+
+#define RcuEngine_Call ulc_sys_rcu_call
+#define RcuEngine_Lock ulc_sys_rcu_lock
+#define RcuEngine_UnLock ulc_sys_rcu_unlock
+
+#define memset(a,b,c) ulc_sys_memset(a,b,c)
 #undef MEM_ZMalloc
 #define MEM_ZMalloc(x) ({void *p = ulc_sys_malloc(x); if (p) {ulc_sys_memset(p, 0, (x));} p;})
 #undef MEM_Malloc
@@ -67,6 +89,7 @@ extern "C" {
 #define malloc(a) ulc_sys_malloc(a)
 #define calloc(a,b) ulc_sys_calloc(a,b)
 #define free(a) ulc_sys_free(a)
+#define realloc(a,b) ulc_sys_realloc(a,b)
 
 #undef strlcpy
 #define strlcpy(a,b,c) ulc_sys_strlcpy(a,b,c)
@@ -77,9 +100,14 @@ extern "C" {
 #define strnlen(a,b) ulc_sys_strnlen(a,b)
 #define strlen(a) ulc_sys_strlen(a)
 #define strncmp(a,b,c) ulc_sys_strncmp(a,b,c)
+#define strcpy(a,b) ulc_sys_strcpy(a,b)
+#undef tolower
+#define tolower(a) ulc_sys_tolower(a)
+#define strchr(a,b) ulc_sys_strchr(a,b)
 
 #define memcpy(a,b,c) ulc_sys_memcpy(a,b,c)
-#define memmove(a,b,c) ulc_sys_memmove(a,b,c)
+#define memmove(dst,src,len) ulc_sys_memmove(dst,src,len)
+#define memcmp(a,b,c) ulc_sys_memcmp(a,b,c)
 
 #define socket(a,b,c) ulc_sys_socket(a,b,c)
 #define bind(a,b,c) ulc_sys_bind(a,b,c)
@@ -105,4 +133,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#endif 
+#endif //ULC_USER_DEF_H_

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif 
+#endif /* __cplusplus */
 
 #include "utl/cpu_def.h"
 #include "bs/head_bs.h"
@@ -47,10 +47,12 @@
 
 #include "bs/data_box_bs.h"
 
+#include "utl/ulc_user.h"
+
 #ifdef __cplusplus
     }
-#endif 
+#endif /* __cplusplus */
 
-#endif 
+#endif /*__BS_H_*/
 
 

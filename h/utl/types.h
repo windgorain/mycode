@@ -12,15 +12,15 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif /* __cplusplus */
 
 #ifndef NULL
 #define NULL 0
 #endif
 
-#define	IN      
-#define	OUT     
-#define	INOUT   
+#define	IN      /*IN*/
+#define	OUT     /*OUT*/
+#define	INOUT   /*INOUT*/
 
 #ifndef noinline
 #define noinline __attribute__((noinline))
@@ -56,11 +56,11 @@ extern "C" {
 #define MIN(a,b)  ((a)<(b) ? (a) : (b))
 #endif
 
-
+/* 计算宏定义中可变参数个数 */
 #define _BS_ARG_N(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,N,...) N
 #define BS_ARG_COUNT(...) _BS_ARG_N(0,##__VA_ARGS__,10,9,8,7,6,5,4,3,2,1,0)
 
-
+/* 获取可变参数中的第几个参数 */
 #define _BS_ARG_GET1(a0,a1,...) (a1)
 #define _BS_ARG_GET2(a0,a1,a2,...) (a2)
 #define _BS_ARG_GET3(a0,a1,a2,a3,...) (a3)
@@ -72,22 +72,6 @@ extern "C" {
 #define _BS_ARG_GET9(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,...) (a9)
 #define _BS_ARG_GET10(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,...) (a10)
 #define BS_ARG_GET(N,...) _BS_ARG_GET##N(0,##__VA_ARGS__,0,0,0,0,0,0,0,0,0,0)
-
-#ifndef TRUE
-#define TRUE 1
-#endif
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef BOOL_TRUE
-#define BOOL_TRUE TRUE
-#endif
-
-#ifndef BOOL_FALSE
-#define BOOL_FALSE FALSE
-#endif
 
 #ifndef UINT32_MAX
 #define UINT32_MAX (0xffffffff)
@@ -150,23 +134,23 @@ typedef struct {
     UINT uiLen;
 }LSTR_S;
 
-
+/* length data */
 typedef struct {
     UCHAR *data;
     UINT len;
 }LDATA_S;
 
-
+/* long length data */
 typedef struct {
-    UCHAR *data; 
-    UINT64 len;   
+    UCHAR *data; /* 文件数据 */
+    UINT64 len;   /* 文件长度 */
 }LLDATA_S;
 
 typedef LLDATA_S FILE_MEM_S;
 
 #define BS_DATA_ZERO(_pstData) do {(_pstData)->pucData = NULL; (_pstData)->uiLen = 0;} while(0)
 
-
+/* 常见回调函数类型定义 */
 typedef VOID 		(*VOID_FUNC)(void);
 typedef int         (*INT_FUNC)(void);
 typedef UINT 		(*UINT_FUNC)(void);
@@ -185,7 +169,7 @@ typedef void        (*PF_WALK_FUNC)(void *n, void *ud);
 typedef int         (*PF_PRINT_FUNC)(const char *fmt, ...);
 
 typedef enum{
-    
+    /* 通用定义 */
 	BS_OK = 0,
 	BS_ERR = -1,
 	BS_NO_SUCH = -2,
@@ -221,13 +205,13 @@ typedef enum{
 	BS_NOT_MATCHED = -32,
 	BS_VERIFY_FAILED = -33,
 	BS_NOT_INIT = -34,
-	BS_REF_NOT_ZERO = -35, 
+	BS_REF_NOT_ZERO = -35, /* 引用计数不为0 */
     BS_BUSY = -36,
     BS_PARSE_FAILED = -37,
 	BS_REACH_MAX = -38,
     BS_STOLEN = -39,
 
-    
+    /* 模块私有定义,在BS_PRIVATE_BASE 基础上增加 */
     BS_PRIVATE_BASE = -100
 }BS_STATUS;
 
@@ -252,9 +236,9 @@ typedef enum {
 }BS_ACTION_E;
 
 typedef enum {
-    BS_MATCH = 0,   
-    BS_PART_MATCH,  
-    BS_NOT_MATCH    
+    BS_MATCH = 0,   /* 完全匹配 */
+    BS_PART_MATCH,  /* 部分匹配 */
+    BS_NOT_MATCH    /* 不匹配 */
 }BS_MATCH_RET_E;
 
 typedef enum
@@ -269,12 +253,12 @@ typedef enum
 #define BS_END_OFFSET(type,item) (BS_OFFSET(type,item) + sizeof(((type *)0)->item))
 #define BS_ENTRY(pAddr, item, type) ((type *) ((UCHAR*)(pAddr) - BS_OFFSET (type, item)))
 
-
+/* 获取某个成员的起始地址 */
 #ifndef offsetof
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 #endif
 
-
+/* 获取某个成员的结束地址 */
 #ifndef offsetofend
 # define offsetofend(TYPE, FIELD) (offsetof(TYPE, FIELD) + sizeof(((TYPE *)0)->FIELD))
 #endif
@@ -329,13 +313,13 @@ typedef struct {
 #if __has_attribute(__fallthrough__)
 #define fallthrough                    __attribute__((__fallthrough__))
 #else
-#define fallthrough                    do {} while (0)  
+#define fallthrough                    do {} while (0)  /* fallthrough */
 #endif
 
 #ifdef __cplusplus
 }
-#endif 
-#endif 
+#endif /* __cplusplus */
+#endif /*azHead.h*/
 
 
 

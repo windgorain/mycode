@@ -18,7 +18,7 @@ noinline int test(int a)
     return test2(a);
 }
 
-SEC("tcmd/hello_test")
+SEC(".spf.cmd/main")
 int main()
 {
     printf("start \n");

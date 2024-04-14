@@ -4,7 +4,7 @@
 * Description: 
 * History:     
 ******************************************************************************/
-
+/* retcode所需要的宏 */
 #define RETCODE_FILE_NUM RETCODE_FILE_NUM_STRING
 
 #include "bs.h"
@@ -25,8 +25,8 @@ HSTRING STRING_Create()
     VBUF_Init(pstVBuf);
     VBUF_SetMemDouble(pstVBuf, 1);
 
-    
-    if (BS_OK != VBUF_CpyFromBuf(pstVBuf, "", 1)) {
+    /* 初始化成"\0"空字符串 */
+    if (BS_OK != VBUF_CpyBuf(pstVBuf, "", 1)) {
         VBUF_Finit(pstVBuf);
         MEM_Free(pstVBuf);
         return NULL;
@@ -64,13 +64,13 @@ BS_STATUS STRING_CatFromBuf(IN HSTRING hHandle, IN CHAR *pszDate)
 {
     BS_DBGASSERT(NULL != pszDate);
     
-    VBUF_CutTail(hHandle, 1);   
-    return VBUF_CatFromBuf(hHandle, pszDate, strlen(pszDate) + 1);
+    VBUF_CutTail(hHandle, 1);   /* 删除'\0' */
+    return VBUF_CatBuf(hHandle, pszDate, strlen(pszDate) + 1);
 }
 
 BS_STATUS STRING_CatFromString(IN HSTRING hHandleDst, IN HSTRING hHandleSrc)
 {
-    VBUF_CutTail(hHandleDst, 1);   
+    VBUF_CutTail(hHandleDst, 1);   /* 删除'\0' */
     return VBUF_CatFromVBuf(hHandleDst, hHandleSrc);
 }
 
@@ -78,7 +78,7 @@ BS_STATUS STRING_CpyFromBuf(IN HSTRING hHandle, IN CHAR *pszDate)
 {
     BS_DBGASSERT(NULL != pszDate);
     
-    return VBUF_CpyFromBuf(hHandle, (void*)pszDate, strlen(pszDate) + 1);
+    return VBUF_CpyBuf(hHandle, (void*)pszDate, strlen(pszDate) + 1);
 }
 
 BS_STATUS STRING_CpyFromString(IN HSTRING hHandleDst, IN HSTRING hHandleSrc)

@@ -6,7 +6,7 @@
 ******************************************************************************/
 #include "bs.h"
 
-
+/* 按从小到大排序 */
 VOID DLL_Sort(IN DLL_HEAD_S *pstDllHead, IN PF_DLL_CMP_FUNC pfFunc, IN HANDLE hUserHandle)
 {
     DLL_NODE_S *pstNode1, *pstNode2;
@@ -37,7 +37,7 @@ VOID DLL_Sort(IN DLL_HEAD_S *pstDllHead, IN PF_DLL_CMP_FUNC pfFunc, IN HANDLE hU
     }
 }
 
-
+/* 插入有序链表, 从小到大排序 */
 VOID DLL_SortAdd
 (
     IN DLL_HEAD_S *pstDllHead,
@@ -60,7 +60,7 @@ VOID DLL_SortAdd
     return;
 }
 
-
+/* 插入有序链表并保证唯一性 */
 int DLL_UniqueSortAdd(DLL_HEAD_S *head, DLL_NODE_S *node, PF_DLL_CMP_FUNC cmp_func, void *user_data)
 {
     DLL_NODE_S *pstNodeTmp;
@@ -89,13 +89,11 @@ VOID DLL_Cat (IN DLL_HEAD_S *pstDllHeadDst, IN DLL_HEAD_S *pstDllHeadSrc)
     DLL_NODE_S *pstDllNodeFirst, *pstDllNodeLast;
     DLL_NODE_S *pstNode;
     
-    if (0 == DLL_COUNT (pstDllHeadSrc))
-    {
+    if (0 == DLL_COUNT (pstDllHeadSrc)) {
         return;
     }
 
-    DLL_SCAN(pstDllHeadSrc, pstNode)
-    {
+    DLL_SCAN(pstDllHeadSrc, pstNode) {
         pstNode->pstHead = pstDllHeadDst;
     }
 
@@ -117,10 +115,8 @@ VOID * DLL_Find(IN DLL_HEAD_S *pstDllHead, IN PF_DLL_CMP_FUNC pfCmpFunc, IN VOID
 {
     DLL_NODE_S *pstNode;
     
-    DLL_SCAN(pstDllHead, pstNode)
-    {
-        if (pfCmpFunc(pstNode, pstNodeToFind, hUserHandle) == 0)
-        {
+    DLL_SCAN(pstDllHead, pstNode) {
+        if (pfCmpFunc(pstNode, pstNodeToFind, hUserHandle) == 0) {
             return pstNode;
         }
     }

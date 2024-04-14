@@ -22,7 +22,7 @@ static UMAP_FUNC_TBL_S *g_umap_func_tbl[BPF_MAP_TYPE_MAX] = {
 char * UMAP_TypeName(unsigned int type)
 {
     if (type >= ARRAY_SIZE(g_umap_type_name)) {
-        return "";
+        return NULL;
     }
 
     return g_umap_type_name[type];
@@ -93,7 +93,7 @@ long UMAP_UpdateElem(UMAP_HEADER_S *map, const void *key, const void *value, U32
     return g_umap_func_tbl[map->type]->update_elem_func(map, key, value, flag);
 }
 
-
+/* 获取数组map的数组地址 */
 int UMAP_DirectValue(UMAP_HEADER_S *map, OUT U64 *addr, UINT off)
 {
     if (! map) {
@@ -107,7 +107,7 @@ int UMAP_DirectValue(UMAP_HEADER_S *map, OUT U64 *addr, UINT off)
     return g_umap_func_tbl[map->type]->direct_value_func(map, addr, off);
 }
 
-
+/* 注意: 调用者的*next_key和接受返回值不要用同一个变量, 因为在array map中*next_key有存储id的作用 */
 int UMAP_GetNextKey(UMAP_HEADER_S *map, void *curr_key, OUT void **next_key)
 {
     return g_umap_func_tbl[map->type]->get_next_key_func(map, curr_key, next_key);
@@ -139,3 +139,4 @@ void UMAP_DumpMap(UFD_S *ctx, int map_fd, PF_PRINT_FUNC print_func)
     }
 }
 #endif
+

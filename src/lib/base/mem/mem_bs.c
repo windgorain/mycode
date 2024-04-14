@@ -169,7 +169,6 @@ PLUG_API void * MEM_MallocMem(ULONG size, const char *pszFileName, UINT ulLine)
     int level = _mem_get_level_by_size(size);
 
     BS_DBGASSERT(ulLine < _MEM_LINE_MAX);
-    BS_DBGASSERT(NULL != pszFileName);
     BS_DBGASSERT(level < _MEM_MAX_LEVEL);
 
     if (level < _MEM_MAX_LEVEL) {
@@ -252,7 +251,7 @@ PLUG_API void MEM_FreeMem(IN VOID *pMem, const char *pszFileName, IN UINT ulLine
     free(head);
 }
 
-
+/* 计算从pMem有没有越界 */
 BOOL_T MEM_IsOverFlow(void *pMem)
 {
     _MEM_HEAD_S *head = _mem_get_head(pMem);
@@ -271,7 +270,7 @@ BOOL_T MEM_IsOverFlow(void *pMem)
     return FALSE;
 }
 
-
+/* show memory */
 BS_STATUS MEM_ShowStat(IN UINT ulArgc, IN CHAR **argv)
 {
     UINT i;
@@ -291,7 +290,7 @@ BS_STATUS MEM_ShowStat(IN UINT ulArgc, IN CHAR **argv)
     return BS_OK;
 }
 
-
+/* show memory size {32|64...4096|large|all} [file %STRING] */
 BS_STATUS MEM_ShowSizeOfMemStat(int argc, char **argv)
 {
     int level;

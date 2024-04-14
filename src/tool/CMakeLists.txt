@@ -36,14 +36,6 @@ aux_source_directory(./runlua RUNLUA_SRC)
 add_executable(runlua ${RUNLUA_SRC})
 target_link_libraries(runlua sutil unixlike_util static_bs dl pthread m lua)
 
-aux_source_directory(./runbpf RUNBPF_SRC)
-add_executable(runbpf ${RUNBPF_SRC})
-target_link_libraries(runbpf sutil static_bs sutil static_bs dl pthread m elf)
-
-aux_source_directory(./spftool SPFTOOL_SRC)
-add_executable(spftool ${SPFTOOL_SRC})
-target_link_libraries(spftool sutil static_bs sutil static_bs dl pthread m elf)
-
 aux_source_directory(./json JSON_SRC)
 add_executable(json_tool ${JSON_SRC})
 target_link_libraries(json_tool sutil unixlike_util static_bs dl pthread m )
@@ -102,3 +94,29 @@ set(SRC "")
 aux_source_directory(./elftool SRC)
 add_executable(elftool ${SRC})
 target_link_libraries(elftool sutil static_bs sutil static_bs)
+
+set(SRC "")
+aux_source_directory(./runbpf SRC)
+add_executable(runbpf ${SRC})
+target_link_libraries(runbpf sutil static_bs sutil static_bs dl pthread m)
+
+set(SRC "")
+aux_source_directory(./runbare SRC)
+add_executable(runbare ${SRC})
+target_link_libraries(runbare sutil static_bs sutil static_bs dl pthread m)
+
+set(SRC "")
+aux_source_directory(./spftool SRC)
+add_executable(spftool ${SRC})
+target_link_libraries(spftool sutil static_bs sutil static_bs dl pthread m)
+
+set(SRC "")
+aux_source_directory(./file2data SRC)
+add_executable(file2data ${SRC})
+target_link_libraries(file2data sutil static_bs sutil static_bs dl pthread m)
+
+set(SRC "")
+aux_source_directory(./gauss_crypto SRC)
+add_executable(gauss-crypto ${SRC})
+target_link_libraries(gauss-crypto sutil static_bs sutil static_bs dl pthread m)
+

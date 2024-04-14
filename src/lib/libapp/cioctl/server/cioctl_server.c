@@ -36,7 +36,7 @@ static int _cioctl_server_recv_msg(void *cfg, STREAM_CONN_S *conn)
         return 0;
     }
 
-    if (VBUF_CatFromBuf(reply_vbuf, &reply, sizeof(reply)) < 0) {
+    if (VBUF_CatBuf(reply_vbuf, &reply, sizeof(reply)) < 0) {
         return -1;
     }
 

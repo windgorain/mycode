@@ -13,6 +13,8 @@
 #include "utl/umap_utl.h"
 #include "utl/mmap_utl.h"
 
+#undef IN_ULC_USER
+
 static const void ** ulc_get_base_helpers(void);
 static const void ** ulc_get_sys_helpers(void);
 static const void ** ulc_get_user_helpers(void);
@@ -114,14 +116,19 @@ static long __bpf_snprintf(char *str, U32 str_size, const char *fmt, U64 *d, U32
     }
 }
 
-static void * ulc_sys_rcu_malloc(int size)
+static void ulc_sys_rcu_call(void *rcu, void *func)
 {
-    return malloc(size);
+    RcuEngine_Call(rcu, func);
 }
 
-static void ulc_sys_rcu_free(void *m)
+static int ulc_sys_rcu_lock()
 {
-    free(m);
+    return RcuEngine_Lock();
+}
+
+static void ulc_sys_rcu_unlock(int state)
+{
+    RcuEngine_UnLock(state);
 }
 
 static int ulc_sys_strlcpy(void *dst, void *src, int size)
@@ -142,6 +149,14 @@ static int ulc_sys_puts(const char *str)
 
 static int ulc_sys_fprintf(void *fp, char *fmt, U64 *d, int count)
 {
+    if (fp == (void*)0) {
+        fp = stdin;
+    } else if (fp == (void*)2) {
+        fp = stdout;
+    } else if (fp == (void*)3) {
+        fp = stderr;
+    }
+
     switch (count) {
         case 0: return fprintf(fp,"%s",fmt);
         case 1: return fprintf(fp,fmt,d[0]);
@@ -187,6 +202,10 @@ static int ulc_get_local_arch(void)
     return ARCH_LocalArch();
 }
 
+static void ulc_do_nothing()
+{
+}
+
 static void * ulc_mmap_map(void *addr, U64 len, U64 flag, int fd, U64 off)
 {
     int prot = flag >> 32;
@@ -205,7 +224,7 @@ static int ulc_sys_get_errno()
     return errno;
 }
 
-
+/* base helper. 和linux内置定义helper一一对应,请不要注册和linux不一致的helper */
 static const void * g_bpf_base_helpers[BPF_BASE_HELPER_COUNT] = {
     [0] = NULL,
     [1] = UMAP_LookupElem,
@@ -224,13 +243,12 @@ static const void * g_bpf_base_helpers[BPF_BASE_HELPER_COUNT] = {
     [165] = __bpf_snprintf,
 };
 
-
+/* sys helper. linux系统定义之外的统一定义, 请不要随意定义 */
 static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
-    [0] = NULL, 
+    [0] = NULL, /* 1000000 */
     [1] = calloc,
     [2] = free,
-    [3] = ulc_sys_rcu_malloc,
-    [4] = ulc_sys_rcu_free,
+    [3] = realloc,
     [5] = malloc,
     [8] = strncmp,
     [9] = strlen,
@@ -239,11 +257,16 @@ static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
     [12] = ulc_sys_strlcpy,
     [13] = strdup,
     [14] = strtok_r,
+    [15] = strcpy,
+    [16] = tolower,
+    [17] = strchr,
     [40] = memcpy,
     [41] = memset,
     [42] = memmove,
+    [43] = memcmp,
     [70] = printf,
     [71] = ulc_sys_puts,
+    [72] = sprintf,
     [100] = access,
     [101] = ulc_sys_fprintf,
     [102] = ftell,
@@ -252,6 +275,8 @@ static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
     [105] = fread,
     [106] = fclose,
     [107] = fgets,
+    [108] = fwrite,
+    [120] = stat,
     [130] = time,
     [200] = socket,
     [201] = bind,
@@ -263,12 +288,16 @@ static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
     [207] = close,
     [208] = setsockopt,
     [300] = pthread_create,
-    [400] = ulc_set_trusteeship,
-    [401] = ulc_get_trusteeship,
+    [352] = ulc_sys_rcu_call,
+    [353] = ulc_sys_rcu_lock,
+    [354] = ulc_sys_rcu_unlock,
     [402] = ulc_sys_get_errno,
-    [500] = ulc_mmap_map,
-    [501] = munmap,
-    [502] = mprotect,
+    [450] = ulc_mmap_map,
+    [451] = munmap,
+    [452] = mprotect,
+    [500] = ulc_set_trusteeship,
+    [501] = ulc_get_trusteeship,
+    [506] = ulc_do_nothing,
     [507] = ulc_get_local_arch,
     [508] = ulc_get_helper,
     [509] = ulc_get_base_helpers,
@@ -276,9 +305,9 @@ static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
     [511] = ulc_get_user_helpers,
 };
 
-
+/* user helper. 没有任何预规定，用户可以定义 */
 static const void * g_bpf_user_helpers[BPF_USER_HELPER_COUNT] = {
-    [0] = NULL, 
+    [0] = NULL, /* 2000000 */
 };
 
 static const void ** ulc_get_base_helpers(void)
@@ -311,7 +340,7 @@ const void ** BpfHelper_UserHelper(void)
     return (const void **)g_bpf_user_helpers;
 }
 
-
+/* 根据id获取helper函数指针 */
 void * BpfHelper_GetFunc(unsigned int id, const void **tmp_helpers)
 {
     if (id < BPF_BASE_HELPER_END) {
@@ -322,7 +351,7 @@ void * BpfHelper_GetFunc(unsigned int id, const void **tmp_helpers)
         return (void*)g_bpf_user_helpers[id - BPF_USER_HELPER_START];
     } else if ((id >= BPF_TMP_HELPER_START) && (id < BPF_TMP_HELPER_END) && (tmp_helpers)) {
         int idx = id - BPF_TMP_HELPER_START;
-        if ((idx <= 0) || (idx >= *(U32*)tmp_helpers)) { 
+        if ((idx <= 0) || (idx >= *(U32*)tmp_helpers)) { /* tmp_helpers的开始位置放的是tmp_helpers数组大小 */
             return NULL;
         }
         return (void*)tmp_helpers[idx];

@@ -127,12 +127,11 @@ char * ErrCode_Build(OUT char *buf, int buf_size)
     int len = 0;
 
     if (file) {
-        len = scnprintf(buf, buf_size,
-                "ErrCode: %s(%d):%d \r\n", file, line, code);
+        len = snprintf(buf, buf_size, "ErrCode: %s(%d):%d \r\n", file, line, code);
     }
 
     if (errinfo && errinfo[0]) {
-        len += scnprintf(buf + len, buf_size-len, "ErrInfo: %s \r\n", errinfo);
+        len += snprintf(buf + len, buf_size-len, "ErrInfo: %s \r\n", errinfo);
     }
 
     return buf;
@@ -177,23 +176,5 @@ void ErrCode_Output(PF_PRINT_FUNC output)
     if (errinfo && errinfo[0]) {
         output("ErrInfo: %s \r\n", errinfo);
     }
-}
-
-void ErrCode_FatalError(char *format, ...)
-{
-#define STD_BUF 1024
-    char buf[STD_BUF+1];
-    va_list ap;
-
-    va_start(ap, format);
-    vsnprintf(buf, STD_BUF, format, ap);
-    va_end(ap);
-
-    buf[STD_BUF] = '\0';
-
-    fprintf(stderr, "ERROR: %s", buf);
-    fprintf(stderr,"Fatal Error, Quitting..\n");
-
-    exit(1);
 }
 

@@ -4,7 +4,7 @@
 ********************************************************/
 #include "utl/ulc_user.h"
 
-SEC("tcmd/hello_test")
+SEC(".spf.cmd/main")
 int main()
 {
     printf("Test OK \n");

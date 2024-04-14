@@ -7,7 +7,7 @@
 #include "utl/umap_utl.h"
 
 typedef struct {
-    UMAP_HEADER_S hdr; 
+    UMAP_HEADER_S hdr; /* 必须为第一个成员 */
     UCHAR data[0];
 }UMAP_ARRAY_S;
 
@@ -99,7 +99,7 @@ static long _umap_array_direct_value(void *map, OUT U64 *value, U32 off)
     }
 
 	if (off >= ctrl->hdr.max_elem * ctrl->hdr.size_value) {
-        PRINTFLM_RED("off=%d, max_elem=%d, size_value=%d", off, ctrl->hdr.max_elem, ctrl->hdr.size_value);
+        printf("off=%d, max_elem=%d, size_value=%d", off, ctrl->hdr.max_elem, ctrl->hdr.size_value);
 		return -E2BIG;
     }
 
@@ -108,7 +108,7 @@ static long _umap_array_direct_value(void *map, OUT U64 *value, U32 off)
     return 0;
 }
 
-
+/* key: NULL表示Get第一个 */
 static int _umap_array_getnext_key(void *map, void *key, OUT void **next_key)
 {
     UMAP_ARRAY_S *ctrl = map;

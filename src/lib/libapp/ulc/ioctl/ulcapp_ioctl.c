@@ -56,7 +56,7 @@ static int _ulcapp_ioctl_lookup_ele(MYBPF_RUNTIME_S *runtime, void *data, int da
         return BS_NO_SUCH;
     }
 
-    return VBUF_CatFromBuf(reply, value, hdr->size_value);
+    return VBUF_CatBuf(reply, value, hdr->size_value);
 }
 
 static int _ulcapp_ioctl_delete_ele(MYBPF_RUNTIME_S *runtime, void *data, int data_len, VBUF_S *reply)
@@ -143,7 +143,7 @@ static int _ulcapp_ioctl_getnext_key(MYBPF_RUNTIME_S *runtime, void *data, int d
         return BS_NO_SUCH;
     }
 
-    return VBUF_CatFromBuf(reply, &next_key, hdr->size_key);
+    return VBUF_CatBuf(reply, &next_key, hdr->size_key);
 }
 
 static int _ulcapp_ioctl_process_request_locked(MYBPF_RUNTIME_S *runtime, CIOCTL_REQUEST_S *request, VBUF_S *reply)

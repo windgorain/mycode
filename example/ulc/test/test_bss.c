@@ -6,7 +6,7 @@
 
 static int g_count1 = 0;
 
-SEC("tcmd/main")
+SEC(".spf.cmd/main")
 int main()
 {
     g_count1 ++;
