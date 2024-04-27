@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 enum {
-    MYBPF_HP_TCMD = 0, /* trigger cmd */
+    MYBPF_HP_TCMD = 0, 
     MYBPF_HP_XDP,
 
     MYBPF_HP_MAX
@@ -30,4 +30,4 @@ typedef struct {
 #ifdef __cplusplus
 }
 #endif
-#endif //MYBPF_HOOKPOINT_DEF_H_
+#endif 

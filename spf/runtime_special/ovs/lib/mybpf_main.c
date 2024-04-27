@@ -45,7 +45,7 @@ static int _load_spf_loader(char *spf_loader)
     return 0;
 }
 
-/* bare_spf [spfloader] */
+
 __attribute__((constructor)) int MYBPF_init(void)
 {
     char *file = NULL;

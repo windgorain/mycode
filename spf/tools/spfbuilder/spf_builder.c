@@ -24,11 +24,14 @@ static MYBPF_SPF_S *g_mybpf_spf_ctrl;
 static int _load_spf(char *instance, void *data, U32 data_size)
 {
     MYBPF_LOADER_PARAM_S p = {0};
+    FILE_MEM_S m;
 
-    p.simple_mem.data = data;
-    p.simple_mem.len = data_size;
+    m.data = data;
+    m.len = data_size;
+
+    p.m = &m;
     p.instance = instance;
-    p.flag = MYBPF_LOADER_FLAG_AUTO_ATTACH;
+    p.flag = MYBPF_LOADER_FLAG_AUTO_ATTACH | MYBPF_LOADER_FLAG_SKIP_JIT_HELPER_CHECK;
 
     int ret = g_mybpf_spf_ctrl->load_instance(&p);
     if (ret < 0) {
@@ -67,11 +70,16 @@ static int _run_spf(int argc, char **argv)
 
     p.p[0] = argc;
     p.p[1] = (long)argv;
- 
-    return g_mybpf_spf_ctrl->run(MYBPF_HP_TCMD, &p);
+
+    int ret =g_mybpf_spf_ctrl->run_hookpoint(MYBPF_HP_TCMD, &p);
+    if (ret < 0) {
+        return ret;
+    }
+
+    return p.bpf_ret;
 }
 
-/* spfrun file args */
+
 int main(int argc, char **argv)
 {
     FILE_MEM_S m;

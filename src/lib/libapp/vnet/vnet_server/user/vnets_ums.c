@@ -25,7 +25,7 @@ typedef struct
     UINT uiSesId;
 }_VNETS_UMS_NODE_S;
 
-static HASH_HANDLE g_hVnetsUmsHash = NULL;
+static HASH_S * g_hVnetsUmsHash = NULL;
 
 static UINT vnets_ums_HashIndex(IN VOID *pNode)
 {

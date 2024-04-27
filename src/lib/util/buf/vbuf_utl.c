@@ -9,7 +9,7 @@
 #include "utl/vbuf_utl.h"
 
 
-/* 在头部添加一段空白数据 */
+
 int VBUF_AddHead(INOUT VBUF_S *vbuf, ULONG len)
 {
     if (vbuf->ulOffset < len) {
@@ -25,7 +25,7 @@ int VBUF_AddHead(INOUT VBUF_S *vbuf, ULONG len)
     return 0;
 }
 
-/* 向头部添加一段空间, 并拷贝数据 */
+
 int VBUF_AddHeadBuf(INOUT VBUF_S *vbuf, void *buf, ULONG len)
 {
     int ret;
@@ -41,7 +41,7 @@ int VBUF_AddHeadBuf(INOUT VBUF_S *vbuf, void *buf, ULONG len)
     return 0;
 }
 
-/* 向尾部添加空白数据 */
+
 int VBUF_AddTail(INOUT VBUF_S *vbuf, ULONG len)
 {
     int ret = _vbuf_pre_cat(vbuf, len);
@@ -97,7 +97,7 @@ INT VBUF_CmpByVBuf(IN VBUF_S *pstVBuf1, IN VBUF_S *pstVBuf2)
     return VBUF_CmpByBuf(pstVBuf1, pstVBuf2->pucData, pstVBuf2->ulUsedLen);
 }
 
-/* 在数据的中间,插入一块空白区域 */
+
 int VBUF_Insert(VBUF_S *vbuf, U64 data_offset, U64 len)
 {
     if (data_offset > vbuf->ulUsedLen) {
@@ -125,7 +125,7 @@ int VBUF_Insert(VBUF_S *vbuf, U64 data_offset, U64 len)
     return 0;
 }
 
-/* 在数据的中间,插入一块空白区域 */
+
 int VBUF_InsertBuf(VBUF_S *vbuf, U64 data_offset, void *buf, U64 buf_len)
 {
     int ret = VBUF_Insert(vbuf, data_offset, buf_len);
@@ -139,7 +139,7 @@ int VBUF_InsertBuf(VBUF_S *vbuf, U64 data_offset, void *buf, U64 buf_len)
     return 0;
 }
 
-/* 根据vbuf内的ptr地址, 返回其在vbuf内的offset */
+
 long VBUF_Ptr2Offset(VBUF_S *vbuf, void *ptr)
 {
     long offset;

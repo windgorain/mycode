@@ -9,7 +9,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #include <common.h>
 #include <log.h>
@@ -23,8 +23,8 @@
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__BS_H_*/
+#endif 
 
 

@@ -10,7 +10,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #ifdef __ATOMIC_RELAXED
 
@@ -53,14 +53,14 @@
 
 #endif
 
-/* 表示如果*ptr==*ifptr,那么就*ptr=newval. 成功返回true */
+
 #define ATOM_BOOL_COMP_SWAP(ptr,ifptr,newval) __sync_bool_compare_and_swap((ptr), *(ifptr), (newval))
 #define ATOM_BARRIER() (__sync_synchronize())
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__ATOMIC_UTL_H_*/
+#endif 
 
 

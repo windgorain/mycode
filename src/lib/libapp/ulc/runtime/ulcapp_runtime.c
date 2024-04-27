@@ -128,7 +128,7 @@ void ULCAPP_ShowMap(void)
 void ULCAPP_DumpMap(int map_fd)
 {
     ULCAPP_CfgLock();
-    //UMAP_DumpMap(g_ulcapp_runtime.ufd_ctx, map_fd, EXEC_OutInfo);
+    
     ULCAPP_CfgUnlock();
 }
 
@@ -146,6 +146,6 @@ void ULCAPP_Tcmd(int argc, char **argv)
     p.p[0] = argc;
     p.p[1] = (long)argv;
 
-    MYBPF_HookPointCall(&g_ulcapp_runtime, MYBPF_HP_TCMD, &p);
+    MYBPF_HookPointLockCall(&g_ulcapp_runtime, MYBPF_HP_TCMD, &p);
 }
 

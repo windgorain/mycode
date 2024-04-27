@@ -54,7 +54,7 @@ static BS_STATUS ipmasktbl_Add(IN IPMASKTBL_S *ipmasktbl, IN IPMASKTBL_NODE_S *p
     return BS_OK;
 }
 
-static int ipmasktbl_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
+static int ipmasktbl_WalkEach(IN HASH_S * hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
 {
     IPMASKTBL_NODE_S *pstIpMaskTblNode = (void*)pstNode;
     USER_HANDLE_S *pstUserHandle = pUserHandle;
@@ -63,7 +63,7 @@ static int ipmasktbl_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, I
     return pfWalkFunc(pstIpMaskTblNode, pstUserHandle->ahUserHandle[1]);
 }
 
-static int ipmasktbl_MergeEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
+static int ipmasktbl_MergeEach(IN HASH_S * hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
 {
     PF_IPMASKTBL_MERGE_USER_DATA pfFunc = pUserHandle;
     IPMASKTBL_NODE_S *pstIpMaskTblNode = (void*)pstNode;
@@ -142,7 +142,7 @@ static int ipmasktbl_GetNextEach(IN IPMASKTBL_NODE_S *pstIpMaskNode, IN HANDLE h
 
 int IPMASKTBL_Init(IN IPMASKTBL_S *ipmasktbl)
 {
-    HASH_HANDLE hHash;
+    HASH_S * hHash;
 
     hHash = HASH_CreateInstance(NULL, IPMASKTBL_HASH_BUCKET_NUM, ipmasktbl_HashIndex);
     if (NULL == hHash) {

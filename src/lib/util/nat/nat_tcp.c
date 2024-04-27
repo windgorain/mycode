@@ -32,12 +32,7 @@ typedef struct
 }_NAT_TCP_MAP_NODE_S;
 
 
-static VOID  nat_tcp_FreeAllMapNode
-(
-    IN HASH_HANDLE hHashId,
-    IN VOID *pstNode,
-    IN VOID * pUserHandle
-)
+static VOID nat_tcp_FreeAllMapNode(void * hHashId, VOID *pstNode, VOID * pUserHandle)
 {
     _NAT_TCP_MAP_NODE_S *pstNatNode;
     _NAT_TCP_CTRL_S *pstCtrl = pUserHandle;
@@ -562,7 +557,7 @@ static BS_STATUS nat_tcp_PubPktIn
     return eRet;
 }
 
-static int nat_tcp_WalkEach(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
+static int nat_tcp_WalkEach(IN void * hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
 {
     _NAT_TCP_MAP_NODE_S *pstNatNode = (_NAT_TCP_MAP_NODE_S*)pstNode;
     USER_HANDLE_S *pstUserHandle = pUserHandle;

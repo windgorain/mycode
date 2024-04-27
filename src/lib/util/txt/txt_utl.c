@@ -127,7 +127,7 @@ VOID TXT_DelSubStr(IN CHAR *pucTxtBuf, IN CHAR *pucSubStr, OUT CHAR *pucTxtOutBu
 static BS_STATUS txt_DelLineComment
 (
     IN CHAR *pcInBuf,
-    IN CHAR *pcCommentFlag,  /* 注释标记, 如"#", "//" */
+    IN CHAR *pcCommentFlag,  
     OUT CHAR *pcOutBuf
 )
 {
@@ -160,7 +160,7 @@ static BS_STATUS txt_DelLineComment
             break;
         } else {
             if (pcFind != read) {
-                /* Copy之前的内容 */
+                
                 ulCopyLen = (ULONG)pcFind - (ULONG)read;
                 if (read != write) {
                     strlcpy(write, read, ulCopyLen + 1);
@@ -170,7 +170,7 @@ static BS_STATUS txt_DelLineComment
 
             read = pcFind + strlen(pcCommentFlag);
 
-            /* 查找行尾 */
+            
             pcFind = TXT_MStrnchr(read, strlen(read), (void*)"\r\n");
             if (NULL == pcFind) {
                 break;
@@ -186,11 +186,11 @@ static BS_STATUS txt_DelLineComment
     return BS_OK;
 }
 
-/* 去除行注释 */
+
 VOID TXT_DelLineComment
 (
     IN CHAR *pcInBuf,
-    IN CHAR *pcCommentFlag,  /* 注释标记, 如"#", "//" */
+    IN CHAR *pcCommentFlag,  
     OUT CHAR *pcOutBuf
 )
 {
@@ -212,7 +212,7 @@ void TXT_ReplaceChar(INOUT char *pcTxtBuf, char from, char to)
     }
 }
 
-/* 将\n转换为\r\n */
+
 void TXT_N2RN(char *in, char *out, int out_size)
 {
     char *i = in;
@@ -277,7 +277,7 @@ VOID TXT_ReplaceSubStrOnce
         return;
     }
 
-    /* 判断是否需要替换 */
+    
     pcFind = strstr(pcTxtBuf, pcSubStrFrom);
     if (pcFind == NULL)
     {
@@ -327,7 +327,7 @@ CHAR * TXT_StrimString(IN CHAR *pcData, IN CHAR *pcSkipChars)
     return TXT_StrimHead(pcData, ulLen, pcSkipChars);
 }
 
-/* 删除字符串头和尾的空格\t \n \r 字符 */
+
 CHAR *TXT_Strim(IN CHAR *pszStr)
 {
     LSTR_S stString;
@@ -341,13 +341,13 @@ CHAR *TXT_Strim(IN CHAR *pszStr)
     return stString.pcData;
 }
 
-/* 删除字符串头和尾的空格\t \n \r 字符, 并移动数据到头 */
+
 VOID TXT_StrimAndMove(IN CHAR *pszStr)
 {
 	CHAR *pt = pszStr;
 	INT len, idx, b = 0;
 
-	/* skip white spaces in the string */
+	
 	for (; *pt != '\0'; pt++ )
 	{
 		if (! TXT_IS_BLANK_OR_RN(*pt))
@@ -381,7 +381,7 @@ VOID TXT_StrimAndMove(IN CHAR *pszStr)
 	}
 }
 
-/* 删除字符串中的空格\t \n \r 字符, 包含头尾和中间的空白字符 */
+
 char * TXT_StrimAll(IN CHAR *pcStr)
 {
     CHAR *pcRead;
@@ -409,7 +409,7 @@ char * TXT_StrimAll(IN CHAR *pcStr)
     return pcStr;
 }
 
-/* 将不包含头尾空白字符的结果copy到dst */
+
 char * TXT_StrimTo(char *in, char *out)
 {
     in = TXT_StrimHead(in, strlen(in), (void*)" \t\r\n");
@@ -419,7 +419,7 @@ char * TXT_StrimTo(char *in, char *out)
     return out;
 }
 
-/* 将不包含空白字符的结果copy到dst */
+
 char * TXT_StrimAllTo(char *in, char *out)
 {
     in = TXT_StrimHead(in, strlen(in), (void*)" \t\r\n");
@@ -429,12 +429,12 @@ char * TXT_StrimAllTo(char *in, char *out)
     return out;
 }
 
-/* 得到字符串中第一个非空格\t \n \r 字符的指针, 如果找不到, 返回NULL . */
+
 UCHAR * TXT_FindFirstNonBlank(IN UCHAR *pszStr, IN UINT ulLen)
 {
     UINT i;
 
-	/* skip white spaces in the string */
+	
 	for (i=0; i<ulLen; i++)
 	{
 		if (! TXT_IS_BLANK_OR_RN(pszStr[i]))
@@ -451,7 +451,7 @@ UCHAR * TXT_FindFirstNonBlank(IN UCHAR *pszStr, IN UINT ulLen)
     return pszStr + i;
 }
 
-/* 和TXT_StrToToken不一样的是, 对于多个分隔符连续的情况,每个分隔符都是一个token */
+
 UINT TXT_StrToToken2(IN CHAR *pszStr, IN CHAR *pszPatterns, OUT CHAR *apszArgz[], IN UINT uiMaxArgz)
 {
     CHAR * pt = pszStr;
@@ -482,9 +482,7 @@ UINT TXT_StrToToken2(IN CHAR *pszStr, IN CHAR *pszPatterns, OUT CHAR *apszArgz[]
     return uiCount;
 }
 
-/*
- 将解析后的结果放在HSTACK中返回
-*/
+
 HANDLE TXT_StrToDynamicToken(IN CHAR *pszStr, IN CHAR *pszPatterns)
 {
     CHAR *pt1, *pt = pszStr;
@@ -530,8 +528,8 @@ HANDLE TXT_StrToDynamicToken(IN CHAR *pszStr, IN CHAR *pszPatterns)
     return hStack;
 }
 
-/*得到一行长度，不包括换行符*/
-BS_STATUS TXT_GetLine(IN CHAR *pucTxtBuf, OUT UINT *puiLineLen, OUT BOOL_T *pbIsFoundLineEndFlag/*是否找到了\n*/, OUT CHAR **ppucLineNext)
+
+BS_STATUS TXT_GetLine(IN CHAR *pucTxtBuf, OUT UINT *puiLineLen, OUT BOOL_T *pbIsFoundLineEndFlag, OUT CHAR **ppucLineNext)
 {
     CHAR *spucLineEnd;
     
@@ -545,7 +543,7 @@ BS_STATUS TXT_GetLine(IN CHAR *pucTxtBuf, OUT UINT *puiLineLen, OUT BOOL_T *pbIs
         spucLineEnd = strchr(pucTxtBuf, '\r');
     }
 
-    if (spucLineEnd == NULL)    /*没有找到换行符，则整个buf是一行*/
+    if (spucLineEnd == NULL)    
     {
         *pbIsFoundLineEndFlag = FALSE;
         *puiLineLen = strlen(pucTxtBuf);
@@ -555,8 +553,8 @@ BS_STATUS TXT_GetLine(IN CHAR *pucTxtBuf, OUT UINT *puiLineLen, OUT BOOL_T *pbIs
 
     *pbIsFoundLineEndFlag = TRUE;
 
-    /*已经找到了换行符*/
-    if (spucLineEnd > pucTxtBuf)    /*第一个字符不是换行符*/
+    
+    if (spucLineEnd > pucTxtBuf)    
     {
         if ((spucLineEnd[-1] == '\r') || (spucLineEnd[-1] == '\n'))
         {
@@ -584,8 +582,8 @@ BS_STATUS TXT_GetLine(IN CHAR *pucTxtBuf, OUT UINT *puiLineLen, OUT BOOL_T *pbIs
     return BS_OK;
 }
 
-/* 得到一行长度，不包括换行符 */
-BS_STATUS TXT_N_GetLine(IN CHAR *pucTxtBuf, IN UINT ulLen, OUT UINT *pulLineLen, OUT BOOL_T *pbIsFoundLineEndFlag/*是否找到了\n*/, OUT CHAR **ppucLineNext)
+
+BS_STATUS TXT_N_GetLine(IN CHAR *pucTxtBuf, IN UINT ulLen, OUT UINT *pulLineLen, OUT BOOL_T *pbIsFoundLineEndFlag, OUT CHAR **ppucLineNext)
 {
     CHAR *spucLineEnd;
     
@@ -595,7 +593,7 @@ BS_STATUS TXT_N_GetLine(IN CHAR *pucTxtBuf, IN UINT ulLen, OUT UINT *pulLineLen,
 
     spucLineEnd = TXT_Strnchr(pucTxtBuf, '\n', ulLen);
 
-    if (spucLineEnd == NULL)    /*没有找到换行符，则整个buf是一行*/
+    if (spucLineEnd == NULL)    
     {
         *pbIsFoundLineEndFlag = FALSE;
         *pulLineLen = ulLen;
@@ -605,8 +603,8 @@ BS_STATUS TXT_N_GetLine(IN CHAR *pucTxtBuf, IN UINT ulLen, OUT UINT *pulLineLen,
 
     *pbIsFoundLineEndFlag = TRUE;
 
-    /*已经找到了换行符*/
-    if (spucLineEnd > pucTxtBuf)    /*第一个字符不是换行符*/
+    
+    if (spucLineEnd > pucTxtBuf)    
     {
         if (spucLineEnd[-1] == '\r')
         {
@@ -630,7 +628,7 @@ BS_STATUS TXT_N_GetLine(IN CHAR *pucTxtBuf, IN UINT ulLen, OUT UINT *pulLineLen,
     return BS_OK;
 }
 
-/* 在字符串中查找多个字符之一 */
+
 CHAR * TXT_MStrnchr
 (
     IN CHAR *pcString,
@@ -666,7 +664,7 @@ char * TXT_MStrchr(char *string, char *to_finds)
     return TXT_MStrnchr(string, strlen(string), to_finds);
 }
 
-/* 将字符串反序 */
+
 char * TXT_Invert(char *in, char *out)
 {
     int len = strlen(in);
@@ -677,7 +675,7 @@ char * TXT_Invert(char *in, char *out)
     return out;
 }
 
-/* 从最后开始扫描字符 */
+
 CHAR * TXT_ReverseStrnchr(CHAR *pcBuf, CHAR ch2Find, UINT uiLen)
 {
     LSTR_S lstr;
@@ -686,7 +684,7 @@ CHAR * TXT_ReverseStrnchr(CHAR *pcBuf, CHAR ch2Find, UINT uiLen)
     return LSTR_ReverseStrchr(&lstr, ch2Find);
 }
 
-/* 从最后开始扫描字符 */
+
 CHAR * TXT_ReverseStrchr(IN CHAR *pcBuf, IN CHAR ch2Find)
 {
     LSTR_S lstr;
@@ -763,7 +761,7 @@ BS_STATUS TXT_AtouiWithCheck(IN CHAR *pszBuf, OUT UINT *puiNum)
 {
     BS_STATUS eRet;
 
-    /*4294967295是UINT的最大表示范围*/
+    
     if (strlen(pszBuf) >= sizeof("4294967295")) {
         RETURN(BS_OUT_OF_RANGE);
     }
@@ -776,7 +774,7 @@ BS_STATUS TXT_AtouiWithCheck(IN CHAR *pszBuf, OUT UINT *puiNum)
     return BS_OK;
 }
 
-/* 16进制字符串转换为U32 */
+
 BS_STATUS TXT_XAtoui(IN CHAR *pszBuf, OUT UINT *pulNum)
 {
     if ((pszBuf == NULL) || (pszBuf[0] == '\0')) {
@@ -795,7 +793,7 @@ long TXT_Strtol(char *str, int base)
 
 CHAR TXT_Random(void)
 {
-    /* A-Z, a-z, 0-9 共62个字符 */
+    
     UINT uiRandom;
 
     uiRandom = RAND_Get() % 62;
@@ -813,7 +811,7 @@ CHAR TXT_Random(void)
     return uiRandom - 52 + '0';
 }
 
-/*  查找第N个字符在字符串中的位置  */
+
 CHAR * TXT_StrchrX(IN CHAR *pszStr, IN CHAR pcToFind, IN UINT ulNum)
 {
     CHAR *pcFind = NULL;
@@ -845,7 +843,7 @@ BS_STATUS TXT_FindBracket
 (
     IN CHAR *pszString,
     IN UINT ulLen,
-    IN CHAR *pszBracket/*两个字节,用来表示左右括号*/,
+    IN CHAR *pszBracket,
     OUT CHAR **ppcStart,
     OUT CHAR **ppcEnd
 )
@@ -933,32 +931,7 @@ VOID TXT_Strlwr(INOUT CHAR *pszString)
     }
 }
 
-char * TXT_Strdup(IN CHAR *pcStr)
-{
-    UINT uiLen;
-    CHAR *pcDup;
 
-    if (NULL == pcStr) {
-        return NULL;
-    }
-
-    uiLen = strlen(pcStr);
-    pcDup = MEM_Malloc(uiLen + 1);
-    if (NULL == pcDup) {
-        return NULL;
-    }
-    strlcpy(pcDup, pcStr, uiLen + 1);
-
-    return pcDup;
-}
-
-/* 
-Copy src to string dst of size siz. At most siz-1 characters
- will be copied. Always NUL terminates (unless siz == 0).
- Returns strlen(src); if retval >= siz, truncation occurred.
-
- 用法: strlcpy(szDest, szSrc, sizeof(szDest));
-*/
 UINT TXT_Strlcpy(IN CHAR *pcDest, IN CHAR *pcSrc, IN UINT uiSize)
 {
     ULONG n;
@@ -980,19 +953,7 @@ UINT TXT_Strlcpy(IN CHAR *pcDest, IN CHAR *pcSrc, IN UINT uiSize)
 }
 
 
-/*
- * The strlcat() function appends the NUL-terminated string src to the end
- * of dst. It will append at most size - strlen(dst) - 1 bytes, NUL-termi-
- * nating the result.
- *
- * The strlcpy() and strlcat() functions return the total length of the
- * string they tried to create.  For strlcpy() that means the length of src.
- * For strlcat() that means the initial length of dst plus the length of
- * src. While this may seem somewhat confusing it was done to make trunca-
- * tion detection simple.
- *
- *
- */
+
 ULONG TXT_Strlcat(char *dst, const char *src, ULONG siz)
 {
     char *d = dst;
@@ -1000,7 +961,7 @@ ULONG TXT_Strlcat(char *dst, const char *src, ULONG siz)
     ULONG n = siz;
     ULONG dlen;
 
-    /* Find the end of dst and adjust bytes left but don't go past end */
+    
     while (n-- != 0 && *d != '\0')
     {
         d++;
@@ -1026,11 +987,11 @@ ULONG TXT_Strlcat(char *dst, const char *src, ULONG siz)
 
     *d = '\0';
 
-    return (dlen + (s - src));    /* count does not include NUL */
+    return (dlen + (s - src));    
 }
 
 
-/* 向指定位置插入一个字符,这个位置之后的字符都向后挪动 */
+
 BOOL_T TXT_InsertChar(IN CHAR *pcDest, IN UINT uiOffset, IN CHAR cInsertChar)
 {
     UINT uiLen;
@@ -1053,7 +1014,7 @@ BOOL_T TXT_InsertChar(IN CHAR *pcDest, IN UINT uiOffset, IN CHAR cInsertChar)
     return TRUE;
 }
 
-/* 从指定位置删除一个字符,这个位置之后的字符都向前挪动 */
+
 BOOL_T TXT_RemoveChar(IN CHAR *pcDest, IN UINT uiOffset)
 {
     UINT uiLen;
@@ -1073,7 +1034,7 @@ BOOL_T TXT_RemoveChar(IN CHAR *pcDest, IN UINT uiOffset)
     return TRUE;    
 }
 
-/* 获取两个字符串相同前缀的长度 */
+
 ULONG TXT_GetSamePrefixLen(IN CHAR *pcStr1, IN CHAR *pcStr2)
 {
     ULONG ulLen = 0;
@@ -1103,7 +1064,7 @@ VOID TXT_MStrSplit(IN CHAR *pcString, IN CHAR *pcSplitChar, OUT LSTR_S * pstStr1
     LSTR_MSplit(&stString, pcSplitChar, pstStr1, pstStr2);
 }
 
-/* 将字符串添加转义字符 */
+
 char * TXT_Str2Translate(char *str, char *trans_char_sets, char *out, int out_size)
 {
     char *c;
@@ -1136,9 +1097,7 @@ char * TXT_Str2Translate(char *str, char *trans_char_sets, char *out, int out_si
     return out;
 }
 
-/* 将数字转为二进制字符串:
- * min_len: 最小输出字节数, 如果不足则在前面补0
- */
+
 char * TXT_Num2BitString(uint64_t v, int min_len, OUT char *str)
 {
     int i, j = 0;

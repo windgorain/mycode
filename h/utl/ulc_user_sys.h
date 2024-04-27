@@ -6,6 +6,9 @@
 #ifndef _ULC_USER_SYS_H
 #define _ULC_USER_SYS_H
 
+#include "utl/args_def.h"
+#include "ulc_helper_id.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -13,78 +16,86 @@ extern "C"
 
 #ifdef IN_ULC_USER
 
-static void * (*ulc_sys_calloc)(int nitems, int size) = (void *)1000001;
-static void (*ulc_sys_free)(void *m) = (void *)1000002;
-static void * (*ulc_sys_realloc)(void *ptr, size_t size) = (void *)1000003;
-static void * (*ulc_sys_malloc)(int size) = (void *)1000005;
+#undef strlcpy
+int strlcpy(char *dst, char *src, int size);
 
-static int (*ulc_sys_strncmp)(void *a, void *b, int len) = (void*)1000008;
-static int (*ulc_sys_strlen)(void *a) = (void*)1000009;
-static int (*ulc_sys_strnlen)(void *a, int max_len) = (void*)1000010;
-static int (*ulc_sys_strcmp)(const char *a, const char *b) = (void*)1000011;
-static int (*ulc_sys_strlcpy)(void *dst, void *src, int size) = (void*)1000012;
-static char * (*ulc_sys_strdup)(void *s) = (void*)1000013;
-static char * (*ulc_sys_strtok_r)(char *str, const char *sep, char **ctx) = (void*)1000014;
-static char * (*ulc_sys_strcpy)(char *dest, const char *src) = (void*)1000015;
-static int (*ulc_sys_tolower)(int c) = (void*)1000016;
-static char * (*ulc_sys_strchr)(const char *str, int c) = (void*)1000017;
+static void * (*ulc_sys_malloc)(int size) = (void *)ULC_ID_MALLOC;
+static void (*ulc_sys_free)(void *m) = (void *)ULC_ID_FREE;
+static void * (*ulc_sys_kalloc)(int size) = (void *)ULC_ID_KALLOC;
+static void * (*ulc_sys_kfree)(void *m) = (void *)ULC_ID_KFREE;
+static void * (*ulc_sys_realloc)(void *ptr, size_t size) = (void *)ULC_ID_REALLOC;
 
-static void (*ulc_sys_memcpy)(void *d, const void *s, int len) = (void*)1000040;
-static void * (*ulc_sys_memset)(void *d, int c, int len) = (void*)1000041;
-static void * (*ulc_sys_memmove)(void *str1, const void *str2, int n) = (void*)1000042;
-static int (*ulc_sys_memcmp)(const void *d1, const void *d2, size_t n) = (void*)1000043;
+static int (*ulc_sys_usleep)(U32 usec) = (void*)ULC_ID_USLEEP;
 
-static int (*ulc_sys_printf)(char *fmt, ...) = (void*)1000070;
-static int (*ulc_sys_puts)(const char *str) =  (void*)1000071;
-static int (*ulc_sys_sprintf)(char *buf, const char *fmt, ...) =  (void*)1000072;
+static int (*ulc_sys_printf)(char *fmt, ...) = (void*)ULC_ID_PRINTF;
+static int (*ulc_sys_puts)(const char *str) =  (void*)ULC_ID_PUTS;
+static int (*ulc_sys_sprintf)(char *buf, const char *fmt, ...) =  (void*)ULC_ID_SPRINTF;
+static int (*ulc_sys_fprintf)(void *fp, char *fmt, U64 *d, int count) = (void*)ULC_ID_FPRINTF;
 
-static int (*ulc_sys_access)(const char *pathname, int mode) = (void*)1000100;
-static int (*ulc_sys_fprintf)(void *fp, char *fmt, U64 *d, int count) = (void*)1000101;
-static long (*ulc_sys_ftell)(void *fp) = (void*)1000102;
-static int (*ulc_sys_fseek)(void *fp, long int offset, int whence) = (void*)1000103;
-static void * (*ulc_sys_fopen)(const char *filename, const char *mode) = (void*)1000104;
-static long (*ulc_sys_fread)(void *ptr, long size, long nmemb, void *stream) = (void*)1000105;
-static int (*ulc_sys_fclose)(void *stream) = (void*)1000106;
-static char * (*ulc_sys_fgets)(void *str, int n, void *fp) = (void*)1000107;
-static size_t (*ulc_sys_fwrite)(const void *ptr, size_t size, size_t nmemb, void *fp) = (void*)1000108;
-static int (*ulc_sys_stat)(const char *path, void *stat) = (void*)1000120;
+static int (*ulc_sys_access)(const char *pathname, int mode) = (void*)ULC_ID_ACCESS;
+static long (*ulc_sys_ftell)(void *fp) = (void*)ULC_ID_FTELL;
+static int (*ulc_sys_fseek)(void *fp, long int offset, int whence) = (void*)ULC_ID_FSEEK;
+static void * (*ulc_sys_fopen)(const char *filename, const char *mode) = (void*)ULC_ID_FOPEN;
+static long (*ulc_sys_fread)(void *ptr, long size, long nmemb, void *stream) = (void*)ULC_ID_FREAD;
+static int (*ulc_sys_fclose)(void *stream) = (void*)ULC_ID_FCLOSE;
+static char * (*ulc_sys_fgets)(void *str, int n, void *fp) = (void*)ULC_ID_FGETS;
+static size_t (*ulc_sys_fwrite)(const void *ptr, size_t size, size_t nmemb, void *fp) = (void*)ULC_ID_FWRITE;
+static int (*ulc_sys_stat)(const char *path, void *stat) = (void*)ULC_ID_STAT;
 
-static U64 (*ulc_sys_time)(U64 *seconds) = (void*)1000130;
+static U64 (*ulc_sys_time)(U64 *seconds) = (void*)ULC_ID_TIME;
 
-static int (*ulc_sys_socket)(int af, int type, int protocol) = (void*)1000200;
-static int (*ulc_sys_bind)(int sock, void *addr, int addrlen) = (void*)1000201;
-static int (*ulc_sys_connect)(int sock, void *serv_addr, int addrlen) = (void*)1000202;
-static int (*ulc_sys_listen)(int sock, int backlog) = (void*)1000203;
-static int (*ulc_sys_accept)(int sock, void *addr, int *addrlen) = (void*)1000204;
-static int (*ulc_sys_recv)(int s, char *buf, int len, int flags) = (void*)1000205;
-static int (*ulc_sys_send)(int s, char *buf, int len, int flags) = (void*)1000206;
-static int (*ulc_sys_close)(int s) = (void*)1000207;
-static int (*ulc_sys_setsockopt)(int sockfd, int level, int optname, const void *optval, int optlen) = (void*)1000208;
+static int (*ulc_sys_socket)(int af, int type, int protocol) = (void*)ULC_ID_SOCKET;
+static int (*ulc_sys_bind)(int sock, void *addr, int addrlen) = (void*)ULC_ID_BIND;
+static int (*ulc_sys_connect)(int sock, void *serv_addr, int addrlen) = (void*)ULC_ID_CONNECT;
+static int (*ulc_sys_listen)(int sock, int backlog) = (void*)ULC_ID_LISTEN;
+static int (*ulc_sys_accept)(int sock, void *addr, int *addrlen) = (void*)ULC_ID_ACCEPT;
+static int (*ulc_sys_recv)(int s, char *buf, int len, int flags) = (void*)ULC_ID_RECV;
+static int (*ulc_sys_send)(int s, char *buf, int len, int flags) = (void*)ULC_ID_SEND;
+static int (*ulc_sys_close)(int s) = (void*)ULC_ID_CLOSE;
+static int (*ulc_sys_setsockopt)(int sockfd, int level, int optname, const void *optval, int optlen) = (void*)ULC_ID_SETSOCKOPT;
 
-static int (*ulc_pthread_create)(void *thread, const void *attr, void *fn, void *arg) = (void*)1000300;
+static int (*ulc_pthread_create)(void *thread, const void *attr, void *fn, void *arg) = (void*)ULC_ID_THREAD_CREATE;
 
-static void (*ulc_sys_rcu_call)(void *rcu, void *func) = (void*)1000352;
-static int (*ulc_sys_rcu_lock)(void) = (void*)1000353;
-static void (*ulc_sys_rcu_unlock)(int state) = (void*)1000354;
+static void (*ulc_sys_rcu_call)(void *rcu, void *func) = (void*)ULC_ID_RCU_CALL;
+static int (*ulc_sys_rcu_lock)(void) = (void*)ULC_ID_RCU_LOCK;
+static void (*ulc_sys_rcu_unlock)(int state) = (void*)ULC_ID_RCU_UNLOCK;
+static void (*ulc_sys_rcu_sync)(void) = (void*)ULC_ID_RCU_SYNC;
 
-static int (*ulc_sys_get_errno)(void) = (void*)1000402;
+static int (*ulc_sys_get_errno)(void) = (void*)ULC_ID_ERRNO;
 
-static void * (*ulc_mmap_map)(void *addr, U64 len, U64 flag, int fd, U64 off) = (void*)1000450;
-static void (*ulc_mmap_unmap)(void *buf, int size) = (void*)1000451;
-static int (*ulc_mmap_mprotect)(void *buf, int size, U32 flag) = (void*)1000452;
+static void (*ulc_init_timer)(void *timer_node, void *timeout_func) = (void*)ULC_ID_INIT_TIMER;
+static int (*ulc_add_timer)(void *timer_node, U32 ms) = (void*)ULC_ID_ADD_TIMER;
+static void (*ulc_del_timer)(void *timer_node) = (void*)ULC_ID_DEL_TIMER;
+
+static void * (*ulc_mmap_map)(void *addr, U64 len, U64 flag, int fd, U64 off) = (void*)ULC_ID_MMAP_MAP;
+static void (*ulc_mmap_unmap)(void *buf, int size) = (void*)ULC_ID_MMAP_UNMAP;
+static int (*ulc_mmap_mprotect)(void *buf, int size, U32 flag) = (void*)ULC_ID_MMAP_MPROTECT;
+
+static void * (*ulc_sys_get_sym)(char *sym_name) = (void*)ULC_ID_GET_SYM;
 
 enum {
-    ULC_TRUSTEESHIP_MYBPF_AGENT = 0,
+    ULC_TRUSTEESHIP_MYBPF_FUNCS = 0,
 };
+static int (*ulc_set_trusteeship)(unsigned int id, void *ptr) = (void*)ULC_ID_SET_TRUSTEESHIP;
+static void * (*ulc_get_trusteeship)(unsigned int id) = (void*)ULC_ID_GET_TRUSTEESHIP;
+static void (*ulc_do_nothing)(void) = (void*)ULC_ID_DO_NOTHING;
+static int (*ulc_get_local_arch)(void) = (void*)ULC_ID_LOCAL_ARCH;
+static void * (*ulc_get_helper)(unsigned int id, const void **tmp_helpers) = (void*)ULC_ID_GET_HELPER;
+static const void ** (*ulc_get_base_helpers)(void) = (void*)ULC_ID_GET_BASE_HELPER;
+static const void ** (*ulc_get_sys_helpers)(void) = (void*)ULC_ID_GET_SYS_HELPER;
+static const void ** (*ulc_get_user_helpers)(void) = (void*)ULC_ID_GET_USER_HELPER;
 
-static int (*ulc_set_trusteeship)(unsigned int id, void *ptr) = (void*)1000500;
-static void * (*ulc_get_trusteeship)(unsigned int id) = (void*)1000501;
-static void (*ulc_do_nothing)(void) = (void*)1000506;
-static int (*ulc_get_local_arch)(void) = (void*)1000507;
-static void * (*ulc_get_helper)(unsigned int id, const void **tmp_helpers) = (void*)1000508;
-static const void ** (*ulc_get_base_helpers)(void) = (void*)1000509;
-static const void ** (*ulc_get_sys_helpers)(void) = (void*)1000510;
-static const void ** (*ulc_get_user_helpers)(void) = (void*)1000511;
+#define ulc_call_sym(_err_ret, _name, ...) ({ \
+        U64 _ret = (_err_ret); \
+        U64 (*_func)(U64,U64,U64,U64,U64) = ulc_sys_get_sym(_name); \
+        if (_func) { \
+                _ret = _func((long)BS_ARG_GET(1, ##__VA_ARGS__),\
+                        (long)BS_ARG_GET(2, ##__VA_ARGS__), \
+                        (long)BS_ARG_GET(3, ##__VA_ARGS__), \
+                        (long)BS_ARG_GET(4, ##__VA_ARGS__), \
+                        (long)BS_ARG_GET(5, ##__VA_ARGS__)); \
+        } \
+        _ret; })
 
 #endif
 

@@ -36,12 +36,12 @@ typedef struct tagDNS_SERVICE_LABEL_S
     UINT uiIP;  
     CHAR *pcLabel;
     struct tagDNS_SERVICE_LABEL_S *pstParent;
-    HASH_HANDLE hLabelHash; 
+    HASH_S * hLabelHash; 
 }DNS_SERVICE_LABEL_S;
 
 typedef struct
 {
-    HASH_HANDLE hLabelHash;
+    HASH_S * hLabelHash;
     BOOL_T bCreateMutex;
     MUTEX_S stMutex;
 }DNS_SERVICE_S;
@@ -127,7 +127,7 @@ static DNS_SERVICE_LABEL_S * dns_service_MallocLabelNode(IN CHAR *pcLabel, IN UI
     return pstNode;
 }
 
-static VOID  dns_service_FreeEach(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
+static VOID  dns_service_FreeEach(IN void * hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
 {
     DNS_SERVICE_LABEL_S *pstLabel = (DNS_SERVICE_LABEL_S*)pstNode;
 
@@ -154,7 +154,7 @@ static INT  dns_service_LabelCmp(IN VOID * pstHashNode, IN VOID * pstHashNodeToF
     return stricmp(pstNode->pcLabel, pstNodeToFind->pcLabel);
 }
 
-static DNS_SERVICE_LABEL_S * dns_service_FindLabel(IN HASH_HANDLE hLabelHash, IN CHAR *pcLabelName)
+static DNS_SERVICE_LABEL_S * dns_service_FindLabel(IN HASH_S * hLabelHash, IN CHAR *pcLabelName)
 {
     DNS_SERVICE_LABEL_S stNodeToFind;
 
@@ -167,7 +167,7 @@ static DNS_SERVICE_LABEL_S * dns_service_FindLabel(IN HASH_HANDLE hLabelHash, IN
 static DNS_SERVICE_LABEL_S * dns_service_CreateLabels
 (
     IN DNS_SERVICE_LABEL_S *pstParent,
-    IN HASH_HANDLE hLabelHash,
+    IN HASH_S * hLabelHash,
     IN CHAR **ppcLabels,  
     IN UINT uiLabelPos,  
     IN UINT uiLevel      
@@ -229,7 +229,7 @@ static BS_STATUS dns_service_AddName
 
 static BS_STATUS dns_service_DelLabels
 (
-    IN HASH_HANDLE hLabelHash,
+    IN HASH_S * hLabelHash,
     IN CHAR **ppcLabels,  
     IN UINT uiLabelPos    
 )
@@ -269,7 +269,7 @@ static inline BS_STATUS dns_service_DelName
 
 static DNS_SERVICE_LABEL_S * dns_service_FindLabels
 (
-    IN HASH_HANDLE hLabelHash,
+    IN HASH_S * hLabelHash,
     IN CHAR **ppcLabels,
     IN UINT uiLabelPos
 )

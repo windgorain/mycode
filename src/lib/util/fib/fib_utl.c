@@ -24,7 +24,7 @@
 
 typedef struct
 {
-    HASH_HANDLE hHash;
+    HASH_S * hHash;
     UINT uiInstanceFlag;
     MUTEX_S stMutex;
 }_FIB_CTRL_S;
@@ -56,7 +56,7 @@ static UINT _fib_HashIndex(IN VOID *pstHashNode)
     return uiDstIp;
 }
 
-static VOID  fib_FreeHashNode(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
+static VOID  fib_FreeHashNode(IN void * hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
 {
     _FIB_HASH_NODE_S *pstFibHashNode = (_FIB_HASH_NODE_S*)pstNode;
 
@@ -84,7 +84,7 @@ static INT  fib_HashCmp(IN VOID *pstHashNode, IN VOID *pstNodeToFind)
     return iCmpRet;
 }
 
-static int fib_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
+static int fib_WalkEach(IN HASH_S * hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
 {
     _FIB_HASH_NODE_S *pstFibHashNode = (_FIB_HASH_NODE_S*)pstNode;
     USER_HANDLE_S *pstUserHandle = pUserHandle;
@@ -155,7 +155,7 @@ static inline VOID fib_UnLock(IN _FIB_CTRL_S *pstFibCtrl)
     }
 }
 
-static int _fib_ClearAutoIFEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
+static int _fib_ClearAutoIFEach(IN HASH_S * hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
 {
     _FIB_HASH_NODE_S *pstFibHashNode = (_FIB_HASH_NODE_S*)pstNode;
     UINT i;
@@ -385,7 +385,7 @@ static BS_STATUS _fib_PrefixMatch(IN _FIB_CTRL_S *pstFibCtrl, IN UINT uiDstIp , 
 FIB_HANDLE FIB_Create(IN UINT uiInstanceFlag )
 {
     _FIB_CTRL_S *pstFibCtrl;
-    HASH_HANDLE hHash;
+    HASH_S * hHash;
 
     pstFibCtrl = MEM_ZMalloc(sizeof(_FIB_CTRL_S));
     if (NULL == pstFibCtrl)

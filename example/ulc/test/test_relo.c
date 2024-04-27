@@ -4,18 +4,12 @@
 ********************************************************/
 #include "utl/ulc_user.h"
 
-static U64 g_count1 = 0;
-static int g_count2 = 1000;
-static char *g_string = "global-test";
+char * g_global_str = "test";
 
 SEC(".spf.cmd/main")
 int main()
 {
-    g_count1 ++;
-    g_count2 ++;
-
-    printf("%s: count1:%llu count2:%d \n", g_string, g_count1, g_count2);
-
+    printf("%s \n", g_global_str);
     return 0;
 }
 

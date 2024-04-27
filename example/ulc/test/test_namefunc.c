@@ -4,11 +4,11 @@
 ********************************************************/
 #include "utl/ulc_user.h"
 
-SEC(".spf.cmd/")
-int main()
+SEC(".spf.namefunc/test")
+int namefunc_test()
 {
-    printf("Hello world! \n");
-    return XDP_PASS;
+    BPF_Print("namefunc test OK \n");
+    return 0;
 }
 
 

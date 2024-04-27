@@ -12,7 +12,7 @@
 typedef struct {
     UMAP_HEADER_S hdr; 
     U32 buckets_num;
-    HASH_HANDLE hash_tbl;
+    HASH_S * hash_tbl;
 }UMAP_HASH_S;
 
 typedef struct {
@@ -49,7 +49,7 @@ static void _umap_hash_free_node(UMAP_HASH_NODE_S *node)
     MEM_RcuFree(node);
 }
 
-static void _umap_hash_hash_free_node(HASH_HANDLE hash_tbl, void *node, void *ud)
+static void _umap_hash_hash_free_node(void *hash_tbl, void *node, void *ud)
 {
     _umap_hash_free_node(node);
 }
@@ -60,7 +60,7 @@ static void _umap_hash_destroy_map(void *map)
 
     HASH_DelAll(ctrl->hash_tbl, _umap_hash_hash_free_node, NULL);
     HASH_DestoryInstance(ctrl->hash_tbl);
-    MEM_RcuFree(ctrl);
+    MEM_Free(ctrl); 
 }
 
 static void * _umap_hash_open(void *map_def)
@@ -71,7 +71,7 @@ static void * _umap_hash_open(void *map_def)
 		return NULL;
     }
 
-    UMAP_HASH_S *ctrl = MEM_RcuZMalloc(sizeof(UMAP_HASH_S));
+    UMAP_HASH_S *ctrl = MEM_ZMalloc(sizeof(UMAP_HASH_S));
     if (! ctrl) {
         return NULL;
     }

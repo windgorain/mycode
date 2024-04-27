@@ -12,22 +12,22 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif 
 
-#define	IN      /*IN*/
-#define	OUT     /*OUT*/
-#define	INOUT   /*INOUT*/
+#define	IN      
+#define	OUT     
+#define	INOUT   
 
-/* long length data */
+
 typedef struct {
-    UCHAR *data; /* 文件数据 */
-    UINT64 len;   /* 文件长度 */
+    UCHAR *data; 
+    UINT64 len;   
 }LLDATA_S;
 
 typedef LLDATA_S FILE_MEM_S;
 
 typedef enum{
-    /* 通用定义 */
+    
 	BS_OK = 0,
 	BS_ERR = -1,
 	BS_NO_SUCH = -2,
@@ -63,20 +63,20 @@ typedef enum{
 	BS_NOT_MATCHED = -32,
 	BS_VERIFY_FAILED = -33,
 	BS_NOT_INIT = -34,
-	BS_REF_NOT_ZERO = -35, /* 引用计数不为0 */
+	BS_REF_NOT_ZERO = -35, 
     BS_BUSY = -36,
     BS_PARSE_FAILED = -37,
 	BS_REACH_MAX = -38,
     BS_STOLEN = -39,
 
-    /* 模块私有定义,在BS_PRIVATE_BASE 基础上增加 */
+    
     BS_PRIVATE_BASE = -100
 }BS_STATUS;
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-#endif /*azHead.h*/
+#endif 
+#endif 
 
 
 

@@ -21,7 +21,7 @@ typedef struct {
 
 typedef struct
 {
-    HASH_HANDLE hHash;
+    HASH_S *hHash;
 }IPMASKTBL_S;
 
 typedef struct {

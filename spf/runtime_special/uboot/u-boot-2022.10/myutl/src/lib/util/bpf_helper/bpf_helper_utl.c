@@ -184,7 +184,7 @@ static const void * g_bpf_base_helpers[BPF_BASE_HELPER_COUNT] = {
 };
 
 static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
-    [0] = NULL, /* 1000000 */
+    [0] = NULL, 
     [1] = calloc,
     [2] = free,
     [3] = ulc_sys_rcu_malloc,
@@ -219,7 +219,7 @@ static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
 };
 
 static const void * g_bpf_user_helpers[BPF_USER_HELPER_COUNT] = {
-    [0] = NULL, /* 2000000 */
+    [0] = NULL, 
     [1] = NULL,
 };
 
@@ -263,7 +263,7 @@ void * BpfHelper_GetFuncExt(unsigned int id, const void **tmp_helpers)
         return (void*)g_bpf_user_helpers[id - BPF_USER_HELPER_START];
     } else if ((id >= BPF_TMP_HELPER_START) && (id < BPF_TMP_HELPER_END) && (tmp_helpers)) {
         int idx = id - BPF_TMP_HELPER_START;
-        if ((idx <= 0) || (idx >= *(U32*)tmp_helpers)) { /* tmp_helpers的开始位置放的是tmp_helpers数组大小 */
+        if ((idx <= 0) || (idx >= *(U32*)tmp_helpers)) { 
             return NULL;
         }
         return (void*)tmp_helpers[idx];

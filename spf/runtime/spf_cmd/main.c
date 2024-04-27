@@ -23,8 +23,8 @@ static int _load_spf(char *file)
     MYBPF_LOADER_PARAM_S p = {0};
 
     p.filename = file;
-    p.instance = "spfrun";
-    p.flag = MYBPF_LOADER_FLAG_AUTO_ATTACH;
+    p.instance = ".spfrun";
+    p.flag = MYBPF_LOADER_FLAG_AUTO_ATTACH | MYBPF_LOADER_FLAG_JIT;
 
     int ret = g_mybpf_spf_ctrl->load_instance(&p);
     if (ret < 0) {
@@ -37,11 +37,15 @@ static int _load_spf(char *file)
 static int _run_spf_run_cmd(int argc, char **argv)
 {
     MYBPF_PARAM_S p = {0};
+    void *prog = NULL;
 
     p.p[0] = argc;
     p.p[1] = (long)argv;
+    while ((prog = g_mybpf_spf_ctrl->get_next_prog(".spfrun", ".spf.cmd/", prog))) {
+        g_mybpf_spf_ctrl->run_prog(prog, &p);
+    }
  
-    return g_mybpf_spf_ctrl->run(MYBPF_HP_TCMD, &p);
+    return 0;
 }
 
 static int _run_spf(char *file, int argc, char **argv)
@@ -106,7 +110,7 @@ static int _load_spf_loader_file()
     return ret;
 }
 
-/* spfrun file args */
+
 int main(int argc, char **argv)
 {
     if (argc < 2) {

@@ -60,23 +60,23 @@ void ELF_Close(ELF_S *elf)
     FILE_FreeMem(elf);
 }
 
-/* 返回 iter, NULL表示结束 */
-void * ELF_GetNextSection(ELF_S *elf, void *iter/* NULL表示获取第一个 */, OUT ELF_SECTION_S *sec)
+
+void * ELF_GetNextSection(ELF_S *elf, void *iter, OUT ELF_SECTION_S *sec)
 {
     Elf64_Shdr * shdr = ELFLIB_GetNextSec(elf, iter);
     _elf_file_sec_info(elf, shdr, sec);
     return shdr;
 }
 
-/* 返回 iter, NULL表示结束 */
-void * ELF_GetNextTypeSection(ELF_S *elf, int type, void *iter/* NULL表示获取第一个 */, OUT ELF_SECTION_S *sec)
+
+void * ELF_GetNextTypeSection(ELF_S *elf, int type, void *iter, OUT ELF_SECTION_S *sec)
 {
     Elf64_Shdr * shdr = ELFLIB_GetNextTypeSec(elf, type, iter);
     _elf_file_sec_info(elf, shdr, sec);
     return shdr;
 }
 
-/* 获取第几个section, id就是section的序号 */
+
 int ELF_GetSecByID(ELF_S *elf, int sec_id, OUT ELF_SECTION_S *sec)
 {
     return _elf_get_sec_by_id(elf, sec_id, sec);
@@ -89,13 +89,13 @@ int ELF_GetSecByName(ELF_S *elf, char *sec_name, OUT ELF_SECTION_S *sec)
     return _elf_file_sec_info(elf, shdr, sec);
 }
 
-/* 返回对应sec的id */
+
 int ELF_GetSecIDByName(ELF_S *elf, char *sec_name)
 {
     return ELFLIB_GetSecIDByName(elf, sec_name);
 }
 
-/* 根据id获取symbol */
+
 Elf64_Sym * ELF_GetSymbolByID(ELF_S *elf, int id)
 {
     Elf64_Shdr *sym_shdr = ELFLIB_GetSymSec(elf);
@@ -168,7 +168,7 @@ BOOL_T ELF_IsBssSection(ELF_SECTION_S *sec)
     return FALSE;
 }
 
-/* 获取data sections */
+
 int ELF_GetGlobalData(ELF_S *elf, OUT ELF_GLOBAL_DATA_S *global_data)
 {
     void *iter = NULL;
@@ -200,9 +200,7 @@ int ELF_GetGlobalData(ELF_S *elf, OUT ELF_GLOBAL_DATA_S *global_data)
     return count;
 }
 
-/* 把elf中的progs copy到mem; 如果mem_size不够会返回错误,
- 成功: 返回copy了多长. 
- 失败: return < 0 */
+
 int ELF_CopyProgs(ELF_S *elf, OUT void *mem, int mem_size)
 {
     ELF_SECTION_S sec;
@@ -228,7 +226,7 @@ int ELF_CopyProgs(ELF_S *elf, OUT void *mem, int mem_size)
     return offset;
 }
 
-/* 申请内存并copy progs */
+
 void * ELF_DupProgs(ELF_S *elf)
 {
     int size = ELFLIB_GetProgsSize(elf);

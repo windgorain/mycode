@@ -22,7 +22,7 @@ static inline void _klcko_nl_unlock(void)
     mutex_unlock(&g_klcko_nl_lock);
 }
 
-static int _klcko_process_cmd(int cmd, void *data, int data_len, void *reply)
+static int _klcko_process_cmd(int cmd, void *data, int data_len, void *reply, int reply_size)
 {
     int type = KLC_NL_TYPE(cmd);
     int subcmd = KLC_NL_CMD(cmd);
@@ -34,7 +34,7 @@ static int _klcko_process_cmd(int cmd, void *data, int data_len, void *reply)
         return KO_ERR_NO_SUCH;
     }
 
-    return func(subcmd, data, data_len, reply);
+    return func(subcmd, data, data_len, reply, reply_size);
 }
 
 static void _klcko_rcv_skb(struct sk_buff *skb)
@@ -71,7 +71,7 @@ static void _klcko_rcv_skb(struct sk_buff *skb)
     data_len = nlmsglen - sizeof(NETLINK_MSG_S);
     reply_ptr = msg_st->reply_ptr;
 
-    ret = _klcko_process_cmd(type, data, data_len, reply_ptr);
+    ret = _klcko_process_cmd(type, data, data_len, reply_ptr, msg_st->reply_size);
 
     ack_func = (void*)netlink_ack;
     ack_func(skb, nlh, ret, NULL);

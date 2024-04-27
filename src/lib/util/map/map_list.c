@@ -51,7 +51,7 @@ static int _map_list_cmp(MAP_ELE_S *key, void * pstCmpNode)
     MAP_LIST_NODE_S *pstNode = pstCmpNode;
 
     if (pstNode->stEle.uiKeyLen == 0) {
-        /* keylen==0, 则表示key本身是数字,不是指针 */
+        
         return (INT)HANDLE_UINT(key->pKey) - (INT)HANDLE_UINT(pstNode->stEle.pKey);
     }
 
@@ -64,7 +64,7 @@ static int _map_list_cmp_list_node(DLL_NODE_S *pstNode1, DLL_NODE_S *pstNode2, H
     MAP_LIST_NODE_S *node2 = (void*)pstNode2;
 
     if (node1->stEle.uiKeyLen == 0) {
-        /* keylen==0, 则表示key本身是数字,不是指针 */
+        
         return (INT)HANDLE_UINT(node1->stEle.pKey) - (INT)HANDLE_UINT(node2->stEle.pKey);
     }
 
@@ -256,7 +256,7 @@ static void * map_list_del_by_ele(IN MAP_HANDLE map, IN MAP_ELE_S *ele)
     return _map_list_del_node(map, node);
 }
 
-/* 从集合中删除并返回pData */
+
 static void * map_list_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 {
     MAP_LIST_NODE_S *pstNode;
@@ -269,7 +269,7 @@ static void * map_list_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
     return _map_list_del_node(map, pstNode);
 }
 
-/* 从集合中删除并返回pData */
+
 static void * map_list_del_node(MAP_HANDLE map, void *n)
 {
     MAP_LIST_NODE_S *pstNode = n;
@@ -315,7 +315,7 @@ static void map_list_walk(MAP_HANDLE map, PF_MAP_WALK_FUNC pfWalkFunc, VOID *pUs
     }
 }
 
-/* 按照字典序获取下一个 */
+
 static MAP_ELE_S * map_list_getnext(MAP_HANDLE map, MAP_ELE_S *pstCurrent)
 {
     _MAP_LIST_S *list_map = map->impl_map;
@@ -334,7 +334,7 @@ static MAP_ELE_S * map_list_getnext(MAP_HANDLE map, MAP_ELE_S *pstCurrent)
     return &node->stEle;
 }
 
-MAP_HANDLE MAP_ListCreate(void *memcap/*可以为NULL*/)
+MAP_HANDLE MAP_ListCreate(void *memcap)
 {
     MAP_CTRL_S *ctrl;
     _MAP_LIST_S *list_map;

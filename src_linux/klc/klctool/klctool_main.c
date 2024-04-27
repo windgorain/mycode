@@ -31,16 +31,17 @@
 #include "klc/klctool_def.h"
 #include "klc/klctool_lib.h"
 
+static int _klctool_init_klc(int argc, char **argv)
+{
+    return KLCTOOL_InitKlc();
+}
 
-static int _klctool_cmd_load_file(int argc, char **argv)
+static int _klctool_cmd_load_bare_file(int argc, char **argv)
 {
     char *file = NULL;
-    KLCTOOL_LOAD_CFG_S load_cfg = {0};
 
-    
     GETOPT2_NODE_S opts[] = {
         {'P', 0, "File", GETOPT2_V_STRING, &file, "file name", 0},
-        {'o', 'r', "replace", GETOPT2_V_NONE, NULL, "replace if exist", 0}, 
         {0}
     };
 
@@ -50,11 +51,60 @@ static int _klctool_cmd_load_file(int argc, char **argv)
         return -1;
     }
 
-    if (GETOPT2_IsOptSetted(opts, 'r', NULL)) {
-        load_cfg.replace = 1;
+    return KLCTOOL_LoadBareFile(file);
+}
+
+static int _klctool_cmd_load_spf_file(int argc, char **argv)
+{
+    char *file = NULL;
+    char *instance = NULL;
+
+    GETOPT2_NODE_S opts[] = {
+        {'P', 0, "Instance", GETOPT2_V_STRING, &instance, "instance name", 0},
+        {'P', 0, "File", GETOPT2_V_STRING, &file, "file name", 0},
+        {0}
+    };
+
+	if (0 != GETOPT2_Parse(argc, argv, opts)) {
+        ErrCode_PrintErrInfo();
+        GETOPT2_PrintHelp(opts);
+        return -1;
     }
 
-    return KLCTOOL_LoadFile(file, NULL, &load_cfg);
+    return KLCTOOL_LoadSpfFile(file, instance);
+}
+
+static int _klctool_cmd_unload_instance(int argc, char **argv)
+{
+    char *str = NULL;
+
+    GETOPT2_NODE_S opts[] = {
+        {'P', 0, "Instance", GETOPT2_V_STRING, &str, "instance name", 0},
+        {0}
+    };
+
+	if (0 != GETOPT2_Parse(argc, argv, opts)) {
+        ErrCode_PrintErrInfo();
+        GETOPT2_PrintHelp(opts);
+        return -1;
+    }
+
+    if (KLCTOOL_UnloadInstance(str) < 0) {
+        fprintf(stderr, "can't unload instance %s \n", str);
+        return -1;
+    }
+
+    return 0;
+}
+
+static int _klctool_cmd_show_instance(int argc, char **argv)
+{
+    return KLCTOOL_ShowInstance();
+}
+
+static int _klctool_cmd_run_cmd(int argc, char **argv)
+{
+    return KLCTOOL_RunCmd(argc, argv);
 }
 
 
@@ -81,33 +131,6 @@ static int _klctool_cmd_unload_file(int argc, char **argv)
     return 0;
 }
 
-
-static int _klctool_cmd_reload_file(int argc, char **argv)
-{
-    char *file = NULL;
-    KLCTOOL_LOAD_CFG_S load_cfg = {0};
-
-    GETOPT2_NODE_S opts[] = {
-        {'P', 0, "File", GETOPT2_V_STRING, &file, "file name", 0},
-        {0}
-    };
-
-	if (0 != GETOPT2_Parse(argc, argv, opts)) {
-        ErrCode_PrintErrInfo();
-        GETOPT2_PrintHelp(opts);
-        return -1;
-    }
-
-    if (file == NULL) {
-        GETOPT2_PrintHelp(opts);
-        return -1;
-    }
-
-    KLCTOOL_UnLoadFile(file);
-
-    return KLCTOOL_LoadFile(file, NULL, &load_cfg);
-}
-
 static int _klctool_cmd_cmdrun(int argc, char **argv)
 {
     char *mod = NULL;
@@ -126,29 +149,6 @@ static int _klctool_cmd_cmdrun(int argc, char **argv)
     }
 
     return KLCTOOL_CmdRun(mod, cmd);
-}
-
-static int _klctool_cmd_del_module(int argc, char **argv)
-{
-    char *str = NULL;
-
-    GETOPT2_NODE_S opts[] = {
-        {'P', 0, "Name", GETOPT2_V_STRING, &str, "module name", 0},
-        {0}
-    };
-
-	if (0 != GETOPT2_Parse(argc, argv, opts)) {
-        ErrCode_PrintErrInfo();
-        GETOPT2_PrintHelp(opts);
-        return -1;
-    }
-
-    if (KLCTOOL_DelModule(str) < 0) {
-        fprintf(stderr, "can't delete the mod\n");
-        return -1;
-    }
-
-    return 0;
 }
 
 static int _klctool_cmd_show_module(int argc, char **argv)
@@ -222,17 +222,23 @@ static int _klctool_cmd_incuse_base(int argc, char **argv)
 int main(int argc, char **argv)
 {
     static SUB_CMD_NODE_S subcmds[] = {
-        {"load", _klctool_cmd_load_file, "load file"},
-        {"unload", _klctool_cmd_unload_file, "unload file"},
-        {"reload", _klctool_cmd_reload_file, "reload file"},
-        {"cmdrun", _klctool_cmd_cmdrun, "cmd run"},
-        {"delete module", _klctool_cmd_del_module, "delete module"},
-        {"show module", _klctool_cmd_show_module, "show module"},
+        {"init", _klctool_init_klc, "init klc"},
+        {"load bare", _klctool_cmd_load_bare_file, "load bare file"},
+        {"load spf", _klctool_cmd_load_spf_file, "load spf file"},
+        {"unload instance", _klctool_cmd_unload_instance, "unload instance"},
+        {"show instance", _klctool_cmd_show_instance, "show instance"},
+        {"runcmd", _klctool_cmd_run_cmd, "run cmd"},
+
         {"show idfunc", _klctool_cmd_show_idfunc, "show id function"},
         {"show namefunc", _klctool_cmd_show_namefunc, "show name function"},
+        {"show evob", _klctool_cmd_show_evob, "show event ob"},
+
+        
+        {"unload file", _klctool_cmd_unload_file, "unload file"},
+        {"cmdrun", _klctool_cmd_cmdrun, "cmd run"},
+        {"show module", _klctool_cmd_show_module, "show module"},
         {"show namemap", _klctool_cmd_show_name_map, "show name map"},
         {"show maps", _klctool_cmd_show_maps, "show maps"},
-        {"show evob", _klctool_cmd_show_evob, "show event ob"},
         {"show oshelper", _klctool_cmd_show_oshelper, "show os helper"},
         {"decuse impl", _klctool_cmd_decuse_module, "decuse module"},
         {"incuse impl", _klctool_cmd_incuse_module, "incuse module"},

@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define MEM_Set(pBuf, ucTo, uiLen) memset(pBuf, ucTo, uiLen)
 #define Mem_Zero(pMem,ulSize)  memset(pMem, 0, ulSize)
@@ -21,13 +21,19 @@
 #define SUPPORT_MEM_MANAGED
 #endif
 
+
 #define MEM_Malloc(uiSize)  _mem_Malloc(uiSize, __FILE__,  __LINE__)
 #define MEM_ZMalloc(ulSize)  _mem_MallocWithZero(ulSize, __FILE__,  __LINE__)
 #define MEM_MallocAndCopy(pSrc,uiSrcLen,uiMallocLen) _mem_MallocAndCopy(pSrc,uiSrcLen,uiMallocLen,__FILE__,__LINE__)
-
 #define MEM_Free(pMem)  _mem_Free((VOID*)(pMem), __FILE__, __LINE__)
- /* 如果存在则free */
-#define MEM_SafeFree(pMem) do {if (pMem) {MEM_Free(pMem);}}while(0)
+#define MEM_SafeFree(pMem) do {if (pMem) {MEM_Free(pMem);}}while(0) 
+
+
+#define MEM_Kalloc(uiSize) MEM_Malloc(uiSize)
+#define MEM_ZKalloc(uiSize) MEM_ZMalloc(uiSize)
+#define MEM_KallocAndCopy(uiSize) MEM_MallocAndCopy(uiSize)
+#define MEM_KFree(pMem)  MEM_Free(pMem)
+#define MEM_SafeKFree(pMem) MEM_SafeFree(pMem)
 
 #define MEM_ZMallocAndCopy(pSrc,uiSrcLen,uiMallocLen) ({ \
         char *_mem = MEM_MallocAndCopy(pSrc,uiSrcLen, uiMallocLen); \
@@ -70,7 +76,7 @@ static inline VOID * _mem_MallocWithZero(IN UINT uiSize, const char *pszFileName
 #define MEM_Copy(d,s,l) memcpy(d,s,l)
 #endif
 
-/* 不同长度内存的大小比较 */
+
 static inline int MEM_Cmp(IN UCHAR *pucMem1, IN UINT uiMem1Len, IN UCHAR *pucMem2, IN UINT uiMem2Len)
 {
     UINT uiCmpLen = MIN(uiMem1Len, uiMem2Len);
@@ -92,7 +98,7 @@ void * _mem_rcu_zmalloc(IN UINT uiSize, const char *file, int line);
 void * _mem_rcu_dup(void *mem, int size, const char *file, int line);
 #define MEM_RcuDup(mem, size) _mem_rcu_dup(mem, size, __FILE__, __LINE__)
 
-void MEM_RcuFree(IN VOID *pMem);
+void MEM_RcuFree(void *mem);
 
 void * MEM_Find(IN VOID *pMem, IN UINT ulMemLen, IN VOID *pMemToFind, IN UINT ulMemToFindLen);
 
@@ -106,15 +112,15 @@ int MEM_CaseCmp(UCHAR *pucMem1, UINT uiMem1Len, UCHAR *pucMem2, UINT uiMem2Len);
 
 typedef struct
 {
-    UCHAR *pucPattern;     /* 模式串 */
-    UINT uiPatternLen;     /* 模式串长度 */
-    UINT uiPatternCmpLen;  /* 已经匹配了模式串多长 */
-    UINT uiCmpMemOffset;   /* 正在和模式串匹配的区段的总Offset */
-    UINT uiPreMemTotleSize;/* 之前已经扫描过的所有数据块的长度 */
+    UCHAR *pucPattern;     
+    UINT uiPatternLen;     
+    UINT uiPatternCmpLen;  
+    UINT uiCmpMemOffset;   
+    UINT uiPreMemTotleSize;
 }MEM_FIND_INFO_S;
 
 VOID MEM_DiscreteFindInit(INOUT MEM_FIND_INFO_S *pstFindInfo, IN UCHAR *pucPattern, IN UINT uiPatternLen);
-/* 在不连续缓冲区中查找数据 */
+
 BS_STATUS MEM_DiscreteFind
 (
     INOUT MEM_FIND_INFO_S *pstFindInfo,
@@ -123,23 +129,23 @@ BS_STATUS MEM_DiscreteFind
     OUT UINT *puiFindOffset
 );
 
-/* 将内存中的内容反序 */
+
 void MEM_Invert(void *in, int len, void *out);
-/* 是否全0 */
+
 int MEM_IsZero(void *data, int size);
-/* 是否全部是0xff */
+
 int MEM_IsFF(void *data, int size);
 
 int MEM_SprintCFromat(void *mem, UINT len, OUT char *buf, int buf_size);
 int MEM_Sprint(void *pucMem, UINT uiLen, OUT char *buf, int buf_size);
 typedef void (*PF_MEM_PRINT_FUNC)(const char *fmt, ...);
-void MEM_Print(void *pucMem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */);
-void MEM_PrintCFormat(void *mem, int len, PF_MEM_PRINT_FUNC print_func/* NULL使用缺省printf */);
+void MEM_Print(void *pucMem, int len, PF_MEM_PRINT_FUNC print_func);
+void MEM_PrintCFormat(void *mem, int len, PF_MEM_PRINT_FUNC print_func);
 
-/* 将内存中的src字符替换为dst, 返回替换了多少个字符 */
+
 int MEM_ReplaceChar(void *data, int len, UCHAR src, UCHAR dst);
 
-/* 将内存中的src字符替换为dst, 返回替换了多少个字符 */
+
 int MEM_ReplaceOneChar(void *data, int len, UCHAR src, UCHAR dst);
 
 void MEM_Swap(void *buf1, void *buf2, int len);
@@ -152,4 +158,4 @@ void MEM_CopyWithCheck(void *dst, void *src, U32 len);
 #ifdef __cplusplus
 }
 #endif
-#endif //MEM_UTL_H_
+#endif 

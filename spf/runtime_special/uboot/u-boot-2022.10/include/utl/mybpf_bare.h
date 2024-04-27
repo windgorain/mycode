@@ -23,4 +23,4 @@ U64 MYBPF_RunBareMain(MYBPF_BARE_S *bare, MYBPF_PARAM_S *p);
 #ifdef __cplusplus
 }
 #endif
-#endif //MYBPF_BARE_H_
+#endif 

@@ -28,7 +28,7 @@ enum
     VNETC_NID_PRI_LEARN
 };
 
-static HASH_HANDLE g_hVnetcNidHandle;
+static HASH_S * g_hVnetcNidHandle;
 static MUTEX_S g_stVnetcNodeMutex;    
 
 static UINT vnetc_node_HashIndex(IN VOID *pstHashNode)
@@ -452,7 +452,7 @@ VNETC_NID_S * VNETC_NODE_GetNode(IN UINT uiNID)
     return vnetc_node_Find(uiNID);
 }
 
-static int vnetc_node_ShowEach(IN HASH_HANDLE hHashId, IN VOID *pNode, IN VOID * pUserHandle)
+static int vnetc_node_ShowEach(IN HASH_S * hHashId, IN VOID *pNode, IN VOID * pUserHandle)
 {
     VNETC_NID_S *pstNode = pNode;
     CHAR szIfName[IF_MAX_NAME_LEN + 1];

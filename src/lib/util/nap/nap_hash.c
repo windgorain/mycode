@@ -28,7 +28,7 @@ typedef struct
     _NAP_HEAD_COMMON_S stCommonHead;
 
     UINT uiNapNodeSize;
-    HASH_HANDLE hHashTbl;
+    HASH_S * hHashTbl;
 }_NAP_HASH_TBL_S;
 
 
@@ -44,7 +44,7 @@ static VOID nap_hash_InnerFree(IN _NAP_HASH_TBL_S *pstNAPTbl, IN VOID *pNode)
     MemCap_Free(pstNAPTbl->stCommonHead.memcap, pNode);
 }
 
-static VOID nap_hash_FreeEach(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
+static VOID nap_hash_FreeEach(IN void *hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
 {
     nap_hash_InnerFree(pUserHandle, pstNode);
 }

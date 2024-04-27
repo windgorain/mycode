@@ -12,15 +12,15 @@ extern "C" {
 
 typedef short		        SHORT;
 typedef unsigned short		USHORT;
-typedef unsigned int 		UINT; /* 32 bits */
+typedef unsigned int 		UINT; 
 typedef unsigned long long  UINT64;
 typedef long long           INT64;
-typedef int 				INT; /* 32 bits */
+typedef int 				INT; 
 typedef unsigned char 		UCHAR;
 typedef char			    CHAR;
 typedef char                BOOL_T;
-typedef unsigned long       ULONG;  /* 变长的类型,32位系统上4个字节,64位系统8个字节 */
-typedef long                LONG;   /* 变长的类型,32位系统上4个字节,64位系统8个字节 */
+typedef unsigned long       ULONG;  
+typedef long                LONG;   
 typedef UINT                VRF_INDEX;
 
 typedef unsigned char       U8;
@@ -53,4 +53,4 @@ typedef void *              HANDLE;
 #ifdef __cplusplus
 }
 #endif
-#endif //INT_TYPES_H_
+#endif 

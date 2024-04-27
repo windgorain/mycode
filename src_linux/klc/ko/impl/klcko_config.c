@@ -34,7 +34,7 @@ static int klcko_config_process(int cmd)
     return ret;
 }
 
-static int klcko_config_nlmsg(int cmd, void *data, int data_len, void *reply)
+static int klcko_config_nlmsg(int cmd, void *data, int data_len, void *reply, int reply_size)
 {
     return klcko_config_process(cmd);
 }

@@ -53,7 +53,7 @@ static int _mybpf_bare_check(MYBPF_BARE_HDR_S *hdr, const void **tmp_helpers)
 {
 
     if (hdr->magic != htonl(MYBPF_BARE_MAGIC)) {
-        /* 魔数不对 */
+        
         RETURNI(BS_NOT_MATCHED, "Magic not match");
     }
 

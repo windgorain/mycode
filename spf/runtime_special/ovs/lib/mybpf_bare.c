@@ -86,22 +86,22 @@ static int _mybpf_bare_check_depends(MYBPF_BARE_HDR_S *hdr, const void **tmp_hel
     return 0;
 }
 
-/* 0: OK; <0: Error */
+
 static int _mybpf_bare_check(MYBPF_BARE_HDR_S *hdr, int mem_len, const void **tmp_helpers)
 {
     if (mem_len <= sizeof(*hdr)) {
-        /* 太小 */
+        
         RETURNI(BS_TOO_SMALL, "Too small");
     }
 
     if (hdr->magic != htonl(MYBPF_BARE_MAGIC)) {
-        /* 魔数不对 */
+        
         RETURNI(BS_NOT_MATCHED, "Magic not match");
     }
 
     int size = ntohl(hdr->total_size);
     if (size > mem_len) {
-        /* 文件太小 */
+        
         RETURNI(BS_WRONG_FILE, "File length not valid");
     }
 

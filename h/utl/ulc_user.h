@@ -8,6 +8,7 @@
 
 #ifdef IN_ULC_USER
 
+#include <stdio.h>
 #include <stddef.h>
 #include "utl/int_types.h"
 #include "utl/bpf_helper_utl.h"
@@ -32,4 +33,4 @@
 
 #endif
 
-#endif //ULC_USER_H_
+#endif 

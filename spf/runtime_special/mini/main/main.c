@@ -40,7 +40,7 @@ int FILE_Mem(char *filename, void **data)
     return st.st_size;
 }
 
-/* ./user_example filename */
+
 int main(int argc, char **argv)
 {
     MYBPF_PARAM_S p = {0};

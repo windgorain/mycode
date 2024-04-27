@@ -23,7 +23,7 @@ typedef struct
 
 typedef struct
 {
-    HASH_HANDLE hHash;
+    HASH_S * hHash;
 }HASH_FIB_S;
 
 typedef int (*PF_HASH_FIB_WALK_FUNC)(IN FIB_ENTRY_S *pstFibEntry, IN HANDLE hUserHandle);
@@ -119,14 +119,14 @@ static VOID hashfib_Del(IN HASH_FIB_S *hashfib, IN FIB_ENTRY_S *pstFibEntry)
     return;
 }
 
-static VOID  hashfib_FreeHashNode(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
+static VOID  hashfib_FreeHashNode(IN void * hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
 {
     HASH_FIB_NODE_S *pstFibHashNode = (void*)pstNode;
 
     MEM_Free(pstFibHashNode);
 }
 
-static int hashfib_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
+static int hashfib_WalkEach(IN HASH_S * hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
 {
     HASH_FIB_NODE_S *pstFibHashNode = (void*)pstNode;
     USER_HANDLE_S *pstUserHandle = pUserHandle;
@@ -137,7 +137,7 @@ static int hashfib_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN 
 
 int HashFib_Init(IN HASH_FIB_S *hashfib)
 {
-    HASH_HANDLE hHash;
+    HASH_S * hHash;
 
     hHash = HASH_CreateInstance(NULL, HASHFIB_HASH_BUCKET_NUM, hashfib_HashIndex);
     if (NULL == hHash) {

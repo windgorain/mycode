@@ -26,11 +26,11 @@
 typedef enum
 {
     S_INIT = 0,
-    S_DHSK,             /* 握手状态 */
-    S_CONNECTING,       /* Socket连接状态 */
-    S_SSL_CONNECTING,   /* SSL 连接状态 */
-    S_HANDSHAKE,        /* TCP Relay握手状态 */
-    S_FWD,              /* TCP Relay转发状态 */
+    S_DHSK,             
+    S_CONNECTING,       
+    S_SSL_CONNECTING,   
+    S_HANDSHAKE,        
+    S_FWD,              
 }_WEB_PROXY_STATE_E;
 
 typedef enum
@@ -263,7 +263,7 @@ static BS_STATUS _svpnc_tr_Handshake(IN FSM_S *pstFsm, IN UINT uiEvent)
     BS_STATUS eRet;
     CHAR *pcData;
 
-    while (1) /* SSL读取时,需要将SSL缓冲区读空,否则有可能不来Socket IN事件导致SSL缓冲区中数据无机会读取 */
+    while (1) 
     {
         iRet = CONN_Read(pstNode->hUpConn, szInfo, sizeof(szInfo));
         if (iRet <= 0)
@@ -448,7 +448,7 @@ static BS_STATUS _svpnc_tr_FwdDownOut(IN FSM_S *pstFsm, IN UINT uiEvent)
 
     if (VBUF_GetDataLength(&pstNode->stUpVBuf) == 0)
     {
-        /* 可能ssl中还有部分数据 */
+        
         _svpnc_tr_FwdUpIn(pstFsm, uiEvent);
     }
 

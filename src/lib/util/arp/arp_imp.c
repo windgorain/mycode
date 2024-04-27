@@ -26,7 +26,7 @@ typedef struct
 {
     SEM_HANDLE hSem;
     MAC_ADDR_S stHostMac;
-    HASH_HANDLE hHashId;
+    HASH_S * hHashId;
     DLL_HEAD_S stResolvingList; 
     VCLOCK_INSTANCE_HANDLE hVclock;
     UINT uiTimeOutTick;  
@@ -442,14 +442,14 @@ static BS_STATUS _arp_DealArpReply(IN ARP_HANDLE hArpInstance, IN ARP_HEADER_S *
     return eRet;
 }
 
-static VOID _arp_FreeAllNode(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
+static VOID _arp_FreeAllNode(IN void * hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
 {
     _ARP_NODE_S *pstArpNode = (_ARP_NODE_S*)pstNode;
 
     MEM_Free(pstArpNode);
 }
 
-static int _arp_WalkEach(IN HASH_HANDLE hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
+static int _arp_WalkEach(IN HASH_S * hHashId, IN HASH_NODE_S *pstNode, IN VOID * pUserHandle)
 {
     _ARP_NODE_S *pstArpNode = (_ARP_NODE_S*)pstNode;
     USER_HANDLE_S *pstUserHandle = pUserHandle;

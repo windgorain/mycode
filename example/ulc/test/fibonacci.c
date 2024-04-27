@@ -3,6 +3,7 @@
 *   Description: 
 *
 ********************************************************/
+#include <string.h>
 #include "utl/ulc_user.h"
 
 static long long fibonacci(long x)
@@ -30,12 +31,12 @@ int main(int argc, char **argv)
 {
     long count;
 
-    if (argc < 1) {
+    if (argc < 2) {
         printf("Need params: number \r\n");
         return -1;
     }
 
-    bpf_strtol(argv[0], 10, 10, &count);
+    bpf_strtol(argv[1], 20, 10, &count);
 
     unsigned long long start = bpf_ktime_get_ns();
     unsigned long long ret = fibonacci(count);

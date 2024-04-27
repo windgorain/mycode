@@ -14,10 +14,10 @@
 
 #ifdef __cplusplus
     extern "C" {
-#endif /* __cplusplus */
+#endif 
 
 #define MAP_FLAG_DUP_KEY 0x1
-#define MAP_FLAG_PERMIT_DUPLICATE 0x2  /* 允许出现重复key. 只有部分map类型支持 */
+#define MAP_FLAG_PERMIT_DUPLICATE 0x2  
 
 typedef struct tagMAP_CTRL_S * MAP_HANDLE;
 
@@ -26,8 +26,8 @@ typedef struct {
     VOID *pData;
     UINT uiKeyLen;
 
-    UINT dup_key: 1; /* key是mem_dup出来的 */
-    UINT link_alloced: 1; /* link node 是内存申请出来的 */
+    UINT dup_key: 1; 
+    UINT link_alloced: 1; 
 }MAP_ELE_S;
 
 typedef struct {
@@ -59,7 +59,7 @@ typedef union {
 
 typedef struct {
     void *memcap;
-    UINT bucket_num; /* only used for hash map */
+    UINT bucket_num; 
 }MAP_PARAM_S;
 
 typedef int (*PF_MAP_WALK_FUNC)(IN MAP_ELE_S *pstEle, IN VOID *pUserHandle);
@@ -102,15 +102,14 @@ typedef struct tagMAP_CTRL_S{
     UINT uiCapacity;
 }MAP_CTRL_S;
 
-/* Hash Map */
+
 MAP_HANDLE MAP_HashCreate(MAP_PARAM_S *p);
-void MAP_HashSetResizeWatter(MAP_HANDLE map, UINT high_watter_percent, UINT low_watter_percent);
-/* AVL Map */
-MAP_HANDLE MAP_AvlCreate(void *memcap /* 可以为NULL */);
-/* Red Black Tree Map */
-MAP_HANDLE MAP_RBTreeCreate(void *memcap /* 可以为NULL */);
-/* List Map */
-MAP_HANDLE MAP_ListCreate(void *memcap /* 可以为NULL */);
+
+MAP_HANDLE MAP_AvlCreate(void *memcap );
+
+MAP_HANDLE MAP_RBTreeCreate(void *memcap );
+
+MAP_HANDLE MAP_ListCreate(void *memcap );
 
 static inline void * MAP_GetMemcap(MAP_HANDLE map)
 {
@@ -137,13 +136,13 @@ static inline UINT MAP_GetCapacity(MAP_HANDLE map)
     return map->uiCapacity;
 }
 
-/* pKey当做指针来用,则keylen为指针指向内容的长度; pKey当做数字来用,则keylen填写为0 */
+
 static inline int MAP_Add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag)
 {
     return map->funcs->add_func(map, pKey, uiKeyLen, pData, flag);
 }
 
-/* 内部无需申请link node, 由外界维护link node */
+
 static inline int MAP_AddNode(MAP_HANDLE map, void *pKey, UINT uiKeyLen,
         void *pData, MAP_LINK_NODE_S *link_node, UINT flag)
 {
@@ -153,7 +152,7 @@ static inline int MAP_AddNode(MAP_HANDLE map, void *pKey, UINT uiKeyLen,
     return map->funcs->add_node_func(map, &key, pData, link_node, flag);
 }
 
-/* 从集合中删除并返回pData */
+
 static inline void * MAP_DelNode(MAP_HANDLE map, MAP_LINK_NODE_S *link_node)
 {
     return map->funcs->del_node_func(map, link_node);
@@ -177,7 +176,7 @@ static inline void * MAP_Get(MAP_HANDLE map, void *pKey, UINT uiKeyLen)
     return map->funcs->get_func(map, pKey, uiKeyLen);
 }
 
-/* 从集合中删除并返回pData */
+
 static inline void * MAP_Del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 {
     return map->funcs->del_func(map, pKey, uiKeyLen);
@@ -202,7 +201,7 @@ static inline void MAP_Walk(IN MAP_HANDLE map, IN PF_MAP_WALK_FUNC pfWalkFunc, I
 {
     map->funcs->walk_func(map, pfWalkFunc, pUserData);
 }
- /* pstCurrent如果为NULL表示获取第一个. 只使用其中的pKye和uiKeyLen字段 */
+ 
 static inline MAP_ELE_S * MAP_GetNextEle(MAP_HANDLE map, MAP_ELE_S *pstCurrent)
 {
     return map->funcs->getnext_func(map, pstCurrent);
@@ -218,7 +217,7 @@ static inline void * MAP_GetStringKey(MAP_HANDLE map, char *key)
     return MAP_Get(map, key, strlen(key));
 }
 
-/* 返回first节点的data值 */
+
 static inline void * MAP_GetFirst(MAP_HANDLE map)
 {
     MAP_ELE_S *ele;
@@ -231,8 +230,8 @@ static inline void * MAP_GetFirst(MAP_HANDLE map)
 
 #ifdef __cplusplus
     }
-#endif /* __cplusplus */
+#endif 
 
-#endif /*__MAP_UTL_H_*/
+#endif 
 
 

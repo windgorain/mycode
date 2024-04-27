@@ -17,37 +17,27 @@
 #define SPINLOCK_INIT_VALUE {0,0}
 
 typedef struct {
-    volatile S64 current_ticket;
-    volatile S64 user_ticket;
+    volatile U64 count;
 }SPINLOCK_S;
 
 static inline void SpinLock_Init(IN SPINLOCK_S *lock)
 {
-    lock->current_ticket = 0;
-    lock->user_ticket = 0;
+    lock->count = 0;
 }
 
 static inline void SpinLock_Lock(IN SPINLOCK_S *lock)
 {
-    S64 me_ticket = __sync_fetch_and_add(&lock->user_ticket, 1);
-    while (lock->current_ticket != me_ticket);
+    while (! __sync_bool_compare_and_swap(&lock->count, 0, 1));
 }
 
 static inline void SpinLock_UnLock(IN SPINLOCK_S *lock)
 {
-    lock->current_ticket++;
+    lock->count = 0;
 }
 
 static inline BOOL_T SpinLock_TryLock(IN SPINLOCK_S *lock)
 {
-    S64 ticket = lock->current_ticket;
-    S64 next_user = ticket + 1;
-
-    if (__sync_bool_compare_and_swap(&lock->user_ticket, ticket, next_user)) {
-        return TRUE;
-    }
-
-    return FALSE;
+    return __sync_bool_compare_and_swap(&lock->count, 0, 1);
 }
 
 #ifdef __cplusplus

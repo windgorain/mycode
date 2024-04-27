@@ -238,13 +238,13 @@ void StreamServer_Stop(STREAM_SERVER_S *cfg)
     cfg->enable = 0;
 }
 
-/* 发送数据.如果len为0,则仅仅触发一次发送缓存vbuf中的数据 */
+
 int StreamServer_Send(STREAM_CONN_S *conn, void *msg, int len)
 {
     return _stream_server_send(conn, msg, len);
 }
 
-/* 发送结束,后续再也没有数据需要发送了 */
+
 void StreamServer_SendFinish(STREAM_CONN_S *conn)
 {
     conn->send_finish = 1;

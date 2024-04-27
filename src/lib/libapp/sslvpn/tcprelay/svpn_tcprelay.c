@@ -426,7 +426,7 @@ static VOID svpn_tcprelay_RecvHeadOK(IN WS_TRANS_HANDLE hWsTrans)
     SVPN_DBG_OUTPUT(SVPN_DBG_ID_TCP_RELAY, SVPN_DBG_FLAG_TR_PACKET,
         "Recv request %s:%d.\r\n", szServer, usPort);
 
-    /* 权限检查 */
+    
     if (TRUE != svpn_tcprelay_CheckPermit(hWsTrans, szServer, usPort))
     {
         SVPN_DBG_OUTPUT(SVPN_DBG_ID_TCP_RELAY, SVPN_DBG_FLAG_TR_PACKET,

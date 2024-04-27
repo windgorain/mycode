@@ -42,10 +42,10 @@ typedef struct
     THREAD_ID uiTid;
     MYPOLL_HANDLE hMyPoller;
     HANDLE hMsgQue;
-    MBUF_S *pstMbufSendding; /* 正在发送的报文 */
+    MBUF_S *pstMbufSendding; 
     CONN_HANDLE hConn;
     UINT uiAdapterIndex;
-    UINT uiHostIP;      /* 为本机分配的虚IP . 网络序*/
+    UINT uiHostIP;      
     VNIC_HANDLE hVnic;
     VNIC_AGENT_HANDLE hVnicAgent;
     VBUF_S stVBuf;
@@ -65,14 +65,14 @@ static VOID _svpnc_iptunnel_ConnErr()
     CONN_Free(g_stSvpncIpTunnel.hConn);
     g_stSvpncIpTunnel.hConn = NULL;
 
-    /* 可能出错前已经发送了报文的部分数据,剩下的不完整,下次连接不应该发送,应丢弃 */
+    
     if (g_stSvpncIpTunnel.pstMbufSendding != NULL)
     {
         MBUF_Free(g_stSvpncIpTunnel.pstMbufSendding);
         g_stSvpncIpTunnel.pstMbufSendding = NULL;
     }
 
-    /* 可能出错前已经接收了报文的部分数据, 应丢弃 */
+    
     VBUF_CutAll(&g_stSvpncIpTunnel.stVBuf);
 
     g_stSvpncIpTunnel.bStarted = FALSE;
@@ -88,7 +88,7 @@ static BS_STATUS _svpnc_iptunnel_Main(IN USER_HANDLE_S *pstUserHandle)
 static int _svpnc_iptunnel_UserEvent(UINT uiTriggerEvent, USER_HANDLE_S *pstUserHandle)
 {
     if (g_stSvpncIpTunnel.pstMbufSendding != NULL) {
-        return 0;    /* 上一个报文没有发送完成,无需发送下一个报文 */
+        return 0;    
     }
 
     if (uiTriggerEvent & SVPNC_IP_TUNNEL_MYPOLL_TRIGER_EVENT_PKT)
@@ -111,20 +111,20 @@ static BS_STATUS _svpnc_iptunnel_ProcessArp(IN HANDLE hVnicAgentId, IN MBUF_S *p
     }
 
     pstArp = MBUF_MTOD (pstMbuf);
-    if (pstArp->usOperation != htons(ARP_REQUEST))          /*  只处理ARP请求 */
+    if (pstArp->usOperation != htons(ARP_REQUEST))          
     {
         MBUF_Free(pstMbuf);
         return BS_OK;
     }
 
-    /* 如果目标地址是自己, 则是在进行地址冲突检测 */
+    
     if (pstArp->ulDstIp == g_stSvpncIpTunnel.uiHostIP)
     {
         MBUF_Free(pstMbuf);
         return BS_OK;
     }
 
-    /* 只响应目标是同一个网段的ARP请求 */
+    
     if ((pstArp->ulDstIp & htonl(0xffffff00)) != (g_stSvpncIpTunnel.uiHostIP & htonl(0xffffff00)))
     {
         MBUF_Free(pstMbuf);
@@ -360,7 +360,7 @@ static VOID _svpnc_iptunnel_ParseJsonString(IN CHAR *pcString)
     cJSON_Delete(pstJson);
 }
 
-/* 返回网络序NextHop */
+
 static UINT _svpnc_iptunnel_GetNextHot()
 {
     UINT uiNextHop;
@@ -472,7 +472,7 @@ static VOID _svpnc_iptunnel_ReadEvent()
     UINT uiSize;
     INT iLen;
 
-    if (g_stSvpncIpTunnel.hConn == NULL)    /* 已经在别的事件处理中删除了Conn */
+    if (g_stSvpncIpTunnel.hConn == NULL)    
     {
         return;
     }
@@ -535,7 +535,7 @@ static VOID _svpnc_iptunnel_WriteEvent()
     UINT uiLen;
     INT iLen;
     
-    if (g_stSvpncIpTunnel.hConn == NULL)    /* 已经在别的事件处理中删除了Conn */
+    if (g_stSvpncIpTunnel.hConn == NULL)    
     {
         return;
     }
@@ -624,7 +624,7 @@ static BS_STATUS _svpnc_iptunnel_ProcessHandshake(IN CONN_HANDLE hConn, IN HANDL
         return BS_ERR;
     }
 
-    /* 等待生效 */
+    
     while (2 > My_IP_Helper_CountRouteByAdapterIndex(g_stSvpncIpTunnel.uiAdapterIndex))
     {
         Sleep(500);

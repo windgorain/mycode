@@ -21,4 +21,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#endif //UBOOT_STUB_H_
+#endif 

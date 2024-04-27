@@ -20,7 +20,7 @@ typedef struct
 }VNETS_DOMAIN_RECORD_NODE_S;
 
 
-static HASH_HANDLE g_hVnetsDomainRecordHashHandle = NULL;
+static HASH_S * g_hVnetsDomainRecordHashHandle = NULL;
 
 static UINT vnets_domainrecord_HashIndex(IN VOID *pstHashNode)
 {
@@ -80,7 +80,7 @@ static inline BS_STATUS vnets_domainrecord_Add
     return BS_OK;
 }
 
-static int _vnets_domainrecord_WalkDomain(HASH_HANDLE hHashId, VOID *pNode, VOID *pUserHandle)
+static int _vnets_domainrecord_WalkDomain(void * hHashId, VOID *pNode, VOID *pUserHandle)
 {
     USER_HANDLE_S *pstUserHandle = (USER_HANDLE_S*)pUserHandle;
     VNETS_DOMAIN_RECORD_NODE_S *pstNode = pNode;
@@ -107,7 +107,7 @@ static VOID vnets_domainrecord_Del(IN VNETS_DOMAIN_RECORD_NODE_S *pstNode)
 
 BS_STATUS _VNETS_DomainRecord_Init()
 {
-    HASH_HANDLE hHash;
+    HASH_S * hHash;
     
     hHash = HASH_CreateInstance(NULL, _VNETS_DOMAIN_RECORD_HASH_BUCKET_NUM, vnets_domainrecord_HashIndex);
     if (hHash == NULL)
@@ -307,7 +307,7 @@ UINT _VNETS_DomainRecord_GetSesCount(IN UINT uiDomainId)
     return _VNETS_DomainNode_GetCount(&pstNode->stSesIDList);
 }
 
-UINT _VNETS_DomainRecord_GetNextNode(IN UINT uiDomainId, IN UINT uiCurrentNodeId)
+UINT _VNETS_DomainRecord_GetNextNode(IN UINT uiDomainId, IN UINT uiCurrentNodeId/* 如果为0,则表示得到第一个 */)
 {
     VNETS_DOMAIN_RECORD_NODE_S *pstNode;
 

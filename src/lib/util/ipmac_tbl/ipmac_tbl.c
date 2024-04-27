@@ -18,7 +18,7 @@
 
 typedef struct
 {
-    HASH_HANDLE hHashTbl;
+    HASH_S * hHashTbl;
 }_IPMAC_TBL_CTRL_S;
 
 static UINT _IPMAC_TBL_GetHashIndex (IN VOID *pstHashNode)
@@ -117,7 +117,7 @@ VOID IPMAC_TBL_Del(IN IPMAC_HANDLE hInstance, IN UINT uiIp)
     MEM_Free(pstNode);
 }
 
-static int ipmac_tbl_walkNode(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
+static int ipmac_tbl_walkNode(IN void *hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
 {
     USER_HANDLE_S *pstUserHandle = pUserHandle;
     PF_IPMAC_TBL_WALK_FUNC pfFunc;

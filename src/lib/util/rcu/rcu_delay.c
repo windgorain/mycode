@@ -33,6 +33,7 @@ void RcuDelay_Wait(RCU_DELAY_S *ctrl)
 
     while (1) {
         Sleep(100);
+        RcuDelay_Step(ctrl);
         now_period_count = ctrl->grace_period_count;
         if ((now_period_count - old_period_count) >= 2) {
             break;
@@ -56,6 +57,7 @@ void RcuDelay_Sync(RCU_DELAY_S *ctrl)
 
     while (1) {
         Sleep(100);
+        RcuDelay_Step(ctrl);
         if (rcudelay_do_just(ctrl)) {
             break;
         }
@@ -78,20 +80,20 @@ void RcuDelay_Call(RCU_DELAY_S *ctrl, RCU_NODE_S *node, PF_RCU_FREE_FUNC func)
 void RcuDelay_Step(RCU_DELAY_S *ctrl)
 {
     RCU_NODE_S *node;
+
+    SpinLock_Lock(&ctrl->lock);
+
     int next_state = ctrl->state == 0 ? 1 : 0;
-
     
-    if (ctrl->counter[next_state] > 0) {
-        return;
+    if (ctrl->counter[next_state] == 0) {
+        while ((node = (void*)SL_DelHead(&ctrl->list[next_state]))) {
+            node->pfFunc(node);
+        }
+        ATOM_BARRIER();
+        ctrl->grace_period_count++;
+        ctrl->state = next_state;
     }
 
-    while ((node = (void*)SL_DelHead(&ctrl->list[next_state]))) {
-        node->pfFunc(node);
-    }
-
-    ATOM_BARRIER();
-
-    ctrl->grace_period_count++;
-    ctrl->state = next_state;
+    SpinLock_UnLock(&ctrl->lock);
 }
 

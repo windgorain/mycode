@@ -189,7 +189,7 @@ BS_STATUS DSTREAM_Init(IN DSTREAM_S *pstDStream)
     VBUF_Init(&pstDStream->stWriteVBuf);
     VBUF_Init(&pstDStream->stReadVBuf);
 
-    if (BS_OK != VBUF_ExpandTo(&pstDStream->stReadVBuf, 256))    /* 认为256满足常见情况 */
+    if (BS_OK != VBUF_ExpandTo(&pstDStream->stReadVBuf, 256))    
     {
         return BS_ERR;
     }
@@ -223,11 +223,7 @@ BS_STATUS DSTREAM_Write(IN DSTREAM_S *pstDStream, IN UCHAR *pucData, IN UINT uiD
     }
 }
 
-/*
- 返回值: BS_OK: 接收到了一个完整的记录
-         BS_AGAIN: 未收完一个记录,需要继续接收
-         其他: 错误
-*/
+
 BS_STATUS DSTREAM_Read(IN DSTREAM_S *pstDStream)
 {
     if (pstDStream->bitIsBlock)
@@ -240,7 +236,7 @@ BS_STATUS DSTREAM_Read(IN DSTREAM_S *pstDStream)
     }
 }
 
-/* 获取数据 */
+
 VBUF_S * DSTREAM_GetData(IN DSTREAM_S *pstDStream)
 {
     return &pstDStream->stReadVBuf;

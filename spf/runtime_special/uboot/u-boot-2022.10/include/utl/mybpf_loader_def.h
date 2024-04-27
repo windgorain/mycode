@@ -10,13 +10,13 @@ extern "C"
 {
 #endif
 
-#define MYBPF_LOADER_FLAG_AUTO_ATTACH 0x1  /* load时是否进行自动attach */
-#define MYBPF_LOADER_FLAG_KEEP_MAP    0x2  /* replace时是否保留原来的map */
-#define MYBPF_LOADER_FLAG_JIT         0x4  /* 加载时自动进行jit */
+#define MYBPF_LOADER_FLAG_AUTO_ATTACH 0x1  
+#define MYBPF_LOADER_FLAG_KEEP_MAP    0x2  
+#define MYBPF_LOADER_FLAG_JIT         0x4  
 
 typedef struct {
-    char *instance; /* instance name */
-    char *filename; /* object file name */
+    char *instance; 
+    char *filename; 
     FILE_MEM_S simple_mem;
     UINT flag;
     const void **tmp_helpers;
@@ -29,4 +29,4 @@ typedef struct {
 #ifdef __cplusplus
 }
 #endif
-#endif //MYBPF_LOADER_DEF_H_
+#endif 

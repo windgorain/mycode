@@ -17,6 +17,7 @@ typedef struct {
     volatile S64 counter[2];
     volatile int grace_period_count;
     volatile int state;
+    SPINLOCK_S lock;
 }RCU_DELAY_S;
 
 int RcuDelay_Init(RCU_DELAY_S *ctrl);
@@ -25,8 +26,7 @@ void RcuDelay_Wait(RCU_DELAY_S *ctrl);
 void RcuDelay_Sync(RCU_DELAY_S *ctrl);
 void RcuDelay_Step(RCU_DELAY_S *ctrl);
 
-/* 如果能确保调用者的临界区使用时间不超过一个step时间，则可以不用调用此函数;
- step时间,即定时释放资源的间隔时间 */
+
 static inline int RcuDelay_Lock(RCU_DELAY_S *ctrl)
 {
     int state = ctrl->state;
@@ -42,4 +42,4 @@ static inline void RcuDelay_Unlock(RCU_DELAY_S *ctrl, int state)
 #ifdef __cplusplus
 }
 #endif
-#endif //RCU_DELAY_H_
+#endif 

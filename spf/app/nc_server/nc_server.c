@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include "utl/ulc_user.h"
+#include "utl/mybpf_spf_sec.h"
 
 enum {
     STATE_STOPED = 0,
@@ -22,7 +23,7 @@ static int _nc_server_do(int s)
 {
     char buf[128];
     int len;
-    struct timeval timeout={1,0}; /* 1s */
+    struct timeval timeout={1,0}; 
 
     setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeout, sizeof(timeout));
     setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
@@ -47,7 +48,7 @@ static int _nc_server_do(int s)
 static void _nc_server_accept(int fd)
 {
     int s;
-    struct timeval timeout={1,0}; /* 1s */
+    struct timeval timeout={1,0}; 
 
     setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
 
@@ -105,22 +106,39 @@ static void _nc_server_main(void *arg)
     g_nc_server_need_state = STATE_STOPED;
 }
 
-SEC(".spf/init")
-int main()
+static int _nc_server_init()
 {
     pthread_t tid;
     pthread_create(&tid, NULL, _nc_server_main, NULL);
     return 0;
 }
 
-SEC(".spf/finit")
-int finit()
+static int _nc_server_fin1()
 {
     if (g_nc_server_need_state == STATE_STOPED) {
         return 0;
     }
-
     g_nc_server_need_state = STATE_STOPPING;
-
-    return -1;
+    return 0;
 }
+
+static int _nc_server_fin2()
+{
+    while (g_nc_server_need_state != STATE_STOPED) {
+        ulc_sys_usleep(1000);
+    }
+    return 0;
+}
+
+SEC(SPF_SEC_EVENT)
+int event(U32 event)
+{
+    switch (event) {
+        case SPF_EVENT_INIT: return _nc_server_init();
+        case SPF_EVENT_FIN1: return _nc_server_fin1();
+        case SPF_EVENT_FIN2: return _nc_server_fin2();
+    }
+
+    return 0;
+}
+

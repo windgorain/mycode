@@ -31,12 +31,7 @@ typedef struct
     NAT_NODE_S stNatNode;
 }_NAT_UDP_MAP_NODE_S;
 
-static VOID  nat_udp_FreeAllMapNode
-(
-    IN HASH_HANDLE hHashId,
-    IN VOID *pstNode,
-    IN VOID * pUserHandle
-)
+static VOID nat_udp_FreeAllMapNode(void *hHashId, void *pstNode, void *pUserHandle)
 {
     _NAT_UDP_MAP_NODE_S *pstNatNode;
     _NAT_UDP_CTRL_S *pstCtrl = pUserHandle;
@@ -462,7 +457,7 @@ static BS_STATUS nat_udp_PubPktIn
     return eRet;
 }
 
-static int nat_udp_WalkEach(IN HASH_HANDLE hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
+static int nat_udp_WalkEach(IN void * hHashId, IN VOID *pstNode, IN VOID * pUserHandle)
 {
     _NAT_UDP_MAP_NODE_S *pstNatNode = (_NAT_UDP_MAP_NODE_S*)pstNode;
     USER_HANDLE_S *pstUserHandle = pUserHandle;

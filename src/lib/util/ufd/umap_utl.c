@@ -8,15 +8,23 @@
 #include "utl/umap_utl.h"
 
 static char * g_umap_type_name[] = {
-    "unspec", "hash", "array"
+    "unspec",
+    "hash",
+    "array",
+    "prog_array",
+    "perf_event_array",
+    "percpu_hash",
+    "percpu_array",
 };
 
 extern UMAP_FUNC_TBL_S g_umap_hash_ops;
 extern UMAP_FUNC_TBL_S g_umap_array_ops;
+extern UMAP_FUNC_TBL_S g_umap_percpu_hash_ops;
 
 static UMAP_FUNC_TBL_S *g_umap_func_tbl[BPF_MAP_TYPE_MAX] = {
     [BPF_MAP_TYPE_HASH] = &g_umap_hash_ops,
     [BPF_MAP_TYPE_ARRAY] = &g_umap_array_ops,
+    [BPF_MAP_TYPE_PERCPU_HASH] = &g_umap_percpu_hash_ops,
 };
 
 char * UMAP_TypeName(unsigned int type)
@@ -93,7 +101,7 @@ long UMAP_UpdateElem(UMAP_HEADER_S *map, const void *key, const void *value, U32
     return g_umap_func_tbl[map->type]->update_elem_func(map, key, value, flag);
 }
 
-/* 获取数组map的数组地址 */
+
 int UMAP_DirectValue(UMAP_HEADER_S *map, OUT U64 *addr, UINT off)
 {
     if (! map) {
@@ -107,7 +115,7 @@ int UMAP_DirectValue(UMAP_HEADER_S *map, OUT U64 *addr, UINT off)
     return g_umap_func_tbl[map->type]->direct_value_func(map, addr, off);
 }
 
-/* 注意: 调用者的*next_key和接受返回值不要用同一个变量, 因为在array map中*next_key有存储id的作用 */
+
 int UMAP_GetNextKey(UMAP_HEADER_S *map, void *curr_key, OUT void **next_key)
 {
     return g_umap_func_tbl[map->type]->get_next_key_func(map, curr_key, next_key);

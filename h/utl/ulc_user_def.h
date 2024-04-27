@@ -30,6 +30,10 @@ extern "C" {
 #define fgets(a,b,c) ulc_sys_fgets(a,b,c)
 #define fwrite(a,b,c,d) ulc_sys_fwrite(a,b,c,d)
 #define stat(a,b) ulc_sys_stat(a,b)
+#undef stdin
+#define  stdin ((void*)0)
+#undef stdout
+#define  stdout ((void*)1)
 #undef stderr 
 #define stderr ((void*)2)
 
@@ -70,44 +74,28 @@ extern "C" {
 #undef ATOM_BARRIER
 #define ATOM_BARRIER() ulc_do_nothing()
 
-#define BpfHelper_GetFunc(a,b) ulc_get_helper(a,b)
-#define BpfHelper_BaseHelper() ulc_get_base_helpers()
-#define BpfHelper_SysHelper() ulc_get_sys_helpers()
-#define BpfHelper_UserHelper() ulc_get_user_helpers()
-
 #define RcuEngine_Call ulc_sys_rcu_call
 #define RcuEngine_Lock ulc_sys_rcu_lock
 #define RcuEngine_UnLock ulc_sys_rcu_unlock
+#define RcuEngine_Sync() ulc_sys_rcu_sync()
 
-#define memset(a,b,c) ulc_sys_memset(a,b,c)
-#undef MEM_ZMalloc
-#define MEM_ZMalloc(x) ({void *p = ulc_sys_malloc(x); if (p) {ulc_sys_memset(p, 0, (x));} p;})
 #undef MEM_Malloc
 #define MEM_Malloc(x) ulc_sys_malloc(x)
+#undef MEM_ZMalloc
+#define MEM_ZMalloc(x) ({void *p = ulc_sys_malloc(x); if (p) {memset(p, 0, (x));} p;})
 #undef MEM_Free
 #define MEM_Free(x) ulc_sys_free(x)
+
+#undef MEM_Kalloc
+#define MEM_Kalloc(uiSize) ulc_sys_kalloc(uiSize)
+#undef MEM_ZKalloc
+#define MEM_ZKalloc(x) ({void *p = ulc_sys_kalloc(x); if (p) {memset(p, 0, (x));} p;})
+#undef MEM_KFree
+#define MEM_KFree(x) ulc_sys_kfree(x)
+
 #define malloc(a) ulc_sys_malloc(a)
-#define calloc(a,b) ulc_sys_calloc(a,b)
 #define free(a) ulc_sys_free(a)
 #define realloc(a,b) ulc_sys_realloc(a,b)
-
-#undef strlcpy
-#define strlcpy(a,b,c) ulc_sys_strlcpy(a,b,c)
-#define TXT_Strdup(a) ulc_sys_strdup(a)
-#define strdup(a) ulc_sys_strdup(a)
-#define strtok_r(a,b,c) ulc_sys_strtok_r(a,b,c)
-#define strcmp(a,b) ulc_sys_strcmp(a,b)
-#define strnlen(a,b) ulc_sys_strnlen(a,b)
-#define strlen(a) ulc_sys_strlen(a)
-#define strncmp(a,b,c) ulc_sys_strncmp(a,b,c)
-#define strcpy(a,b) ulc_sys_strcpy(a,b)
-#undef tolower
-#define tolower(a) ulc_sys_tolower(a)
-#define strchr(a,b) ulc_sys_strchr(a,b)
-
-#define memcpy(a,b,c) ulc_sys_memcpy(a,b,c)
-#define memmove(dst,src,len) ulc_sys_memmove(dst,src,len)
-#define memcmp(a,b,c) ulc_sys_memcmp(a,b,c)
 
 #define socket(a,b,c) ulc_sys_socket(a,b,c)
 #define bind(a,b,c) ulc_sys_bind(a,b,c)
@@ -128,9 +116,11 @@ extern "C" {
 #define munmap(a,b) ulc_mmap_unmap(a,b)
 #define mprotect(a,b,c) ulc_mmap_mprotect(a,b,c)
 
+#define sched_getcpu() bpf_get_smp_processor_id()
+
 #endif
 
 #ifdef __cplusplus
 }
 #endif
-#endif //ULC_USER_DEF_H_
+#endif 

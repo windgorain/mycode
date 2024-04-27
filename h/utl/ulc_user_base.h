@@ -17,10 +17,6 @@ extern "C" {
     bpf_trace_printk(_msg, sizeof(_msg), ##__VA_ARGS__); \
 })
 
-#ifndef printf
-#define printf BPF_Print
-#endif
-
 #define snprintf(buf,size,fmt, ...) ({ \
     char _fmt[] = fmt; \
     int _count = BS_ARG_COUNT(__VA_ARGS__); \

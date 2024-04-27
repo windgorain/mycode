@@ -31,7 +31,7 @@
 typedef struct
 {
     MUTEX_S stMutex;
-    HASH_HANDLE hHashInstance;
+    HASH_S * hHashInstance;
 }_SVPN_IPTUNNODE_CTRL_S;
 
 static _SVPN_IPTUNNODE_CTRL_S g_stSvpnIpTunNodeCtrl;

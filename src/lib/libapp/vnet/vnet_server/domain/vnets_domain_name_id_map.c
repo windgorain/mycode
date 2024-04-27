@@ -10,7 +10,7 @@
 
 #define _VNETS_DOMAIN_NIM_HASH_BUCKET_NUM 512
 
-static HASH_HANDLE g_hVnetsDomainNIMHashHandle = NULL;
+static HASH_S * g_hVnetsDomainNIMHashHandle = NULL;
 
 typedef struct
 {

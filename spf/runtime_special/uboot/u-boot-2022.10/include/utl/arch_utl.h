@@ -18,7 +18,7 @@ enum {
     ARCH_TYPE_MAX
 };
 
-/* 获取本地架构的jit arch type */
+
 static inline int ARCH_LocalArch(void)
 {
 #ifdef __aarch64__
@@ -38,4 +38,4 @@ char * ARCH_GetArchName(int arch_type);
 #ifdef __cplusplus
 }
 #endif
-#endif //ARCH_UTL_H_
+#endif 

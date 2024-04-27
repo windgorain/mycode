@@ -16,7 +16,10 @@ extern "C"
 #endif
 
 typedef struct {
-    DLL_HEAD_S list;
+    DLL_HEAD_S list; 
+    void *namefunc_tbl;
+    void *idfunc_tbl;
+    void *evob_tbl;
     DLL_HEAD_S hp_list[MYBPF_HP_MAX];
 }MYBPF_RUNTIME_S;
 
@@ -29,4 +32,4 @@ MYBPF_RUNTIME_S * MYBPF_GetDftRuntime(void);
 #ifdef __cplusplus
 }
 #endif
-#endif //MYBPF_RUNTIME_H_
+#endif 

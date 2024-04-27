@@ -209,7 +209,7 @@ static int _run(char *spf_loader, char *config_file)
     return _run_cmd();
 }
 
-/* bare_spf -s spfloader -c config_file */
+
 int main(int argc, char **argv)
 {
     char *spfloader = NULL;

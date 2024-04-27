@@ -53,7 +53,7 @@ static int _map_rbtree_cmp(void *key, RB_TREE_NODE_S *pstCmpNode)
     MAP_ELE_S *ele = key;
 
     if (pstNode->stEle.uiKeyLen == 0) {
-        /* keylen==0, 则表示key本身是数字,不是指针 */
+        
         return (INT)HANDLE_UINT(ele->pKey) - (INT)HANDLE_UINT(pstNode->stEle.pKey);
     }
 
@@ -235,7 +235,7 @@ static void * map_rbtree_del_by_ele(IN MAP_HANDLE map, IN MAP_ELE_S *ele)
     return _map_rbtree_del_node(map, node);
 }
 
-/* 从集合中删除并返回pData */
+
 static void * map_rbtree_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
 {
     _MAP_RBTREE_S *rbtree_map = map->impl_map;
@@ -253,7 +253,7 @@ static void * map_rbtree_del(IN MAP_HANDLE map, IN VOID *pKey, IN UINT uiKeyLen)
     return _map_rbtree_del_node(map, pstNode);
 }
 
-/* 从集合中删除并返回pData */
+
 static void * map_rbtree_del_node(MAP_HANDLE map, void *node)
 {
     MAP_RBTREE_NODE_S *pstNode = node;
@@ -291,7 +291,7 @@ static void map_rbtree_walk(IN MAP_HANDLE map, IN PF_MAP_WALK_FUNC pfWalkFunc, I
     RBTree_InOrderWalk(&rbtree_map->root, _map_rbtree_walk, &stUserHandle);
 }
 
-/* 按照字典序获取下一个 */
+
 static MAP_ELE_S * map_rbtree_getnext(MAP_HANDLE map, MAP_ELE_S *pstCurrent)
 {
     _MAP_RBTREE_S *rbtree_map = map->impl_map;

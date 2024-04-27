@@ -43,44 +43,46 @@ typedef struct
 typedef VCLOCK_INSTANCE_S* VCLOCK_INSTANCE_HANDLE;
 typedef VCLOCK_NODE_S* VCLOCK_HANDLE;
 
-int VCLOCK_InitInstance(OUT VCLOCK_INSTANCE_S *pstVClockInstance, IN BOOL_T bCreateLock);
-void VCLOCK_FiniInstance(IN VCLOCK_INSTANCE_S *pstVClockInstance);
+int VCLOCK_InitInstance(OUT VCLOCK_INSTANCE_S *pstVClockInstance, BOOL_T bCreateLock);
+void VCLOCK_FiniInstance(VCLOCK_INSTANCE_S *pstVClockInstance);
 
 VCLOCK_INSTANCE_HANDLE  VCLOCK_CreateInstance(BOOL_T bCreateLock);
 void VCLOCK_DeleteInstance(VCLOCK_INSTANCE_HANDLE hVClock);
 
 int VCLOCK_AddTimer
 (
-    IN VCLOCK_INSTANCE_S *pstVClockInstance,
-    IN VCLOCK_NODE_S *vclock_node,
-    IN UINT first_tick, 
-    IN UINT tick,      
-    IN UINT flag,
-    IN PF_TIME_OUT_FUNC pfFunc,
-    IN USER_HANDLE_S *pstUserHandle
+    VCLOCK_INSTANCE_S *pstVClockInstance,
+    VCLOCK_NODE_S *vclock_node,
+    UINT first_tick, 
+    UINT tick,      
+    UINT flag,
+    PF_TIME_OUT_FUNC pfFunc,
+    USER_HANDLE_S *pstUserHandle
 );
-BS_STATUS VCLOCK_DelTimer(IN VCLOCK_INSTANCE_HANDLE hVClockInstanceId, IN VCLOCK_NODE_S *vclock_node);
+BS_STATUS VCLOCK_DelTimer(VCLOCK_INSTANCE_HANDLE hVClockInstanceId, VCLOCK_NODE_S *vclock_node);
 
-VCLOCK_HANDLE VCLOCK_CreateTimer
+BOOL_T VCLOCK_IsRunning(VCLOCK_NODE_S *vclock_node);
+
+VCLOCK_NODE_S * VCLOCK_CreateTimer
 (
-    IN VCLOCK_INSTANCE_HANDLE hVClockInstanceId,
-    IN UINT first_tick, 
-    IN UINT tick,      
-    IN UINT flag,
-    IN PF_TIME_OUT_FUNC pfFunc,
-    IN USER_HANDLE_S *pstUserHandle
+    VCLOCK_INSTANCE_HANDLE hVClockInstanceId,
+    UINT first_tick, 
+    UINT tick,      
+    UINT flag,
+    PF_TIME_OUT_FUNC pfFunc,
+    USER_HANDLE_S *pstUserHandle
 );
-void VCLOCK_DestroyTimer(IN VCLOCK_INSTANCE_S *pstVClockInstance, IN VCLOCK_HANDLE hTimer);
+void VCLOCK_DestroyTimer(VCLOCK_INSTANCE_S *pstVClockInstance, VCLOCK_NODE_S *hTimer);
 
-BS_STATUS VCLOCK_Pause(IN VCLOCK_INSTANCE_HANDLE hVClockInstanceId, IN VCLOCK_HANDLE hTimerId);
-BS_STATUS VCLOCK_Resume(IN VCLOCK_INSTANCE_HANDLE hVClockInstanceId, IN VCLOCK_HANDLE hTimerId, IN UINT first_tick);
-BS_STATUS VCLOCK_GetInfo(IN VCLOCK_INSTANCE_HANDLE hVClockInstanceId, IN VCLOCK_HANDLE hTimerId, OUT TIMER_INFO_S *pstTimerInfo);
-BS_STATUS VCLOCK_RestartWithTick(IN VCLOCK_INSTANCE_HANDLE hVClockInstanceId, IN VCLOCK_HANDLE hTimerId, IN UINT first_tick, IN UINT tick);
-BS_STATUS VCLOCK_Refresh(IN VCLOCK_INSTANCE_HANDLE hVClockInstanceId, IN VCLOCK_HANDLE hTimerId);
-UINT VCLOCK_GetTickLeft(IN VCLOCK_INSTANCE_HANDLE hVClockInstanceId, IN VCLOCK_HANDLE hTimerId);
+BS_STATUS VCLOCK_Pause(VCLOCK_INSTANCE_HANDLE hVClockInstanceId, VCLOCK_NODE_S *hTimerId);
+BS_STATUS VCLOCK_Resume(VCLOCK_INSTANCE_HANDLE hVClockInstanceId, VCLOCK_NODE_S *hTimerId, UINT first_tick);
+BS_STATUS VCLOCK_GetInfo(VCLOCK_INSTANCE_HANDLE hVClockInstanceId, VCLOCK_NODE_S *hTimerId, OUT TIMER_INFO_S *pstTimerInfo);
+BS_STATUS VCLOCK_RestartWithTick(VCLOCK_INSTANCE_HANDLE hVClockInstanceId, VCLOCK_NODE_S *hTimerId, UINT first_tick, UINT tick);
+BS_STATUS VCLOCK_Refresh(VCLOCK_INSTANCE_HANDLE hVClockInstanceId, VCLOCK_NODE_S *hTimerId);
+UINT VCLOCK_GetTickLeft(VCLOCK_INSTANCE_HANDLE hVClockInstanceId, VCLOCK_NODE_S *hTimerId);
 
 
-BS_STATUS VCLOCK_Step(IN VCLOCK_INSTANCE_HANDLE hVClockInstanceId);
+BS_STATUS VCLOCK_Step(VCLOCK_INSTANCE_HANDLE hVClockInstanceId);
 
 
 #ifdef __cplusplus

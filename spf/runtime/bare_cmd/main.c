@@ -6,7 +6,7 @@
 #include "bs.h"
 #include "utl/mybpf_bare.h"
 
-/* ./user_example filename */
+
 int main(int argc, char **argv)
 {
     MYBPF_PARAM_S p = {0};

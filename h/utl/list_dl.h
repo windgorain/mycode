@@ -35,8 +35,6 @@ static inline BOOL_T DL_IsEmpty(IN const DL_HEAD_S* pstList);
 static inline DL_NODE_S* DL_First(IN const DL_HEAD_S* pstList);
 static inline DL_NODE_S* DL_Next(IN const DL_NODE_S* pstNode);
 static inline DL_NODE_S* DL_Prev(IN const DL_NODE_S* pstNode);
-static inline VOID DL_Del(INOUT DL_NODE_S* pstNode);
-static inline VOID DL_AddHead(IN DL_HEAD_S* pstList, IN DL_NODE_S* pstNode);
 static inline DL_NODE_S* DL_DelHead(IN const DL_HEAD_S* pstList);
 static inline VOID DL_AddAfter(IN DL_NODE_S* pstPrev, IN DL_NODE_S* pstInst);
 static inline VOID DL_AddAfterPtr (IN DL_NODE_S **ppstPre, IN DL_NODE_S  *pstInst);
@@ -68,11 +66,9 @@ static inline DL_NODE_S* DL_First(IN const DL_HEAD_S* pstList)
 
 static inline DL_NODE_S* DL_Next(IN const DL_NODE_S* pstNode)
 {
-    if (NULL == pstNode)
-    {
+    if (NULL == pstNode) {
         return NULL;
     }
-
     return pstNode->pstNext;
 }
 
@@ -81,26 +77,23 @@ static inline DL_NODE_S* DL_Prev(IN const DL_NODE_S* pstNode)
     return DL_NODE_FROM_PPRE(pstNode->ppstPre);
 }
 
-static inline VOID DL_Del(INOUT DL_NODE_S* pstNode)
+static inline void DL_Del(INOUT DL_NODE_S* pstNode)
 {
-    if (NULL != pstNode->ppstPre)
-    {
+    if (pstNode->ppstPre) {
         *pstNode->ppstPre = pstNode->pstNext;
     }
-    if (NULL != pstNode->pstNext)
-    {
+    if (pstNode->pstNext) {
         pstNode->pstNext->ppstPre = pstNode->ppstPre;
     }
 
     return;
 }
 
-static inline VOID DL_AddHead(IN DL_HEAD_S* pstList, IN DL_NODE_S* pstNode)
+static inline void DL_AddHead(DL_HEAD_S* pstList, DL_NODE_S* pstNode)
 {
     pstNode->ppstPre = &pstList->pstFirst;
     pstNode->pstNext = pstList->pstFirst;
-    if (NULL != pstNode->pstNext)
-    {
+    if (pstNode->pstNext) {
         pstNode->pstNext->ppstPre = &pstNode->pstNext;
     }
     pstList->pstFirst = pstNode;
@@ -112,7 +105,7 @@ static inline DL_NODE_S* DL_DelHead(IN const DL_HEAD_S* pstList)
     DL_NODE_S* pstNode = DL_First(pstList);
     if (NULL != pstNode)
     {
-        DL_Del (pstNode);
+        DL_Del(pstNode);
     }
 
     return pstNode;
@@ -203,15 +196,14 @@ static inline VOID DL_AddBefore(IN DL_NODE_S* pstNext, IN DL_NODE_S* pstInst)
           (VOID)({(ppstPre) = &((pstEntry)->member.pstNext); \
                    (pstEntry) = DL_ENTRY_NEXT(pstEntry, member);}))
 
+
 static inline VOID DL_Append(IN DL_HEAD_S* pstDstList, INOUT DL_HEAD_S* pstSrcList)
 {
     DL_NODE_S *pstNode, **ppstPre;
 
-    if (BOOL_TRUE != DL_IsEmpty (pstSrcList))
-    {
+    if (BOOL_TRUE != DL_IsEmpty (pstSrcList)) {
         
-        DL_FOREACH_PREVPTR (pstDstList, pstNode, ppstPre)
-        {
+        DL_FOREACH_PREVPTR (pstDstList, pstNode, ppstPre) {
             ; 
         }
         
@@ -221,7 +213,6 @@ static inline VOID DL_Append(IN DL_HEAD_S* pstDstList, INOUT DL_HEAD_S* pstSrcLi
     }
     return;
 }
-
 
 static inline VOID DL_FreeAll(IN DL_HEAD_S *pstList, IN VOID (*pfFree)(VOID *))
 {

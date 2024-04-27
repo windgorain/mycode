@@ -187,7 +187,6 @@ MACTBL_HANDLE MACTBL_CreateInstance(UINT uiUserDataSize)
         MEM_Free(pstMacTbl);
         return 0;
     }
-    HASH_SetResizeWatter(hHashId, 200, 20);
 
     hVclockInstance = VCLOCK_CreateInstance(FALSE);
     if (NULL == hVclockInstance) {

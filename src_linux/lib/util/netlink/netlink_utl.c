@@ -135,7 +135,8 @@ void NetLink_Close(NETLINK_S *nl)
     }
 }
 
-static int _netlink_send_msg(NETLINK_S *nl, unsigned int msg_type, void *data, int datalen, void *recv_buf)
+static int _netlink_send_msg(NETLINK_S *nl, unsigned int msg_type,
+        void *data, int datalen, void *recv_buf, int buf_size)
 {
     unsigned int msg_len;
     NETLINK_MSG_S *message;
@@ -161,6 +162,7 @@ static int _netlink_send_msg(NETLINK_S *nl, unsigned int msg_type, void *data, i
     message->hdr.nlmsg_type = nl->gen_family_id;
     message->g.cmd = NETLINK_GEN_C_CMD;
     message->msg_type = msg_type;
+    message->reply_size = buf_size;
     message->reply_ptr = recv_buf;
 
     if (datalen) {
@@ -182,20 +184,21 @@ static int _netlink_send_msg(NETLINK_S *nl, unsigned int msg_type, void *data, i
     return reply.err.error;
 }
 
-int NetLink_SendMsg(NETLINK_S *nl, unsigned int msg_type, void *data, int datalen, void *recv_buf)
+int NetLink_SendMsg(NETLINK_S *nl, unsigned int msg_type,
+        void *data, int datalen, void *recv_buf, int buf_size)
 {
-    int ret = _netlink_send_msg(nl, msg_type, data, datalen, recv_buf);
+    int ret = _netlink_send_msg(nl, msg_type, data, datalen, recv_buf, buf_size);
     return ret;
 }
 
-int NetLink_Do(PF_NETLINK_DO do_func, int cmd, void *data, int data_len)
+int NetLink_DoExt(char *nl_name, PF_NETLINK_DO do_func, int cmd, void *data, int data_len)
 {
     NETLINK_S nl;
     int ret;
 
     NetLink_Init(&nl);
 
-    ret = NetLink_Open(&nl, NETLINK_GEN_NAME);
+    ret = NetLink_Open(&nl, nl_name);
     if (ret < 0) {
         return -1;
     }
@@ -205,5 +208,10 @@ int NetLink_Do(PF_NETLINK_DO do_func, int cmd, void *data, int data_len)
     NetLink_Close(&nl);
 
     return ret;
+}
+
+int NetLink_Do(PF_NETLINK_DO do_func, int cmd, void *data, int data_len)
+{
+    return NetLink_DoExt(NETLINK_GEN_NAME, do_func, cmd, data, data_len);
 }
 

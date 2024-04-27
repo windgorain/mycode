@@ -26,8 +26,8 @@ typedef struct
     USHORT usMinPort;   
     USHORT usMaxPort;   
 
-    HASH_HANDLE hPrivateHashHandle;  
-    HASH_HANDLE hPubHashHandle;      
+    HASH_S * hPrivateHashHandle;  
+    HASH_S * hPubHashHandle;      
 
     
     BITMAP_S stTcpPortBitMap;
@@ -86,8 +86,8 @@ typedef struct
     USHORT usMinPort;   
     USHORT usMaxPort;   
 
-    HASH_HANDLE hPrivateHashHandle;  
-    HASH_HANDLE hPubHashHandle;      
+    HASH_S * hPrivateHashHandle;  
+    HASH_S * hPubHashHandle;      
 
     
     BITMAP_S stUdpPortBitMap;

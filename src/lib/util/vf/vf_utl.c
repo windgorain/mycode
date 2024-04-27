@@ -47,7 +47,7 @@ typedef struct
     UINT bCreateLock:1;
     DLL_HEAD_S stListenerList;  
     VF_NODE_S *pstVds; 
-    HASH_HANDLE hNameIdTbl;  
+    HASH_S * hNameIdTbl;  
     MUTEX_S stMutex;
     void *memcap;
 }VF_CTRL_S;

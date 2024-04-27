@@ -7,14 +7,14 @@
 #include "utl/umap_utl.h"
 
 typedef struct {
-    UMAP_HEADER_S hdr; /* 必须为第一个成员 */
+    UMAP_HEADER_S hdr; 
     UCHAR data[0];
 }UMAP_ARRAY_S;
 
 static void _umap_array_destroy_map(void *map)
 {
     UMAP_ARRAY_S *ctrl = map;
-    MEM_RcuFree(ctrl);
+    MEM_Free(ctrl);  
 }
 
 static void * _umap_array_open(void *map_def)
@@ -28,7 +28,7 @@ static void * _umap_array_open(void *map_def)
 
     len = sizeof(UMAP_ARRAY_S) + (elfmap->size_value * elfmap->max_elem);
 
-    UMAP_ARRAY_S *ctrl = MEM_RcuZMalloc(len);
+    UMAP_ARRAY_S *ctrl = MEM_ZMalloc(len);
     if (! ctrl) {
         return NULL;
     }
@@ -108,7 +108,7 @@ static long _umap_array_direct_value(void *map, OUT U64 *value, U32 off)
     return 0;
 }
 
-/* key: NULL表示Get第一个 */
+
 static int _umap_array_getnext_key(void *map, void *key, OUT void **next_key)
 {
     UMAP_ARRAY_S *ctrl = map;
