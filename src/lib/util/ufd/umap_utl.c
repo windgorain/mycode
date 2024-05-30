@@ -54,6 +54,7 @@ void * UMAP_Open(UMAP_ELF_MAP_S *elfmap, char *map_name)
         return NULL;
     }
 
+    hdr->opts = g_umap_func_tbl[type];
     hdr->ref_count = 1;
     hdr->type = elfmap->type;
     hdr->size_key = elfmap->size_key;
@@ -70,7 +71,7 @@ void UMAP_Close(UMAP_HEADER_S *map)
     map->ref_count --;
 
     if (map->ref_count <= 0) {
-        g_umap_func_tbl[map->type]->destroy_func(map);
+        map->opts->destroy_func(map);
     }
 }
 
@@ -80,7 +81,7 @@ void * UMAP_LookupElem(UMAP_HEADER_S *map, const void *key)
         return NULL;
     }
 
-    return g_umap_func_tbl[map->type]->lookup_elem_func(map, key);
+    return map->opts->lookup_elem_func(map, key);
 }
 
 long UMAP_DeleteElem(UMAP_HEADER_S *map, const void *key)
@@ -89,7 +90,7 @@ long UMAP_DeleteElem(UMAP_HEADER_S *map, const void *key)
 		return -EINVAL;
     }
 
-    return g_umap_func_tbl[map->type]->delete_elem_func(map, key);
+    return map->opts->delete_elem_func(map, key);
 }
 
 long UMAP_UpdateElem(UMAP_HEADER_S *map, const void *key, const void *value, U32 flag)
@@ -98,7 +99,7 @@ long UMAP_UpdateElem(UMAP_HEADER_S *map, const void *key, const void *value, U32
 		return -EINVAL;
     }
 
-    return g_umap_func_tbl[map->type]->update_elem_func(map, key, value, flag);
+    return map->opts->update_elem_func(map, key, value, flag);
 }
 
 
@@ -108,23 +109,23 @@ int UMAP_DirectValue(UMAP_HEADER_S *map, OUT U64 *addr, UINT off)
         RETURN(BS_ERR);
     }
 
-    if (! g_umap_func_tbl[map->type]->direct_value_func) {
+    if (! map->opts->direct_value_func) {
         RETURN(BS_ERR);
     }
 
-    return g_umap_func_tbl[map->type]->direct_value_func(map, addr, off);
+    return map->opts->direct_value_func(map, addr, off);
 }
 
 
-int UMAP_GetNextKey(UMAP_HEADER_S *map, void *curr_key, OUT void **next_key)
+int UMAP_GetNextKey(UMAP_HEADER_S *map, void *curr_key, OUT void *next_key)
 {
-    return g_umap_func_tbl[map->type]->get_next_key_func(map, curr_key, next_key);
+    return map->opts->get_next_key_func(map, curr_key, next_key);
 }
 
 #if 0
 void UMAP_DumpMap(UFD_S *ctx, int map_fd, PF_PRINT_FUNC print_func)
 {
-    void *key = NULL;
+    char key[1024] = {0};
     void *data;
     int ret;
 
@@ -133,7 +134,11 @@ void UMAP_DumpMap(UFD_S *ctx, int map_fd, PF_PRINT_FUNC print_func)
         return;
     }
 
-    while ((ret = UMAP_GetNextKey(hdr, key, &key)) == 0) {
+    if (hdr->size_key > sizeof(key)) {
+        return;
+    }
+
+    while ((ret = UMAP_GetNextKey(hdr, key, key)) == 0) {
         data = UMAP_LookupElem(hdr, key);
         if (! data) {
             continue;

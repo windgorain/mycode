@@ -17,8 +17,7 @@ extern "C" {
     bpf_trace_printk(_msg, sizeof(_msg), ##__VA_ARGS__); \
 })
 
-#define snprintf(buf,size,fmt, ...) ({ \
-    char _fmt[] = fmt; \
+#define ulc_sys_snprintf(buf,size,_fmt, ...) ({ \
     int _count = BS_ARG_COUNT(__VA_ARGS__); \
     U64 _d[10]; \
     long _ret = -1; \
@@ -38,6 +37,14 @@ extern "C" {
     if (_count <= 10) { _ret = bpf_snprintf(buf,size,_fmt,_d,_count*8);} \
     _ret; \
 })
+
+#define ulc_bpf_snprintf(buf,size,fmt, ...) ({ \
+    char _fmt[] = fmt; \
+    long _ret = _ulc_sys_snprintf(buf,size,_fmt,##__VA_ARGS__); \
+    _ret; \
+})
+
+#define snprintf(buf,size,fmt, ...) ulc_sys_snprintf(buf,size,fmt,##__VA_ARGS__)
 
 struct bpf_map_def {
 	unsigned int type;

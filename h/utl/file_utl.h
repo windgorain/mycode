@@ -200,9 +200,10 @@ extern BS_STATUS FILE_SetUtcTime
     IN FILE_TIME_MODE_E eAccessTimeMode,
     IN time_t ulAccessTime
 );
-extern CHAR * FILE_GetFileNameFromPath(IN CHAR *pszPath);
 
-extern BS_STATUS FILE_GetFileNameWithOutExtFromPath(IN CHAR *pszPath, OUT LSTR_S *pstFileNameWithOutExt);
+extern char * FILE_GetFileNameFromPath(char *pszPath);
+
+extern int FILE_GetFileNameWithOutExtFromPath(char *pszPath, OUT LSTR_S *pstFileNameWithOutExt);
 
 extern BOOL_T FILE_IsAbsolutePath(IN CHAR *pszPath);
 
@@ -211,9 +212,9 @@ extern char * FILE_ToAbsPath(char *base_dir, char *path, OUT char *dst, int dst_
 extern char * FILE_Dup2AbsPath(IN char *base_dir, IN char *path);
 
 
-VOID FILE_GetPathFromFilePath(CHAR *pszFilePath, OUT CHAR *szPath);
+extern void FILE_GetPathFromFilePath(char *pszFilePath, OUT char *szPath);
 
-extern CHAR * FILE_GetExternNameFromPath(IN CHAR *pszPath, IN UINT uiPathLen);
+extern char * FILE_GetExternNameFromPath(char *pszPath, U32 uiPathLen);
 
 
 extern CHAR * FILE_EarseExternName(IN CHAR *pcFilePath);

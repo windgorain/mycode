@@ -91,57 +91,7 @@ char * FILE_Dup2AbsPath(IN char *base_dir, IN char *path)
 }
 
 
-CHAR * FILE_GetFileNameFromPath(IN CHAR *pszPath)
-{
-    UINT ulLen;
-
-    BS_DBGASSERT(NULL != pszPath);
-
-    ulLen = strlen(pszPath);
-
-    while (ulLen > 0)
-    {
-        if ((pszPath[ulLen - 1] == '\\') || (pszPath[ulLen - 1] == '/'))
-        {
-            return pszPath + ulLen;
-        }
-
-        ulLen --;
-    }
-
-    return pszPath;
-}
-
-BS_STATUS FILE_GetFileNameWithOutExtFromPath(IN CHAR *pszPath, OUT LSTR_S *pstFileNameWithOutExt)
-{
-    CHAR *pcFileName;
-    CHAR *pcExtName;
-
-    BS_DBGASSERT(NULL != pszPath);
-
-    pcFileName = FILE_GetFileNameFromPath(pszPath);
-    if (NULL == pcFileName)
-    {
-        return BS_ERR;
-    }
-
-    pstFileNameWithOutExt->pcData = pcFileName;
-
-    pcExtName = FILE_GetExternNameFromPath(pcFileName, strlen(pcFileName));
-    if (NULL == pcExtName)
-    {
-        pstFileNameWithOutExt->uiLen = strlen(pcFileName);
-    }
-    else
-    {
-        pstFileNameWithOutExt->uiLen = ((pcExtName - pcFileName) - 1);
-    }
-
-    return BS_OK;
-}
-
-
-VOID FILE_GetPathFromFilePath(IN CHAR *pszFilePath, OUT CHAR *szPath)
+void FILE_GetPathFromFilePath(char *pszFilePath, OUT char *szPath)
 {
     CHAR *pszFileName;
     
@@ -166,26 +116,6 @@ VOID FILE_GetPathFromFilePath(IN CHAR *pszFilePath, OUT CHAR *szPath)
     szPath[pszFileName - pszFilePath] = '\0';
 
     return;
-}
-
-
-CHAR * FILE_GetExternNameFromPath(IN CHAR *pszPath, IN UINT uiPathLen)
-{
-    UINT ulLen = uiPathLen;
-
-    BS_DBGASSERT(NULL != pszPath);
-
-    while (ulLen > 0)
-    {
-        if (pszPath[ulLen - 1] == '.')
-        {
-            return pszPath + ulLen;
-        }
-
-        ulLen --;
-    }
-
-    return NULL;
 }
 
 

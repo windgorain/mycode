@@ -21,7 +21,7 @@ void * UMAP_LookupElem(UMAP_HEADER_S *map, const void *key);
 long UMAP_DeleteElem(UMAP_HEADER_S *map, const void *key);
 long UMAP_UpdateElem(UMAP_HEADER_S *map, const void *key, const void *value, U32 flag);
 int UMAP_DirectValue(UMAP_HEADER_S *map, OUT UINT64 *addr, UINT off);
-int UMAP_GetNextKey(UMAP_HEADER_S *map, void *curr_key, OUT void **next_key);
+int UMAP_GetNextKey(UMAP_HEADER_S *map, void *curr_key, OUT void *next_key);
 
 
 static inline void UMAP_IncRef(UMAP_HEADER_S *map)

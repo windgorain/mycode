@@ -181,6 +181,11 @@ static int ulc_get_local_arch(void)
     return ARCH_LocalArch();
 }
 
+char * ulc_sys_env_name(void)
+{
+    return "user-space";
+}
+
 static void ulc_do_nothing()
 {
 }
@@ -315,10 +320,13 @@ static const void * g_bpf_sys_helpers[BPF_SYS_HELPER_COUNT] = {
 
     [_(ULC_ID_DO_NOTHING)] = ulc_do_nothing,
     [_(ULC_ID_LOCAL_ARCH)] = ulc_get_local_arch,
+    [_(ULC_ID_SET_HELPER)] = ulc_set_helper,
     [_(ULC_ID_GET_HELPER)] = ulc_get_helper,
     [_(ULC_ID_GET_BASE_HELPER)] = ulc_get_base_helpers,
     [_(ULC_ID_GET_SYS_HELPER)] = ulc_get_sys_helpers,
     [_(ULC_ID_GET_USER_HELPER)] = ulc_get_user_helpers,
+    [_(ULC_ID_MAP_GET_NEXT_KEY)] = UMAP_GetNextKey,
+    [_(ULC_ID_ENV_NAME)] = ulc_sys_env_name,
 };
 
 
@@ -361,7 +369,7 @@ const void ** ulc_get_user_helpers(void)
     return g_bpf_user_helpers;
 }
 
-int BpfHelper_RegFunc(U32 id, void *func)
+int ulc_set_helper(U32 id, void *func)
 {
     if (id < BPF_BASE_HELPER_END) {
         g_bpf_base_helpers[id] = func;

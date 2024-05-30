@@ -138,12 +138,19 @@ static int _ulcapp_ioctl_getnext_key(MYBPF_RUNTIME_S *runtime, void *data, int d
         RETURN(BS_BAD_PARA);
     }
 
-    ret = UMAP_GetNextKey(hdr, d->data, &next_key);
-    if (ret < 0) {
-        return BS_NO_SUCH;
+    next_key = MEM_ZMalloc(hdr->size_key);
+    if (! next_key) {
+        RETURN(BS_NO_MEMORY);
     }
 
-    return VBUF_CatBuf(reply, &next_key, hdr->size_key);
+    ret = UMAP_GetNextKey(hdr, d->data, next_key);
+    if (ret >= 0) {
+        ret = VBUF_CatBuf(reply, next_key, hdr->size_key);
+    }
+
+    MEM_Free(next_key);
+
+    return ret;
 }
 
 static int _ulcapp_ioctl_process_request_locked(MYBPF_RUNTIME_S *runtime, CIOCTL_REQUEST_S *request, VBUF_S *reply)

@@ -7,7 +7,6 @@
 #define _KLCKO_IMPL_H
 
 #include "klcko_def.h"
-#include "klcko_oshelper.h"
 
 #ifdef __cplusplus
 extern "C"

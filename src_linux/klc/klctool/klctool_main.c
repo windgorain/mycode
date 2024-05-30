@@ -60,8 +60,8 @@ static int _klctool_cmd_load_spf_file(int argc, char **argv)
     char *instance = NULL;
 
     GETOPT2_NODE_S opts[] = {
-        {'P', 0, "Instance", GETOPT2_V_STRING, &instance, "instance name", 0},
         {'P', 0, "File", GETOPT2_V_STRING, &file, "file name", 0},
+        {'o', 'i', "instance", GETOPT2_V_STRING, &instance, "instance name", 0},
         {0}
     };
 
@@ -107,55 +107,6 @@ static int _klctool_cmd_run_cmd(int argc, char **argv)
     return KLCTOOL_RunCmd(argc, argv);
 }
 
-
-static int _klctool_cmd_unload_file(int argc, char **argv)
-{
-    char *file = NULL;
-
-    GETOPT2_NODE_S opts[] = {
-        {'P', 0, "File", GETOPT2_V_STRING, &file, "file name", 0},
-        {0}
-    };
-
-    if (0 != GETOPT2_Parse(argc, argv, opts)) {
-        ErrCode_PrintErrInfo();
-        GETOPT2_PrintHelp(opts);
-        return -1;
-    }
-
-    if (KLCTOOL_UnLoadFile(file) < 0) {
-        fprintf(stderr, "can't unload the file\n");
-        return -1;
-    }
-
-    return 0;
-}
-
-static int _klctool_cmd_cmdrun(int argc, char **argv)
-{
-    char *mod = NULL;
-    char *cmd = NULL;
-
-    GETOPT2_NODE_S opts[] = {
-        {'O', 'm', "mod", GETOPT2_V_STRING, &mod, "module name", 0},
-        {'P', 0, "cmd", GETOPT2_V_STRING, &cmd, "run cmd", 0},
-        {0}
-    };
-
-	if (0 != GETOPT2_Parse(argc, argv, opts)) {
-        ErrCode_PrintErrInfo();
-        GETOPT2_PrintHelp(opts);
-        return -1;
-    }
-
-    return KLCTOOL_CmdRun(mod, cmd);
-}
-
-static int _klctool_cmd_show_module(int argc, char **argv)
-{
-    return KLCTOOL_ShowModule();
-}
-
 static int _klctool_cmd_show_idfunc(int argc, char **argv)
 {
     return KLCTOOL_ShowIDFunc();
@@ -166,37 +117,9 @@ static int _klctool_cmd_show_namefunc(int argc, char **argv)
     return KLCTOOL_ShowNameFunc();
 }
 
-static int _klctool_cmd_show_name_map(int argc, char **argv)
-{
-    return KLCTOOL_ShowNameMap();
-}
-
-static int _klctool_cmd_show_maps(int argc, char **argv)
-{
-    char *mod_name = NULL;
-
-    GETOPT2_NODE_S opts[] = {
-        {'o', 'm', "module", GETOPT2_V_STRING, &mod_name, "module name", 0}, 
-        {0}
-    };
-
-	if (0 != GETOPT2_Parse(argc, argv, opts)) {
-        ErrCode_PrintErrInfo();
-        GETOPT2_PrintHelp(opts);
-        return -1;
-    }
-
-    return KLCTOOL_ShowMaps(mod_name);
-}
-
 static int _klctool_cmd_show_evob(int argc, char **argv)
 {
     return KLCTOOL_ShowEvob();
-}
-
-static int _klctool_cmd_show_oshelper(int argc, char **argv)
-{
-    return KLCTOOL_ShowOsHelper();
 }
 
 static int _klctool_cmd_decuse_module(int argc, char **argv)
@@ -227,19 +150,13 @@ int main(int argc, char **argv)
         {"load spf", _klctool_cmd_load_spf_file, "load spf file"},
         {"unload instance", _klctool_cmd_unload_instance, "unload instance"},
         {"show instance", _klctool_cmd_show_instance, "show instance"},
-        {"runcmd", _klctool_cmd_run_cmd, "run cmd"},
+        {"cmdrun", _klctool_cmd_run_cmd, "run cmd"},
 
         {"show idfunc", _klctool_cmd_show_idfunc, "show id function"},
         {"show namefunc", _klctool_cmd_show_namefunc, "show name function"},
         {"show evob", _klctool_cmd_show_evob, "show event ob"},
 
         
-        {"unload file", _klctool_cmd_unload_file, "unload file"},
-        {"cmdrun", _klctool_cmd_cmdrun, "cmd run"},
-        {"show module", _klctool_cmd_show_module, "show module"},
-        {"show namemap", _klctool_cmd_show_name_map, "show name map"},
-        {"show maps", _klctool_cmd_show_maps, "show maps"},
-        {"show oshelper", _klctool_cmd_show_oshelper, "show os helper"},
         {"decuse impl", _klctool_cmd_decuse_module, "decuse module"},
         {"incuse impl", _klctool_cmd_incuse_module, "incuse module"},
         {"decuse base", _klctool_cmd_decuse_base, "decuse module"},

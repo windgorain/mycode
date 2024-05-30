@@ -333,7 +333,7 @@ static inline int _mod_data_init(NETDEVSIM_S *ctrl)
     char name[] = "netdevsim";
     memcpy(ctrl->dev_name, name, sizeof(name));
 
-    KLC_FUNC_S *func = KLCHLP_GetLocalNameFunc("nsim_num_vf");
+    void *func = KLCHLP_GetLocalNameFunc("nsim_num_vf");
     if (! func) {
         BPF_Print("Can't get function nsim_num_vf");
         return -1;

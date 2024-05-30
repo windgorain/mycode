@@ -109,7 +109,7 @@ static long _umap_array_direct_value(void *map, OUT U64 *value, U32 off)
 }
 
 
-static int _umap_array_getnext_key(void *map, void *key, OUT void **next_key)
+static int _umap_array_getnext_key(void *map, void *key, OUT void *next_key)
 {
     UMAP_ARRAY_S *ctrl = map;
     int n = 0;

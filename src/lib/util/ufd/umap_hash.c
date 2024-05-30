@@ -170,7 +170,7 @@ static long _umap_hash_update_elem(void *map, const void *key, const void *value
 }
 
 
-static int _umap_hash_getnext_key(void *map, void *key, OUT void **next_key)
+static int _umap_hash_getnext_key(void *map, void *key, OUT void *next_key)
 {
     UMAP_HASH_S *ctrl = map;
     UMAP_HASH_NODE_S *found;
@@ -192,7 +192,7 @@ static int _umap_hash_getnext_key(void *map, void *key, OUT void **next_key)
         return -1;
     }
 
-    *next_key = found->key;
+    memcpy(next_key, found->key, ctrl->hdr.size_key);
 
     return 0;
 }

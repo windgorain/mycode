@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <stddef.h>
 #include "utl/int_types.h"
+#include "utl/types.h"
+#include "utl/types_utl.h"
 #include "utl/bpf_helper_utl.h"
 #include "utl/int_types.h"
 #include "utl/ulc_def.h"
@@ -18,6 +20,7 @@
 #include "utl/ulc_user_base.h"
 #include "utl/ulc_user_sys.h"
 #include "utl/ulc_user_user.h"
+#include "utl/mybpf_spf_sec.h"
 
 #ifndef noinline
 #define noinline __attribute__((noinline))

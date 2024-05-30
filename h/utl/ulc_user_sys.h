@@ -80,10 +80,13 @@ static int (*ulc_set_trusteeship)(unsigned int id, void *ptr) = (void*)ULC_ID_SE
 static void * (*ulc_get_trusteeship)(unsigned int id) = (void*)ULC_ID_GET_TRUSTEESHIP;
 static void (*ulc_do_nothing)(void) = (void*)ULC_ID_DO_NOTHING;
 static int (*ulc_get_local_arch)(void) = (void*)ULC_ID_LOCAL_ARCH;
+static int (*ulc_set_helper)(U32 id, void *func) = (void*)ULC_ID_SET_HELPER;
 static void * (*ulc_get_helper)(unsigned int id, const void **tmp_helpers) = (void*)ULC_ID_GET_HELPER;
 static const void ** (*ulc_get_base_helpers)(void) = (void*)ULC_ID_GET_BASE_HELPER;
 static const void ** (*ulc_get_sys_helpers)(void) = (void*)ULC_ID_GET_SYS_HELPER;
 static const void ** (*ulc_get_user_helpers)(void) = (void*)ULC_ID_GET_USER_HELPER;
+static void * (*ulc_map_get_next_key)(void *map, void *curr_key, void *next_key) = (void*)ULC_ID_MAP_GET_NEXT_KEY;
+static char * (*ulc_sys_env_name)(void) = (void*)ULC_ID_ENV_NAME;
 
 #define ulc_call_sym(_err_ret, _name, ...) ({ \
         U64 _ret = (_err_ret); \

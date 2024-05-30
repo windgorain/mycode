@@ -11,19 +11,14 @@
 #include "klcko_bpf_helper.h"
 
 static KUTL_MODINIT_S g_klcko_impl_init[] = {
-    {.name="var", .init=KlcKoVar_Init, .fini=NULL},
     {.name="func", .init=KlcKoFunc_Init, .fini=NULL},
 
     {.name="kv", .init=KlcKoKv_Init, .fini=KlcKoKv_Fini},
     {.name="loader", .init=KlcKoLoad_Init, .fini=KlcKoLoad_Fini},
     {.name="helper", .init=KlcKoHelper_Init, .fini=KlcKoHelper_Fini},
 
-    {.name="impl_fin2", .init=NULL, .fini=KlcKo_Fini2},
-    {.name="module", .init=KlcKoMod_Init, .fini=KlcKoMod_Fini2},
     {.name="config", .init=KlcKoConfig_Init, .fini=KlcKoConfig_Fini},
-    {.name="oshelper", .init=KlcKoOsHelper_Init, .fini=NULL},
-    {.name="module_prefini", .init=NULL, .fini=KlcKoMod_Fini1},
-    {.name="impl", .init=KlcKo_Init, .fini=KlcKo_Fini1},
+    {.name="impl", .init=KlcKo_Init, .fini=KlcKo_Fini},
     {.name=NULL}
 };
 
