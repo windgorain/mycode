@@ -15,8 +15,8 @@ typedef struct {
     SL_HEAD_S free_list;
 }FREE_LIST_S;
 
-int FreeList_Init(FREE_LIST_S *list);
-int FreeList_Puts(FREE_LIST_S *list, void *nodes, UINT node_len, UINT max_nodes);
+void FreeList_Init(FREE_LIST_S *list);
+void FreeList_Puts(FREE_LIST_S *list, void *nodes, UINT node_len, UINT max_nodes);
 
 static inline void FreeList_Put(FREE_LIST_S *list, void *node)
 {

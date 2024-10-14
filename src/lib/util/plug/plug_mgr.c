@@ -7,6 +7,7 @@
 #include "utl/cff_utl.h"
 #include "utl/file_utl.h"
 #include "utl/txt_utl.h"
+#include "utl/sys_utl.h"
 #include "utl/exec_utl.h"
 #include "utl/plug_utl.h"
 #include "utl/plug_mgr.h"
@@ -175,10 +176,10 @@ static VOID plugmgr_LoadOne(PLUG_MGR_S *mgr, CFF_HANDLE hCff, char *plug_name)
     if (save_path == NULL) {
         save_path = conf_path;
     }
-	
-	SYSINFO_ExpandWorkDir(ext_file, sizeof(ext_file), file);
-	SYSINFO_ExpandWorkDir(ext_conf_path, sizeof(ext_conf_path), conf_path);
-	SYSINFO_ExpandWorkDir(ext_save_path, sizeof(ext_save_path), save_path);
+
+    snprintf(ext_file, sizeof(ext_file), "%s/%s", SYS_GetSelfFilePath(), file);
+    snprintf(ext_conf_path, sizeof(ext_conf_path), "%s/%s", SYS_GetSelfFilePath(), conf_path);
+    snprintf(ext_save_path, sizeof(ext_save_path), "%s/%s", SYS_GetSelfFilePath(), save_path);
 
     plugmgr_Load(mgr, plug_name, ext_file, ext_conf_path, ext_save_path);
 }
@@ -287,9 +288,9 @@ static VOID plugmgr_EachRegCmd(CFF_HANDLE hCff, char *tag, void *ud)
         save_path = conf_path;
     }
 
-	SYSINFO_ExpandWorkDir(ext_file, sizeof(ext_file), file);
-	SYSINFO_ExpandWorkDir(ext_conf_path, sizeof(ext_conf_path), conf_path);
-	SYSINFO_ExpandWorkDir(ext_save_path, sizeof(ext_save_path), save_path);
+    snprintf(ext_file, sizeof(ext_file), "%s/%s", SYS_GetSelfFilePath(), file);
+    snprintf(ext_conf_path, sizeof(ext_conf_path), "%s/%s", SYS_GetSelfFilePath(), conf_path);
+    snprintf(ext_save_path, sizeof(ext_save_path), "%s/%s", SYS_GetSelfFilePath(), save_path);
     
 	plugmgr_RegCmd(mgr, tag, ext_file, ext_conf_path, ext_save_path, cmdfile);
 }
@@ -313,9 +314,10 @@ static VOID plugmgr_EachUnRegCmd(CFF_HANDLE hCff, char *tag, void *ud)
     if (save_path == NULL) {
         save_path = conf_path;
     }
-	SYSINFO_ExpandWorkDir(ext_cmdfile, sizeof(ext_cmdfile), cmdfile);
-	SYSINFO_ExpandWorkDir(ext_conf_path, sizeof(ext_conf_path), conf_path);
-	SYSINFO_ExpandWorkDir(ext_save_path, sizeof(ext_save_path), save_path);
+
+    snprintf(ext_cmdfile, sizeof(ext_cmdfile), "%s/%s", SYS_GetSelfFilePath(), cmdfile);
+    snprintf(ext_conf_path, sizeof(ext_conf_path), "%s/%s", SYS_GetSelfFilePath(), conf_path);
+    snprintf(ext_save_path, sizeof(ext_save_path), "%s/%s", SYS_GetSelfFilePath(), save_path);
 
 	plugmgr_UnRegCmd(mgr, tag, ext_conf_path, ext_save_path, ext_cmdfile);
 }
@@ -368,9 +370,9 @@ static VOID plugmgr_EachLoadCfg(CFF_HANDLE hCff, char *tag, void *ud)
         save_path = conf_path;
     }
 
-	SYSINFO_ExpandWorkDir(ext_file, sizeof(ext_file), file);
-	SYSINFO_ExpandWorkDir(ext_conf_path, sizeof(ext_conf_path), conf_path);
-	SYSINFO_ExpandWorkDir(ext_save_path, sizeof(ext_save_path), save_path);
+    snprintf(ext_file, sizeof(ext_file), "%s/%s", SYS_GetSelfFilePath(), file);
+    snprintf(ext_conf_path, sizeof(ext_conf_path), "%s/%s", SYS_GetSelfFilePath(), conf_path);
+    snprintf(ext_save_path, sizeof(ext_save_path), "%s/%s", SYS_GetSelfFilePath(), save_path);
 
     plugmgr_RunCmd(mgr, tag, ext_file, ext_conf_path, ext_save_path, cfgfile);
 }
@@ -508,7 +510,7 @@ int PlugMgr_LoadManual(PLUG_MGR_S *mgr, char *ini_file, char *tag)
     return 0;
 }
 
-BS_STATUS PlugMgr_LoadByCfgFile(PLUG_MGR_S *mgr, char *cfg_file)
+int PlugMgr_LoadByCfgFile(PLUG_MGR_S *mgr, char *cfg_file)
 {
     CFF_HANDLE hCff = CFF_INI_Open(cfg_file, 0);
     if (hCff == NULL) {

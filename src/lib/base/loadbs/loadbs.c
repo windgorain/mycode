@@ -121,3 +121,12 @@ void LoadBs_Main()
     PollerBs_Run();
 }
 
+int LoadBs_Load(int argc, char **argv, char *conf_path)
+{
+    SYSINFO_SetConfDir(conf_path);
+    LoadBs_SetArgv(argc, argv);
+    LoadBs_Init();
+
+    return 0;
+}
+

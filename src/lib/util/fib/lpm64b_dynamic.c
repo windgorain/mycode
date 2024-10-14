@@ -1,5 +1,6 @@
 /*================================================================
 *   Created：LiXingang All rights reserved.
+*   Author: lixingang  Version: 1.0  Date: 2015-5-2
 *   Description: 
 *
 ================================================================*/
@@ -299,22 +300,6 @@ static void dlpm64b_final(void *plpm)
 static int dlpm64b_set_level(void *plpm, int level, int first_bit_num)
 {
     LPM_S *lpm = plpm;
-    BS_DBGASSERT(level>= 2);
-    BS_DBGASSERT(level<= 8);
-    BS_DBGASSERT(first_bit_num >= 8);
-    BS_DBGASSERT(first_bit_num <= 24);
-
-    int other_bit_num = (32 - first_bit_num) / (level - 1);
-
-    BS_DBGASSERT(other_bit_num * (level - 1) + first_bit_num == 32);
-
-    int i;
-    lpm->bit_num[0] = first_bit_num;
-    for (i=1; i<level; i++) {
-        lpm->bit_num[i] = other_bit_num;
-    }
-
-    lpm->level = level;
 
     lpm->array = MemCap_ZMalloc(lpm->memcap, sizeof(LPM64B_ENTRY_S) * (1 << first_bit_num));
     if (! lpm->array) {

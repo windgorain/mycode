@@ -19,7 +19,7 @@ typedef struct {
 
 static DTQ_HEAD_S g_mem_level_mem_list[_MEM_MAX_LEVEL];
 
-static void _mem_check_list(IN UINT uiLevel)
+static int _mem_check_list(IN UINT uiLevel)
 {
     DTQ_NODE_S *node;
     _MEM_HEAD_S *head;
@@ -36,12 +36,14 @@ static void _mem_check_list(IN UINT uiLevel)
                 head->pszFileName, head->usLine, head->size,
                 head->uiHeadCheck, tail->uiTailCheck);
             BS_DBGASSERT(0);
+            return -1;
         }
     }
 
+    return 0;
 }
 
-static VOID _mem_check_mem(IN HANDLE hTimeHandle, IN USER_HANDLE_S *pstUserHandle)
+static int _mem_check_mem(void)
 {
     static UINT ulLevel = 0;
 
@@ -56,6 +58,13 @@ static VOID _mem_check_mem(IN HANDLE hTimeHandle, IN USER_HANDLE_S *pstUserHandl
     }
 
     _MEM_UnLock();
+
+    return 0;
+}
+
+static void _mem_check_mem_task(IN HANDLE hTimeHandle, IN USER_HANDLE_S *pstUserHandle)
+{
+    _mem_check_mem();
 }
 
 static int _mem_init_once(void *ud)
@@ -304,14 +313,25 @@ BS_STATUS MemDebug_ShowLineConflict(int argc, char **argv)
     return 0;
 }
 
+int MemDebug_CheckMem(void)
+{
+    return _mem_check_mem();
+}
+
 
 int MemDebug_Check(int argc, char **argv)
+{
+    return _mem_check_mem();
+}
+
+
+int MemDebug_TaskCheck(void)
 {
     int ret;
     static MTIMER_S g_stMemMTimer;
 
     
-    ret = MTimer_Add(&g_stMemMTimer, 1000, TIMER_FLAG_CYCLE, _mem_check_mem, NULL);
+    ret = MTimer_Add(&g_stMemMTimer, 1000, TIMER_FLAG_CYCLE, _mem_check_mem_task, NULL);
     if (ret < 0) {
         BS_DBGASSERT(0);
         RETURN(BS_ERR);
@@ -319,6 +339,5 @@ int MemDebug_Check(int argc, char **argv)
 
     return 0;
 }
-
 
 #endif

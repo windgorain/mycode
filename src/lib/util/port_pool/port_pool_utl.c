@@ -167,7 +167,7 @@ int PortPool_DeletePortRange(IN LIST_RULE_LIST_S *pstList, USHORT start, USHORT 
     return BS_OK;
 }
 
-BS_STATUS PortPool_ParsePortRange(IN CHAR *pcPortString, OUT UINT *puiStartPort, OUT UINT *puiEndPort)
+int PortPool_ParsePortRange(IN CHAR *pcPortString, OUT UINT *puiStartPort, OUT UINT *puiEndPort)
 {
     LSTR_S lstr;
 

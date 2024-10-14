@@ -632,6 +632,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                         c = a >= b;
                         break;
                     default:
+                        c = 0;
                         break;
                 }
                 stack[m->sp].value_type = WASM_I32;
@@ -673,6 +674,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                         c = d >= e;
                         break;
                     default:
+                        c = 0;
                         break;
                 }
                 stack[m->sp].value_type = WASM_I32;
@@ -702,6 +704,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                         c = g >= h;
                         break;
                     default:
+                        c = 0;
                         break;
                 }
                 stack[m->sp].value_type = WASM_I32;
@@ -731,6 +734,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                         c = j >= k;
                         break;
                     default:
+                        c = 0;
                         break;
                 }
                 stack[m->sp].value_type = WASM_I32;
@@ -749,6 +753,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                         c = __builtin_popcount(a);
                         break;
                     default:
+                        c = 0;
                         break;
                 }
 
@@ -817,6 +822,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                         c = _wasm_rotr32(a, b);
                         break;
                     default:
+                        c = 0;
                         break;
                 }
 
@@ -835,6 +841,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                         f = __builtin_popcountll(d);
                         break;
                     default:
+                        f = 0;
                         break;
                 }
                 stack[m->sp].value.uint64 = f;
@@ -902,6 +909,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                         f = _wasm_rotr64(d, e);
                         break;
                     default:
+                        f = 0;
                         break;
                 }
                 stack[m->sp].value.uint64 = f;
@@ -958,6 +966,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                         i = signbit(h) ? -fabsf(g) : fabsf(g);
                         break;
                     default:
+                        i = 0;
                         break;
                 }
 
@@ -1016,6 +1025,7 @@ BOOL_T wasm_interpret(WASM_MODULE_S *m)
                         l = signbit(k) ? -fabs(j) : fabs(j);
                         break;
                     default:
+                        l = 0;
                         break;
                 }
 

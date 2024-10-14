@@ -43,13 +43,10 @@ typedef struct {
 #pragma pack()
 
 BOOL_T VXLAN_Valid(IN VXLAN_HEAD_S *vxlan_header);
-VXLAN_HEAD_S * VXLAN_GetVxlanHeader(IN void *pkt_buf,
-        IN int buf_len, IN NET_PKT_TYPE_E pkt_type);
+VXLAN_HEAD_S * VXLAN_GetVxlanHeader(IN void *pkt_buf, IN int buf_len, IN NET_PKT_TYPE_E pkt_type);
 int VXLAN_GetInnerPktType(IN VXLAN_HEAD_S *vxlan_header, int is_ip_vxlan);
-char * VXLAN_Header2String(VXLAN_HEAD_S *vxlan_header,
-        OUT CHAR *info, UINT infosize);
-void * VXLAN_GetInnerIPPkt(VXLAN_HEAD_S *vxlan_header,
-        int buf_len, int is_ip_vxlan);
+char * VXLAN_Header2String(VXLAN_HEAD_S *vxlan_header, OUT CHAR *info, UINT infosize);
+void * VXLAN_GetInnerIPPkt(VXLAN_HEAD_S *vxlan_header, int buf_len, int is_ip_vxlan);
 
 #ifdef __cplusplus
 }

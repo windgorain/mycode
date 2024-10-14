@@ -17,7 +17,7 @@
 #include <linux/limits.h>
 #include <net/if.h>
 #include <bpf/libbpf.h>
-#include <bpf/xsk.h>
+#include <xdp/xsk.h>
 #include <bpf/bpf.h>
 
 typedef struct

@@ -15,7 +15,7 @@ extern "C"
 #define _MEM_LINE_HIGH_MAX (_MEM_LINE_MAX / _MEM_LINE_LOW_MAX)
 #define _MEM_MAX_LEVEL 27
 
-#define _MEM_DFT_CHECK_VALUE 0x0a0b0c0d
+#define _MEM_DFT_CHECK_VALUE 0xaabbccdd
 
 static inline U32 _mem_get_size_by_level(int level)
 {

@@ -1,5 +1,6 @@
 /*================================================================
 *   Created by LiXingang
+*   Author: Xingang.Li  Version: 1.0  Date: 2017-10-2
 *   Description: 
 *
 ================================================================*/
@@ -7,14 +8,12 @@
 #include "utl/list_sl.h"
 #include "utl/free_list.h"
 
-int FreeList_Init(FREE_LIST_S *list)
+void FreeList_Init(FREE_LIST_S *list)
 {
     memset(list, 0, sizeof(FREE_LIST_S));
-
-    return 0;
 }
 
-int FreeList_Puts(FREE_LIST_S *list, void *nodes, UINT node_len, UINT nodes_count)
+void FreeList_Puts(FREE_LIST_S *list, void *nodes, UINT node_len, UINT nodes_count)
 {
     int i;
     unsigned char *tmp = nodes;
@@ -24,7 +23,5 @@ int FreeList_Puts(FREE_LIST_S *list, void *nodes, UINT node_len, UINT nodes_coun
         node = tmp + i*node_len;
         SL_AddHead(&list->free_list, node);
     }
-
-    return 0;
 }
 

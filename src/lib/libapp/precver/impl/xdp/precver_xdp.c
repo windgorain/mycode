@@ -13,7 +13,7 @@
 #include "../../h/precver_ev.h"
 #include <linux/if_link.h>
 #include <bpf/libbpf.h>
-#include <bpf/xsk.h>
+#include <xdp/xsk.h>
 #include <bpf/bpf.h>
 
 typedef struct {

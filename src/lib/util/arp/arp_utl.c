@@ -44,14 +44,16 @@ MBUF_S * ARP_BuildPacket
     static UCHAR aucBroadcastMac[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
     pstMbuf = MBUF_Create(MBUF_DATA_DATA, 200 + sizeof(ARP_HEADER_S));
-    if (NULL == pstMbuf)
-    {
+    if (NULL == pstMbuf) {
         return NULL;
     }
 
     MBUF_Prepend(pstMbuf, sizeof(ARP_HEADER_S));
     MBUF_MakeContinue(pstMbuf, sizeof(ARP_HEADER_S));
     pstArpHeader = MBUF_MTOD(pstMbuf);
+    if (! pstArpHeader) {
+        return NULL;
+    }
 
     Mem_Zero(pstArpHeader, sizeof(ARP_HEADER_S));
     

@@ -29,19 +29,6 @@ typedef struct tagDL_HEAD
     DL_NODE_S* pstFirst; 
 } DL_HEAD_S;
 
-static inline VOID DL_Init(IN DL_HEAD_S* pstList);
-static inline VOID DL_NodeInit(IN DL_NODE_S* pstNode);
-static inline BOOL_T DL_IsEmpty(IN const DL_HEAD_S* pstList);
-static inline DL_NODE_S* DL_First(IN const DL_HEAD_S* pstList);
-static inline DL_NODE_S* DL_Next(IN const DL_NODE_S* pstNode);
-static inline DL_NODE_S* DL_Prev(IN const DL_NODE_S* pstNode);
-static inline DL_NODE_S* DL_DelHead(IN const DL_HEAD_S* pstList);
-static inline VOID DL_AddAfter(IN DL_NODE_S* pstPrev, IN DL_NODE_S* pstInst);
-static inline VOID DL_AddAfterPtr (IN DL_NODE_S **ppstPre, IN DL_NODE_S  *pstInst);
-static inline VOID DL_AddBefore(IN DL_NODE_S* pstNext, IN DL_NODE_S* pstInst);
-static inline VOID DL_Append(IN DL_HEAD_S* pstDstList, IN DL_HEAD_S* pstSrcList);
-static inline VOID DL_FreeAll(IN DL_HEAD_S *pstList, IN VOID (*pfFree)(VOID *));
-
 static inline VOID DL_Init(IN DL_HEAD_S* pstList)
 {
     pstList->pstFirst = (DL_NODE_S*)NULL;

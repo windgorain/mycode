@@ -14,9 +14,12 @@
     extern "C" {
 #endif 
 
+#define TXT_STRING_ARRAY(_x, _v) _x[] = _v; _x[sizeof(_v) - 1] = '\0'
+
 
 #define TXT_CONST_STRCMP(name, str)  ({ \
         char _str[] = (str); \
+        _str[sizeof(str) - 1] = '\0'; \
         strcmp((name), _str); \
         })
 

@@ -238,7 +238,7 @@ static int map_hash_add_node(MAP_HANDLE map, LDATA_S *key, void *pData, void *no
     return 0;
 }
 
-static BS_STATUS map_hash_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag)
+static int map_hash_add(MAP_HANDLE map, VOID *pKey, UINT uiKeyLen, VOID *pData, UINT flag)
 {
     MAP_HASH_NODE_S *pstNode;
     UINT hash_factor;

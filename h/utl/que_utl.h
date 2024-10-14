@@ -69,25 +69,25 @@ int SQUE_Count(SQUE_S * s);
 
 #if 1 
 
+typedef struct BLOCK_QUE_S BLOCK_QUE_S;
+
 typedef void (*PF_BLOCK_QUE_FREE)(void *node, void *ud);
 
-typedef struct BLOCK_QUE_STRUCT *BLOCKQUE_HANDLE;
+BLOCK_QUE_S * BlockQue_Create(void);
+void BlockQue_Destroy(BLOCK_QUE_S *q, PF_BLOCK_QUE_FREE free_func, void *ud);
+void BlockQue_DelAll(BLOCK_QUE_S *q, PF_BLOCK_QUE_FREE free_func, void *ud);
+BOOL_T BlockQue_IsEmpty(BLOCK_QUE_S *q);
+BOOL_T BlockQue_IsNeedWake(BLOCK_QUE_S *q);
+void BlockQue_SetNeedWait(BLOCK_QUE_S *q, BOOL_T need);
+void BlockQue_Put(BLOCK_QUE_S *q, STQ_NODE_S *node);
 
-BLOCKQUE_HANDLE BlockQue_Create();
-void BlockQue_Destroy(BLOCKQUE_HANDLE q, PF_BLOCK_QUE_FREE free_func, void *ud);
-void BlockQue_DelAll(BLOCKQUE_HANDLE q, PF_BLOCK_QUE_FREE free_func, void *ud);
-BOOL_T BlockQue_IsEmpty(BLOCKQUE_HANDLE q);
-BOOL_T BlockQue_IsNeedWake(BLOCKQUE_HANDLE q);
-void BlockQue_SetNeedWait(BLOCKQUE_HANDLE q, BOOL_T need);
-void BlockQue_Put(BLOCKQUE_HANDLE q, STQ_NODE_S *node);
+void * BlockQue_Poll(BLOCK_QUE_S *q);
 
-void * BlockQue_Poll(BLOCKQUE_HANDLE q);
+void * BlockQue_Take(BLOCK_QUE_S *q);
 
-void * BlockQue_Take(BLOCKQUE_HANDLE q);
-
-void * BlockQue_CondTake(BLOCKQUE_HANDLE q);
-void * BlockQue_Peek(BLOCKQUE_HANDLE q);
-int BlockQue_Count(BLOCKQUE_HANDLE q);
+void * BlockQue_CondTake(BLOCK_QUE_S *q);
+void * BlockQue_Peek(BLOCK_QUE_S *q);
+int BlockQue_Count(BLOCK_QUE_S *q);
 
 #endif
 

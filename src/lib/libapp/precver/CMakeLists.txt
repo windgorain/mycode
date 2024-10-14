@@ -30,5 +30,6 @@ ENDIF()
 
 IF (USE_XDP)    
 add_subdirectory(./impl/xdp)
+target_link_libraries(${LIB_NAME} xdp)
 ENDIF()
 

@@ -90,6 +90,8 @@ extern "C" {
     #define PLUG_HDL    HINSTANCE 
     #define PLUG_LOAD(pcPlugFilePath)                  (PLUG_HDL)LoadLibraryA(pcPlugFilePath)
     #define PLUG_FREE(ulPlugId)                        FreeLibrary(ulPlugId)
+    #define PLUG_RAW_LOAD(pcPlugFilePath)              (PLUG_HDL)LoadLibraryA(pcPlugFilePath)
+    #define PLUG_RAW_FREE(ulPlugId)                    FreeLibrary(ulPlugId)
     #define PLUG_GET_FUNC_BY_NAME(ulPlugId,pcFuncName) GetProcAddress(ulPlugId, pcFuncName)
     #define THREAD_LOCAL __declspec(thread) 
 #endif
@@ -102,6 +104,8 @@ extern "C" {
 #define PLUG_HDL void*
 #define PLUG_LOAD(pcPlugFilePath)   PLUG_LoadLib(pcPlugFilePath)
 #define PLUG_FREE(ulPlugId)         PLUG_UnloadLib(ulPlugId)
+#define PLUG_RAW_LOAD(pcPlugFilePath)  dlopen(pcPlugFilePath, RTLD_NOW)
+#define PLUG_RAW_FREE(ulPlugId)     dlclose(ulPlugId)
 #define PLUG_GET_FUNC_BY_NAME(ulPlugId,pcFuncName)    dlsym((PLUG_HDL)ulPlugId,pcFuncName)
 #define THREAD_LOCAL __thread
 #endif

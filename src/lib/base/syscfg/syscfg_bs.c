@@ -17,7 +17,7 @@ static CHAR * g_pcSysconfigFileName = "config.ini";
 
 static void syscfg_init()
 {
-    if (g_pcSysconfigFileName != NULL) {
+    if (g_pcSysconfigFileName) {
         g_hSysCfgCff = CFF_INI_Open(g_pcSysconfigFileName, CFF_FLAG_READ_ONLY);
     }
 }

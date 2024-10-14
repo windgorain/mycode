@@ -32,7 +32,7 @@ static int _br_if_fwd_each(IN MAP_ELE_S *pstEle, IN VOID *ud)
     return 0;
 }
 
-BR_HANDLE BR_Create()
+BR_HANDLE BR_Create(void)
 {
     BR_CTRL_S *br = MEM_ZMalloc(sizeof(BR_CTRL_S));
     if (! br) {

@@ -150,7 +150,7 @@ static uint64_t estimate_tsc_freq(void)
 	return NUM_NEAR_ALIGN(RDTSC_Get() - start, CYC_PER_10MHZ);
 }
 
-UINT64 RDTSC_GetHz()
+UINT64 RDTSC_GetHz(void)
 {
 	UINT64 freq;
 

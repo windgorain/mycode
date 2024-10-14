@@ -15,12 +15,7 @@ void RCU_Init(INOUT RCU_S *rcu)
     SpinLock_Init(&rcu->stLock);
 }
 
-VOID RCU_Call
-(
-    IN RCU_HANDLE hRcuHandle,
-    IN RCU_NODE_S *pstRcuNode,
-    IN PF_RCU_FREE_FUNC pfFreeFunc
-)
+VOID RCU_Call(RCU_HANDLE hRcuHandle, RCU_NODE_S *pstRcuNode, PF_RCU_FREE_FUNC pfFreeFunc)
 {
     RCU_S *pstRcuCtrl = hRcuHandle;
     BOOL_T bFreeJust = TRUE;
@@ -28,16 +23,13 @@ VOID RCU_Call
     pstRcuNode->pfFunc = pfFreeFunc;
 
     SpinLock_Lock(&pstRcuCtrl->stLock);
-    if ((pstRcuCtrl->auiCounter[0] + pstRcuCtrl->auiCounter[1]) > 0)
-    {
-        SL_AddHead(&pstRcuCtrl->free_list[pstRcuCtrl->uiCurrentPhase],
-                &pstRcuNode->node);
+    if ((pstRcuCtrl->auiCounter[0] + pstRcuCtrl->auiCounter[1]) > 0) {
+        SL_AddHead(&pstRcuCtrl->free_list[pstRcuCtrl->uiCurrentPhase], &pstRcuNode->node);
         bFreeJust = FALSE;
     }
     SpinLock_UnLock(&pstRcuCtrl->stLock);
 
-    if (bFreeJust == TRUE)
-    {
+    if (bFreeJust == TRUE) {
         pfFreeFunc(pstRcuNode);
     }
 }
@@ -70,10 +62,8 @@ VOID RCU_UnLock(IN RCU_HANDLE hRcuHandle, IN UINT uiPhase)
     uiCurrentPhase = pstRcuCtrl->uiCurrentPhase;
     uiNextPhase = (uiCurrentPhase + 1) & 0x1;
 
-    if (pstRcuCtrl->auiCounter[uiNextPhase] == 0)
-    {
-        if (pstRcuCtrl->auiCounter[uiCurrentPhase] == 0)
-        {
+    if (pstRcuCtrl->auiCounter[uiNextPhase] == 0) {
+        if (pstRcuCtrl->auiCounter[uiCurrentPhase] == 0) {
             SL_Append(&free_list, &pstRcuCtrl->free_list[uiCurrentPhase]);
         }
 

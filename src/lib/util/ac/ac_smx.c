@@ -193,7 +193,7 @@ acsmx_ConvertNfa2Dfa (ACSMX_S * acsm)
     SQUE_Final (queue);
 }
 
-ACSMX_S * ACSMX_New()
+ACSMX_S * ACSMX_New(void)
 {
     ACSMX_S * p;
     p = (void *) MEM_ZMalloc(sizeof (ACSMX_S));

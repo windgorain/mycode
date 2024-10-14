@@ -164,7 +164,7 @@ BS_STATUS EXEC_OutInfo(const char *fmt, ...)
     return BS_OK;
 }
 
-VOID EXEC_Flush()
+VOID EXEC_Flush(void)
 {
     EXEC_S *exec = EXEC_GetExec();
 
@@ -173,7 +173,7 @@ VOID EXEC_Flush()
     }
 }
 
-UCHAR EXEC_GetChar()
+UCHAR EXEC_GetChar(void)
 {
     EXEC_S *exec = EXEC_GetExec();
     
@@ -233,7 +233,7 @@ void EXEC_OutDataHex(UCHAR *pucMem, int len)
 }
 
 
-void EXEC_OutErrCodeInfo()
+void EXEC_OutErrCodeInfo(void)
 {
     char info[1024];
     EXEC_OutInfo("%s \r\n", ErrCode_Build(info, sizeof(info)));

@@ -1,5 +1,6 @@
 /*================================================================
 *   Created by LiXingang
+*   Author: Xingang.Li  Version: 1.0  Date: 2017-10-4
 *   Description: 
 *
 ================================================================*/
@@ -24,8 +25,7 @@ BOOL_T VXLAN_Valid(IN VXLAN_HEAD_S *vxlan_header)
     return TRUE;
 }
 
-VXLAN_HEAD_S * VXLAN_GetVxlanHeader(IN void *pkt_buf,
-        IN int buf_len, IN NET_PKT_TYPE_E pkt_type)
+VXLAN_HEAD_S * VXLAN_GetVxlanHeader(IN void *pkt_buf, int buf_len, NET_PKT_TYPE_E pkt_type)
 {
     UDP_HEAD_S *udp_header;
     UINT head_len = 0;
@@ -61,8 +61,7 @@ int VXLAN_GetInnerPktType(IN VXLAN_HEAD_S *vxlan_header, int is_ip_vxlan)
 }
 
 
-void * VXLAN_GetInnerIPPkt(VXLAN_HEAD_S *vxlan_header,
-        int buf_len, int is_ip_vxlan)
+void * VXLAN_GetInnerIPPkt(VXLAN_HEAD_S *vxlan_header, int buf_len, int is_ip_vxlan )
 {
     int left_len;
     int inner_pkt_type;

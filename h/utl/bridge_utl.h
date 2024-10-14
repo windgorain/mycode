@@ -25,7 +25,7 @@ typedef struct {
 
 typedef void (*PF_BR_OUTPUT)(IF_INDEX ifindex, BR_PKT_S *pkt, void *ud, UINT flag);
 
-BR_HANDLE BR_Create();
+BR_HANDLE BR_Create(void);
 void BR_Destroy(BR_HANDLE br);
 int BR_AddIf(BR_HANDLE br, IF_INDEX ifindex);
 void BR_DelIf(BR_HANDLE br, IF_INDEX ifindex);

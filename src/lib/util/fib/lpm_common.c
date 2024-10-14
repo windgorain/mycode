@@ -1,5 +1,6 @@
 /*================================================================
 *   Created by LiXingang
+*   Author: lixingang  Version: 1.0  Date: 2015-5-2
 *   Description: 
 *
 ================================================================*/
@@ -82,10 +83,12 @@ int LPM_EnableRecording(IN LPM_S *lpm)
     return 0;
 }
 
-int LPM_Add(IN LPM_S *lpm, UINT ip, UCHAR depth, UINT64 nexthop)
+int LPM_Add(IN LPM_S *lpm, UINT ip, UCHAR depth, UINT64 nexthop )
 {
     UINT mask = PREFIX_2_MASK(depth);
     ip = ip & mask;
+
+    BS_DBGASSERT(lpm->level);
 
     if (! lpm->recording_map) {
         return lpm->funcs->add_func(lpm, ip, depth, nexthop);
@@ -132,6 +135,35 @@ void LPM_Final(LPM_S *lpm)
     }
 
     lpm->funcs->final_func(lpm);
+}
+
+int LPM_SetLevel(LPM_S *lpm, int level, int first_bit_num)
+{
+    int i;
+
+    BS_DBGASSERT(level>= 2);
+    BS_DBGASSERT(level<= 8);
+    BS_DBGASSERT(first_bit_num >= 8);
+    BS_DBGASSERT(first_bit_num <= 24);
+    BS_DBGASSERT(lpm->bit_num[0] == 0);
+
+    int other_bit_num = (32 - first_bit_num) / (level - 1);
+
+    BS_DBGASSERT(other_bit_num * (level - 1) + first_bit_num == 32);
+
+    int ret = lpm->funcs->set_level_func(lpm, level, first_bit_num);
+    if (ret < 0) {
+        return ret;
+    }
+
+    lpm->bit_num[0] = first_bit_num;
+    for (i=1; i<level; i++) {
+        lpm->bit_num[i] = other_bit_num;
+    }
+
+    lpm->level = level;
+
+    return 0;
 }
 
 int LPM_Del(IN LPM_S *lpm, UINT ip, UCHAR depth, UCHAR new_depth, UINT64 new_nexthop)

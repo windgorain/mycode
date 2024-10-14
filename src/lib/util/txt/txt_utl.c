@@ -937,17 +937,13 @@ UINT TXT_Strlcpy(IN CHAR *pcDest, IN CHAR *pcSrc, IN UINT uiSize)
     ULONG n;
     CHAR *p;
 
-    for (p = pcDest, n = 0; n + 1 < uiSize && *pcSrc != '\0';  ++p, ++pcSrc, ++n)
-    {
+    for (p = pcDest, n = 0; n + 1 < uiSize && *pcSrc != '\0';  ++p, ++pcSrc, ++n) {
         *p = *pcSrc;
     }
     *p = '\0';
-    if(*pcSrc == '\0')
-    {
+    if(*pcSrc == '\0') {
         return n;
-    }
-    else
-    {
+    } else {
         return n + strlen (pcSrc);
     }
 }

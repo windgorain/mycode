@@ -31,7 +31,7 @@ ADDRESS_POOL_HANDLE AddressPool_Create(void *memcap);
 void AddressPool_Destroy(ADDRESS_POOL_HANDLE hList);
 LIST_RULE_LIST_S * AddressPool_FindListByName(IN ADDRESS_POOL_HANDLE pool, IN CHAR *pcListName);
 int AddressPool_AddIpList(IN ADDRESS_POOL_HANDLE hList, char *pcListName);
-BS_STATUS AddressPool_DelIpList(IN ADDRESS_POOL_HANDLE hList, IN CHAR *pcName);
+int AddressPool_DelIpList(IN ADDRESS_POOL_HANDLE hList, IN char *pcName);
 ADDRESS_POOL_NODE_S * AddressPool_FindIpNode(IN LIST_RULE_LIST_S *pstList, UINT ip, UCHAR prefix);
 int AddressPool_DelIp(IN LIST_RULE_LIST_S *pstList, UINT ip, UCHAR prefix);
 int AddressPool_AddIp(IN LIST_RULE_LIST_S *pstList, UINT ip, UCHAR prefix);

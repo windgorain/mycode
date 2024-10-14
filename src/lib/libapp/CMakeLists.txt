@@ -33,6 +33,7 @@ add_subdirectory(./signal_slot)
 add_subdirectory(./super)
 add_subdirectory(./bpffunc)
 add_subdirectory(./pcie_simu)
+add_subdirectory(./xgw)
 
 #add_subdirectory(./ldap)
 #add_subdirectory(./bridge)

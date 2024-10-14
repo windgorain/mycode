@@ -13,7 +13,7 @@ extern "C"
 
 
 #ifdef __X86__
-static inline UINT64 RDTSC_Get()
+static inline UINT64 RDTSC_Get(void)
 {
 	union {
 		uint64_t tsc_64;
@@ -33,7 +33,7 @@ static inline UINT64 RDTSC_Get()
 
 #if 0
 #ifdef __ARM__
-static inline UINT64 RDTSC_Get()
+static inline UINT64 RDTSC_Get(void)
 {
 	unsigned tsc;
 	UINT64 final_tsc;
@@ -49,7 +49,7 @@ static inline UINT64 RDTSC_Get()
 #endif
 
 #ifndef __X86__
-static inline UINT64 RDTSC_Get()
+static inline UINT64 RDTSC_Get(void)
 {
     struct timespec val;
     UINT64 v;
@@ -65,7 +65,7 @@ extern UINT64 RDTSC_HZ;
 extern UINT64 RDTSC_MS_HZ;
 extern UINT64 RDTSC_US_HZ;
 
-UINT64 RDTSC_GetHz();
+UINT64 RDTSC_GetHz(void);
 
 #ifdef __cplusplus
 }

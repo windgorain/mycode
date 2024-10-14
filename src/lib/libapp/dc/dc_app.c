@@ -250,7 +250,7 @@ VOID DC_APP_DelTbl
     return;
 }
 
-BS_STATUS DC_APP_AddObject
+int DC_APP_AddObject
 (
     IN DC_APP_HANDLE hDcApp,
     IN CHAR *pcTableName,

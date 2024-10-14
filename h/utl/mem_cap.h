@@ -32,13 +32,12 @@ static inline void memcap_defaule_free(void *buf, const char *file, int line)
     _mem_Free(buf, file, line);
 }
 
-static inline int MemCap_Init(MEM_CAP_S *mem_cap, PF_MemCap_Malloc cap_malloc,
+static inline void MemCap_Init(MEM_CAP_S *mem_cap, PF_MemCap_Malloc cap_malloc,
         PF_MemCap_Free cap_free, PF_MemCap_Call cap_call)
 {
     mem_cap->cap_malloc = cap_malloc;
     mem_cap->cap_free = cap_free;
     mem_cap->cap_call = cap_call;
-    return 0;
 }
 
 static inline void * _MemCap_Malloc(MEM_CAP_S *mem_cap, int size, const char *file, int line)

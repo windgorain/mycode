@@ -17,7 +17,8 @@ extern "C"
 #ifdef IN_ULC_USER
 
 #undef strlcpy
-int strlcpy(char *dst, char *src, int size);
+
+size_t strlcpy(char *__dest, const char *__src, size_t __n);
 
 static void * (*ulc_sys_malloc)(int size) = (void *)ULC_ID_MALLOC;
 static void (*ulc_sys_free)(void *m) = (void *)ULC_ID_FREE;

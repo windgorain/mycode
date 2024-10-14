@@ -1,5 +1,6 @@
 /*================================================================
 *   Created：LiXingang All rights reserved.
+*   Author: lixingang  Version: 1.0  Date: 2015-5-2
 *   Description: 
 *
 ================================================================*/
@@ -334,9 +335,9 @@ static void lpm_final(void *plpm)
 static int lpm_init_freelist(LPM_S *lpm)
 {
     int start = (1 << lpm->bit_num[0]);
-    int num = (1 << lpm->bit_num[1]);
-    int left = lpm->array_size - start;
-    int block_count = left / num;
+    int num = (1 << lpm->bit_num[1]); 
+    int left = lpm->array_size - start; 
+    int block_count = left / num; 
     int i;
 
     for (i=0; i<block_count; i++) {
@@ -353,24 +354,7 @@ static int lpm_set_level(void *plpm, int level, int first_bit_num)
 {
     LPM_S *lpm = plpm;
 
-    BS_DBGASSERT(level>= 2);
-    BS_DBGASSERT(level<= 8);
-    BS_DBGASSERT(first_bit_num >= 8);
-    BS_DBGASSERT(first_bit_num <= 24);
-    BS_DBGASSERT(lpm->bit_num[0] == 0);
-
-    int other_bit_num = (32 - first_bit_num) / (level - 1);
-
-    BS_DBGASSERT(other_bit_num * (level - 1) + first_bit_num == 32);
     BS_DBGASSERT(lpm->array_size > (1<<first_bit_num));
-
-    int i;
-    lpm->bit_num[0] = first_bit_num;
-    for (i=1; i<level; i++) {
-        lpm->bit_num[i] = other_bit_num;
-    }
-
-    lpm->level = level;
 
     lpm_init_freelist(lpm);
 

@@ -237,6 +237,7 @@ aux_source_directory(./load_dbs SRC)
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 aux_source_directory(./coroutine SRC)
+aux_source_directory(./ovsdb SRC)
 ENDIF ()
 
 IF (USE_MYSQL)

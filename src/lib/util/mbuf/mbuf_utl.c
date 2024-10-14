@@ -17,7 +17,7 @@
 
 #define _MBUF_NEAT_LEN  512
 
-MBUF_CLUSTER_S * MBUF_CreateCluster ()
+MBUF_CLUSTER_S * MBUF_CreateCluster (void)
 {
     MBUF_CLUSTER_S *pstCluster;
 
@@ -47,7 +47,7 @@ VOID MBUF_FreeCluster (IN MBUF_CLUSTER_S *pstCluster)
     return;
 }
 
-MBUF_MBLK_S * MBUF_CreateMblk()
+MBUF_MBLK_S * MBUF_CreateMblk(void)
 {
     return MEM_ZMalloc(sizeof(MBUF_MBLK_S));
 }
